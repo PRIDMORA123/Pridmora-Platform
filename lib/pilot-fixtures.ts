@@ -1,5 +1,5 @@
 /**
- * Development-only pilot fixtures for Identity Version 1.0 acceptance testing.
+ * Development-only pilot fixtures for Version 1.0 acceptance testing.
  * Do not import or seed these into production.
  */
 
@@ -342,7 +342,7 @@ export const pilotFixtures: Client[] = [
 export const pilotFixtureMeta = {
   environment: "development" as const,
   description:
-    "Representative coaching relationships for Identity Version 1.0 pilot acceptance testing.",
+    "Representative coaching relationships for Pridmora Development Platform Version 1.0 pilot acceptance testing.",
   clients: {
     A: "New relationship — purpose agreed, ready for preparation",
     B: "Prepared — ready to start first conversation",

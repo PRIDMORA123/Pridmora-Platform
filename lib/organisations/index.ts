@@ -10,12 +10,16 @@ export type {
   OrganisationPermission,
   AssignmentRole,
   SafeOversightMetrics,
+  OrganisationLicence,
+  PractitionerSeatSummary,
+  LicenceStatus,
 } from "@/lib/organisations/types";
 
 export {
   MEMBERSHIP_ROLE_LABELS,
   MEMBERSHIP_ROLE_DESCRIPTIONS,
   ORGANISATION_TYPE_LABELS,
+  LICENCE_STATUS_LABELS,
 } from "@/lib/organisations/types";
 
 export {
@@ -33,6 +37,16 @@ export {
   countAwaitingSessionNotes,
   METRIC_DEFINITIONS,
 } from "@/lib/organisations/metric-definitions";
+
+export {
+  countPractitionerSeatsInUse,
+  memberConsumesPractitionerSeat,
+  assertPractitionerSeatAvailable,
+  formatSeatsInUseLabel,
+  buildPractitionerSeatSummary,
+  loadPractitionerSeatUsage,
+  NO_PRACTITIONER_SEAT_AVAILABLE_MESSAGE,
+} from "@/lib/organisations/licence";
 
 export {
   hasPermission,

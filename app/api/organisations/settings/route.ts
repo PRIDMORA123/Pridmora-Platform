@@ -5,6 +5,10 @@ import {
 } from "@/lib/organisations/current-organisation";
 import { writeOrganisationAudit } from "@/lib/organisations/repository";
 import { ORGANISATION_TYPES } from "@/lib/organisations/types";
+import {
+  formatSeatsInUseLabel,
+  loadPractitionerSeatUsage,
+} from "@/lib/organisations/licence";
 import { DEFAULT_PREPARATION_STYLE, parsePreparationStyle } from "@/lib/preparation-style";
 
 export const runtime = "nodejs";
@@ -17,6 +21,23 @@ export async function GET() {
   // Members can view basic settings of their current org.
   const org = auth.context.organisation.organisation;
 
+  let seatsLabel = "—";
+  let seats = {
+    seatsPurchased: org.licence.seatsPurchased,
+    seatsInUse: 0,
+    seatsAvailable: org.licence.seatsPurchased,
+  };
+  try {
+    const usage = await loadPractitionerSeatUsage(
+      auth.context.supabase,
+      org.id
+    );
+    seats = usage.summary;
+    seatsLabel = formatSeatsInUseLabel(usage.summary);
+  } catch {
+    // Licence columns may be absent pre-migration; fall back to org defaults.
+  }
+
   return NextResponse.json({
     settings: {
       id: org.id,
@@ -27,6 +48,16 @@ export async function GET() {
       dataRetentionPolicyLabel: org.dataRetentionPolicyLabel,
       brandingStatus: org.brandingStatus,
       logoUrl: org.logoUrl,
+      licence: {
+        planName: org.licence.planName,
+        status: org.licence.status,
+        startsAt: org.licence.startsAt,
+        endsAt: org.licence.endsAt,
+        seatsPurchased: seats.seatsPurchased,
+        seatsInUse: seats.seatsInUse,
+        seatsAvailable: seats.seatsAvailable,
+        seatsLabel,
+      },
     },
     canManage: !denied,
   });
@@ -83,6 +114,7 @@ export async function PATCH(request: Request) {
       updates.data_retention_policy_label = body.dataRetentionPolicyLabel.trim();
     }
 
+    // Licence metadata is operator-managed for pilot — not editable via this API.
     const organisationId = auth.context.organisation.organisationId;
     const { error } = await auth.context.supabase
       .from("organisations")

@@ -4,12 +4,14 @@ import type {
   MembershipRole,
   Organisation,
   OrganisationContext,
+  OrganisationLicence,
   OrganisationMembership,
   OrganisationType,
   ProfessionalRole,
   RelationshipAssignment,
 } from "@/lib/organisations/types";
 import { parseMembershipRole } from "@/lib/organisations/permissions";
+import { mapOrganisationLicence } from "@/lib/organisations/licence";
 
 type OrgRow = {
   id: string;
@@ -23,9 +25,22 @@ type OrgRow = {
   data_retention_policy_label: string;
   branding_status: string;
   logo_url: string | null;
+  licence_plan_name?: string | null;
+  practitioner_seats_purchased?: number | null;
+  licence_status?: string | null;
+  licence_starts_at?: string | null;
+  licence_ends_at?: string | null;
   created_at: string;
   updated_at: string;
   archived_at: string | null;
+};
+
+const DEFAULT_LICENCE: OrganisationLicence = {
+  planName: "Pilot",
+  seatsPurchased: 1,
+  status: "active",
+  startsAt: null,
+  endsAt: null,
 };
 
 type MembershipRow = {
@@ -59,6 +74,23 @@ type AssignmentRow = {
 };
 
 export function mapOrganisation(row: OrgRow): Organisation {
+  const licence =
+    row.licence_plan_name != null ||
+    row.practitioner_seats_purchased != null ||
+    row.licence_status != null
+      ? mapOrganisationLicence({
+          licence_plan_name: row.licence_plan_name ?? null,
+          practitioner_seats_purchased: row.practitioner_seats_purchased ?? null,
+          licence_status: row.licence_status ?? null,
+          licence_starts_at: row.licence_starts_at ?? null,
+          licence_ends_at: row.licence_ends_at ?? null,
+        })
+      : {
+          ...DEFAULT_LICENCE,
+          seatsPurchased:
+            row.organisation_type === "personal" ? 1 : 5,
+        };
+
   return {
     id: row.id,
     name: row.name,
@@ -71,6 +103,7 @@ export function mapOrganisation(row: OrgRow): Organisation {
     dataRetentionPolicyLabel: row.data_retention_policy_label ?? "standard",
     brandingStatus: (row.branding_status as Organisation["brandingStatus"]) ?? "none",
     logoUrl: row.logo_url,
+    licence,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     archivedAt: row.archived_at,
@@ -112,7 +145,19 @@ export function mapAssignment(row: AssignmentRow): RelationshipAssignment {
 }
 
 const ORG_SELECT =
+  "id, name, slug, organisation_type, status, created_by, default_preparation_style, ai_enabled, data_retention_policy_label, branding_status, logo_url, licence_plan_name, practitioner_seats_purchased, licence_status, licence_starts_at, licence_ends_at, created_at, updated_at, archived_at";
+
+/** Pre-licence-migration select — used when licence columns are absent. */
+const ORG_SELECT_LEGACY =
   "id, name, slug, organisation_type, status, created_by, default_preparation_style, ai_enabled, data_retention_policy_label, branding_status, logo_url, created_at, updated_at, archived_at";
+
+function isMissingLicenceColumnError(message: string): boolean {
+  return (
+    /licence_plan_name|practitioner_seats_purchased|licence_status|licence_starts_at|licence_ends_at/i.test(
+      message
+    ) && /does not exist|schema cache|could not find/i.test(message)
+  );
+}
 
 const MEMBERSHIP_SELECT =
   "id, organisation_id, user_id, role, professional_role, status, invited_by, invited_at, joined_at, deactivated_at, last_active_at, created_at, updated_at";
@@ -147,12 +192,26 @@ export async function listUserMemberships(
   supabase: SupabaseClient,
   userId: string
 ): Promise<Array<{ membership: OrganisationMembership; organisation: Organisation }>> {
-  const { data, error } = await supabase
+  const primary = await supabase
     .from("organisation_memberships")
     .select(`${MEMBERSHIP_SELECT}, organisations (${ORG_SELECT})`)
     .eq("user_id", userId)
     .eq("status", "active")
     .order("created_at", { ascending: true });
+
+  let rows = primary.data as unknown[] | null;
+  let error = primary.error;
+
+  if (error && isMissingLicenceColumnError(error.message)) {
+    const legacy = await supabase
+      .from("organisation_memberships")
+      .select(`${MEMBERSHIP_SELECT}, organisations (${ORG_SELECT_LEGACY})`)
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .order("created_at", { ascending: true });
+    rows = legacy.data as unknown[] | null;
+    error = legacy.error;
+  }
 
   if (error) {
     if (/does not exist|schema cache|could not find/i.test(error.message)) {
@@ -166,12 +225,15 @@ export async function listUserMemberships(
     organisation: Organisation;
   }> = [];
 
-  for (const row of data ?? []) {
-    const orgRaw = (row as { organisations?: OrgRow | OrgRow[] | null }).organisations;
+  for (const row of rows ?? []) {
+    const typed = row as {
+      organisations?: OrgRow | OrgRow[] | null;
+    } & MembershipRow;
+    const orgRaw = typed.organisations;
     const org = Array.isArray(orgRaw) ? orgRaw[0] : orgRaw;
     if (!org || org.status !== "active") continue;
     results.push({
-      membership: mapMembership(row as unknown as MembershipRow),
+      membership: mapMembership(typed),
       organisation: mapOrganisation(org),
     });
   }
@@ -206,11 +268,24 @@ export async function getOrganisation(
   supabase: SupabaseClient,
   organisationId: string
 ): Promise<Organisation | null> {
-  const { data, error } = await supabase
+  const primary = await supabase
     .from("organisations")
     .select(ORG_SELECT)
     .eq("id", organisationId)
     .maybeSingle();
+
+  let row = primary.data as OrgRow | null;
+  let error = primary.error;
+
+  if (error && isMissingLicenceColumnError(error.message)) {
+    const legacy = await supabase
+      .from("organisations")
+      .select(ORG_SELECT_LEGACY)
+      .eq("id", organisationId)
+      .maybeSingle();
+    row = legacy.data as OrgRow | null;
+    error = legacy.error;
+  }
 
   if (error) {
     if (/does not exist|schema cache|could not find/i.test(error.message)) {
@@ -219,7 +294,7 @@ export async function getOrganisation(
     throw new Error(error.message);
   }
 
-  return data ? mapOrganisation(data as OrgRow) : null;
+  return row ? mapOrganisation(row) : null;
 }
 
 export async function getActiveAssignment(

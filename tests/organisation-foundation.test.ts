@@ -57,4 +57,18 @@ describe("organisation foundation source guards", () => {
     expect(permissions).toContain("organisation.view_safe_oversight");
     expect(permissions).toContain("members.invite");
   });
+
+  it("ships an organisation licence migration without billing automation", () => {
+    const path = "supabase/migrations/20260802150000_organisation_licence.sql";
+    expect(existsSync(join(root, path))).toBe(true);
+    const sql = read(path);
+    expect(sql).toContain("licence_plan_name");
+    expect(sql).toContain("practitioner_seats_purchased");
+    expect(sql).toContain("licence_status");
+    expect(sql).toContain("licence_starts_at");
+    expect(sql).toContain("licence_ends_at");
+    expect(sql.toLowerCase()).not.toMatch(/\bstripe\b/);
+    expect(sql.toLowerCase()).not.toMatch(/\binvoice\b/);
+    expect(sql).not.toMatch(/create table.*subscription/i);
+  });
 });

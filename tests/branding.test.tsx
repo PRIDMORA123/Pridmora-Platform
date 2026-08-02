@@ -169,8 +169,37 @@ describe("Pridmora Development Platform branding", () => {
       "utf8"
     );
     expect(journey).toContain("DEVELOPMENT JOURNEY");
+    expect(journey).toContain("DEVELOPMENT EVOLUTION TIMELINE");
     expect(journey).not.toContain("PROFESSIONAL IDENTITY JOURNEY");
+    expect(journey).not.toContain("IDENTITY EVOLUTION TIMELINE");
     expect(intelligence).toContain("Open Development Journey");
     expect(intelligence).not.toContain("Professional Identity Journey");
+  });
+
+  it("AI actor copy uses Pridmora Intelligence", () => {
+    const modeConfig = readFileSync(
+      resolve(process.cwd(), "lib/coaching-intelligence/mode-config.ts"),
+      "utf8"
+    );
+    const preparation = readFileSync(
+      resolve(process.cwd(), "lib/preparation-workspace.ts"),
+      "utf8"
+    );
+    const coachingJourney = readFileSync(
+      resolve(process.cwd(), "lib/coaching-journey/coaching-journey.ts"),
+      "utf8"
+    );
+    const reportView = readFileSync(
+      resolve(process.cwd(), "components/coaching-report-view.tsx"),
+      "utf8"
+    );
+    expect(modeConfig).toContain("BRAND.intelligenceName");
+    expect(modeConfig).not.toMatch(/"Identity (will|reviews)/);
+    expect(preparation).toContain("BRAND.intelligenceName");
+    expect(preparation).not.toMatch(/"Identity brings/);
+    expect(coachingJourney).toContain("BRAND.intelligenceName");
+    expect(coachingJourney).not.toMatch(/what Identity has organised/);
+    expect(reportView).toContain("BRAND.journeyName");
+    expect(reportView).not.toContain("Professional Identity Journey");
   });
 });

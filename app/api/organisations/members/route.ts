@@ -9,6 +9,12 @@ import {
   parseMembershipRole,
 } from "@/lib/organisations/permissions";
 import { writeOrganisationAudit } from "@/lib/organisations/repository";
+import {
+  assertPractitionerSeatAvailable,
+  loadPractitionerSeatUsage,
+  memberAlreadyConsumesSeat,
+  wouldMembershipConsumeSeat,
+} from "@/lib/organisations/licence";
 import type { MembershipRole, ProfessionalRole } from "@/lib/organisations/types";
 
 export const runtime = "nodejs";
@@ -60,6 +66,11 @@ export async function GET() {
       assignmentCounts.set(uid, (assignmentCounts.get(uid) ?? 0) + 1);
     }
 
+    const seatUsage = await loadPractitionerSeatUsage(
+      auth.context.supabase,
+      organisationId
+    );
+
     // Emails via auth are not available through RLS profiles — return safe placeholders.
     // Member email is known at invite time; for existing members we expose profile name only.
     const members = (memberships ?? []).map(m => ({
@@ -76,7 +87,14 @@ export async function GET() {
       deactivatedAt: m.deactivated_at,
     }));
 
-    return NextResponse.json({ members, canManage });
+    return NextResponse.json({
+      members,
+      canManage,
+      seats: {
+        ...seatUsage.summary,
+        label: `${seatUsage.summary.seatsInUse} of ${seatUsage.summary.seatsPurchased} in use`,
+      },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to load members.";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -130,6 +148,7 @@ export async function PATCH(request: Request) {
       updated_at: new Date().toISOString(),
     };
 
+    let nextRole = existing.role as MembershipRole;
     if (body.role !== undefined) {
       const role = parseMembershipRole(body.role);
       if (!role || !canAssignRole(auth.context.organisation.role, role)) {
@@ -139,6 +158,7 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: "Cannot modify the owner." }, { status: 403 });
       }
       updates.role = role;
+      nextRole = role;
     }
 
     if (body.professionalRole !== undefined) {
@@ -146,6 +166,7 @@ export async function PATCH(request: Request) {
         typeof body.professionalRole === "string" ? body.professionalRole : null;
     }
 
+    let nextStatus = existing.status as string;
     if (body.status === "deactivated") {
       const deactivateDenied = requireOrganisationPermission(
         auth.context,
@@ -154,9 +175,48 @@ export async function PATCH(request: Request) {
       if (deactivateDenied) return deactivateDenied;
       updates.status = "deactivated";
       updates.deactivated_at = new Date().toISOString();
+      nextStatus = "deactivated";
     } else if (body.status === "active") {
       updates.status = "active";
       updates.deactivated_at = null;
+      nextStatus = "active";
+    }
+
+    // Seat enforcement: block role→practitioner or reactivation when no seat remains.
+    const seatUsage = await loadPractitionerSeatUsage(
+      auth.context.supabase,
+      organisationId
+    );
+    const currentlyConsumes = memberAlreadyConsumesSeat(
+      existing.user_id as string,
+      seatUsage.memberships,
+      seatUsage.assignments
+    );
+    const hasActiveAssignment = seatUsage.assignments.some(
+      row => row.userId === existing.user_id && row.status === "active"
+    );
+    const hasPractitionerAccess = seatUsage.assignments.some(
+      row =>
+        row.userId === existing.user_id &&
+        row.status === "active" &&
+        (row.assignmentRole === "primary" ||
+          row.assignmentRole === "co_practitioner" ||
+          row.assignmentRole === "cover")
+    );
+    const wouldConsume = wouldMembershipConsumeSeat({
+      role: nextRole,
+      status: nextStatus,
+      hasActiveRelationshipAssignment: hasActiveAssignment,
+      hasPractitionerAccess,
+    });
+    const seatBlock = assertPractitionerSeatAvailable({
+      licenceStatus: seatUsage.licence.status,
+      seatsPurchased: seatUsage.licence.seatsPurchased,
+      seatsInUse: seatUsage.summary.seatsInUse,
+      wouldNewlyConsumeSeat: wouldConsume && !currentlyConsumes,
+    });
+    if (seatBlock) {
+      return NextResponse.json({ error: seatBlock }, { status: 409 });
     }
 
     const { error: updateError } = await auth.context.supabase

@@ -39,7 +39,7 @@ function SummaryStatusBanner({ status }: { status: SummaryStatus }) {
     return (
       <IdentityIntelligencePanel
         level="insight"
-        title="Identity Summary"
+        title="Summary draft"
         reviewState="draft"
         evidenceLabel="AI may assist with a draft. Only you can approve it."
         compact

@@ -1,5 +1,46 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { writeOrganisationAudit } from "@/lib/organisations/repository";
+import {
+  assertPractitionerSeatAvailable,
+  assignmentWouldNewlyConsumeSeat,
+  loadPractitionerSeatUsage,
+  memberAlreadyConsumesSeat,
+} from "@/lib/organisations/licence";
+
+async function assertSeatForNewAssignment(input: {
+  supabase: SupabaseClient;
+  organisationId: string;
+  userId: string;
+}): Promise<void> {
+  const seatUsage = await loadPractitionerSeatUsage(
+    input.supabase,
+    input.organisationId
+  );
+  const membership = seatUsage.memberships.find(
+    row => row.userId === input.userId
+  );
+  if (!membership || membership.status !== "active") {
+    throw new Error("Target user is not an active organisation member.");
+  }
+
+  const alreadyConsumes = memberAlreadyConsumesSeat(
+    input.userId,
+    seatUsage.memberships,
+    seatUsage.assignments
+  );
+  const wouldNewly = assignmentWouldNewlyConsumeSeat({
+    role: membership.role,
+    status: membership.status,
+    alreadyConsumesSeat: alreadyConsumes,
+  });
+  const seatBlock = assertPractitionerSeatAvailable({
+    licenceStatus: seatUsage.licence.status,
+    seatsPurchased: seatUsage.licence.seatsPurchased,
+    seatsInUse: seatUsage.summary.seatsInUse,
+    wouldNewlyConsumeSeat: wouldNewly,
+  });
+  if (seatBlock) throw new Error(seatBlock);
+}
 
 /**
  * Transfer primary practitioner assignment.
@@ -26,7 +67,7 @@ export async function transferPrimaryAssignment(input: {
 
   const { data: membership } = await input.supabase
     .from("organisation_memberships")
-    .select("id, status")
+    .select("id, status, role")
     .eq("organisation_id", input.organisationId)
     .eq("user_id", input.toUserId)
     .eq("status", "active")
@@ -35,6 +76,12 @@ export async function transferPrimaryAssignment(input: {
   if (!membership) {
     throw new Error("Target user is not an active organisation member.");
   }
+
+  await assertSeatForNewAssignment({
+    supabase: input.supabase,
+    organisationId: input.organisationId,
+    userId: input.toUserId,
+  });
 
   const now = new Date().toISOString();
 
@@ -108,6 +155,24 @@ export async function assignRelationship(input: {
     });
     return;
   }
+
+  const { data: membership } = await input.supabase
+    .from("organisation_memberships")
+    .select("id, status, role")
+    .eq("organisation_id", input.organisationId)
+    .eq("user_id", input.userId)
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (!membership) {
+    throw new Error("Target user is not an active organisation member.");
+  }
+
+  await assertSeatForNewAssignment({
+    supabase: input.supabase,
+    organisationId: input.organisationId,
+    userId: input.userId,
+  });
 
   const now = new Date().toISOString();
   const { error } = await input.supabase.from("relationship_assignments").insert({

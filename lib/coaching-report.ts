@@ -315,11 +315,11 @@ export function buildIdentityDevelopmentSection(
         `• Session ${event.sessionNumber}${event.date ? ` (${event.date})` : ""}: ${event.title}`
     );
     parts.push(
-      `Identity evolution evidenced across approved sessions:\n${evolutionLines.join("\n")}`
+      `Development evolution evidenced across approved sessions:\n${evolutionLines.join("\n")}`
     );
   } else {
     parts.push(
-      "Identity evolution: no meaningful identity shifts were recorded across the selected approved sessions."
+      "Development evolution: no meaningful development shifts were recorded across the selected approved sessions."
     );
   }
 

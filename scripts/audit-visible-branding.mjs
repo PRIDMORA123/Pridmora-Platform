@@ -72,6 +72,26 @@ const VISIBLE_LEGACY_PATTERNS = [
     name: "Identity-generated",
     re: /Identity-generated/,
   },
+  {
+    name: "Identity as product actor",
+    re: /\bIdentity (will|reviews|brings|is|does|has)\b/,
+  },
+  {
+    name: "Use Identity (product)",
+    re: /\bUse Identity\b/,
+  },
+  {
+    name: "Identity Summary (product)",
+    re: /\bIdentity Summary\b/,
+  },
+  {
+    name: "Identity Version (product)",
+    re: /\bIdentity Version\b/,
+  },
+  {
+    name: "IDENTITY EVOLUTION (product UI)",
+    re: /\bIDENTITY EVOLUTION\b/,
+  },
 ];
 
 const INTERNAL_LEGACY_RE = [

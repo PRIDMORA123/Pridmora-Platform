@@ -7,6 +7,7 @@ import { SessionErrorMessage } from "@/components/session/session-error-message"
 import { SummaryInsightsView } from "@/components/summary-insights/summary-insights-view";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
 import { serialiseError } from "@/lib/api-client";
+import { BRAND } from "@/lib/brand";
 import {
   contentFromSession,
   serialiseSummaryContent,
@@ -250,8 +251,8 @@ export function SessionSummaryReview({
       {!hasSummary ? (
         <section className="session-summary-review__empty">
           <p>
-            Use Identity to organise the session notes and identify grounded
-            themes.
+            Use {BRAND.intelligenceName} to organise the session notes and
+            identify grounded themes.
           </p>
           <div className="button-row">
             <ActionButton

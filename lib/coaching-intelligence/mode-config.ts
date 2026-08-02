@@ -1,3 +1,4 @@
+import { BRAND } from "@/lib/brand";
 import type {
   CoachingIntelligenceMode,
   IntelligenceSource,
@@ -19,8 +20,7 @@ export const COACHING_INTELLIGENCE_MODES: Record<
   manual: {
     label: "Manual",
     shortDescription: "Prepare independently without AI-generated guidance.",
-    fullDescription:
-      "Identity will provide the preparation workspace and your saved coaching records, but it will not analyse them or generate suggestions.",
+    fullDescription: `${BRAND.intelligenceName} will provide the preparation workspace and your saved coaching records, but it will not analyse them or generate suggestions.`,
     sources: [],
     outputs: [],
     aiEnabled: false,
@@ -30,8 +30,7 @@ export const COACHING_INTELLIGENCE_MODES: Record<
     label: "Assisted",
     shortDescription:
       "Light support using the latest reviewed coaching information.",
-    fullDescription:
-      "Identity reviews the previous conversation, approved summary and open commitments to suggest a concise focus and useful questions.",
+    fullDescription: `${BRAND.intelligenceName} reviews the previous conversation, approved summary and open commitments to suggest a concise focus and useful questions.`,
     sources: [
       "previous_conversations",
       "approved_summaries",
@@ -49,8 +48,7 @@ export const COACHING_INTELLIGENCE_MODES: Record<
     label: "Comprehensive",
     shortDescription:
       "Deeper preparation using the wider reviewed coaching journey.",
-    fullDescription:
-      "Identity reviews the wider coaching record to identify relevant themes, evidence, commitments and questions for the next conversation.",
+    fullDescription: `${BRAND.intelligenceName} reviews the wider coaching record to identify relevant themes, evidence, commitments and questions for the next conversation.`,
     sources: [
       "previous_conversations",
       "approved_summaries",

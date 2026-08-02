@@ -72,6 +72,13 @@ export async function requireOrganisationContext(options?: {
               dataRetentionPolicyLabel: "standard",
               brandingStatus: "none",
               logoUrl: null,
+              licence: {
+                planName: "Pilot",
+                seatsPurchased: 1,
+                status: "active",
+                startsAt: null,
+                endsAt: null,
+              },
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
               archivedAt: null,

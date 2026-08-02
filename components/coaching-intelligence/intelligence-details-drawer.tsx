@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { createPortal } from "react-dom";
+import { BRAND } from "@/lib/brand";
 import { COACHING_INTELLIGENCE_MODES } from "@/lib/coaching-intelligence/mode-config";
 import type {
   CoachingIntelligenceMode,
@@ -179,9 +180,9 @@ export function IntelligenceDetailsDrawer({
           <section className="intelligence-evidence-rule">
             <h3>Professional safeguard</h3>
             <p>
-              Identity does not approve coaching insights. Generated content
-              remains proposed until you review and decide what should be
-              retained.
+              {BRAND.intelligenceName} does not approve coaching insights.
+              Generated content remains proposed until you review and decide
+              what should be retained.
             </p>
 
             {lastRefreshedAt ? (

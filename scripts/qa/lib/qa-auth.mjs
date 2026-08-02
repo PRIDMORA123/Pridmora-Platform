@@ -3,6 +3,10 @@
  * Cookies are established via Playwright sign-in so they match @supabase/ssr.
  */
 import { chromium } from "playwright";
+import {
+  cleanupDisposableAuthUser,
+  verifyDisposableUserCleanup,
+} from "./qa-disposable-user-cleanup.mjs";
 import { createAdminClient } from "./qa-supabase.mjs";
 
 export async function createCoachAccount(context, coachIndex) {
@@ -110,14 +114,26 @@ export async function ensureCoachCookies(context, coach) {
   return establishCoachCookies(context, coach);
 }
 
+/**
+ * Delete disposable auth users after removing personal-org dependents.
+ * organisations.created_by (NO ACTION) blocks bare deleteUser.
+ */
 export async function deleteAuthUsers(admin, userIds) {
   let deleted = 0;
   for (const userId of userIds) {
     try {
-      const { error } = await admin.auth.admin.deleteUser(userId);
-      if (!error) deleted += 1;
-    } catch {
-      // continue cleanup
+      await cleanupDisposableAuthUser(admin, userId, {
+        log: () => {},
+      });
+      await verifyDisposableUserCleanup(admin, userId);
+      deleted += 1;
+    } catch (error) {
+      console.error("cleanupDisposableAuthUser failed", {
+        userId,
+        code: error?.code || null,
+        safeDetails: error?.safeDetails || null,
+        message: String(error?.message || "").slice(0, 120),
+      });
     }
   }
   return deleted;

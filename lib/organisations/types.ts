@@ -64,6 +64,30 @@ export const ORGANISATION_PERMISSIONS = [
 
 export type OrganisationPermission = (typeof ORGANISATION_PERMISSIONS)[number];
 
+export const LICENCE_STATUSES = [
+  "active",
+  "trial",
+  "expired",
+  "suspended",
+] as const;
+
+export type LicenceStatus = (typeof LICENCE_STATUSES)[number];
+
+/** Manual organisation licence metadata (no billing automation). */
+export type OrganisationLicence = {
+  planName: string;
+  seatsPurchased: number;
+  status: LicenceStatus;
+  startsAt: string | null;
+  endsAt: string | null;
+};
+
+export type PractitionerSeatSummary = {
+  seatsPurchased: number;
+  seatsInUse: number;
+  seatsAvailable: number;
+};
+
 export type Organisation = {
   id: string;
   name: string;
@@ -76,6 +100,7 @@ export type Organisation = {
   dataRetentionPolicyLabel: string;
   brandingStatus: "none" | "placeholder" | "configured";
   logoUrl: string | null;
+  licence: OrganisationLicence;
   createdAt: string;
   updatedAt: string;
   archivedAt: string | null;
@@ -185,4 +210,11 @@ export const ORGANISATION_TYPE_LABELS: Record<OrganisationType, string> = {
   public_sector: "Public sector",
   education: "Education",
   other: "Other",
+};
+
+export const LICENCE_STATUS_LABELS: Record<LicenceStatus, string> = {
+  active: "Active",
+  trial: "Trial",
+  expired: "Expired",
+  suspended: "Suspended",
 };

@@ -1,8 +1,10 @@
 /**
- * Single source of truth for the Identity six-stage coaching journey.
+ * Single source of truth for the six-stage coaching journey.
  * Visible architecture must follow these stages even when legacy route
  * names remain internally.
  */
+
+import { BRAND } from "@/lib/brand";
 
 export const COACHING_JOURNEY_STAGE_IDS = [
   "current_position",
@@ -55,8 +57,7 @@ export const COACHING_JOURNEY_STAGES: readonly CoachingJourneyStageDefinition[] 
       id: "summary_insights",
       label: "Summary & Insights",
       shortLabel: "Insights",
-      description:
-        "Review what Identity has organised from the approved evidence.",
+      description: `Review what ${BRAND.intelligenceName} has organised from the approved evidence.`,
       optional: true,
     },
     {

@@ -1,5 +1,5 @@
 /**
- * Central Identity product language — user-facing labels and messages.
+ * Central product language — user-facing labels and messages.
  * Prefer these over ad-hoc software terminology in the UI.
  */
 

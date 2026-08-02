@@ -22,6 +22,7 @@ import {
 import { ClientWorkspaceTabs } from "@/components/client-workspace-tabs";
 import { requireBrowserAuth } from "@/lib/auth/browser";
 import { apiJson, AuthRequiredError, errorMessage, toError } from "@/lib/api-client";
+import { BRAND } from "@/lib/brand";
 
 type GenerateStatus = "idle" | "loading" | "ready" | "error";
 
@@ -298,8 +299,9 @@ export function CoachingReportView({
           <p className="eyebrow">COACHING REPORT</p>
           <h1>{client.name}</h1>
           <p>
-            Create a factual coaching report from approved sessions and the Professional Identity
-            Journey™. Preview and edit before export — you remain responsible for the final report.
+            Create a factual coaching report from approved sessions and the{" "}
+            {BRAND.journeyName}. Preview and edit before export — you remain
+            responsible for the final report.
           </p>
         </div>
       </div>

@@ -6,6 +6,10 @@ import type {
 } from "@/lib/organisations/types";
 import { canAssignRole } from "@/lib/organisations/permissions";
 import { writeOrganisationAudit } from "@/lib/organisations/repository";
+import {
+  assertPractitionerSeatAvailable,
+  loadPractitionerSeatUsage,
+} from "@/lib/organisations/licence";
 
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -34,6 +38,21 @@ export async function createOrganisationInvitation(input: {
   const email = input.email.trim().toLowerCase();
   if (!email || !email.includes("@")) {
     throw new Error("A valid email address is required.");
+  }
+
+  // Practitioner invites consume a seat on accept — reserve capacity at invite time.
+  if (input.role === "practitioner") {
+    const seatUsage = await loadPractitionerSeatUsage(
+      input.supabase,
+      input.organisationId
+    );
+    const seatBlock = assertPractitionerSeatAvailable({
+      licenceStatus: seatUsage.licence.status,
+      seatsPurchased: seatUsage.licence.seatsPurchased,
+      seatsInUse: seatUsage.summary.seatsInUse,
+      wouldNewlyConsumeSeat: true,
+    });
+    if (seatBlock) throw new Error(seatBlock);
   }
 
   // Revoke any existing pending invite for this email.
@@ -110,6 +129,24 @@ export async function acceptOrganisationInvitation(input: {
     throw new Error("This invitation was issued for a different email address.");
   }
 
+  const organisationId = invite.organisation_id as string;
+  const inviteRole = invite.role as MembershipRole;
+
+  // Re-check seat capacity at accept time for practitioner roles.
+  if (inviteRole === "practitioner") {
+    const seatUsage = await loadPractitionerSeatUsage(
+      input.supabase,
+      organisationId
+    );
+    const seatBlock = assertPractitionerSeatAvailable({
+      licenceStatus: seatUsage.licence.status,
+      seatsPurchased: seatUsage.licence.seatsPurchased,
+      seatsInUse: seatUsage.summary.seatsInUse,
+      wouldNewlyConsumeSeat: true,
+    });
+    if (seatBlock) throw new Error(seatBlock);
+  }
+
   // Single-use: mark accepted before creating membership.
   const { data: claimed, error: claimError } = await input.supabase
     .from("organisation_invitations")
@@ -130,7 +167,7 @@ export async function acceptOrganisationInvitation(input: {
     .from("organisation_memberships")
     .upsert(
       {
-        organisation_id: invite.organisation_id,
+        organisation_id: organisationId,
         user_id: input.userId,
         role: invite.role,
         professional_role: invite.professional_role,
@@ -148,22 +185,22 @@ export async function acceptOrganisationInvitation(input: {
   await input.supabase
     .from("profiles")
     .update({
-      current_organisation_id: invite.organisation_id,
+      current_organisation_id: organisationId,
       updated_at: new Date().toISOString(),
     })
     .eq("id", input.userId);
 
   await writeOrganisationAudit({
     supabase: input.supabase,
-    organisationId: invite.organisation_id as string,
+    organisationId,
     actorUserId: input.userId,
     action: "member_joined",
     entityType: "organisation_membership",
-    entityId: invite.organisation_id as string,
+    entityId: organisationId,
     metadata: { role: invite.role, invitationId: invite.id },
   });
 
-  return { organisationId: invite.organisation_id as string };
+  return { organisationId };
 }
 
 export async function revokeOrganisationInvitation(input: {

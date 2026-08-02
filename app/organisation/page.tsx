@@ -10,8 +10,16 @@ import {
 import { apiJson } from "@/lib/api-client";
 import type { SafeOversightMetrics } from "@/lib/organisations/types";
 
+type SeatsPayload = {
+  seatsPurchased: number;
+  seatsInUse: number;
+  seatsAvailable: number;
+  label: string;
+};
+
 export default function OrganisationOverviewPage() {
   const [metrics, setMetrics] = useState<SafeOversightMetrics | null>(null);
+  const [seats, setSeats] = useState<SeatsPayload | null>(null);
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -22,10 +30,12 @@ export default function OrganisationOverviewPage() {
       try {
         const payload = await apiJson<{
           metrics: SafeOversightMetrics;
+          seats?: SeatsPayload;
           confidentialityNote: string;
         }>("/api/organisations/overview");
         if (!active) return;
         setMetrics(payload.metrics);
+        setSeats(payload.seats ?? null);
         setNote(payload.confidentialityNote);
       } catch (err) {
         if (!active) return;
@@ -57,6 +67,13 @@ export default function OrganisationOverviewPage() {
       {metrics ? (
         <>
           <OrganisationInfoBanner>{note}</OrganisationInfoBanner>
+
+          {seats ? (
+            <div className="organisation-seats-summary organisation-seats-summary--overview">
+              <p className="organisation-seats-summary__label">Seats</p>
+              <p className="organisation-seats-summary__value">{seats.label}</p>
+            </div>
+          ) : null}
 
           <div className="organisation-metric-groups">
             <MetricGroup title="People">

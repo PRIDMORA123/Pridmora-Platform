@@ -1,3 +1,4 @@
+import { BRAND } from "@/lib/brand";
 import type { Client, Session } from "@/lib/types";
 import {
   formatPreparationGeneratedAt,
@@ -59,18 +60,15 @@ const SUPPORT_COPY: Record<
 > = {
   minimal: {
     title: "Manual Brief",
-    description:
-      "Identity brings together the latest approved coaching information, commitments and coach notes.",
+    description: `${BRAND.intelligenceName} brings together the latest approved coaching information, commitments and coach notes.`,
   },
   guided: {
     title: "Assisted Brief",
-    description:
-      "Identity brings together the latest approved information and proposes themes, coaching questions and one reflection prompt.",
+    description: `${BRAND.intelligenceName} brings together the latest approved information and proposes themes, coaching questions and one reflection prompt.`,
   },
   enhanced: {
     title: "Comprehensive Brief",
-    description:
-      "Identity brings together the latest approved information and proposes wider patterns, development direction and additional questions.",
+    description: `${BRAND.intelligenceName} brings together the latest approved information and proposes wider patterns, development direction and additional questions.`,
   },
 };
 

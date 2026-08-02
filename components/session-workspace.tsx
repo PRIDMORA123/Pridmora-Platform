@@ -40,6 +40,7 @@ import {
   serialiseError,
 } from "@/lib/api-client";
 import { ApiRequestError } from "@/lib/api-failure";
+import { BRAND } from "@/lib/brand";
 import { buildCoachWorkspaceViewModel } from "@/lib/coach-workspace";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
@@ -1326,7 +1327,7 @@ export function SessionWorkspace({
                   disabled={generatingUpdate}
                   title={
                     generatingUpdate
-                      ? "Identity is completing the development update"
+                      ? `${BRAND.intelligenceName} is completing the development update`
                       : undefined
                   }
                   onClick={() => {
@@ -1418,8 +1419,8 @@ export function SessionWorkspace({
         )}
         {generatingUpdate ? (
           <p className="muted" style={{ marginTop: 8 }}>
-            Identity is completing the update. Continue will be available when
-            this finishes.
+            {BRAND.intelligenceName} is completing the update. Continue will be
+            available when this finishes.
           </p>
         ) : null}
       </ConfirmDialog>

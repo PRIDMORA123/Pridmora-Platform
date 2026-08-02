@@ -264,7 +264,9 @@ export async function POST(request: Request) {
       client.organisation ? `Organisation: ${client.organisation}` : "",
       client.role ? `Role: ${client.role}` : "",
       client.current_focus ? `Recorded focus: ${client.current_focus}` : "",
-      client.identity_summary ? `Identity summary: ${client.identity_summary}` : "",
+      client.identity_summary
+        ? `Professional identity summary: ${client.identity_summary}`
+        : "",
       client.coach_insight ? `Coach insight: ${client.coach_insight}` : "",
     ]
       .filter(Boolean)

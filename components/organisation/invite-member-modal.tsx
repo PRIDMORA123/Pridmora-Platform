@@ -17,6 +17,7 @@ type InviteMemberModalProps = {
   open: boolean;
   roles: MembershipRole[];
   busy: boolean;
+  seatsAvailable?: number | null;
   onClose: () => void;
   onInvite: (input: {
     email: string;
@@ -29,6 +30,7 @@ export function InviteMemberModal({
   open,
   roles,
   busy,
+  seatsAvailable = null,
   onClose,
   onInvite,
 }: InviteMemberModalProps) {
@@ -156,7 +158,13 @@ export function InviteMemberModal({
           <IdentityButton
             type="submit"
             variant="primary"
-            disabled={busy || !email.trim()}
+            disabled={
+              busy ||
+              !email.trim() ||
+              (role === "practitioner" &&
+                seatsAvailable != null &&
+                seatsAvailable < 1)
+            }
           >
             {busy ? "Sending…" : "Send invitation"}
           </IdentityButton>
@@ -204,6 +212,14 @@ export function InviteMemberModal({
         <p id={roleHelpId} className="organisation-field-hint">
           {MEMBERSHIP_ROLE_DESCRIPTIONS[role]}
         </p>
+        {role === "practitioner" &&
+        seatsAvailable != null &&
+        seatsAvailable < 1 ? (
+          <p className="organisation-error" role="status">
+            No practitioner seats available. Choose another role, or deactivate
+            an existing practitioner to free a seat.
+          </p>
+        ) : null}
 
         <label className="organisation-field" htmlFor={professionalId}>
           <span>Professional role, optional</span>

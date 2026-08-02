@@ -6,10 +6,15 @@ import { OrganisationShell } from "@/components/organisation/organisation-shell"
 import { SettingsSection } from "@/components/organisation/settings-section";
 import { apiJson } from "@/lib/api-client";
 import { BRAND } from "@/lib/brand";
-import { retentionPolicyDisplayLabel } from "@/lib/organisations/format";
 import {
+  formatOrganisationDate,
+  retentionPolicyDisplayLabel,
+} from "@/lib/organisations/format";
+import {
+  LICENCE_STATUS_LABELS,
   ORGANISATION_TYPE_LABELS,
   ORGANISATION_TYPES,
+  type LicenceStatus,
   type OrganisationType,
 } from "@/lib/organisations/types";
 import {
@@ -28,6 +33,16 @@ type Settings = {
   dataRetentionPolicyLabel: string;
   brandingStatus: string;
   logoUrl: string | null;
+  licence: {
+    planName: string;
+    status: LicenceStatus;
+    startsAt: string | null;
+    endsAt: string | null;
+    seatsPurchased: number;
+    seatsInUse: number;
+    seatsAvailable: number;
+    seatsLabel: string;
+  };
 };
 
 export default function OrganisationSettingsPage() {
@@ -102,6 +117,48 @@ export default function OrganisationSettingsPage() {
 
       {settings ? (
         <div className="organisation-settings">
+          <SettingsSection
+            title="Licence"
+            description="Pilot licence details for this organisation. Seat allocation is managed outside the product."
+          >
+            <dl className="organisation-licence-meta">
+              <div>
+                <dt>Plan</dt>
+                <dd>{settings.licence.planName}</dd>
+              </div>
+              <div>
+                <dt>Status</dt>
+                <dd>
+                  {LICENCE_STATUS_LABELS[settings.licence.status] ??
+                    settings.licence.status}
+                </dd>
+              </div>
+              <div>
+                <dt>Start date</dt>
+                <dd>{formatOrganisationDate(settings.licence.startsAt)}</dd>
+              </div>
+              <div>
+                <dt>End / renewal</dt>
+                <dd>{formatOrganisationDate(settings.licence.endsAt)}</dd>
+              </div>
+            </dl>
+            <div className="organisation-seats-summary" aria-live="polite">
+              <p className="organisation-seats-summary__label">Seats</p>
+              <p className="organisation-seats-summary__value">
+                {settings.licence.seatsLabel}
+              </p>
+              <p className="organisation-field-hint">
+                {settings.licence.seatsAvailable === 1
+                  ? "1 practitioner seat available."
+                  : `${settings.licence.seatsAvailable} practitioner seats available.`}{" "}
+                Owners, administrators and oversight members use a seat only when
+                they also have practitioner access or active relationship
+                assignments. Deactivating a member releases the seat without
+                deleting history.
+              </p>
+            </div>
+          </SettingsSection>
+
           <SettingsSection title="Workspace details">
             <label className="organisation-field" htmlFor={nameId}>
               <span>Organisation name</span>

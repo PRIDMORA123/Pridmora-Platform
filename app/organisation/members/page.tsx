@@ -18,6 +18,12 @@ import { invitableRoles } from "@/lib/organisations/permissions";
 export default function OrganisationMembersPage() {
   const [members, setMembers] = useState<OrganisationMemberRow[]>([]);
   const [canManage, setCanManage] = useState(false);
+  const [seats, setSeats] = useState<{
+    seatsPurchased: number;
+    seatsInUse: number;
+    seatsAvailable: number;
+    label: string;
+  } | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [actorRole, setActorRole] = useState<MembershipRole>("administrator");
@@ -26,15 +32,23 @@ export default function OrganisationMembersPage() {
 
   const load = useCallback(async () => {
     const [membersPayload, current] = await Promise.all([
-      apiJson<{ members: OrganisationMemberRow[]; canManage: boolean }>(
-        "/api/organisations/members"
-      ),
+      apiJson<{
+        members: OrganisationMemberRow[];
+        canManage: boolean;
+        seats?: {
+          seatsPurchased: number;
+          seatsInUse: number;
+          seatsAvailable: number;
+          label: string;
+        };
+      }>("/api/organisations/members"),
       apiJson<{
         current: { role: MembershipRole };
       }>("/api/organisations/current"),
     ]);
     setMembers(membersPayload.members);
     setCanManage(membersPayload.canManage);
+    setSeats(membersPayload.seats ?? null);
     setActorRole(current.current.role);
   }, []);
 
@@ -121,6 +135,13 @@ export default function OrganisationMembersPage() {
     >
       {error ? <p className="organisation-error">{error}</p> : null}
 
+      {seats ? (
+        <div className="organisation-seats-summary">
+          <p className="organisation-seats-summary__label">Seats</p>
+          <p className="organisation-seats-summary__value">{seats.label}</p>
+        </div>
+      ) : null}
+
       {canManage ? (
         <div className="organisation-members-toolbar">
           <IdentityButton
@@ -168,6 +189,7 @@ export default function OrganisationMembersPage() {
           open={inviteOpen}
           roles={roles}
           busy={busy}
+          seatsAvailable={seats?.seatsAvailable ?? null}
           onClose={() => setInviteOpen(false)}
           onInvite={inviteMember}
         />

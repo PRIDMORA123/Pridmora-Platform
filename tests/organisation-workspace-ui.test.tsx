@@ -180,6 +180,19 @@ describe("organisation workspace UI", () => {
     expect(overview).toContain('title="Workflow"');
     expect(overview).toContain('title="Platform activity"');
     expect(overview).toContain("Active practitioners");
+    expect(overview).toContain("Seats");
+    expect(overview).toContain("seats.label");
+  });
+
+  it("settings page surfaces licence seats without billing UI", () => {
+    const settings = readFileSync(
+      join(process.cwd(), "app/organisation/settings/page.tsx"),
+      "utf8"
+    );
+    expect(settings).toContain('title="Licence"');
+    expect(settings).toContain("Seats");
+    expect(settings).toContain("seatsLabel");
+    expect(settings).not.toMatch(/stripe|invoice|payment/i);
   });
 
   it("assignments require end confirmation and labelled fields", () => {

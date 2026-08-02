@@ -4,6 +4,10 @@ import {
   requireOrganisationPermission,
 } from "@/lib/organisations/current-organisation";
 import { loadSafeOversightMetrics } from "@/lib/organisations/oversight";
+import {
+  formatSeatsInUseLabel,
+  loadPractitionerSeatUsage,
+} from "@/lib/organisations/licence";
 
 export const runtime = "nodejs";
 
@@ -26,8 +30,28 @@ export async function GET() {
       organisation.organisationType
     );
 
+    let seats = {
+      seatsPurchased: organisation.licence.seatsPurchased,
+      seatsInUse: 0,
+      seatsAvailable: organisation.licence.seatsPurchased,
+      label: "",
+    };
+    try {
+      const usage = await loadPractitionerSeatUsage(
+        auth.context.supabase,
+        organisation.id
+      );
+      seats = {
+        ...usage.summary,
+        label: formatSeatsInUseLabel(usage.summary),
+      };
+    } catch {
+      seats.label = formatSeatsInUseLabel(seats);
+    }
+
     return NextResponse.json({
       metrics,
+      seats,
       confidentialityNote:
         "Organisation oversight shows operational information only. Confidential coaching content remains available only to authorised relationship practitioners.",
     });

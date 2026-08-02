@@ -9272,6 +9272,60 @@ button.coaching-moments-section__item:focus-visible {
   border-radius: var(--identity-radius-md, 10px);
 }
 
+/* Licence / practitioner seats */
+.organisation-licence-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--identity-space-4, 16px);
+  margin: 0 0 var(--identity-space-4, 16px);
+}
+
+.organisation-licence-meta dt {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--identity-text-secondary, #687b8a);
+}
+
+.organisation-licence-meta dd {
+  margin: 0.25rem 0 0;
+  font-size: 0.95rem;
+  color: var(--identity-navy);
+}
+
+.organisation-seats-summary {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0 0 var(--identity-space-5, 20px);
+  padding: var(--identity-space-4, 16px) var(--identity-space-5, 20px);
+  background: var(--identity-white, #ffffff);
+  border: 1px solid var(--identity-border-soft, #e7ecef);
+  border-radius: var(--identity-radius-lg, 14px);
+}
+
+.organisation-seats-summary--overview {
+  max-width: 20rem;
+}
+
+.organisation-seats-summary__label {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--identity-text-secondary, #687b8a);
+}
+
+.organisation-seats-summary__value {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--identity-navy);
+  font-family: var(--identity-font-display, inherit);
+}
+
 .organisation-text-link {
   appearance: none;
   border: 0;

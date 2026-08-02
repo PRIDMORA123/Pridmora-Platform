@@ -250,11 +250,11 @@ export function JourneyView({
           <div className="intelligence-grid">
             <article className="panel wide">
               <div className="card-label">
-                <Route size={17} /> IDENTITY EVOLUTION TIMELINE
+                <Route size={17} /> DEVELOPMENT EVOLUTION TIMELINE
               </div>
               {journey.identityEvolution.length === 0 ? (
                 <p className="muted empty-journey">
-                  Identity shifts will appear here as approved sessions record development.
+                  Development shifts will appear here as approved sessions record development.
                 </p>
               ) : (
                 <div className="timeline">
