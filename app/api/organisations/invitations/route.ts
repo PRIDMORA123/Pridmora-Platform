@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireAuthenticatedUser } from "@/lib/auth/session";
 import {
   requireOrganisationContext,
   requireOrganisationPermission,
@@ -7,6 +8,7 @@ import {
   createOrganisationInvitation,
   revokeOrganisationInvitation,
   acceptOrganisationInvitation,
+  InvitationAcceptError,
 } from "@/lib/organisations/invitations";
 import { parseMembershipRole } from "@/lib/organisations/permissions";
 import type { ProfessionalRole } from "@/lib/organisations/types";
@@ -49,9 +51,6 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireOrganisationContext();
-  if (!auth.ok) return auth.response;
-
   try {
     const body = (await request.json()) as {
       action?: unknown;
@@ -62,8 +61,12 @@ export async function POST(request: Request) {
       token?: unknown;
     };
 
-    // Accept flow — any authenticated user with matching email.
+    // Accept flow — authenticated user only (no org membership required yet).
+    // Membership is created atomically by accept_organisation_invitation RPC.
     if (body.action === "accept") {
+      const auth = await requireAuthenticatedUser();
+      if (!auth.ok) return auth.response;
+
       const token = typeof body.token === "string" ? body.token : "";
       if (!token) {
         return NextResponse.json({ error: "token is required." }, { status: 400 });
@@ -71,7 +74,10 @@ export async function POST(request: Request) {
       const email = auth.context.user.email;
       if (!email) {
         return NextResponse.json(
-          { error: "Your account email is required to accept an invitation." },
+          {
+            error: "Your account email is required to accept an invitation.",
+            code: "INVITATION_EMAIL_MISMATCH",
+          },
           { status: 400 }
         );
       }
@@ -83,8 +89,17 @@ export async function POST(request: Request) {
         userEmail: email,
       });
 
-      return NextResponse.json({ ok: true, organisationId: result.organisationId });
+      return NextResponse.json({
+        ok: true,
+        organisationId: result.organisationId,
+        membershipId: result.membershipId,
+        role: result.role,
+        professionalRole: result.professionalRole,
+      });
     }
+
+    const auth = await requireOrganisationContext();
+    if (!auth.ok) return auth.response;
 
     if (body.action === "revoke") {
       const denied = requireOrganisationPermission(auth.context, "members.invite");
@@ -138,6 +153,12 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error) {
+    if (error instanceof InvitationAcceptError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: 400 }
+      );
+    }
     const message = error instanceof Error ? error.message : "Unable to process invitation.";
     return NextResponse.json({ error: message }, { status: 400 });
   }

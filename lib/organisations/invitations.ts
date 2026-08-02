@@ -96,111 +96,120 @@ export async function createOrganisationInvitation(input: {
   return { invitationId: data.id as string, token, expiresAt };
 }
 
+export const INVITATION_ACCEPT_ERROR_CODES = [
+  "INVITATION_INVALID",
+  "INVITATION_EXPIRED",
+  "INVITATION_ALREADY_USED",
+  "INVITATION_EMAIL_MISMATCH",
+  "INVITATION_MEMBERSHIP_EXISTS",
+] as const;
+
+export type InvitationAcceptErrorCode =
+  (typeof INVITATION_ACCEPT_ERROR_CODES)[number];
+
+export class InvitationAcceptError extends Error {
+  readonly code: InvitationAcceptErrorCode;
+
+  constructor(code: InvitationAcceptErrorCode, message?: string) {
+    super(message ?? invitationAcceptErrorMessage(code));
+    this.name = "InvitationAcceptError";
+    this.code = code;
+  }
+}
+
+export function invitationAcceptErrorMessage(
+  code: InvitationAcceptErrorCode
+): string {
+  switch (code) {
+    case "INVITATION_EXPIRED":
+      return "Invitation has expired.";
+    case "INVITATION_ALREADY_USED":
+      return "Invitation has already been used.";
+    case "INVITATION_EMAIL_MISMATCH":
+      return "This invitation was issued for a different email address.";
+    case "INVITATION_MEMBERSHIP_EXISTS":
+      return "You already have an active membership in this organisation.";
+    case "INVITATION_INVALID":
+    default:
+      return "Invitation not found or is no longer valid.";
+  }
+}
+
+function isInvitationAcceptErrorCode(
+  value: unknown
+): value is InvitationAcceptErrorCode {
+  return (
+    typeof value === "string" &&
+    (INVITATION_ACCEPT_ERROR_CODES as readonly string[]).includes(value)
+  );
+}
+
+/**
+ * Accept a pending invitation via SECURITY DEFINER RPC.
+ * Role / professional_role / organisation_id are taken from the invitation row —
+ * never from client-supplied fields. Direct membership INSERT remains RLS-blocked
+ * for invitees.
+ */
 export async function acceptOrganisationInvitation(input: {
   supabase: SupabaseClient;
   token: string;
   userId: string;
   userEmail: string;
-}): Promise<{ organisationId: string }> {
-  const tokenHash = hashInvitationToken(input.token);
-
-  const { data: invite, error } = await input.supabase
-    .from("organisation_invitations")
-    .select("*")
-    .eq("token_hash", tokenHash)
-    .maybeSingle();
-
-  if (error) throw new Error(error.message);
-  if (!invite) throw new Error("Invitation not found.");
-  if (invite.status !== "pending") {
-    throw new Error("Invitation is no longer valid.");
+}): Promise<{
+  organisationId: string;
+  membershipId: string;
+  role: MembershipRole;
+  professionalRole: ProfessionalRole | null;
+}> {
+  if (!input.token.trim()) {
+    throw new InvitationAcceptError("INVITATION_INVALID");
   }
-  if (new Date(invite.expires_at as string).getTime() < Date.now()) {
-    await input.supabase
-      .from("organisation_invitations")
-      .update({ status: "expired" })
-      .eq("id", invite.id);
-    throw new Error("Invitation has expired.");
+  if (!input.userEmail.trim()) {
+    throw new InvitationAcceptError("INVITATION_EMAIL_MISMATCH");
   }
 
-  const inviteEmail = String(invite.email).trim().toLowerCase();
-  const userEmail = input.userEmail.trim().toLowerCase();
-  if (inviteEmail !== userEmail) {
-    throw new Error("This invitation was issued for a different email address.");
-  }
+  const { data, error } = await input.supabase.rpc(
+    "accept_organisation_invitation",
+    { invitation_token: input.token }
+  );
 
-  const organisationId = invite.organisation_id as string;
-  const inviteRole = invite.role as MembershipRole;
-
-  // Re-check seat capacity at accept time for practitioner roles.
-  if (inviteRole === "practitioner") {
-    const seatUsage = await loadPractitionerSeatUsage(
-      input.supabase,
-      organisationId
+  if (error) {
+    // Prefer structured codes when PostgREST surfaces them in the message.
+    const maybeCode = INVITATION_ACCEPT_ERROR_CODES.find(code =>
+      error.message.includes(code)
     );
-    const seatBlock = assertPractitionerSeatAvailable({
-      licenceStatus: seatUsage.licence.status,
-      seatsPurchased: seatUsage.licence.seatsPurchased,
-      seatsInUse: seatUsage.summary.seatsInUse,
-      wouldNewlyConsumeSeat: true,
-    });
-    if (seatBlock) throw new Error(seatBlock);
+    if (maybeCode) throw new InvitationAcceptError(maybeCode);
+    throw new Error(error.message);
   }
 
-  // Single-use: mark accepted before creating membership.
-  const { data: claimed, error: claimError } = await input.supabase
-    .from("organisation_invitations")
-    .update({
-      status: "accepted",
-      accepted_at: new Date().toISOString(),
-      accepted_by: input.userId,
-    })
-    .eq("id", invite.id)
-    .eq("status", "pending")
-    .select("id")
-    .maybeSingle();
+  const payload = (data ?? null) as
+    | {
+        ok?: boolean;
+        code?: string;
+        organisation_id?: string;
+        membership_id?: string;
+        role?: string;
+        professional_role?: string | null;
+      }
+    | null;
 
-  if (claimError) throw new Error(claimError.message);
-  if (!claimed) throw new Error("Invitation has already been used.");
+  if (!payload || payload.ok !== true) {
+    const code = isInvitationAcceptErrorCode(payload?.code)
+      ? payload.code
+      : "INVITATION_INVALID";
+    throw new InvitationAcceptError(code);
+  }
 
-  const { error: membershipError } = await input.supabase
-    .from("organisation_memberships")
-    .upsert(
-      {
-        organisation_id: organisationId,
-        user_id: input.userId,
-        role: invite.role,
-        professional_role: invite.professional_role,
-        status: "active",
-        invited_by: invite.invited_by,
-        invited_at: invite.created_at,
-        joined_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "organisation_id,user_id" }
-    );
+  if (!payload.organisation_id || !payload.membership_id || !payload.role) {
+    throw new InvitationAcceptError("INVITATION_INVALID");
+  }
 
-  if (membershipError) throw new Error(membershipError.message);
-
-  await input.supabase
-    .from("profiles")
-    .update({
-      current_organisation_id: organisationId,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", input.userId);
-
-  await writeOrganisationAudit({
-    supabase: input.supabase,
-    organisationId,
-    actorUserId: input.userId,
-    action: "member_joined",
-    entityType: "organisation_membership",
-    entityId: organisationId,
-    metadata: { role: invite.role, invitationId: invite.id },
-  });
-
-  return { organisationId };
+  return {
+    organisationId: payload.organisation_id,
+    membershipId: payload.membership_id,
+    role: payload.role as MembershipRole,
+    professionalRole: (payload.professional_role as ProfessionalRole | null) ?? null,
+  };
 }
 
 export async function revokeOrganisationInvitation(input: {

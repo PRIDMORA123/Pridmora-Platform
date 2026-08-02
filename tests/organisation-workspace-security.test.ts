@@ -75,4 +75,11 @@ describe("organisation premium UI security & permission regressions", () => {
     expect(types).toContain('"viewer"');
     expect(types).not.toContain('"coach" as MembershipRole');
   });
+
+  it("accept flow uses auth-only context and structured invitation error codes", () => {
+    const route = read("app/api/organisations/invitations/route.ts");
+    expect(route).toContain("requireAuthenticatedUser");
+    expect(route).toContain("InvitationAcceptError");
+    expect(route).toContain("acceptOrganisationInvitation");
+  });
 });

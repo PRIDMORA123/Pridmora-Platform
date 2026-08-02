@@ -58,6 +58,22 @@ describe("organisation foundation source guards", () => {
     expect(permissions).toContain("members.invite");
   });
 
+  it("keeps organisation.created_by without ON DELETE so disposable cleanup must pre-delete personal orgs", () => {
+    const sql = read(
+      "supabase/migrations/20260802140000_organisation_foundation.sql"
+    );
+    expect(sql).toMatch(
+      /created_by uuid not null references auth\.users\(id\)(,|\s)/
+    );
+    // Intentionally no ON DELETE CASCADE/SET NULL on created_by —
+    // personal org rows block auth.users deletion until removed.
+    const createdByLine = sql
+      .split("\n")
+      .find(line => /created_by uuid not null references auth\.users/.test(line));
+    expect(createdByLine).toBeTruthy();
+    expect(createdByLine!.toLowerCase()).not.toContain("on delete");
+  });
+
   it("ships an organisation licence migration without billing automation", () => {
     const path = "supabase/migrations/20260802150000_organisation_licence.sql";
     expect(existsSync(join(root, path))).toBe(true);

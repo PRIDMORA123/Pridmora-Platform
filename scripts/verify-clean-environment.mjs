@@ -10,10 +10,10 @@
  */
 import { createHash, randomBytes } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
 import { readFileSync, existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { chromium } from "playwright";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const runId = `cev-${Date.now().toString(36)}`;
@@ -119,41 +119,41 @@ async function signIn(email) {
   return { client, session: data.session, user: data.user };
 }
 
-/** Real @supabase/ssr cookies via Playwright sign-in (synthetic cookies 401). */
+/** Real @supabase/ssr cookies via setSession (matches app cookie encoding). */
 const cookieCache = new Map();
 
 async function establishBrowserCookies(email) {
   if (cookieCache.has(email)) return cookieCache.get(email);
-  const browser = await chromium.launch({ headless: true });
-  try {
-    const context = await browser.newContext();
-    const page = await context.newPage();
-    await page.goto(`${appUrl}/auth/sign-in`, {
-      waitUntil: "domcontentloaded",
-      timeout: 45_000,
-    });
-    await page.locator('input[type="email"], input[name="email"]').first().fill(email);
-    await page
-      .locator('input[type="password"], input[name="password"]')
-      .first()
-      .fill(password);
-    await page.locator('button[type="submit"]').first().click();
-    await page.waitForURL(
-      url => {
-        const path =
-          typeof url === "string" ? new URL(url).pathname : url.pathname;
-        return path === "/" || !path.includes("/auth/sign-in");
+
+  const anon = authClient();
+  const { data, error } = await anon.auth.signInWithPassword({ email, password });
+  assert(!error && data.session, `cookie sign-in(${email}): ${error?.message}`);
+
+  /** @type {{ name: string, value: string }[]} */
+  const jar = [];
+  const ssr = createServerClient(url, anonKey, {
+    cookies: {
+      getAll: () => jar.map(({ name, value }) => ({ name, value })),
+      setAll: cookiesToSet => {
+        for (const item of cookiesToSet) {
+          const index = jar.findIndex(entry => entry.name === item.name);
+          if (index >= 0) jar[index] = { name: item.name, value: item.value };
+          else jar.push({ name: item.name, value: item.value });
+        }
       },
-      { timeout: 60_000 }
-    );
-    const cookies = await context.cookies();
-    assert(cookies.length > 0, `no auth cookies for ${email}`);
-    const cookieHeader = cookies.map(c => `${c.name}=${c.value}`).join("; ");
-    cookieCache.set(email, cookieHeader);
-    return cookieHeader;
-  } finally {
-    await browser.close();
-  }
+    },
+  });
+
+  const { error: setError } = await ssr.auth.setSession({
+    access_token: data.session.access_token,
+    refresh_token: data.session.refresh_token,
+  });
+  assert(!setError, `setSession(${email}): ${setError?.message}`);
+  assert(jar.length > 0, `no SSR cookies written for ${email}`);
+
+  const cookieHeader = jar.map(entry => `${entry.name}=${entry.value}`).join("; ");
+  cookieCache.set(email, cookieHeader);
+  return cookieHeader;
 }
 
 async function api(email, method, path, body) {
