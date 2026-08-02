@@ -1,0 +1,32 @@
+-- Organisation foundation — affected tables and rollback notes
+--
+-- BEFORE APPLYING IN PRODUCTION:
+-- 1. Export schema: supabase db dump -f backups/pre-org-foundation-schema.sql
+-- 2. Snapshot critical tables (clients, sessions, profiles)
+-- 3. Apply migration in a staging project first
+-- 4. Run: node --experimental-strip-types scripts/verify-organisation-migration.mjs
+--
+-- AFFECTED TABLES (organisation_id added):
+--   clients, sessions, client_items, coaching_reports,
+--   development_reports, development_profiles, development_updates,
+--   coaching_moments, intelligence_items, intelligence_evidence,
+--   session_intelligence_reviews, question_insights,
+--   person_progress_signals, intelligence_audit_log
+--
+-- NEW TABLES:
+--   organisations, organisation_memberships, organisation_invitations,
+--   relationship_assignments, organisation_audit_log,
+--   organisation_migration_review
+--
+-- RETAINED (do not drop in this migration):
+--   clients.coach_id, sessions.coach_id, and other coach_id / user_id columns
+--
+-- DEVELOPMENT ROLLBACK (destructive — never on production without export):
+--   drop trigger if exists on_profile_ensure_organisation on public.profiles;
+--   drop function if exists public.handle_new_user_organisation();
+--   drop function if exists public.ensure_personal_organisation(uuid);
+--   -- restore prior RLS policies from relationship_isolation migration
+--   -- drop new tables; drop organisation_id columns
+--
+-- Ambiguous ownership rows are written to organisation_migration_review
+-- and must be resolved explicitly — the migration does not guess.

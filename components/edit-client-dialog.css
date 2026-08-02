@@ -1,0 +1,32 @@
+.edit-client-form-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr);
+  gap: 18px;
+}
+
+.edit-client-field {
+  display: grid;
+  gap: 8px;
+}
+
+.edit-client-field--full {
+  grid-column: 1 / -1;
+}
+
+.edit-client-field > span {
+  color: var(--identity-text-primary);
+  font-size: 0.76rem;
+  font-weight: 650;
+}
+
+@media (max-width: 680px) {
+  .edit-client-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .edit-client-field--full {
+    grid-column: auto;
+  }
+}

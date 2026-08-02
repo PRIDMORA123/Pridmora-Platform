@@ -1,0 +1,217 @@
+import OpenAI from "openai";
+import { NextResponse } from "next/server";
+import { IDENTITY_SYSTEM_PROMPT } from "@/lib/ai/identity-system-prompt";
+import { IDENTITY_JOURNEY_TASK_PROMPT } from "@/lib/ai/identity-journey-prompt";
+import { requireAuthenticatedUser } from "@/lib/auth/session";
+import {
+  IDENTITY_PREFIX,
+  POSSIBLE_OBSERVATION_PREFIX,
+  type JourneyAiEvidence,
+} from "@/lib/journey";
+import { cleanJourneyLanguage } from "@/lib/journey/clean-journey-language";
+import { getApprovedRelationshipEvidence } from "@/lib/journey/load-journey-view-model";
+import {
+  assertRelationshipOwnership,
+  validateGeneratedJourney,
+} from "@/lib/relationship-scope";
+import { isUuid } from "@/lib/uuid";
+
+type IdentityJourneyRequest = {
+  clientId?: string;
+  relationshipId?: string;
+  clientName?: string;
+  evidence?: JourneyAiEvidence[];
+};
+
+export type IdentityJourneyAiResponse = {
+  currentProfessionalIdentity: string | null;
+  coachInsights: string[];
+};
+
+function parseJourneyAiOutput(raw: string): IdentityJourneyAiResponse {
+  const text = raw.trim();
+  if (!text) {
+    return { currentProfessionalIdentity: null, coachInsights: [] };
+  }
+
+  const insights: string[] = [];
+  const insightBlocks = text.split(/(?=Possible observation:)/i);
+
+  for (const block of insightBlocks) {
+    const trimmed = block.trim();
+    if (!/^Possible observation:/i.test(trimmed)) continue;
+    const body = trimmed.replace(/^Possible observation:\s*/i, "").trim();
+    if (!body) continue;
+    insights.push(`${POSSIBLE_OBSERVATION_PREFIX}\n${body.split(/\n/)[0]?.trim() || body}`);
+    if (insights.length >= 3) break;
+  }
+
+  let identitySection = text;
+  const insightsIndex = text.search(/Possible observation:/i);
+  if (insightsIndex >= 0) {
+    identitySection = text.slice(0, insightsIndex).trim();
+  }
+
+  identitySection = identitySection
+    .replace(/^1\.\s*Current Professional Identity\s*/i, "")
+    .replace(/^Current Professional Identity\s*/i, "")
+    .replace(/^2\.\s*Coach Insights\s*/i, "")
+    .trim();
+
+  let currentProfessionalIdentity = identitySection || null;
+  if (currentProfessionalIdentity && !currentProfessionalIdentity.startsWith(IDENTITY_PREFIX)) {
+    currentProfessionalIdentity = `${IDENTITY_PREFIX} ${currentProfessionalIdentity}`;
+  }
+
+  return {
+    currentProfessionalIdentity: cleanJourneyLanguage(currentProfessionalIdentity) || null,
+    coachInsights: insights.map(insight => cleanJourneyLanguage(insight)),
+  };
+}
+
+export async function POST(request: Request) {
+  const auth = await requireAuthenticatedUser();
+  if (!auth.ok) return auth.response;
+
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json(
+      { error: "OpenAI API key is not configured." },
+      { status: 500 }
+    );
+  }
+
+  let body: IdentityJourneyRequest;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+  }
+
+  const relationshipId = (body.relationshipId ?? body.clientId)?.trim();
+  if (!relationshipId || !isUuid(relationshipId)) {
+    return NextResponse.json(
+      { error: "relationshipId is required." },
+      { status: 400 }
+    );
+  }
+
+  const coachId = auth.context.coachId;
+  const supabase = auth.context.supabase;
+
+  const { data: client, error: clientError } = await supabase
+    .from("clients")
+    .select("id, name")
+    .eq("id", relationshipId)
+    .eq("coach_id", coachId)
+    .maybeSingle();
+
+  if (clientError || !client) {
+    return NextResponse.json({ error: "Relationship not found." }, { status: 404 });
+  }
+
+  const scopedEvidence = await getApprovedRelationshipEvidence(supabase, {
+    coachId,
+    relationshipId,
+  });
+
+  try {
+    assertRelationshipOwnership(relationshipId, scopedEvidence);
+  } catch {
+    console.error("[relationship-isolation] Journey AI evidence ownership failed", {
+      relationshipId,
+    });
+    return NextResponse.json(
+      { error: "Unable to confirm relationship-scoped evidence." },
+      { status: 409 }
+    );
+  }
+
+  if (scopedEvidence.length < 2) {
+    return NextResponse.json(
+      { error: "At least two approved sessions are required." },
+      { status: 400 }
+    );
+  }
+
+  const hasUsefulEvidence = scopedEvidence.some(item => item.summary || item.focus);
+  if (!hasUsefulEvidence) {
+    return NextResponse.json(
+      { error: "Approved sessions do not yet contain coaching evidence for the Journey." },
+      { status: 400 }
+    );
+  }
+
+  const { data: otherClients } = await supabase
+    .from("clients")
+    .select("name")
+    .eq("coach_id", coachId)
+    .neq("id", relationshipId);
+
+  const knownOtherNames = (otherClients ?? []).map(row => String(row.name ?? ""));
+  const coacheeName = String(client.name);
+  const openai = new OpenAI({ apiKey });
+
+  const evidenceBlock = scopedEvidence
+    .map(item =>
+      [
+        `Conversation ${item.id}`,
+        item.focus ? `Focus: ${item.focus}` : null,
+        item.summary ? `Approved summary: ${item.summary}` : null,
+      ]
+        .filter(Boolean)
+        .join("\n")
+    )
+    .join("\n\n");
+
+  const input = [
+    IDENTITY_JOURNEY_TASK_PROMPT,
+    "",
+    `relationshipId: ${relationshipId}`,
+    `coacheeName: ${coacheeName}`,
+    "",
+    "Approved session evidence:",
+    evidenceBlock,
+  ].join("\n");
+
+  try {
+    const response = await openai.responses.create({
+      model: "gpt-5.5",
+      instructions: IDENTITY_SYSTEM_PROMPT,
+      input,
+    });
+
+    const raw = response.output_text?.trim();
+    if (!raw) {
+      return NextResponse.json(
+        { error: "No Journey narrative was generated." },
+        { status: 502 }
+      );
+    }
+
+    const nameCheck = validateGeneratedJourney({
+      coacheeName,
+      text: raw,
+      knownOtherNames,
+    });
+    if (!nameCheck.valid) {
+      console.error("[relationship-isolation] Journey AI named unexpected person", {
+        relationshipId,
+        reason: nameCheck.reason,
+      });
+      return NextResponse.json(
+        { error: "Generated Journey narrative failed relationship isolation checks." },
+        { status: 422 }
+      );
+    }
+
+    const parsed = parseJourneyAiOutput(raw);
+    return NextResponse.json(parsed satisfies IdentityJourneyAiResponse);
+  } catch (error) {
+    console.error("OpenAI identity journey error:", error);
+    return NextResponse.json(
+      { error: "Failed to generate Journey narrative. Please try again." },
+      { status: 500 }
+    );
+  }
+}

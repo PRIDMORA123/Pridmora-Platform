@@ -1,0 +1,295 @@
+/* Identity Experience System™ 1.0 — canonical semantic tokens
+   Loaded after identity-design-system.css. Map legacy values onto this system. */
+
+:root {
+  /* ------------------------------------------------------------------ */
+  /* Brand — Pridmora navy & teal (single canonical family)             */
+  /* ------------------------------------------------------------------ */
+  --identity-navy-1000: #06243f;
+  --identity-navy-950: #082b4b;
+  --identity-navy-900: #0b3558;
+  --identity-navy-800: #123d62;
+  --identity-navy-700: #1b4c72;
+
+  --identity-teal-700: #168f98;
+  --identity-teal-600: #1ca5ad;
+  --identity-teal-500: #27b8bd;
+  --identity-teal-100: #dff4f3;
+  --identity-teal-050: #eff9f8;
+  --identity-teal-50: var(--identity-teal-050);
+
+  /* Semantic brand roles */
+  --identity-brand-navy: var(--identity-navy-950);
+  --identity-brand-teal: var(--identity-teal-600);
+
+  /* ------------------------------------------------------------------ */
+  /* Surfaces                                                           */
+  /* ------------------------------------------------------------------ */
+  --identity-white: #ffffff;
+  --identity-canvas: #f5f8f8;
+  --identity-page-background: var(--identity-canvas);
+  --identity-app-bg: var(--identity-canvas);
+  --identity-page-bg: var(--identity-canvas);
+  --identity-surface: #ffffff;
+  --identity-surface-soft: #f0f5f5;
+  --identity-surface-muted: #f8fafb;
+  --identity-surface-intelligence: var(--identity-teal-050);
+  --identity-surface-teal: var(--identity-surface-intelligence);
+
+  /* ------------------------------------------------------------------ */
+  /* Text                                                               */
+  /* ------------------------------------------------------------------ */
+  --identity-text-primary: var(--identity-navy-950);
+  --identity-text-body: #344652;
+  --identity-text-secondary: #687b8a;
+  --identity-text-muted: #8796a1;
+  --identity-text-disabled: #98a3aa;
+  --identity-text-inverse: #ffffff;
+
+  /* ------------------------------------------------------------------ */
+  /* Borders                                                            */
+  /* ------------------------------------------------------------------ */
+  --identity-border-light: #dae4e7;
+  --identity-border-soft: #e7ecef;
+  --identity-border-medium: #cbd9dd;
+  --identity-border-teal: #b9e1df;
+  --identity-border-focus: var(--identity-teal-600);
+
+  /* ------------------------------------------------------------------ */
+  /* Pridmora Intelligence signature (legacy token namespace retained) */
+  /* ------------------------------------------------------------------ */
+  --identity-intelligence-bg: var(--identity-surface-intelligence);
+  --identity-intelligence-border: color-mix(
+    in srgb,
+    var(--identity-teal-100) 72%,
+    var(--identity-border-soft) 28%
+  );
+  --identity-intelligence-accent: var(--identity-teal-600);
+  --identity-intelligence-label: var(--identity-teal-700);
+  --identity-intelligence-text: var(--identity-text-body);
+
+  /* ------------------------------------------------------------------ */
+  /* Approved record & coach content                                    */
+  /* ------------------------------------------------------------------ */
+  --identity-approved-border: color-mix(
+    in srgb,
+    var(--identity-success) 28%,
+    var(--identity-border-soft) 72%
+  );
+  --identity-approved-label: var(--identity-success);
+  --identity-coach-border: var(--identity-border-soft);
+  --identity-coach-bg: var(--identity-surface);
+
+  /* ------------------------------------------------------------------ */
+  /* Status                                                             */
+  /* ------------------------------------------------------------------ */
+  --identity-success: #247a52;
+  --identity-success-soft: #edf8f2;
+  --identity-success-bg: var(--identity-success-soft);
+  --identity-warning: #9a6700;
+  --identity-warning-soft: #fff7df;
+  --identity-warning-bg: var(--identity-warning-soft);
+  --identity-danger: #b42318;
+  --identity-danger-soft: #fff1f0;
+  --identity-danger-bg: var(--identity-danger-soft);
+
+  /* ------------------------------------------------------------------ */
+  /* Radius — locked Experience System                                  */
+  /* ------------------------------------------------------------------ */
+  --identity-radius-sm: 6px;
+  --identity-radius-control: 10px;
+  --identity-radius-md: var(--identity-radius-control);
+  --identity-radius-lg: 14px;
+  --identity-radius-card: 18px;
+  --identity-radius-xl: var(--identity-radius-card);
+  --identity-radius-feature: 22px;
+  --identity-radius-pill: 999px;
+
+  /* ------------------------------------------------------------------ */
+  /* Elevation — Level 0 / 1 / 2                                        */
+  /* ------------------------------------------------------------------ */
+  --identity-shadow-xs: 0 1px 2px rgba(8, 39, 68, 0.04);
+  --identity-shadow-sm: 0 4px 14px rgba(8, 39, 68, 0.06);
+  --identity-shadow-panel: 0 4px 16px rgba(8, 39, 68, 0.04);
+  --identity-shadow-soft: 0 8px 28px rgba(7, 39, 65, 0.045);
+  --identity-shadow-raised: 0 18px 50px rgba(8, 47, 79, 0.08);
+  --identity-shadow-md: var(--identity-shadow-raised);
+  --identity-shadow-header: 0 10px 28px rgba(8, 39, 68, 0.05);
+  --identity-shadow-premium: 0 18px 55px rgba(7, 39, 65, 0.085);
+  --identity-shadow-focus: 0 24px 70px rgba(7, 39, 65, 0.11);
+  --identity-elevation-0: none;
+  --identity-elevation-1: var(--identity-shadow-panel);
+  --identity-elevation-2: var(--identity-shadow-raised);
+
+  /* ------------------------------------------------------------------ */
+  /* Spacing (authoritative rhythm)                                     */
+  /* ------------------------------------------------------------------ */
+  --identity-space-1: 4px;
+  --identity-space-2: 8px;
+  --identity-space-3: 12px;
+  --identity-space-4: 16px;
+  --identity-space-5: 20px;
+  --identity-space-6: 24px;
+  --identity-space-7: 28px;
+  --identity-space-8: 32px;
+  --identity-space-10: 40px;
+  --identity-space-12: 48px;
+  --identity-space-14: 56px;
+  --identity-space-16: 64px;
+  --identity-space-20: 80px;
+
+  /* Page rhythm */
+  --identity-page-pad-block: clamp(24px, 3vw, 40px);
+  --identity-page-pad-inline: clamp(18px, 3vw, 40px);
+  --identity-header-to-nav: var(--identity-space-6);
+  --identity-nav-to-content: var(--identity-space-8);
+  --identity-section-gap: clamp(40px, 4vw, 56px);
+  --identity-card-pad: clamp(20px, 2.5vw, 32px);
+
+  /* ------------------------------------------------------------------ */
+  /* Page widths                                                        */
+  /* ------------------------------------------------------------------ */
+  --identity-workspace-max: 1280px;
+  --identity-workspace-laptop-max: 1240px;
+  --identity-content-width: var(--identity-workspace-max);
+  --identity-reading-width: 820px;
+  --identity-working-width: 1080px;
+  --identity-full-width: 100%;
+
+  /* ------------------------------------------------------------------ */
+  /* Typography scale                                                   */
+  /* ------------------------------------------------------------------ */
+  --identity-font: var(--font-poppins), Poppins, "Helvetica Neue", Helvetica,
+    Arial, sans-serif;
+  --identity-type-display-size: clamp(2rem, 3vw, 2.75rem);
+  --identity-type-display-weight: 650;
+  --identity-type-display-leading: 1.1;
+  --identity-type-display-tracking: -0.035em;
+  --identity-type-page-size: clamp(1.75rem, 2.5vw, 2.25rem);
+  --identity-type-page-weight: 650;
+  --identity-type-page-leading: 1.15;
+  --identity-type-section-size: clamp(1.25rem, 1.5vw, 1.5rem);
+  --identity-type-section-weight: 600;
+  --identity-type-section-leading: 1.3;
+  --identity-type-card-size: clamp(1rem, 1.2vw, 1.125rem);
+  --identity-type-card-weight: 600;
+  --identity-type-body-lg-size: 1.0625rem;
+  --identity-type-body-size: 0.96875rem;
+  --identity-type-body-leading: 1.65;
+  --identity-type-supporting-size: 0.84375rem;
+  --identity-type-supporting-leading: 1.55;
+  --identity-type-eyebrow-size: 0.71875rem;
+  --identity-type-eyebrow-weight: 600;
+  --identity-type-eyebrow-tracking: 0.09em;
+  --identity-type-button-size: 0.875rem;
+  --identity-type-button-weight: 600;
+
+  /* ------------------------------------------------------------------ */
+  /* Motion                                                             */
+  /* ------------------------------------------------------------------ */
+  --identity-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --identity-transition-fast: 160ms var(--identity-ease-out);
+  --identity-transition-standard: 220ms var(--identity-ease-out);
+  --identity-transition-disclosure: 200ms var(--identity-ease-out);
+  --identity-transition-drawer: 260ms var(--identity-ease-out);
+
+  /* ------------------------------------------------------------------ */
+  /* Legacy aliases                                                     */
+  /* ------------------------------------------------------------------ */
+  --navy: var(--identity-brand-navy);
+  --navy-2: var(--identity-navy-900);
+  --teal: var(--identity-brand-teal);
+  --teal-dark: var(--identity-teal-700);
+  --teal-soft: var(--identity-teal-50);
+  --soft: var(--identity-surface-muted);
+  --white: var(--identity-white);
+  --text: var(--identity-text-body);
+  --muted: var(--identity-text-secondary);
+  --line: var(--identity-border-light);
+  --shadow: var(--identity-shadow-sm);
+  --radius: var(--identity-radius-card);
+  --space-1: var(--identity-space-2);
+  --space-2: var(--identity-space-3);
+  --space-3: var(--identity-space-4);
+  --space-4: var(--identity-space-5);
+  --space-5: var(--identity-space-6);
+  --space-6: var(--identity-space-8);
+  --card-pad: var(--identity-card-pad);
+  --btn-h: 44px;
+  --section-gap: var(--identity-section-gap);
+  --ease: var(--identity-ease-out);
+  --duration: 160ms;
+}
+
+/* Shared section heading — Experience System hierarchy */
+.identity-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--identity-space-6);
+}
+
+.identity-section-heading__eyebrow {
+  margin: 0 0 var(--identity-space-2);
+  color: var(--identity-text-muted);
+  font-size: var(--identity-type-eyebrow-size);
+  font-weight: var(--identity-type-eyebrow-weight);
+  letter-spacing: var(--identity-type-eyebrow-tracking);
+  text-transform: uppercase;
+}
+
+.identity-section-heading h1,
+.identity-section-heading h2 {
+  margin: 0;
+  color: var(--identity-text-primary);
+  font-size: var(--identity-type-page-size);
+  font-weight: var(--identity-type-page-weight);
+  line-height: var(--identity-type-page-leading);
+  letter-spacing: -0.03em;
+}
+
+.identity-section-heading__description {
+  max-width: var(--identity-reading-width);
+  margin: var(--identity-space-2) 0 0;
+  color: var(--identity-text-secondary);
+  font-size: var(--identity-type-supporting-size);
+  font-weight: 400;
+  line-height: var(--identity-type-supporting-leading);
+}
+
+.identity-section-heading__actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--identity-space-2);
+}
+
+.identity-empty-copy {
+  margin: 0;
+  color: var(--identity-text-secondary);
+  font-size: var(--identity-type-supporting-size);
+  font-weight: 400;
+  line-height: var(--identity-type-supporting-leading);
+}
+
+@media (max-width: 720px) {
+  .identity-section-heading {
+    display: grid;
+  }
+
+  .identity-section-heading__actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .identity-person-row,
+  .commitment-card,
+  .identity-action-button,
+  .identity-intelligence,
+  .identity-disclosure,
+  .identity-drawer-panel {
+    transition: none !important;
+  }
+}

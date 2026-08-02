@@ -1,0 +1,2 @@
+-- Optional seed data for local `supabase db reset`.
+-- Keep empty in production workflows; remote pushes do not include seed by default.

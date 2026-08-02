@@ -1,0 +1,60 @@
+import { describe, expect, it } from "vitest";
+import { readFileSync, existsSync } from "node:fs";
+import { join } from "node:path";
+
+const root = process.cwd();
+
+function read(pathFromRoot: string): string {
+  return readFileSync(join(root, pathFromRoot), "utf8");
+}
+
+describe("organisation foundation source guards", () => {
+  it("ships an organisation foundation migration", () => {
+    const path = "supabase/migrations/20260802140000_organisation_foundation.sql";
+    expect(existsSync(join(root, path))).toBe(true);
+    const sql = read(path);
+    expect(sql).toContain("create table if not exists public.organisations");
+    expect(sql).toContain("organisation_memberships");
+    expect(sql).toContain("organisation_invitations");
+    expect(sql).toContain("relationship_assignments");
+    expect(sql).toContain("ensure_personal_organisation");
+    expect(sql).toContain("user_can_access_client_content");
+    expect(sql).toContain("token_hash");
+    expect(sql).not.toContain("plain_token");
+  });
+
+  it("keeps coach_id during transition", () => {
+    const sql = read(
+      "supabase/migrations/20260802140000_organisation_foundation.sql"
+    );
+    expect(sql).toMatch(/retain|transition|coach_id/i);
+    expect(sql).not.toMatch(/drop column.*coach_id/i);
+  });
+
+  it("clients API uses organisation context and ignores browser organisation_id", () => {
+    const route = read("app/api/clients/route.ts");
+    expect(route).toContain("requireOrganisationContext");
+    expect(route).toContain("Never trust browser-supplied organisation");
+    expect(route).toContain("organisationId");
+  });
+
+  it("sessions API requires assignment and redacts private notes", () => {
+    const route = read("app/api/sessions/route.ts");
+    expect(route).toContain("requireAssignedClientAccess");
+    expect(route).toContain("redactPrivateNotesFields");
+  });
+
+  it("preparation API enforces organisation AI policy and assignment", () => {
+    const route = read("app/api/preparation/generate/route.ts");
+    expect(route).toContain("requireOrganisationContext");
+    expect(route).toContain("aiEnabled");
+    expect(route).toContain("requireAssignedClientAccess");
+  });
+
+  it("centralises permissions away from scattered role strings in org pages", () => {
+    const permissions = read("lib/organisations/permissions.ts");
+    expect(permissions).toContain("canAccessCoachingContent");
+    expect(permissions).toContain("organisation.view_safe_oversight");
+    expect(permissions).toContain("members.invite");
+  });
+});

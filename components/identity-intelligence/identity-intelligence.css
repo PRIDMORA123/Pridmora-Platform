@@ -1,0 +1,766 @@
+/* Pridmora Intelligence signature — Experience System™ 1.0
+ * Legacy internal CSS namespace retained for compatibility.
+ * Visible product brand: Pridmora Development Platform. */
+
+.identity-intelligence {
+  position: relative;
+  display: grid;
+  gap: var(--identity-space-5);
+  overflow: hidden;
+  padding: clamp(var(--identity-space-5), 3vw, var(--identity-space-7));
+  border: 1px solid var(--identity-intelligence-border);
+  border-radius: var(--identity-radius-card);
+  background: var(--identity-intelligence-bg);
+  box-shadow: var(--identity-shadow-xs);
+  color: var(--identity-intelligence-text);
+}
+
+.identity-intelligence::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--identity-intelligence-accent);
+  content: "";
+}
+
+.identity-intelligence.is-compact {
+  gap: var(--identity-space-3);
+  padding: var(--identity-space-5);
+}
+
+.identity-intelligence__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--identity-space-5);
+}
+
+/* Locked Intelligence typography hierarchy */
+.identity-intelligence__signature {
+  margin: 0;
+  color: var(--identity-intelligence-label, var(--identity-teal-700));
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.identity-intelligence__classification {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--identity-space-2);
+  margin-top: var(--identity-space-2);
+}
+
+.identity-intelligence__classification > span:first-child {
+  color: var(--identity-text-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.identity-intelligence__content {
+  display: grid;
+  gap: var(--identity-space-3);
+  max-width: 52rem;
+}
+
+.identity-intelligence__content h3 {
+  margin: 0;
+  color: var(--identity-navy-950, var(--identity-text-primary));
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.identity-intelligence__content p {
+  margin: 0;
+  color: var(--identity-text-body);
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1.7;
+}
+
+.identity-intelligence__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--identity-space-4);
+  padding-top: var(--identity-space-4);
+  border-top: 1px solid
+    color-mix(in srgb, var(--identity-intelligence-border) 70%, transparent);
+}
+
+.identity-intelligence__evidence {
+  color: var(--identity-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.identity-intelligence__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--identity-space-2);
+}
+
+.identity-intelligence__actions .identity-text-action,
+.identity-intelligence a.identity-text-action {
+  color: var(--identity-teal-700);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.identity-intelligence a:not(.identity-text-action):not(.identity-button) {
+  color: var(--identity-teal-700);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.identity-intelligence[data-level="observation"] {
+  --identity-intelligence-accent: var(--identity-teal-500);
+}
+
+.identity-intelligence[data-level="insight"] {
+  --identity-intelligence-accent: var(--identity-teal-600);
+}
+
+.identity-intelligence[data-level="pattern"] {
+  --identity-intelligence-accent: var(--identity-teal-700);
+}
+
+.identity-intelligence[data-review-state="accepted"] {
+  background: color-mix(
+    in srgb,
+    var(--identity-intelligence-bg) 88%,
+    var(--identity-surface) 12%
+  );
+}
+
+.identity-intelligence[data-review-state="rejected"] {
+  opacity: 0.78;
+}
+
+.identity-intelligence[data-review-state="draft"] {
+  /* Draft must never read as an approved record */
+  box-shadow: none;
+}
+
+/* Evidence strength pills — no traffic-light colours */
+.identity-evidence-strength {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 1.5rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--identity-radius-pill);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.identity-evidence-strength[data-strength="emerging"] {
+  border: 1px solid var(--identity-teal-500);
+  background: var(--identity-surface);
+  color: var(--identity-text-secondary);
+}
+
+.identity-evidence-strength[data-strength="supported"] {
+  border: 1px solid transparent;
+  background: var(--identity-teal-100);
+  color: var(--identity-teal-700);
+}
+
+.identity-evidence-strength[data-strength="established"] {
+  border: 1px solid transparent;
+  background: color-mix(in srgb, var(--identity-teal-100) 70%, var(--identity-teal-500) 30%);
+  color: var(--identity-navy-900);
+}
+
+/* Review state label */
+.identity-review-state {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--identity-radius-pill);
+  border: 1px solid var(--identity-border-soft);
+  background: var(--identity-surface);
+  color: var(--identity-text-secondary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.identity-review-state[data-state="draft"] {
+  color: var(--identity-teal-700);
+  border-color: var(--identity-border-teal);
+  background: color-mix(in srgb, var(--identity-intelligence-bg) 60%, var(--identity-surface));
+}
+
+.identity-review-state[data-state="reviewed"] {
+  color: var(--identity-text-primary);
+}
+
+.identity-review-state[data-state="accepted"] {
+  color: var(--identity-success);
+  border-color: var(--identity-approved-border);
+  background: var(--identity-success-soft);
+}
+
+.identity-review-state[data-state="rejected"] {
+  color: var(--identity-text-muted);
+}
+
+/* Evidence list — structured rows, Identity action styling */
+.identity-evidence-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--identity-space-2);
+}
+
+.identity-evidence-list__item {
+  display: grid;
+  gap: 0.2rem;
+  padding: var(--identity-space-3);
+  border: 1px solid
+    color-mix(in srgb, var(--identity-intelligence-border) 65%, transparent);
+  border-radius: var(--identity-radius-control);
+  background: color-mix(in srgb, var(--identity-surface) 70%, transparent);
+}
+
+.identity-evidence-list__type,
+.identity-evidence-list__title {
+  margin: 0;
+  color: var(--identity-text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.identity-evidence-list__meta {
+  margin: 0;
+  color: var(--identity-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.identity-evidence-list__action {
+  margin-top: 0.25rem;
+  justify-self: start;
+  color: var(--identity-teal-700);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* Approved coaching record — distinct from Intelligence */
+.identity-approved-record {
+  display: grid;
+  gap: var(--identity-space-4);
+  padding: var(--identity-card-pad);
+  border: 1px solid var(--identity-approved-border, var(--identity-border-soft));
+  border-radius: var(--identity-radius-card);
+  background: var(--identity-surface);
+  box-shadow: var(--identity-elevation-1);
+}
+
+.identity-approved-record__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--identity-space-3);
+}
+
+.identity-approved-record__label {
+  margin: 0;
+  color: var(--identity-approved-label, var(--identity-success));
+  font-size: var(--identity-type-eyebrow-size, 0.71875rem);
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.identity-approved-record__meta {
+  margin: var(--identity-space-2) 0 0;
+  color: var(--identity-text-secondary);
+  font-size: var(--identity-type-supporting-size, 0.84375rem);
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.identity-approved-record__title {
+  margin: 0;
+  color: var(--identity-text-primary);
+  font-size: var(--identity-type-card-size, 1.125rem);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.identity-approved-record__body {
+  max-width: 52rem;
+  color: var(--identity-text-body);
+  font-size: var(--identity-type-body-size, 0.96875rem);
+  font-weight: 400;
+  line-height: 1.7;
+}
+
+.identity-approved-record__body p {
+  margin: 0 0 var(--identity-space-3);
+  font-weight: 400;
+}
+
+.identity-approved-record__body p:last-child {
+  margin-bottom: 0;
+}
+
+/* Coach content — white working surface, never Intelligence tint */
+.identity-coach-content {
+  display: grid;
+  gap: var(--identity-space-4);
+  padding: var(--identity-card-pad);
+  border: 1px solid var(--identity-coach-border, var(--identity-border-soft));
+  border-radius: var(--identity-radius-card);
+  background: var(--identity-coach-bg, var(--identity-surface));
+  box-shadow: var(--identity-elevation-0);
+}
+
+.identity-coach-content__label {
+  margin: 0;
+  color: var(--identity-text-muted);
+  font-size: var(--identity-type-eyebrow-size, 0.71875rem);
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.identity-coach-content__privacy {
+  margin: var(--identity-space-1) 0 0;
+  color: var(--identity-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+
+.identity-coach-content__body {
+  color: var(--identity-text-body);
+  font-size: var(--identity-type-body-size, 0.96875rem);
+  font-weight: 400;
+  line-height: 1.7;
+}
+
+.relevant-patterns-list,
+.patterns-over-time__list {
+  display: grid;
+  gap: var(--identity-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.patterns-over-time__list .identity-intelligence + .identity-intelligence,
+.relevant-patterns-list .identity-intelligence + .identity-intelligence {
+  margin-top: 0;
+}
+
+.reports-create-panel,
+.relationship-section-heading {
+  max-width: var(--identity-working-width, 1080px);
+}
+
+.relationship-section-heading h1 {
+  font-size: var(--identity-type-page-size, clamp(1.75rem, 2.5vw, 2.25rem));
+  font-weight: var(--identity-type-page-weight, 650);
+}
+
+.relationship-section-eyebrow {
+  color: var(--identity-text-muted);
+  font-size: var(--identity-type-eyebrow-size, 0.71875rem);
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.summary-workspace-page {
+  display: grid;
+  gap: var(--identity-space-6);
+  max-width: var(--identity-working-width, 1080px);
+}
+
+.summary-editor-card {
+  display: grid;
+  gap: var(--identity-space-7);
+  padding: var(--identity-card-pad);
+  border: 1px solid var(--identity-border-soft);
+  border-radius: var(--identity-radius-card);
+  background: var(--identity-surface);
+  box-shadow: var(--identity-elevation-0);
+}
+
+.summary-editor-section + .summary-editor-section {
+  padding-top: var(--identity-space-6);
+  border-top: 1px solid var(--identity-border-soft);
+}
+
+.quick-private-note {
+  padding: var(--identity-card-pad);
+  border: 1px solid var(--identity-coach-border, var(--identity-border-soft));
+  border-radius: var(--identity-radius-card);
+  background: var(--identity-surface);
+}
+
+.quick-private-note__privacy,
+.identity-coach-content__privacy {
+  color: var(--identity-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+
+/* Dashboard priority remains one focal area */
+.next-best-action {
+  border-radius: var(--identity-radius-feature, 22px);
+  box-shadow: var(--identity-elevation-1);
+}
+
+.next-best-action-explanation,
+.next-best-action-evidence p {
+  font-weight: 400;
+}
+
+.next-best-action-person {
+  font-weight: 600;
+  color: var(--identity-text-primary);
+}
+
+.home-eyebrow {
+  color: var(--identity-text-muted) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.09em !important;
+}
+
+.identity-empty-state {
+  display: grid;
+  gap: var(--identity-space-3);
+  justify-items: start;
+  padding: clamp(var(--identity-space-6), 3vw, var(--identity-space-8));
+  border: 1px solid var(--identity-border-soft);
+  border-radius: var(--identity-radius-card);
+  background: var(--identity-surface);
+}
+
+.identity-empty-state h3 {
+  margin: 0;
+  color: var(--identity-text-primary);
+  font-size: var(--identity-type-card-size, 1.125rem);
+  font-weight: 600;
+}
+
+.identity-empty-state p {
+  margin: 0;
+  max-width: 36rem;
+  color: var(--identity-text-secondary);
+  font-size: var(--identity-type-supporting-size, 0.84375rem);
+  font-weight: 400;
+  line-height: 1.55;
+}
+
+.identity-loading-state {
+  display: grid;
+  gap: var(--identity-space-3);
+  padding: var(--identity-space-5);
+  color: var(--identity-text-secondary);
+  font-size: var(--identity-type-supporting-size, 0.84375rem);
+  font-weight: 400;
+}
+
+.identity-loading-state__label {
+  margin: 0;
+}
+
+.identity-error-state {
+  display: grid;
+  gap: var(--identity-space-3);
+  padding: var(--identity-card-pad);
+  border: 1px solid color-mix(in srgb, var(--identity-danger) 22%, var(--identity-border-soft));
+  border-radius: var(--identity-radius-card);
+  background: var(--identity-danger-soft);
+}
+
+.identity-error-state__title {
+  margin: 0;
+  color: var(--identity-danger);
+  font-size: var(--identity-type-card-size, 1.05rem);
+  font-weight: 600;
+}
+
+.identity-error-state__body {
+  margin: 0;
+  color: var(--identity-text-body);
+  font-size: var(--identity-type-supporting-size, 0.84375rem);
+  font-weight: 400;
+  line-height: 1.55;
+}
+
+/* Relationship identity header — quieter executive treatment */
+.client-identity-header,
+.client-identity-header--compact {
+  padding: var(--identity-space-5) 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  gap: var(--identity-space-6);
+  margin-bottom: var(--identity-header-to-nav, var(--identity-space-6));
+}
+
+.client-identity-eyebrow,
+.client-identity-context {
+  color: var(--identity-text-muted);
+  font-weight: 600;
+  letter-spacing: 0.09em;
+}
+
+.client-identity-name,
+.client-identity-header .identity-page-title {
+  font-size: var(--identity-type-display-size, clamp(2rem, 3vw, 2.75rem));
+  font-weight: var(--identity-type-display-weight, 650);
+  line-height: var(--identity-type-display-leading, 1.1);
+}
+
+.client-identity-role,
+.client-identity-meta,
+.client-identity-session {
+  margin: var(--identity-space-2) 0 0;
+  color: var(--identity-text-secondary);
+  font-size: var(--identity-type-supporting-size, 0.875rem);
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.client-identity-session {
+  color: var(--identity-text-primary);
+  font-weight: 500;
+}
+
+.client-identity-detail dd {
+  font-weight: 500;
+}
+
+/* Journey — teal only for active stage */
+.identity-coaching-journey {
+  margin: 0 0 var(--identity-nav-to-content, var(--identity-space-8));
+  scroll-padding-inline: var(--identity-space-4);
+}
+
+.identity-coaching-journey__item[data-state="completed"]
+  .identity-coaching-journey__number {
+  border-color: var(--identity-navy-800);
+  color: var(--identity-navy-800);
+  background: transparent;
+}
+
+.identity-coaching-journey__item[data-state="current"]
+  .identity-coaching-journey__number {
+  border-color: var(--identity-brand-teal);
+  background: var(--identity-teal-50);
+  color: var(--identity-brand-teal);
+}
+
+.identity-coaching-journey__link[aria-current="step"] {
+  border-bottom-color: var(--identity-brand-teal);
+  color: var(--identity-text-primary);
+}
+
+.identity-coaching-journey__optional {
+  font-weight: 400;
+}
+
+.identity-coaching-stage-header__title {
+  font-size: var(--identity-type-display-size, clamp(2rem, 3vw, 2.75rem));
+  font-weight: var(--identity-type-display-weight, 650);
+  line-height: var(--identity-type-display-leading, 1.1);
+}
+
+.identity-current-position__statement {
+  font-weight: 400;
+  font-size: clamp(1.05rem, 1.8vw, 1.25rem);
+  line-height: 1.55;
+  color: var(--identity-text-body);
+}
+
+/* Buttons — one hierarchy */
+.identity-button.is-md,
+.identity-button.is-primary,
+.identity-button--primary,
+.identity-button.is-secondary,
+.identity-button--secondary {
+  font-size: var(--identity-type-button-size, 0.875rem);
+  font-weight: var(--identity-type-button-weight, 600);
+}
+
+.identity-button.is-primary,
+.identity-button--primary {
+  box-shadow: none;
+}
+
+.identity-button.is-primary:hover:not(:disabled),
+.identity-button--primary:hover:not(:disabled) {
+  box-shadow: none;
+  transform: none;
+}
+
+.identity-button.is-quiet,
+.identity-button--quiet {
+  font-size: var(--identity-type-button-size, 0.875rem);
+  font-weight: 600;
+  min-height: 44px;
+}
+
+/* Panels — restrained cards */
+.identity-panel {
+  padding: var(--identity-card-pad);
+  border-radius: var(--identity-radius-card);
+  box-shadow: var(--identity-elevation-1);
+}
+
+.identity-panel.is-soft,
+.identity-panel.is-highlight {
+  box-shadow: var(--identity-elevation-0);
+}
+
+.identity-panel.is-highlight {
+  background: var(--identity-intelligence-bg);
+  border-color: var(--identity-intelligence-border);
+}
+
+/* Narrative text never full-bleed */
+.identity-stage-content {
+  width: min(100%, var(--identity-working-width, 1080px));
+  margin-inline: auto;
+  padding-block: var(--identity-space-6) var(--identity-space-12);
+  display: grid;
+  gap: var(--identity-section-gap, var(--identity-space-10));
+}
+
+.identity-stage-content .identity-current-position,
+.identity-stage-content .identity-intelligence,
+.identity-stage-content .identity-coach-content,
+.identity-stage-content .identity-approved-record {
+  max-width: var(--identity-reading-width, 820px);
+}
+
+@media (max-width: 48rem) {
+  .identity-coaching-journey__list {
+    display: flex;
+    min-width: 0;
+    width: max-content;
+  }
+
+  .identity-coaching-journey__item {
+    flex: 0 0 auto;
+    min-width: 9.5rem;
+  }
+
+  .identity-coaching-journey__link {
+    min-height: 3.5rem;
+    padding: var(--identity-space-3);
+  }
+
+  .identity-coaching-journey__label {
+    font-size: 0.8125rem;
+  }
+}
+
+.relevant-patterns-list,
+.patterns-over-time__list {
+  display: grid;
+  gap: var(--identity-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.patterns-over-time__list .identity-intelligence + .identity-intelligence,
+.relevant-patterns-list .identity-intelligence + .identity-intelligence {
+  margin-top: 0;
+}
+
+.reports-create-panel,
+.relationship-section-heading {
+  max-width: var(--identity-working-width, 1080px);
+}
+
+.relationship-section-heading h1 {
+  font-size: var(--identity-type-page-size, clamp(1.75rem, 2.5vw, 2.25rem));
+  font-weight: var(--identity-type-page-weight, 650);
+}
+
+.relationship-section-eyebrow {
+  color: var(--identity-text-muted);
+  font-size: var(--identity-type-eyebrow-size, 0.71875rem);
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.summary-workspace-page {
+  display: grid;
+  gap: var(--identity-space-6);
+  max-width: var(--identity-working-width, 1080px);
+}
+
+.summary-editor-card {
+  display: grid;
+  gap: var(--identity-space-7);
+  padding: var(--identity-card-pad);
+  border: 1px solid var(--identity-border-soft);
+  border-radius: var(--identity-radius-card);
+  background: var(--identity-surface);
+  box-shadow: var(--identity-elevation-0);
+}
+
+.summary-editor-section + .summary-editor-section {
+  padding-top: var(--identity-space-6);
+  border-top: 1px solid var(--identity-border-soft);
+}
+
+.quick-private-note {
+  padding: var(--identity-card-pad);
+  border: 1px solid var(--identity-coach-border, var(--identity-border-soft));
+  border-radius: var(--identity-radius-card);
+  background: var(--identity-surface);
+}
+
+.quick-private-note__privacy,
+.identity-coach-content__privacy {
+  color: var(--identity-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+
+.next-best-action {
+  border-radius: var(--identity-radius-feature, 22px);
+  box-shadow: var(--identity-elevation-1);
+}
+
+.next-best-action-explanation,
+.next-best-action-evidence p {
+  font-weight: 400;
+}
+
+.next-best-action-person {
+  font-weight: 600;
+  color: var(--identity-text-primary);
+}
+
+.home-eyebrow {
+  color: var(--identity-text-muted) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.09em !important;
+}
