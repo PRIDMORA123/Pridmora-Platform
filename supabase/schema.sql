@@ -1,5 +1,9 @@
--- Production-ready starting schema for Supabase.
--- Apply only when authentication and data protection controls are ready.
+-- DEVELOPMENT / REFERENCE SNAPSHOT ONLY.
+--
+-- Authoritative deployment path: supabase/migrations/*.sql
+-- (starting with 20260724150000_core_tables_bootstrap.sql for empty databases).
+-- Do not apply this file to initialise Pilot, staging, or production.
+-- Keep it as a human-readable cumulative view for local development and review.
 --
 -- Sessions store structured coaching records that support:
 -- Prepare Next Session, Professional Identity Journey™,
