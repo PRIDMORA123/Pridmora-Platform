@@ -101,10 +101,17 @@ export async function loadSessionsForClient(clientId: string): Promise<Session[]
  */
 export async function createSessionRecord(session: Session): Promise<Session> {
   try {
+    // Never send organisation ownership from the browser — the API derives it.
+    const { organisationId: _ignoreOrg, organisation_id: _ignoreOrgSnake, ...safeSession } =
+      session as Session & {
+        organisationId?: unknown;
+        organisation_id?: unknown;
+      };
+
     const data = await apiJson<{ session: Session }>("/api/sessions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ session }),
+      body: JSON.stringify({ session: safeSession }),
       operation: "create_conversation",
       relationshipId: session.clientId,
       sessionId: session.id,

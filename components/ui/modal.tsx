@@ -47,6 +47,8 @@ export function Modal({
   const dialogRef = useRef<HTMLDivElement | HTMLFormElement | null>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
+  const closeDisabledRef = useRef(closeDisabled);
+  closeDisabledRef.current = closeDisabled;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -69,7 +71,9 @@ export function Modal({
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        if (closeDisabled) return;
+        // Read latest closeDisabled via ref so this effect does not re-bind
+        // (and steal focus) when submitting disables close.
+        if (closeDisabledRef.current) return;
         event.preventDefault();
         onCloseRef.current();
         return;
@@ -88,7 +92,10 @@ export function Modal({
       document.removeEventListener("keydown", handleKeyDown);
       previous?.focus?.();
     };
-  }, [isOpen, closeDisabled, initialFocusRef]);
+    // Intentionally depend only on isOpen / initialFocusRef.
+    // Re-running when closeDisabled flips mid-submit restores focus outside the
+    // dialog and can interrupt the create-conversation submit interaction.
+  }, [isOpen, initialFocusRef]);
 
   if (!isOpen) {
     return null;

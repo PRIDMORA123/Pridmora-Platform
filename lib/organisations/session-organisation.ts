@@ -78,7 +78,7 @@ export function safeCreateConversationErrorMessage(error: unknown): string {
 
   // Keep short, non-technical product messages (auth, archive, validation).
   if (
-    /archived|sign in|permission|required|not found|unable to reach|try again/i.test(
+    /archived|sign in|permission|required|not found|unable to reach|try again|select a client|refresh and try again/i.test(
       message
     ) &&
     !isRawDatabaseConstraintMessage(message)

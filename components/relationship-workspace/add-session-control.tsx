@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
   allocateNextSessionNumber,
@@ -8,7 +8,10 @@ import {
   getIncompleteSessionWarning,
   type AddSessionFormValues,
 } from "@/lib/relationship-workspace";
-import { safeCreateConversationErrorMessage } from "@/lib/organisations/session-organisation";
+import {
+  CREATE_CONVERSATION_USER_ERROR,
+  safeCreateConversationErrorMessage,
+} from "@/lib/organisations/session-organisation";
 import type { Session } from "@/lib/types";
 
 export type { AddSessionFormValues };
@@ -23,6 +26,7 @@ const DEFAULT_FORM: AddSessionFormValues = {
 export function AddSessionControl({
   sessions,
   clientName,
+  clientId,
   archived = false,
   busy = false,
   showProminent = false,
@@ -34,6 +38,8 @@ export function AddSessionControl({
   sessions: Session[];
   /** Person / relationship name shown in the create dialog. */
   clientName?: string;
+  /** Required relationship id — validated before create. */
+  clientId?: string;
   archived?: boolean;
   busy?: boolean;
   /** When false, render a quiet text action rather than a primary CTA. */
@@ -51,12 +57,14 @@ export function AddSessionControl({
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const submitLockRef = useRef(false);
+  const errorId = useId();
 
   const warning = getIncompleteSessionWarning(sessions);
   const triggerLabel = label ?? "Plan next conversation";
   const nextSessionNumber = allocateNextSessionNumber(sessions);
   const sessionLabel = defaultSessionTitle(nextSessionNumber);
   const personName = clientName?.trim() || "";
+  const relationshipId = clientId?.trim() || "";
   const dialogTitle = personName
     ? `Create conversation for ${personName}`
     : "Create conversation";
@@ -65,6 +73,7 @@ export function AddSessionControl({
     if (!open) return;
     setForm(DEFAULT_FORM);
     setError("");
+    submitLockRef.current = false;
   }, [open]);
 
   if (archived) return null;
@@ -78,18 +87,39 @@ export function AddSessionControl({
     setOpen(true);
   }
 
-  async function handleSubmit() {
-    if (saving || busy || submitLockRef.current) return;
+  async function handleSubmit(event?: FormEvent<HTMLFormElement>) {
+    event?.preventDefault();
+
+    // Double-submit guard — silent ignore while already submitting.
+    if (saving || submitLockRef.current) {
+      return;
+    }
+
+    if (busy) {
+      setError(CREATE_CONVERSATION_USER_ERROR);
+      return;
+    }
+
+    if (!relationshipId) {
+      setError(
+        "This relationship is missing required context. Refresh and try again."
+      );
+      return;
+    }
+
     submitLockRef.current = true;
     setSaving(true);
     setError("");
+
+    const payload: AddSessionFormValues = {
+      title: form.title.trim(),
+      plannedDate: form.plannedDate.trim(),
+      startTime: form.startTime.trim(),
+      focus: form.focus.trim(),
+    };
+
     try {
-      await onCreate({
-        title: form.title.trim(),
-        plannedDate: form.plannedDate.trim(),
-        startTime: form.startTime.trim(),
-        focus: form.focus.trim(),
-      });
+      await onCreate(payload);
       setOpen(false);
     } catch (err) {
       setError(safeCreateConversationErrorMessage(err));
@@ -170,6 +200,9 @@ export function AddSessionControl({
           if (!locked) setOpen(false);
         }}
         closeDisabled={locked}
+        onSubmit={event => {
+          void handleSubmit(event);
+        }}
         footer={
           <>
             <button
@@ -181,15 +214,12 @@ export function AddSessionControl({
               Cancel
             </button>
             <button
-              type="button"
+              type="submit"
               className="identity-button is-primary"
               disabled={locked}
               aria-busy={locked}
-              onClick={() => {
-                void handleSubmit();
-              }}
             >
-              {locked ? "Creating…" : "Create conversation"}
+              {saving ? "Creating…" : "Create conversation"}
             </button>
           </>
         }
@@ -214,6 +244,7 @@ export function AddSessionControl({
           Conversation title <span className="field-optional">(optional)</span>
           <input
             type="text"
+            name="conversationTitle"
             value={form.title}
             disabled={locked}
             placeholder="e.g. Building leadership confidence"
@@ -227,6 +258,7 @@ export function AddSessionControl({
           Planned date <span className="field-optional">(optional)</span>
           <input
             type="date"
+            name="plannedDate"
             value={form.plannedDate}
             disabled={locked}
             onChange={event =>
@@ -242,6 +274,7 @@ export function AddSessionControl({
           Start time <span className="field-optional">(optional)</span>
           <input
             type="time"
+            name="startTime"
             value={form.startTime}
             disabled={locked}
             onChange={event =>
@@ -256,6 +289,7 @@ export function AddSessionControl({
         <label className="dialog-field">
           Reason or focus <span className="field-optional">(optional)</span>
           <textarea
+            name="focus"
             rows={3}
             value={form.focus}
             disabled={locked}
@@ -267,7 +301,7 @@ export function AddSessionControl({
         </label>
 
         {error ? (
-          <p className="inline-error" role="alert">
+          <p className="identity-modal-error" role="alert" id={errorId}>
             {error}
           </p>
         ) : null}

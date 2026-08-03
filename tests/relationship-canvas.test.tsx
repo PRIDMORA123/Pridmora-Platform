@@ -758,11 +758,15 @@ describe("RelationshipCanvas", () => {
       button => button.textContent === "Create conversation"
     );
     expect(createButton).toBeTruthy();
+    expect(createButton?.getAttribute("type")).toBe("submit");
+
+    const form = container.querySelector("form.identity-modal");
+    expect(form).toBeTruthy();
 
     await act(async () => {
-      createButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-      createButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-      createButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      form?.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+      form?.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+      form?.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
     });
 
     expect(onCreateSession).toHaveBeenCalledTimes(1);

@@ -591,6 +591,11 @@ export function HomeApp() {
     values: ScheduleSessionValues,
     options?: { openWorkspace?: boolean }
   ): Promise<Session> {
+    if (!client?.id) {
+      throw new Error(
+        "This relationship is missing required context. Refresh and try again."
+      );
+    }
     if (!coachId || !authReady || !profile) {
       throw new Error("Select a client before scheduling a session.");
     }
@@ -637,7 +642,10 @@ export function HomeApp() {
     if (options?.openWorkspace !== false) {
       navigate("session");
     } else {
-      navigate("coach-space");
+      // Remain on the relationship canvas and keep the new session focused.
+      // Avoid navigate("coach-space") — it clears focusSessionId.
+      setView("coach-space");
+      setMobileOpen(false);
     }
     return saved;
   }
@@ -1079,6 +1087,11 @@ export function HomeApp() {
               onTabChange={handleWorkspaceTab}
               onScheduleSession={async (values, options) => {
                 try {
+                  if (!selected) {
+                    throw new Error(
+                      "This relationship is missing required context. Refresh and try again."
+                    );
+                  }
                   await scheduleSessionForClient(selected, values, options);
                 } catch (error) {
                   if (error instanceof AuthRequiredError) {

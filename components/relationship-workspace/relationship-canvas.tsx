@@ -61,6 +61,8 @@ export type RelationshipCanvasProps = {
   onViewReports: () => void;
   onViewSupportingContext?: () => void;
   onCreateSession: (values: AddSessionFormValues) => Promise<void>;
+  /** Disables create-conversation controls while a create is in flight. */
+  busy?: boolean;
   onSaveAgreement: (next: RelationshipAgreement) => Promise<void>;
   onSaveInitialConversation: (next: InitialConversation) => Promise<void>;
   onNewCoachingMoment?: () => void;
@@ -104,6 +106,7 @@ export function RelationshipCanvas({
   onViewDevelopment,
   onViewReports,
   onCreateSession,
+  busy = false,
   onSaveAgreement,
   onSaveInitialConversation,
   onNewCoachingMoment,
@@ -250,7 +253,9 @@ export function RelationshipCanvas({
               <AddSessionControl
                 sessions={relationship.sessions}
                 clientName={relationship.name}
+                clientId={relationship.id}
                 archived={archived}
+                busy={busy}
                 showProminent
                 label="Plan next conversation"
                 onCreate={onCreateSession}

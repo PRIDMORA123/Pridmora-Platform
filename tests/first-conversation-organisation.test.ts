@@ -108,10 +108,12 @@ describe("first conversation organisation ownership", () => {
     );
     expect(modal).toContain("Create conversation for ${personName}");
     expect(modal).toContain("clientName");
+    expect(modal).toContain("clientId");
     expect(modal).toContain("safeCreateConversationErrorMessage");
-    expect(modal).toContain("defaultSessionTitle");
-    expect(modal).toContain("sessionLabel");
+    expect(modal).toContain('type="submit"');
+    expect(modal).toContain("identity-modal-error");
     expect(canvas).toContain("clientName={relationship.name}");
+    expect(canvas).toContain("clientId={relationship.id}");
   });
 
   it("maps missing organisation and constraint leaks to a safe UI message", () => {

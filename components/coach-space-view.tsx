@@ -415,6 +415,7 @@ export function CoachSpaceView({
             onViewDevelopment={() => onTabChange?.("intelligence")}
             onViewReports={() => onTabChange?.("reports")}
             onCreateSession={handleCreateSession}
+            busy={scheduling}
             onNewCoachingMoment={() => {
               setActiveCoachingMoment(null);
               setCoachingMomentOpen(true);
