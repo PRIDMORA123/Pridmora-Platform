@@ -90,6 +90,12 @@ export async function POST(request: Request) {
 
     // Organisation ownership comes from secure context — never from the body.
     const organisationId = auth.context.organisation.organisationId;
+    if (!organisationId) {
+      return NextResponse.json(
+        { error: "Organisation context is required to create a relationship." },
+        { status: 422 }
+      );
+    }
     const id = crypto.randomUUID();
     const coachId = auth.context.coachId;
     const client: Client = {
@@ -119,7 +125,7 @@ export async function POST(request: Request) {
       auth.context.supabase,
       coachId,
       client,
-      organisationId !== coachId ? organisationId : organisationId
+      organisationId
     );
     return NextResponse.json({ client: saved, organisationId }, { status: 201 });
   } catch (error) {

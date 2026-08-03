@@ -6,6 +6,12 @@ import {
   requireOrganisationContext,
   redactPrivateNotesFields,
 } from "@/lib/organisations/current-organisation";
+import {
+  CREATE_CONVERSATION_USER_ERROR,
+  RELATIONSHIP_ORGANISATION_MISSING,
+  RelationshipOrganisationMissingError,
+  resolveSessionOrganisationId,
+} from "@/lib/organisations/session-organisation";
 import { sanitizeSessionHumanTextFields } from "@/lib/coach-notes";
 import {
   ClientArchivedError,
@@ -14,11 +20,24 @@ import {
   OwnershipError,
   saveSessionInDb,
 } from "@/lib/supabase/repository";
-import { toUserFriendlySupabaseError } from "@/lib/supabase/errors";
 
 export const runtime = "nodejs";
 
 function sessionMutationError(error: unknown) {
+  if (error instanceof RelationshipOrganisationMissingError) {
+    console.error("[sessions] RELATIONSHIP_ORGANISATION_MISSING", {
+      code: error.code,
+      message: error.message,
+    });
+    return NextResponse.json(
+      {
+        error: CREATE_CONVERSATION_USER_ERROR,
+        code: RELATIONSHIP_ORGANISATION_MISSING,
+        errorCode: RELATIONSHIP_ORGANISATION_MISSING,
+      },
+      { status: 422 }
+    );
+  }
   if (error instanceof OwnershipError) {
     return notFoundOrForbidden();
   }
@@ -31,17 +50,22 @@ function sessionMutationError(error: unknown) {
   ) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
-  console.error("Supabase session mutation error:", error);
+  console.error("Supabase session mutation error:", {
+    name: error instanceof Error ? error.name : typeof error,
+    message: error instanceof Error ? error.message : String(error),
+  });
   return NextResponse.json(
-    { error: toUserFriendlySupabaseError(error) },
+    { error: CREATE_CONVERSATION_USER_ERROR },
     { status: 503 }
   );
 }
 
-function sanitizeIncomingSession(session: Session): Session {
+function sanitizeIncomingSession(session: Session, coachId: string): Session {
   return {
     ...session,
     ...sanitizeSessionHumanTextFields(session),
+    // Ownership is derived server-side — never trust browser coachId.
+    coachId,
   };
 }
 
@@ -85,7 +109,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("Supabase list sessions error:", error);
     return NextResponse.json(
-      { error: toUserFriendlySupabaseError(error) },
+      { error: CREATE_CONVERSATION_USER_ERROR },
       { status: 503 }
     );
   }
@@ -96,9 +120,17 @@ export async function POST(request: Request) {
   if (!auth.ok) return auth.response;
 
   try {
-    const body = (await request.json()) as { session?: Session };
+    const body = (await request.json()) as {
+      session?: Session & { organisationId?: unknown; organisation_id?: unknown };
+    };
     if (!body.session) {
       return NextResponse.json({ error: "Session payload is required." }, { status: 400 });
+    }
+
+    // Never trust browser-supplied organisation ownership.
+    if ("organisationId" in body.session || "organisation_id" in body.session) {
+      delete (body.session as { organisationId?: unknown }).organisationId;
+      delete (body.session as { organisation_id?: unknown }).organisation_id;
     }
 
     const access = await requireAssignedClientAccess({
@@ -108,10 +140,13 @@ export async function POST(request: Request) {
     });
     if (!access.ok) return access.response;
 
+    const organisationId = resolveSessionOrganisationId(access.clientOrganisationId);
+
     const session = await createSessionInDb(
       auth.context.supabase,
       auth.context.coachId,
-      sanitizeIncomingSession(body.session)
+      sanitizeIncomingSession(body.session, auth.context.coachId),
+      organisationId
     );
     return NextResponse.json({ session }, { status: 201 });
   } catch (error) {
@@ -124,9 +159,17 @@ export async function PUT(request: Request) {
   if (!auth.ok) return auth.response;
 
   try {
-    const body = (await request.json()) as { session?: Session };
+    const body = (await request.json()) as {
+      session?: Session & { organisationId?: unknown; organisation_id?: unknown };
+    };
     if (!body.session) {
       return NextResponse.json({ error: "Session payload is required." }, { status: 400 });
+    }
+
+    // Never trust browser-supplied organisation ownership.
+    if ("organisationId" in body.session || "organisation_id" in body.session) {
+      delete (body.session as { organisationId?: unknown }).organisationId;
+      delete (body.session as { organisation_id?: unknown }).organisation_id;
     }
 
     const access = await requireAssignedClientAccess({
@@ -136,10 +179,13 @@ export async function PUT(request: Request) {
     });
     if (!access.ok) return access.response;
 
+    const organisationId = resolveSessionOrganisationId(access.clientOrganisationId);
+
     const session = await saveSessionInDb(
       auth.context.supabase,
       auth.context.coachId,
-      sanitizeIncomingSession(body.session)
+      sanitizeIncomingSession(body.session, auth.context.coachId),
+      organisationId
     );
     return NextResponse.json({ session });
   } catch (error) {

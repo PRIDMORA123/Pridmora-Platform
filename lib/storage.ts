@@ -3,6 +3,12 @@ import type { PreparationStyle } from "@/lib/preparation-style";
 import { AuthRequiredError, errorMessage, toError } from "@/lib/errors";
 import { isUuid } from "@/lib/auth/browser";
 import { apiJson } from "@/lib/api-client";
+import { ApiRequestError } from "@/lib/api-failure";
+import {
+  CREATE_CONVERSATION_USER_ERROR,
+  RELATIONSHIP_ORGANISATION_MISSING,
+  safeCreateConversationErrorMessage,
+} from "@/lib/organisations/session-organisation";
 import { toUserFriendlySupabaseError } from "@/lib/supabase/errors";
 
 /**
@@ -99,11 +105,20 @@ export async function createSessionRecord(session: Session): Promise<Session> {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ session }),
+      operation: "create_conversation",
+      relationshipId: session.clientId,
+      sessionId: session.id,
     });
     return data.session;
   } catch (error) {
     if (error instanceof AuthRequiredError) throw error;
-    throw toError(errorMessage(error, toUserFriendlySupabaseError(error)));
+    if (
+      error instanceof ApiRequestError &&
+      error.code === RELATIONSHIP_ORGANISATION_MISSING
+    ) {
+      throw toError(CREATE_CONVERSATION_USER_ERROR);
+    }
+    throw toError(safeCreateConversationErrorMessage(error));
   }
 }
 

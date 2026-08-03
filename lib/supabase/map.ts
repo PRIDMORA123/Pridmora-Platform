@@ -63,6 +63,7 @@ export type SessionRow = {
   id: string;
   client_id: string;
   coach_id: string;
+  organisation_id?: string | null;
   session_number: number;
   session_date: string | null;
   display_date: string | null;
@@ -305,7 +306,11 @@ function toNextSessionTimestamp(label: string): string | null {
   return null;
 }
 
-export function sessionToRow(session: Session, coachId: string): Omit<SessionRow, "created_at"> {
+export function sessionToRow(
+  session: Session,
+  coachId: string,
+  organisationId?: string | null
+): Omit<SessionRow, "created_at"> {
   // Persist human text and workflow fields separately.
   // Never append IDENTITY_WORKFLOW envelopes into coach-facing text columns.
   const preparationText = extractVisibleCoachNotes(
@@ -325,6 +330,7 @@ export function sessionToRow(session: Session, coachId: string): Omit<SessionRow
     id: session.id,
     client_id: session.clientId,
     coach_id: coachId,
+    ...(organisationId ? { organisation_id: organisationId } : {}),
     session_number: session.sessionNumber,
     session_date: toDateColumn(session.date),
     display_date: session.date || null,

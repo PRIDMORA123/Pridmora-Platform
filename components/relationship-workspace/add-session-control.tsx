@@ -3,9 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
+  allocateNextSessionNumber,
+  defaultSessionTitle,
   getIncompleteSessionWarning,
   type AddSessionFormValues,
 } from "@/lib/relationship-workspace";
+import { safeCreateConversationErrorMessage } from "@/lib/organisations/session-organisation";
 import type { Session } from "@/lib/types";
 
 export type { AddSessionFormValues };
@@ -19,6 +22,7 @@ const DEFAULT_FORM: AddSessionFormValues = {
 
 export function AddSessionControl({
   sessions,
+  clientName,
   archived = false,
   busy = false,
   showProminent = false,
@@ -28,6 +32,8 @@ export function AddSessionControl({
   onContinueSession,
 }: {
   sessions: Session[];
+  /** Person / relationship name shown in the create dialog. */
+  clientName?: string;
   archived?: boolean;
   busy?: boolean;
   /** When false, render a quiet text action rather than a primary CTA. */
@@ -48,6 +54,12 @@ export function AddSessionControl({
 
   const warning = getIncompleteSessionWarning(sessions);
   const triggerLabel = label ?? "Plan next conversation";
+  const nextSessionNumber = allocateNextSessionNumber(sessions);
+  const sessionLabel = defaultSessionTitle(nextSessionNumber);
+  const personName = clientName?.trim() || "";
+  const dialogTitle = personName
+    ? `Create conversation for ${personName}`
+    : "Create conversation";
 
   useEffect(() => {
     if (!open) return;
@@ -80,11 +92,7 @@ export function AddSessionControl({
       });
       setOpen(false);
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to create the conversation."
-      );
+      setError(safeCreateConversationErrorMessage(err));
     } finally {
       setSaving(false);
       submitLockRef.current = false;
@@ -157,7 +165,7 @@ export function AddSessionControl({
 
       <ConfirmDialog
         open={open}
-        title="Create conversation"
+        title={dialogTitle}
         onClose={() => {
           if (!locked) setOpen(false);
         }}
@@ -186,9 +194,20 @@ export function AddSessionControl({
           </>
         }
       >
-        <p className="muted">
-          Create the next conversation when the coaching relationship continues.
-          Session numbering is assigned automatically.
+        {personName ? (
+          <p className="muted">
+            Planning {sessionLabel} with {personName}. Session numbering is
+            assigned automatically.
+          </p>
+        ) : (
+          <p className="muted">
+            Create the next conversation when the coaching relationship
+            continues. Session numbering is assigned automatically.
+          </p>
+        )}
+
+        <p className="dialog-field">
+          <strong>{sessionLabel}</strong>
         </p>
 
         <label className="dialog-field">

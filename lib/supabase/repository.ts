@@ -7,6 +7,7 @@ import type {
   SupportingContextItem,
 } from "@/lib/relationship-meta";
 import { normalizeSession } from "@/lib/sessions";
+import { RelationshipOrganisationMissingError } from "@/lib/organisations/session-organisation";
 import {
   logSupabaseError,
   SupabaseDbError,
@@ -176,32 +177,24 @@ async function insertFullClient(
   supabase: SupabaseClient,
   client: Client,
   coachId: string,
-  organisationId?: string | null
+  organisationId: string
 ): Promise<Client> {
   const prepared = withUuidIds(client, coachId);
   const clientRow = {
     ...clientToRow(prepared, coachId),
-    ...(organisationId ? { organisation_id: organisationId } : {}),
+    organisation_id: organisationId,
   };
   const sessionRows = prepared.sessions.map(session => ({
-    ...sessionToRow(session, coachId),
-    ...(organisationId ? { organisation_id: organisationId } : {}),
+    ...sessionToRow(session, coachId, organisationId),
   }));
   const itemRows = clientItemsToRows(prepared, coachId).map(row => ({
     ...row,
     id: isUuid(row.id) ? row.id : crypto.randomUUID(),
-    ...(organisationId ? { organisation_id: organisationId } : {}),
+    organisation_id: organisationId,
   }));
 
   const clientWrite = await supabase.from("clients").upsert(clientRow);
   if (clientWrite.error) {
-    // Retry without organisation_id when column is not yet migrated.
-    if (
-      organisationId &&
-      /organisation_id|schema cache|could not find/i.test(clientWrite.error.message)
-    ) {
-      return insertFullClient(supabase, client, coachId, null);
-    }
     throwFromSupabase(clientWrite.error, clientWrite.status, "clients.upsert");
   }
 
@@ -219,21 +212,19 @@ async function insertFullClient(
     }
   }
 
-  if (organisationId) {
-    try {
-      const { createPrimaryAssignment } = await import(
-        "@/lib/organisations/repository"
-      );
-      await createPrimaryAssignment({
-        supabase,
-        organisationId,
-        clientId: prepared.id,
-        userId: coachId,
-        assignedBy: coachId,
-      });
-    } catch (error) {
-      console.warn("Primary assignment create skipped:", error);
-    }
+  try {
+    const { createPrimaryAssignment } = await import(
+      "@/lib/organisations/repository"
+    );
+    await createPrimaryAssignment({
+      supabase,
+      organisationId,
+      clientId: prepared.id,
+      userId: coachId,
+      assignedBy: coachId,
+    });
+  } catch (error) {
+    console.warn("Primary assignment create skipped:", error);
   }
 
   return prepared;
@@ -328,9 +319,16 @@ export async function createClientInDb(
   supabase: SupabaseClient,
   coachId: string,
   client: Client,
-  organisationId?: string | null
+  organisationId: string
 ): Promise<Client> {
   try {
+    const resolvedOrganisationId = organisationId.trim();
+    if (!resolvedOrganisationId) {
+      throw new RelationshipOrganisationMissingError(
+        "Client creation requires organisation ownership from the current workspace."
+      );
+    }
+
     return await insertFullClient(
       supabase,
       {
@@ -343,9 +341,10 @@ export async function createClientInDb(
         })),
       },
       coachId,
-      organisationId
+      resolvedOrganisationId
     );
   } catch (error) {
+    if (error instanceof RelationshipOrganisationMissingError) throw error;
     wrapDbError(
       error,
       "Unable to create the client in Supabase. Please check your connection and try again."
@@ -356,9 +355,15 @@ export async function createClientInDb(
 export async function saveSessionInDb(
   supabase: SupabaseClient,
   coachId: string,
-  session: Session
+  session: Session,
+  organisationId: string
 ): Promise<Session> {
   try {
+    const resolvedOrganisationId = organisationId.trim();
+    if (!resolvedOrganisationId) {
+      throw new RelationshipOrganisationMissingError();
+    }
+
     const activity = await assertClientActive(supabase, coachId, session.clientId);
     if (activity === "missing") {
       throw new OwnershipError();
@@ -373,7 +378,8 @@ export async function saveSessionInDb(
         id: isUuid(session.id) ? session.id : crypto.randomUUID(),
         coachId,
       },
-      coachId
+      coachId,
+      resolvedOrganisationId
     );
 
     // Prefer update-by-id when the row already exists and belongs to this coach.
@@ -391,15 +397,20 @@ export async function saveSessionInDb(
       }
     }
 
-    let payload: Record<string, unknown> = { ...row };
+    // organisation_id is required — never strip it during schema-cache retries.
+    let payload: Record<string, unknown> = {
+      ...row,
+      organisation_id: resolvedOrganisationId,
+    };
     let { data, error } = await supabase.from("sessions").upsert(payload).select("*").single();
 
-    // If the live schema is mid-migration, strip unknown columns and retry.
+    // If the live schema is mid-migration, strip unknown columns and retry —
+    // but never drop organisation_id.
     for (let attempt = 0; attempt < 8 && error; attempt += 1) {
       const missing = error.message.match(
         /could not find the '([^']+)' column/i
       )?.[1];
-      if (!missing || !(missing in payload)) break;
+      if (!missing || !(missing in payload) || missing === "organisation_id") break;
       const next = { ...payload };
       delete next[missing];
       payload = next;
@@ -414,6 +425,7 @@ export async function saveSessionInDb(
         id: row.id,
         client_id: row.client_id,
         coach_id: row.coach_id,
+        organisation_id: resolvedOrganisationId,
         session_number: row.session_number,
         session_date: row.session_date,
         display_date: row.display_date,
@@ -445,7 +457,13 @@ export async function saveSessionInDb(
     const saved = data as SessionRow;
     return rowToSession(saved, 0, saved.session_number);
   } catch (error) {
-    if (error instanceof OwnershipError || error instanceof ClientArchivedError) throw error;
+    if (
+      error instanceof OwnershipError ||
+      error instanceof ClientArchivedError ||
+      error instanceof RelationshipOrganisationMissingError
+    ) {
+      throw error;
+    }
     wrapDbError(
       error,
       "Unable to save the session in Supabase. Please check your connection and try again."
@@ -457,9 +475,10 @@ export async function saveSessionInDb(
 export async function createSessionInDb(
   supabase: SupabaseClient,
   coachId: string,
-  session: Session
+  session: Session,
+  organisationId: string
 ): Promise<Session> {
-  const saved = await saveSessionInDb(supabase, coachId, session);
+  const saved = await saveSessionInDb(supabase, coachId, session, organisationId);
 
   // Keep the client profile next-session label in sync for scheduled sessions.
   if (saved.status !== "completed" && (saved.date.trim() || saved.time.trim())) {

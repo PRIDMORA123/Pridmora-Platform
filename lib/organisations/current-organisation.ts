@@ -144,6 +144,9 @@ export async function requireAssignedClientAccess(input: {
       ok: true;
       assignment: RelationshipAssignment | null;
       privateNotesOwnerId: string;
+      /** Stored client organisation ownership — never from the browser. */
+      clientOrganisationId: string | null;
+      clientCoachId: string;
     }
   | { ok: false; response: NextResponse }
 > {
@@ -192,10 +195,17 @@ export async function requireAssignedClientAccess(input: {
     return { ok: false, response: notFoundOrForbidden() };
   }
 
+  const clientOrganisationId =
+    typeof client.organisation_id === "string" && client.organisation_id.trim()
+      ? client.organisation_id.trim()
+      : null;
+
   return {
     ok: true,
     assignment,
     privateNotesOwnerId: client.coach_id as string,
+    clientOrganisationId,
+    clientCoachId: client.coach_id as string,
   };
 }
 

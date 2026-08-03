@@ -38,10 +38,13 @@ describe("organisation foundation source guards", () => {
     expect(route).toContain("organisationId");
   });
 
-  it("sessions API requires assignment and redacts private notes", () => {
+  it("sessions API requires assignment, derives organisation_id, and redacts private notes", () => {
     const route = read("app/api/sessions/route.ts");
     expect(route).toContain("requireAssignedClientAccess");
     expect(route).toContain("redactPrivateNotesFields");
+    expect(route).toContain("resolveSessionOrganisationId");
+    expect(route).toContain("RELATIONSHIP_ORGANISATION_MISSING");
+    expect(route).toContain("Never trust browser-supplied organisation");
   });
 
   it("preparation API enforces organisation AI policy and assignment", () => {

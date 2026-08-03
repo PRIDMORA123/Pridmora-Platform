@@ -249,6 +249,7 @@ export function RelationshipCanvas({
             <div className="current-conversation-card__primary">
               <AddSessionControl
                 sessions={relationship.sessions}
+                clientName={relationship.name}
                 archived={archived}
                 showProminent
                 label="Plan next conversation"
