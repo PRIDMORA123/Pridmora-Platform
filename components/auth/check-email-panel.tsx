@@ -11,19 +11,19 @@ export function CheckEmailPanel() {
   return (
     <AuthShell
       eyebrow="CHECK YOUR EMAIL"
-      title="Verify your email to continue"
+      title="Verify your account."
       description={
         email
-          ? `We sent a verification link to ${email}. Open the link to activate your account, then sign in.`
-          : "We sent a verification link to your email address. Open the link to activate your account, then sign in."
+          ? `We’ve sent a secure verification link to ${email}.`
+          : "We’ve sent a secure verification link to your email address."
       }
       footer={
-        <p className="auth-footer-links">
+        <p className="auth-account-prompt">
           <Link href="/auth/sign-in">Return to sign in</Link>
         </p>
       }
     >
-      <p className="muted auth-helper">
+      <p className="auth-helper">
         If you do not see the email, check your spam folder. The coaching workspace stays locked
         until verification is complete.
       </p>

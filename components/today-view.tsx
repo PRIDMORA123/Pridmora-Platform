@@ -19,12 +19,23 @@ import { OnboardingPrompt } from "@/components/identity/onboarding-prompt";
 import { PremiumWorkspaceHeader } from "@/components/identity/premium-workspace-header";
 import { RecentDevelopment } from "@/components/identity/recent-development";
 import { RelationshipPortfolio } from "@/components/identity/relationship-portfolio";
-import { WelcomeWorkspace } from "@/components/identity/welcome-workspace";
+import {
+  FirstUserOnboarding,
+  type FirstUserOnboardingResult,
+} from "@/components/onboarding/first-user-onboarding";
+import { PremiumEmptyHome } from "@/components/onboarding/premium-empty-home";
 import { LatestApprovedReport } from "@/components/reports/latest-approved-report";
 import {
   countConversationsInProgress,
   resolveHomeWorkspaceViewModel,
 } from "@/lib/home-workspace";
+import {
+  clearFirstUserOnboardingDismiss,
+  clearFirstUserOnboardingDraft,
+  dismissFirstUserOnboarding,
+  isFirstUserOnboardingDismissed,
+  shouldShowFirstUserOnboarding,
+} from "@/lib/first-user-onboarding";
 import {
   onboardingFocusPerson,
   resolveOnboardingStageFromClients,
@@ -43,6 +54,12 @@ export function IdentityHomePage({
   onCreatePerson,
   onViewPeople,
   coachName = "there",
+  userId = "",
+  coachId = "",
+  onCreateClientForOnboarding,
+  onCreateSessionForOnboarding,
+  onPrepareAfterOnboarding,
+  onViewRelationshipAfterOnboarding,
 }: {
   clients: Client[];
   onOpenClient: (client: Client) => void;
@@ -54,6 +71,23 @@ export function IdentityHomePage({
   onCreatePerson?: () => void;
   onViewPeople?: () => void;
   coachName?: string;
+  userId?: string;
+  coachId?: string;
+  onCreateClientForOnboarding?: (fields: {
+    name: string;
+    organisation: string;
+    role: string;
+    currentFocus: string;
+    email: string;
+  }) => Promise<{ id: string; name: string }>;
+  onCreateSessionForOnboarding?: (input: {
+    clientId: string;
+    plannedDate: string;
+    startTime: string;
+    conversationFocus: string;
+  }) => Promise<{ id: string }>;
+  onPrepareAfterOnboarding?: (result: FirstUserOnboardingResult) => void;
+  onViewRelationshipAfterOnboarding?: (result: FirstUserOnboardingResult) => void;
 }) {
   const [awaitingUpdates, setAwaitingUpdates] = useState<DevelopmentUpdateReviewTask[]>([]);
   const [recentlyApplied, setRecentlyApplied] = useState<
@@ -62,6 +96,26 @@ export function IdentityHomePage({
   const [latestReport, setLatestReport] = useState<
     (DevelopmentReport & { personName?: string }) | null
   >(null);
+  const [onboardingDismissed, setOnboardingDismissed] = useState(() =>
+    isFirstUserOnboardingDismissed(
+      typeof window !== "undefined" ? window.localStorage : null,
+      userId
+    )
+  );
+  const [forceOnboarding, setForceOnboarding] = useState(false);
+  const [retainOnboardingUi, setRetainOnboardingUi] = useState(false);
+  const [onboardingInitialStep, setOnboardingInitialStep] = useState<
+    "welcome" | "relationship"
+  >("welcome");
+
+  useEffect(() => {
+    setOnboardingDismissed(
+      isFirstUserOnboardingDismissed(
+        typeof window !== "undefined" ? window.localStorage : null,
+        userId
+      )
+    );
+  }, [userId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -133,8 +187,48 @@ export function IdentityHomePage({
     [clients]
   );
 
+  const showFirstUserOnboarding =
+    retainOnboardingUi ||
+    shouldShowFirstUserOnboarding({
+      clients,
+      dismissed: onboardingDismissed,
+      forceStart: forceOnboarding,
+    });
+
+  const showPremiumEmptyHome =
+    !showFirstUserOnboarding && viewModel.emptyKind === "no_relationships";
+
   function clientById(id: string): Client | undefined {
     return clients.find(client => client.id === id);
+  }
+
+  function releaseOnboardingUi() {
+    setRetainOnboardingUi(false);
+    setForceOnboarding(false);
+  }
+
+  function handleDismissOnboarding() {
+    dismissFirstUserOnboarding(
+      typeof window !== "undefined" ? window.localStorage : null,
+      userId,
+      typeof window !== "undefined" ? window.sessionStorage : null
+    );
+    setOnboardingDismissed(true);
+    releaseOnboardingUi();
+  }
+
+  function handleStartRelationshipFromEmpty() {
+    clearFirstUserOnboardingDismiss(
+      typeof window !== "undefined" ? window.localStorage : null,
+      userId
+    );
+    clearFirstUserOnboardingDraft(
+      typeof window !== "undefined" ? window.sessionStorage : null,
+      userId
+    );
+    setOnboardingDismissed(false);
+    setOnboardingInitialStep("relationship");
+    setForceOnboarding(true);
   }
 
   function handleNextAction() {
@@ -145,7 +239,11 @@ export function IdentityHomePage({
     }
 
     if (action.actionKind === "create_person") {
-      onCreatePerson?.();
+      if (showPremiumEmptyHome) {
+        handleStartRelationshipFromEmpty();
+      } else {
+        onCreatePerson?.();
+      }
       return;
     }
 
@@ -212,13 +310,41 @@ export function IdentityHomePage({
     onPrepare(person);
   }
 
-  if (onboardingStage === "welcome" || viewModel.emptyKind === "no_relationships") {
+  if (
+    showFirstUserOnboarding &&
+    onCreateClientForOnboarding &&
+    onCreateSessionForOnboarding &&
+    userId &&
+    coachId
+  ) {
     return (
-      <section className="identity-home identity-reveal">
-        <WelcomeWorkspace
-          coachFirstName={coachName}
-          onCreatePerson={() => onCreatePerson?.()}
+      <section className="identity-home">
+        <FirstUserOnboarding
+          key={`${userId}-${onboardingInitialStep}-${forceOnboarding ? "force" : "auto"}`}
+          userId={userId}
+          coachId={coachId}
+          initialStep={onboardingInitialStep}
+          onDismiss={handleDismissOnboarding}
+          onCreateClient={onCreateClientForOnboarding}
+          onCreateSession={onCreateSessionForOnboarding}
+          onFlowActive={() => setRetainOnboardingUi(true)}
+          onPrepare={result => {
+            releaseOnboardingUi();
+            onPrepareAfterOnboarding?.(result);
+          }}
+          onViewRelationship={result => {
+            releaseOnboardingUi();
+            onViewRelationshipAfterOnboarding?.(result);
+          }}
         />
+      </section>
+    );
+  }
+
+  if (showPremiumEmptyHome) {
+    return (
+      <section className="identity-home">
+        <PremiumEmptyHome onCreateRelationship={handleStartRelationshipFromEmpty} />
       </section>
     );
   }

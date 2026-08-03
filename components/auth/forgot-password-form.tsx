@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { AuthTextField } from "@/components/auth/auth-fields";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
 export function ForgotPasswordForm() {
@@ -42,26 +43,31 @@ export function ForgotPasswordForm() {
 
   return (
     <AuthShell
-      eyebrow="FORGOTTEN PASSWORD"
-      title="Reset your password"
-      description="Enter the email address for your coach account. We will send a secure reset link if an account exists."
+      eyebrow="ACCOUNT RECOVERY"
+      title="Reset your password."
+      description="Enter your email address and we’ll send you a secure reset link."
       footer={
-        <p className="auth-footer-links">
+        <p className="auth-account-prompt">
           <Link href="/auth/sign-in">Return to sign in</Link>
         </p>
       }
     >
       <form
+        className="auth-form-fields"
         onSubmit={event => {
           void submit(event);
         }}
       >
-        <label>
-          Email address
-          <input type="email" name="email" autoComplete="email" required />
-        </label>
-        <button className="primary full" type="submit" disabled={submitting} aria-busy={submitting}>
-          {submitting ? "Sending..." : "Send reset link"}
+        <AuthTextField
+          label="Email address"
+          icon="email"
+          type="email"
+          name="email"
+          autoComplete="email"
+          required
+        />
+        <button className="auth-submit" type="submit" disabled={submitting} aria-busy={submitting}>
+          {submitting ? "Sending…" : "Send reset link"}
         </button>
         {message ? (
           <p

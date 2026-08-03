@@ -76,15 +76,18 @@ describe("Pridmora Development Platform branding", () => {
     ).toBe(BRAND.productName);
   });
 
-  it("login shell shows product name and descriptor", async () => {
+  it("login shell shows product name and editorial brand copy", async () => {
     const container = await renderView(
-      <AuthShell eyebrow="WELCOME BACK" title="Sign in to your workspace">
+      <AuthShell eyebrow="WELCOME BACK" title="Welcome back">
         <form />
       </AuthShell>
     );
-    expect(container.textContent).toContain(BRAND.productName);
-    expect(container.textContent).toContain(BRAND.productDescriptor);
-    expect(container.textContent).toContain("Sign in to your workspace");
+    expect(container.textContent).toContain(BRAND.companyName);
+    expect(container.textContent).toContain(BRAND.productShortName);
+    expect(container.textContent).toContain("Welcome back");
+    expect(container.textContent).toContain("into evidence.");
+    expect(container.querySelector(".auth-layout")).toBeTruthy();
+    expect(container.querySelector(".login-card")).toBeNull();
     expect(container.textContent).not.toContain("Identity Intelligence");
     expect(container.textContent).not.toMatch(/\bIdentity by Pridmora\b/);
   });

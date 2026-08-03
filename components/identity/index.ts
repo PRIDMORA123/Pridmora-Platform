@@ -44,3 +44,16 @@ export { CoachingWorkItem } from "@/components/identity/coaching-work-item";
 export { ConversationsInProgress } from "@/components/identity/conversations-in-progress";
 export { RecentDevelopment } from "@/components/identity/recent-development";
 export { RelationshipPortfolio } from "@/components/identity/relationship-portfolio";
+
+// Premium Experience aliases (map onto Identity primitives — no duplicates)
+export {
+  PremiumPageHeader,
+  PremiumSection,
+  PremiumPanel,
+  PremiumButton,
+  PremiumInput,
+  PremiumEmptyState,
+  PremiumStatus,
+  PremiumLoadingState,
+  PremiumInlineNotice,
+} from "@/components/premium";

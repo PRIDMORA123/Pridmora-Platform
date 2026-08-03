@@ -828,33 +828,39 @@
 
 .identity-button.is-primary,
 .identity-button--primary {
-  min-height: 43px;
+  min-height: 44px;
   padding: 10px 18px;
   border: 1px solid var(--identity-teal-600);
-  border-radius: 10px;
+  border-radius: var(--identity-radius-control);
   background: var(--identity-teal-600);
   color: var(--identity-white);
   box-shadow: 0 6px 16px rgba(28, 165, 173, 0.17);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .identity-button.is-primary:hover:not(:disabled),
 .identity-button--primary:hover:not(:disabled) {
   border-color: var(--identity-teal-700);
   background: var(--identity-teal-700);
-  box-shadow: 0 9px 22px rgba(28, 165, 173, 0.22);
-  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(28, 165, 173, 0.2);
+}
+
+.identity-button.is-primary:active:not(:disabled),
+.identity-button--primary:active:not(:disabled) {
+  background: var(--identity-teal-700);
+  box-shadow: 0 2px 8px rgba(28, 165, 173, 0.16);
+  transform: none;
 }
 
 .identity-button.is-secondary,
 .identity-button--secondary {
-  min-height: 41px;
+  min-height: 44px;
   padding: 9px 15px;
   border: 1px solid var(--identity-border-medium);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.84);
+  border-radius: var(--identity-radius-control);
+  background: var(--identity-white);
   color: var(--identity-navy-950);
-  box-shadow: 0 4px 12px rgba(7, 39, 65, 0.035);
+  box-shadow: 0 2px 8px rgba(7, 39, 65, 0.03);
   font-weight: 600;
 }
 
@@ -866,14 +872,14 @@
 
 .identity-button.is-quiet,
 .identity-button--quiet {
-  min-height: 36px;
+  min-height: 40px;
   padding: 7px 12px;
   border: 1px solid var(--identity-border-light);
-  border-radius: 9px;
+  border-radius: var(--identity-radius-control);
   background: var(--identity-white);
   color: var(--identity-navy-950);
   font-size: 0.76rem;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .identity-button.is-quiet:hover:not(:disabled),

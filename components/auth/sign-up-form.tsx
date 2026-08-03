@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { AuthPasswordField, AuthTextField } from "@/components/auth/auth-fields";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
 export function SignUpForm() {
@@ -73,55 +73,63 @@ export function SignUpForm() {
 
   return (
     <AuthShell
-      eyebrow="CREATE ACCOUNT"
-      title="Start your coaching workspace"
-      description="Create a secure coach account. You may need to verify your email before signing in."
+      eyebrow="GET STARTED"
+      title="Create your workspace."
+      description="Begin turning coaching conversations into meaningful development evidence."
       footer={
-        <p className="auth-footer-links">
+        <p className="auth-account-prompt">
           Already have an account? <Link href="/auth/sign-in">Sign in</Link>
         </p>
       }
     >
       <form
+        className="auth-form-fields"
         onSubmit={event => {
           void submit(event);
         }}
       >
-        <label>
-          Full name
-          <input type="text" name="full_name" autoComplete="name" required />
-        </label>
-        <label>
-          Professional title
-          <input
-            type="text"
-            name="professional_title"
-            autoComplete="organization-title"
-            placeholder="Professional Coach"
-            required
-          />
-        </label>
-        <label>
-          Organisation <span className="optional">(optional)</span>
-          <input type="text" name="organisation" autoComplete="organization" />
-        </label>
-        <label>
-          Email address
-          <input type="email" name="email" autoComplete="email" required />
-        </label>
-        <label>
-          Password
-          <input
-            type="password"
-            name="password"
-            autoComplete="new-password"
-            minLength={8}
-            required
-          />
-        </label>
-        <button className="primary full" type="submit" disabled={creating} aria-busy={creating}>
-          {creating ? "Creating account..." : "Create account"}{" "}
-          {!creating && <ArrowRight size={18} />}
+        <AuthTextField
+          label="Full name"
+          icon="user"
+          type="text"
+          name="full_name"
+          autoComplete="name"
+          required
+        />
+        <AuthTextField
+          label="Professional title"
+          icon="user"
+          type="text"
+          name="professional_title"
+          autoComplete="organization-title"
+          placeholder="Professional Coach"
+          required
+        />
+        <AuthTextField
+          label="Organisation"
+          icon="user"
+          type="text"
+          name="organisation"
+          autoComplete="organization"
+          optional
+        />
+        <AuthTextField
+          label="Email address"
+          icon="email"
+          type="email"
+          name="email"
+          autoComplete="email"
+          required
+        />
+        <AuthPasswordField
+          label="Password"
+          name="password"
+          autoComplete="new-password"
+          minLength={8}
+          required
+        />
+        <button className="auth-submit" type="submit" disabled={creating} aria-busy={creating}>
+          {creating ? "Creating account…" : "Create account"}
         </button>
         {error ? (
           <p className="inline-notice error" role="alert">

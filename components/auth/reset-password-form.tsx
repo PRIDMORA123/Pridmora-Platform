@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { AuthPasswordField } from "@/components/auth/auth-fields";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
 export function ResetPasswordForm() {
@@ -95,8 +96,8 @@ export function ResetPasswordForm() {
 
   if (!ready) {
     return (
-      <AuthShell eyebrow="RESET PASSWORD" title="Preparing secure reset…">
-        <p className="muted">Checking your reset link…</p>
+      <AuthShell eyebrow="CREATE A NEW PASSWORD" title="Preparing secure reset…">
+        <p className="auth-form__description">Checking your reset link…</p>
       </AuthShell>
     );
   }
@@ -104,13 +105,13 @@ export function ResetPasswordForm() {
   if (expired) {
     return (
       <AuthShell
-        eyebrow="RESET PASSWORD"
+        eyebrow="CREATE A NEW PASSWORD"
         title="This link is no longer valid"
         description="Password reset links expire for security. Request a new link to continue."
         footer={
-          <p className="auth-footer-links">
+          <p className="auth-account-prompt">
             <Link href="/auth/forgot-password">Request a new reset link</Link>
-            <span aria-hidden>·</span>
+            {" · "}
             <Link href="/auth/sign-in">Sign in</Link>
           </p>
         }
@@ -126,42 +127,42 @@ export function ResetPasswordForm() {
 
   return (
     <AuthShell
-      eyebrow="RESET PASSWORD"
-      title="Choose a new password"
-      description="Enter a new password for your coach account."
+      eyebrow="CREATE A NEW PASSWORD"
+      title="Choose a new password."
+      description="Set a secure password to return to your workspace."
       footer={
-        <p className="auth-footer-links">
+        <p className="auth-account-prompt">
           <Link href="/auth/sign-in">Return to sign in</Link>
         </p>
       }
     >
       <form
+        className="auth-form-fields"
         onSubmit={event => {
           void submit(event);
         }}
       >
-        <label>
-          New password
-          <input
-            type="password"
-            name="password"
-            autoComplete="new-password"
-            minLength={8}
-            required
-          />
-        </label>
-        <label>
-          Confirm new password
-          <input
-            type="password"
-            name="confirm_password"
-            autoComplete="new-password"
-            minLength={8}
-            required
-          />
-        </label>
-        <button className="primary full" type="submit" disabled={saving || success} aria-busy={saving}>
-          {success ? "Password updated" : saving ? "Updating..." : "Update password"}
+        <AuthPasswordField
+          label="New password"
+          name="password"
+          autoComplete="new-password"
+          minLength={8}
+          required
+        />
+        <AuthPasswordField
+          label="Confirm new password"
+          name="confirm_password"
+          autoComplete="new-password"
+          minLength={8}
+          required
+        />
+        <button
+          className="auth-submit"
+          type="submit"
+          disabled={saving || success}
+          aria-busy={saving}
+        >
+          {success ? "Password updated" : saving ? "Updating…" : "Update password"}
         </button>
         {error ? (
           <p className="inline-notice error" role="alert">

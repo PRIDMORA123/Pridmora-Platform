@@ -9,20 +9,20 @@ export default async function AuthErrorPage({
   const params = await searchParams;
   const message =
     params.message?.trim() ||
-    "Something went wrong with authentication. Please try signing in again.";
+    "The link may have expired or already been used. Return to sign in and try again.";
 
   return (
     <AuthShell
-      eyebrow="AUTHENTICATION"
-      title="Unable to continue"
+      eyebrow="WE COULDN’T CONTINUE"
+      title="There was a problem with this link."
       description={message}
       footer={
-        <p className="auth-footer-links">
+        <p className="auth-account-prompt">
           <Link href="/auth/sign-in">Return to sign in</Link>
         </p>
       }
     >
-      <p className="muted auth-helper">
+      <p className="auth-helper">
         If you followed an email link, it may have expired. You can request a new verification or
         password reset email from the sign-in screens.
       </p>

@@ -552,6 +552,125 @@ export function HomeApp() {
     }
   }
 
+  /** Quiet client create for first-user onboarding — no navigation. */
+  async function createClientForOnboarding(fields: {
+    name: string;
+    organisation: string;
+    role: string;
+    currentFocus: string;
+    email: string;
+  }): Promise<{ id: string; name: string }> {
+    if (!authReady || !profile) {
+      throw new Error("Sign in before creating a relationship.");
+    }
+    setStorageError("");
+    const saved = await createClientRecord(fields);
+    if (!activeRef.current) {
+      return { id: saved.id, name: saved.name };
+    }
+    setClients(current => {
+      if (current.some(client => client.id === saved.id)) return current;
+      return [saved, ...current];
+    });
+    setSelectedId(saved.id);
+    return { id: saved.id, name: saved.name };
+  }
+
+  /** Quiet Session 1 create for first-user onboarding — no navigation. */
+  async function createSessionForOnboarding(input: {
+    clientId: string;
+    plannedDate: string;
+    startTime: string;
+    conversationFocus: string;
+  }): Promise<{ id: string }> {
+    if (!coachId || !authReady || !profile) {
+      throw new Error("Sign in before scheduling a conversation.");
+    }
+
+    const dateValue = input.plannedDate.trim()
+      ? formatDisplayDateFromIso(input.plannedDate)
+      : "";
+    const focusValue = input.conversationFocus.trim();
+
+    // Prefer live state; fall back to empty sessions for a just-created relationship.
+    const existingSessions =
+      clients.find(item => item.id === input.clientId)?.sessions ?? [];
+
+    const blank = createBlankSession({
+      id: crypto.randomUUID(),
+      clientId: input.clientId,
+      coachId,
+      sessionNumber: nextSessionNumber(existingSessions),
+      date: dateValue,
+      time: input.startTime.trim(),
+      title: "",
+      focus: focusValue,
+      durationMinutes: 60,
+      location: "",
+      status: "planned",
+      preparation: "",
+    });
+
+    const saved = await createSessionRecord(blank);
+    if (activeRef.current) {
+      setClients(current => {
+        const existing = current.find(item => item.id === input.clientId);
+        if (!existing) return current;
+        const sessions = [
+          saved,
+          ...existing.sessions.filter(session => session.id !== saved.id),
+        ];
+        const nextLabel = saved.date
+          ? `${saved.date}${saved.time ? `, ${saved.time}` : ""}`
+          : "Date not set";
+        return current.map(item =>
+          item.id === input.clientId
+            ? { ...item, sessions, nextSession: nextLabel }
+            : item
+        );
+      });
+      setSelectedId(input.clientId);
+      setFocusSessionId(saved.id);
+      await refreshSessionsForClient(input.clientId);
+    }
+    return { id: saved.id };
+  }
+
+  function prepareAfterOnboarding(result: {
+    clientId: string;
+    sessionId: string;
+    personName: string;
+  }) {
+    const client = clients.find(item => item.id === result.clientId);
+    if (client) {
+      void prepare(client, result.sessionId);
+      return;
+    }
+    // Client state may still be settling — open Prepare by relationship id.
+    setSelectedId(result.clientId);
+    setFocusSessionId(result.sessionId);
+    setStorageError("");
+    setClientFlash("");
+    navigate(PREPARE_VIEW);
+    void refreshSessionsForClient(result.clientId);
+  }
+
+  function viewRelationshipAfterOnboarding(result: {
+    clientId: string;
+    personName: string;
+  }) {
+    const client = clients.find(item => item.id === result.clientId);
+    if (client) {
+      void openClient(client);
+      return;
+    }
+    setSelectedId(result.clientId);
+    setStorageError("");
+    setClientFlash("");
+    navigate("coach-space");
+    void refreshSessionsForClient(result.clientId);
+  }
+
   async function saveSession(updated: Session): Promise<Session> {
     if (!selected || !coachId || !authReady || !profile) {
       throw new Error("Sign in and select a client before saving a session.");
@@ -948,6 +1067,8 @@ export function HomeApp() {
             <TodayView
               clients={clients}
               coachName={coachFirstName}
+              userId={coachId}
+              coachId={coachId}
               onCreatePerson={() => {
                 openNewClientForm();
               }}
@@ -977,6 +1098,10 @@ export function HomeApp() {
                 navigate("reports");
                 void refreshSessionsForClient(client.id);
               }}
+              onCreateClientForOnboarding={createClientForOnboarding}
+              onCreateSessionForOnboarding={createSessionForOnboarding}
+              onPrepareAfterOnboarding={prepareAfterOnboarding}
+              onViewRelationshipAfterOnboarding={viewRelationshipAfterOnboarding}
             />
           )}
           {(view === "clients" || view === "people") && (

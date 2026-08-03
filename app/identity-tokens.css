@@ -26,13 +26,14 @@
   /* Surfaces                                                           */
   /* ------------------------------------------------------------------ */
   --identity-white: #ffffff;
-  --identity-canvas: #f5f8f8;
+  /* Warm off-white page surface — aligned with approved auth benchmark */
+  --identity-canvas: #f7f5f1;
   --identity-page-background: var(--identity-canvas);
   --identity-app-bg: var(--identity-canvas);
   --identity-page-bg: var(--identity-canvas);
   --identity-surface: #ffffff;
-  --identity-surface-soft: #f0f5f5;
-  --identity-surface-muted: #f8fafb;
+  --identity-surface-soft: #f3f1ec;
+  --identity-surface-muted: #faf9f6;
   --identity-surface-intelligence: var(--identity-teal-050);
   --identity-surface-teal: var(--identity-surface-intelligence);
 
@@ -94,15 +95,15 @@
   --identity-danger-bg: var(--identity-danger-soft);
 
   /* ------------------------------------------------------------------ */
-  /* Radius — locked Experience System                                  */
+  /* Radius — locked Premium Experience (12–14 controls, 14–18 panels)  */
   /* ------------------------------------------------------------------ */
-  --identity-radius-sm: 6px;
-  --identity-radius-control: 10px;
+  --identity-radius-sm: 8px;
+  --identity-radius-control: 12px;
   --identity-radius-md: var(--identity-radius-control);
   --identity-radius-lg: 14px;
-  --identity-radius-card: 18px;
-  --identity-radius-xl: var(--identity-radius-card);
-  --identity-radius-feature: 22px;
+  --identity-radius-card: 16px;
+  --identity-radius-xl: 18px;
+  --identity-radius-feature: 18px;
   --identity-radius-pill: 999px;
 
   /* ------------------------------------------------------------------ */

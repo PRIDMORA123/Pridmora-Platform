@@ -5,6 +5,7 @@ import { brandMetadata } from "@/lib/brand";
 import "./identity-design-system.css";
 import "./identity-tokens.css";
 import "./globals.css";
+import "./premium-experience.css";
 import "./action-feedback.css";
 import "./workspace-refinement.css";
 import "./session-workspace.css";
