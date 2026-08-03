@@ -21,10 +21,10 @@ export function ResetPasswordForm() {
     async function verifySession() {
       try {
         const supabase = createBrowserSupabaseClient();
-        const { data, error: sessionError } = await supabase.auth.getSession();
+        const { data, error: userError } = await supabase.auth.getUser();
         if (cancelled) return;
 
-        if (sessionError || !data.session) {
+        if (userError || !data.user) {
           setExpired(true);
           setReady(true);
           return;
@@ -83,8 +83,9 @@ export function ResetPasswordForm() {
       }
 
       setSuccess(true);
+      await supabase.auth.signOut();
       window.setTimeout(() => {
-        router.replace("/");
+        router.replace("/auth/sign-in");
         router.refresh();
       }, 1200);
     } catch {
@@ -171,7 +172,7 @@ export function ResetPasswordForm() {
         ) : null}
         {success ? (
           <p className="inline-notice" role="status">
-            Password updated. Taking you to your workspace…
+            Password updated. Taking you to sign in…
           </p>
         ) : null}
       </form>

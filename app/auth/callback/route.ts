@@ -1,70 +1,83 @@
-import { NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
-import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase/env";
+import {
+  categorizeAuthError,
+  logAuthRouteEvent,
+  sanitizeNextPath,
+  userFacingAuthErrorMessage,
+} from "@/lib/auth/email-link";
+import {
+  authErrorRedirect,
+  authSuccessRedirect,
+  createAuthRouteClient,
+} from "@/lib/auth/route-client";
 
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const nextParam = requestUrl.searchParams.get("next") || "/";
-  const next = nextParam.startsWith("/") ? nextParam : "/";
+  const next = sanitizeNextPath(requestUrl.searchParams.get("next"), "/");
   const errorDescription = requestUrl.searchParams.get("error_description");
   const errorCode = requestUrl.searchParams.get("error");
 
   if (errorCode || errorDescription) {
-    const message = errorDescription || "Email confirmation or password reset failed.";
-    return NextResponse.redirect(
-      new URL(`/auth/error?message=${encodeURIComponent(message)}`, requestUrl.origin)
+    logAuthRouteEvent("callback", {
+      outcome: "failure",
+      errorName: errorCode,
+      errorCode: errorCode,
+      category: "provider_error",
+    });
+    return authErrorRedirect(
+      requestUrl.origin,
+      userFacingAuthErrorMessage("provider_error")
     );
   }
 
   if (!code) {
-    return NextResponse.redirect(
-      new URL(
-        `/auth/error?message=${encodeURIComponent("Missing authentication code. Request a new email link.")}`,
-        requestUrl.origin
-      )
+    logAuthRouteEvent("callback", {
+      outcome: "failure",
+      category: "missing_code",
+    });
+    return authErrorRedirect(
+      requestUrl.origin,
+      userFacingAuthErrorMessage("missing_code")
     );
   }
 
-  const url = getSupabaseUrl();
-  const anonKey = getSupabaseAnonKey();
+  const { supabase, configured, applyCookies } = createAuthRouteClient(request);
 
-  if (!url || !anonKey) {
-    return NextResponse.redirect(
-      new URL(
-        `/auth/error?message=${encodeURIComponent("Supabase is not configured.")}`,
-        requestUrl.origin
-      )
+  if (!configured) {
+    logAuthRouteEvent("callback", {
+      outcome: "failure",
+      category: "not_configured",
+    });
+    return authErrorRedirect(
+      requestUrl.origin,
+      userFacingAuthErrorMessage("not_configured")
     );
   }
-
-  const cookieStore = await cookies();
-  const supabase = createServerClient(url, anonKey, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll();
-      },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => {
-          cookieStore.set(name, value, options);
-        });
-      },
-    },
-  });
 
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
-    const message = /expired|invalid/i.test(error.message)
-      ? "This link has expired or is no longer valid. Please request a new one."
-      : "Unable to complete authentication. Please try again.";
-    return NextResponse.redirect(
-      new URL(`/auth/error?message=${encodeURIComponent(message)}`, requestUrl.origin)
+    const category = categorizeAuthError(error);
+    logAuthRouteEvent("callback", {
+      outcome: "failure",
+      errorName: error.name,
+      errorCode: error.code ?? null,
+      category: category === "unknown" ? "exchange_failed" : category,
+    });
+    return authErrorRedirect(
+      requestUrl.origin,
+      userFacingAuthErrorMessage(
+        category === "unknown" ? "exchange_failed" : category
+      ),
+      applyCookies
     );
   }
 
-  return NextResponse.redirect(new URL(next, requestUrl.origin));
+  logAuthRouteEvent("callback", {
+    outcome: "success",
+    category: "ok",
+  });
+  return authSuccessRedirect(requestUrl.origin, next, applyCookies);
 }

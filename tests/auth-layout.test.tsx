@@ -23,6 +23,8 @@ const supabaseAuth = vi.hoisted(() => ({
   resetPasswordForEmail: vi.fn(),
   updateUser: vi.fn(),
   getSession: vi.fn(),
+  getUser: vi.fn(),
+  signOut: vi.fn(),
 }));
 
 vi.mock("next/link", () => ({
@@ -78,7 +80,11 @@ beforeEach(() => {
   supabaseAuth.resetPasswordForEmail.mockReset();
   supabaseAuth.updateUser.mockReset();
   supabaseAuth.getSession.mockReset();
+  supabaseAuth.getUser.mockReset();
+  supabaseAuth.signOut.mockReset();
   supabaseAuth.getSession.mockResolvedValue({ data: { session: null }, error: null });
+  supabaseAuth.getUser.mockResolvedValue({ data: { user: null }, error: null });
+  supabaseAuth.signOut.mockResolvedValue({ error: null });
   window.localStorage.clear();
 });
 
@@ -266,6 +272,61 @@ describe("auth layout replacement", () => {
     expect(container.querySelector('button[type="submit"]')?.textContent).toContain(
       "Send reset link"
     );
+  });
+
+  it("reset password requires a session and redirects to sign-in after update", async () => {
+    supabaseAuth.getUser.mockResolvedValue({
+      data: { user: { id: "coach-1" } },
+      error: null,
+    });
+    supabaseAuth.updateUser.mockResolvedValue({ data: { user: { id: "coach-1" } }, error: null });
+
+    const { ResetPasswordForm } = await import(
+      "@/components/auth/reset-password-form"
+    );
+    const container = await renderView(<ResetPasswordForm />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toContain("CREATE A NEW PASSWORD");
+    expect(container.textContent).toContain("Choose a new password.");
+
+    const password = container.querySelector('input[name="password"]') as HTMLInputElement;
+    const confirm = container.querySelector(
+      'input[name="confirm_password"]'
+    ) as HTMLInputElement;
+    const form = container.querySelector("form") as HTMLFormElement;
+
+    await act(async () => {
+      password.value = "new-password-1";
+      confirm.value = "new-password-1";
+      form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+      await Promise.resolve();
+    });
+
+    expect(supabaseAuth.updateUser).toHaveBeenCalledWith({ password: "new-password-1" });
+    expect(supabaseAuth.signOut).toHaveBeenCalled();
+    expect(container.textContent).toContain("Taking you to sign in");
+
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 1300));
+    });
+    expect(navigation.replace).toHaveBeenCalledWith("/auth/sign-in");
+  });
+
+  it("reset password shows expired state without a recovery session", async () => {
+    supabaseAuth.getUser.mockResolvedValue({ data: { user: null }, error: null });
+    const { ResetPasswordForm } = await import(
+      "@/components/auth/reset-password-form"
+    );
+    const container = await renderView(<ResetPasswordForm />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(container.textContent).toContain("This link is no longer valid");
+    expect(container.querySelector('a[href="/auth/forgot-password"]')).toBeTruthy();
   });
 
   it("check email panel uses verification copy", async () => {

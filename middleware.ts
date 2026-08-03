@@ -9,6 +9,7 @@ const PUBLIC_PATHS = [
   "/auth/forgot-password",
   "/auth/reset-password",
   "/auth/callback",
+  "/auth/confirm",
   "/auth/error",
 ];
 
@@ -44,6 +45,7 @@ export async function middleware(request: NextRequest) {
     userId &&
     isAuthFlowPath(pathname) &&
     pathname !== "/auth/callback" &&
+    pathname !== "/auth/confirm" &&
     pathname !== "/auth/reset-password" &&
     pathname !== "/auth/check-email" &&
     pathname !== "/auth/error"
