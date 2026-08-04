@@ -1237,13 +1237,23 @@ p{line-height:1.65;font-weight:400}
 .identity-private-panel{margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--soft)}
 .identity-private-note{margin:0 0 10px;color:var(--muted);font-size:.9rem;line-height:1.45}
 .client-identity-reference{margin:0 0 4px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:700;letter-spacing:.04em;color:var(--teal-dark)}
-.client-identity-private-controls{margin-top:14px}
-.client-identity-private-panel{margin-top:10px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#fff;max-width:28rem}
-.client-identity-private-panel-header{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:10px}
-.client-identity-private-title{margin:0;font-weight:700;color:var(--navy)}
 .client-identity-private-fields{display:grid;gap:10px;margin:0}
 .client-identity-private-fields dt{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .client-identity-private-fields dd{margin:2px 0 0;font-weight:600;color:var(--navy);white-space:pre-wrap}
-.client-identity-private-empty{margin:0;color:var(--muted)}
+.client-identity-private-empty{margin:12px 0 0;color:var(--muted)}
+.private-identity-edit-form{display:grid;gap:14px}
+.private-identity-edit-form label{display:grid;gap:6px;font-size:.88rem;font-weight:600;color:var(--navy)}
+.private-identity-edit-form input,
+.private-identity-edit-form textarea{
+  width:100%;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:10px 12px;
+  font:inherit;
+  font-weight:500;
+  color:var(--navy);
+  background:#fff;
+}
+.private-identity-edit-form textarea{resize:vertical;min-height:96px}
 .report-named-export-confirm{margin-top:14px;padding:12px 14px;border:1px solid #e8dcc8;border-radius:14px;background:#f7f1e8}
 .report-named-export-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}

@@ -9,11 +9,20 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { MoreHorizontal, Pencil, Archive, RotateCcw, Trash2, MessageCircle } from "lucide-react";
+import {
+  MoreHorizontal,
+  Pencil,
+  Archive,
+  RotateCcw,
+  Trash2,
+  MessageCircle,
+  Lock,
+} from "lucide-react";
 import type { Client } from "@/lib/types";
 import { isClientArchived } from "@/lib/types";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { DeleteClientDialog } from "@/components/delete-client-dialog";
+import { PrivateIdentityAccess } from "@/components/private-identity/private-identity-access";
 import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 
 const POPOVER_WIDTH = 220;
@@ -41,6 +50,8 @@ function ClientActionsPopover({
   position,
   archived,
   submitting,
+  showPrivateIdentity,
+  onViewPrivateIdentity,
   onEdit,
   onArchive,
   onRestore,
@@ -52,6 +63,8 @@ function ClientActionsPopover({
   position: { top: number; left: number };
   archived: boolean;
   submitting: boolean;
+  showPrivateIdentity: boolean;
+  onViewPrivateIdentity: () => void;
   onEdit: () => void;
   onArchive: () => void;
   onRestore: () => void;
@@ -78,6 +91,16 @@ function ClientActionsPopover({
           onClick={onNewCoachingMoment}
         >
           <MessageCircle size={15} aria-hidden="true" /> New Coaching Moment
+        </button>
+      ) : null}
+      {showPrivateIdentity ? (
+        <button
+          type="button"
+          role="menuitem"
+          className="client-actions-item"
+          onClick={onViewPrivateIdentity}
+        >
+          <Lock size={15} aria-hidden="true" /> View private identity
         </button>
       ) : null}
       <button
@@ -138,10 +161,12 @@ export function ClientActionsMenu({
   onNewCoachingMoment?: () => void;
 }) {
   const archived = isClientArchived(client);
+  const isConfidential = client.identityMode === "confidential";
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [privateIdentityOpen, setPrivateIdentityOpen] = useState(false);
   const [actionError, setActionError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
@@ -152,6 +177,10 @@ export function ClientActionsMenu({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    setPrivateIdentityOpen(false);
+  }, [client.id]);
 
   const closeMenu = useCallback(() => {
     setOpen(false);
@@ -252,7 +281,12 @@ export function ClientActionsMenu({
               position={position}
               archived={archived}
               submitting={submitting}
+              showPrivateIdentity={isConfidential}
               popoverRef={popoverRef}
+              onViewPrivateIdentity={() => {
+                closeMenu();
+                setPrivateIdentityOpen(true);
+              }}
               onNewCoachingMoment={
                 onNewCoachingMoment
                   ? () => {
@@ -283,6 +317,15 @@ export function ClientActionsMenu({
             document.body
           )
         : null}
+
+      {isConfidential ? (
+        <PrivateIdentityAccess
+          clientId={client.id}
+          confidentialReference={client.confidentialReference}
+          open={privateIdentityOpen}
+          onOpenChange={setPrivateIdentityOpen}
+        />
+      ) : null}
 
       {actionError && !archiveOpen && !deleteOpen ? (
         <div className="inline-error client-actions-error" role="alert">
