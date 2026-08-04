@@ -147,6 +147,7 @@ export async function seedExistingSampleOrganisation(input: {
       coach_reflection: session.coachReflection,
       summary: session.summary,
       ai_summary_approved: session.aiSummaryApproved,
+      summary_status: session.aiSummaryApproved ? "approved" : "not_generated",
       completed_at: session.completedAt ?? null,
       updated_at: new Date().toISOString(),
     });

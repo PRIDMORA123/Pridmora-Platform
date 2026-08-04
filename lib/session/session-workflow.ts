@@ -437,7 +437,9 @@ export function deriveCurrentWorkflowStage(
       }
       return "debrief";
     case "completed":
-      return "next_steps";
+      // Completed conversations open on the session record (Summary & Insights),
+      // matching overviewPrimaryAction — not Next Steps ("Carry forward…").
+      return "summary";
     case "prepared":
       return "brief";
     case "planned":

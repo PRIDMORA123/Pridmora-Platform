@@ -108,6 +108,13 @@ describe("sample organisation pack", () => {
     expect(seed).toContain("Unable to apply sample development update.");
   });
 
+  it("seeds approved summary status for completed sample conversations", () => {
+    const seed = read("lib/sample-organisations/seed-content.ts");
+    expect(seed).toContain(
+      'summary_status: session.aiSummaryApproved ? "approved" : "not_generated"'
+    );
+  });
+
   it("rejects packs with private email on confidential relationships", () => {
     const loaded = loadSamplePack("northbridge-healthcare");
     expect(loaded.ok).toBe(true);

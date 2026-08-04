@@ -269,6 +269,20 @@ describe("active session chronological stage states", () => {
       )
     ).toBe("next_steps");
   });
+
+  it("opens completed sessions on Summary & Insights for review", () => {
+    expect(
+      deriveCurrentWorkflowStage(
+        makeSession({
+          status: "completed",
+          summaryStatus: "approved",
+          aiSummaryApproved: true,
+          summary: "Reviewed progress on delegation under pressure.",
+        })
+      )
+    ).toBe("summary");
+    expect(workspaceStageFromWorkflow("summary")).toBe("summary");
+  });
 });
 
 describe("private note exclusion", () => {
