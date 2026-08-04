@@ -34,9 +34,7 @@ export function PersonActionsView({
       ) : null}
 
       <ClientIdentityHeader
-        name={client.name}
-        role={client.role}
-        organisation={client.organisation}
+        client={client}
         journeyStage={coachingStatusLabel(client)}
         developmentFocus={client.currentFocus.trim() || null}
       />

@@ -20,6 +20,10 @@ import {
   assertRelationshipOwnership,
   logRelationshipIsolationRejection,
 } from "@/lib/relationship-scope";
+import {
+  buildRelationshipAiContext,
+  formatRelationshipAiPersonContext,
+} from "@/lib/relationship-identity";
 import { isUuid } from "@/lib/uuid";
 
 export const runtime = "nodejs";
@@ -244,7 +248,9 @@ export async function POST(request: Request) {
 
     const { data: client, error: clientError } = await supabase
       .from("clients")
-      .select("id, name, organisation, role, current_focus, updated_at")
+      .select(
+        "id, name, organisation, role, current_focus, updated_at, identity_mode, display_label, confidential_reference, ai_name_allowed"
+      )
       .eq("id", relationshipId)
       .eq("coach_id", coachId)
       .maybeSingle();
@@ -291,16 +297,19 @@ export async function POST(request: Request) {
       }))
     );
 
-    const clientDisplayName = String(client.name ?? "").trim();
-    const organisationName = String(client.organisation ?? "").trim();
+    const aiContext = buildRelationshipAiContext({
+      name: String(client.name ?? ""),
+      organisation: client.organisation ? String(client.organisation) : "",
+      role: client.role ? String(client.role) : "",
+      identityMode: client.identity_mode,
+      displayLabel: client.display_label,
+      confidentialReference: client.confidential_reference,
+      aiNameAllowed: client.ai_name_allowed,
+    });
+    const clientDisplayName = aiContext.aiDisplayName;
+    const organisationName = aiContext.organisation;
 
-    const personContext = [
-      `Name: ${clientDisplayName}`,
-      organisationName ? `Organisation: ${organisationName}` : "",
-      client.role ? `Role: ${client.role}` : "",
-    ]
-      .filter(Boolean)
-      .join("\n");
+    const personContext = formatRelationshipAiPersonContext(aiContext).join("\n");
 
     const sourceFingerprint = buildSourceFingerprint([
       client.updated_at,

@@ -5,6 +5,7 @@ import {
   type ProfessionalIdentityJourney,
 } from "@/lib/journey";
 import { formatSessionHistoryDate } from "@/lib/sessions";
+import { relationshipPublicIdentity } from "@/lib/relationship-identity";
 
 export type ReportType = "progress" | "final";
 
@@ -23,6 +24,11 @@ export type ReportPrivacyOptions = {
   includeSessionDates: boolean;
   includeOutstandingCommitments: boolean;
   includeCoachCommentary: boolean;
+  /**
+   * When true and the coach has direct access, include the private real name
+   * on a named export. Defaults false — confidential identity is preferred.
+   */
+  includePrivateName?: boolean;
 };
 
 export const DEFAULT_REPORT_PRIVACY: ReportPrivacyOptions = {
@@ -31,7 +37,22 @@ export const DEFAULT_REPORT_PRIVACY: ReportPrivacyOptions = {
   includeSessionDates: true,
   includeOutstandingCommitments: true,
   includeCoachCommentary: true,
+  includePrivateName: false,
 };
+
+/** Default privacy for confidential relationships — public label/reference only. */
+export function defaultReportPrivacyForClient(client: {
+  identityMode?: string | null;
+}): ReportPrivacyOptions {
+  if (client.identityMode === "confidential") {
+    return {
+      ...DEFAULT_REPORT_PRIVACY,
+      includeClientName: true, // uses display label / reference via report identity helper
+      includePrivateName: false,
+    };
+  }
+  return { ...DEFAULT_REPORT_PRIVACY, includePrivateName: false };
+}
 
 export const DEMO_COACH_DISPLAY_NAME = "Coach";
 
@@ -489,6 +510,9 @@ export function buildCoachingReportDraft(input: {
   coachName?: string;
   coachingContext?: string;
   suggestedNextFocus?: string[];
+  /** Explicit named export — private real name when coach has approved. */
+  privateRealName?: string | null;
+  includePrivateName?: boolean;
 }): CoachingReportDraft {
   const selected = selectApprovedSessionsForReport(input.client.sessions, input.period);
   const scopedClient: Client = { ...input.client, sessions: selected };
@@ -497,10 +521,31 @@ export function buildCoachingReportDraft(input: {
   const dateGenerated = formatSessionHistoryDate();
 
   const valuesEmerging = buildValues(journey);
+  const publicIdentity = relationshipPublicIdentity(input.client);
+
+  let clientName = publicIdentity.displayName;
+  if (publicIdentity.identityMode === "confidential") {
+    const parts = [
+      publicIdentity.confidentialReference,
+      publicIdentity.displayLabel,
+    ].filter(Boolean);
+    clientName = parts.join(" · ") || publicIdentity.displayName;
+    if (
+      input.includePrivateName &&
+      input.privateRealName?.trim()
+    ) {
+      clientName = input.privateRealName.trim();
+    }
+  } else if (
+    input.includePrivateName &&
+    input.privateRealName?.trim()
+  ) {
+    clientName = input.privateRealName.trim();
+  }
 
   return {
     reportType: input.reportType,
-    clientName: input.client.name,
+    clientName,
     coachName: input.coachName?.trim() || DEMO_COACH_DISPLAY_NAME,
     reportPeriodLabel: periodLabel,
     sessionCount: selected.length,

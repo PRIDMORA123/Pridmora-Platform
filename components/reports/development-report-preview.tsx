@@ -6,6 +6,7 @@ import {
   type DevelopmentReport,
 } from "@/lib/reports/types";
 import type { Client } from "@/lib/types";
+import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 
 function IdentityReportMark() {
   return (
@@ -198,7 +199,7 @@ function ProgressSnapshotPreview({
         <dl className="report-snapshot-meta">
           <div>
             <dt>Name</dt>
-            <dd>{client.name}</dd>
+            <dd>{getRelationshipDisplayName(client)}</dd>
           </div>
           <div>
             <dt>Role and organisation</dt>
@@ -279,7 +280,7 @@ function ImpactSummaryPreview({
         <h2>Programme overview</h2>
         <p className="identity-report-prose">
           This Impact Summary covers the coaching relationship with{" "}
-          {client.name}
+          {getRelationshipDisplayName(client)}
           {client.role || client.organisation
             ? `, ${[client.role, client.organisation].filter(Boolean).join(", ")}`
             : ""}

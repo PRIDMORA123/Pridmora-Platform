@@ -22,6 +22,7 @@ import { cleanJourneyLanguage } from "@/lib/journey/clean-journey-language";
 import { EmergingEvidenceState } from "@/components/journey/emerging-evidence-state";
 import { ClientWorkspaceTabs } from "@/components/client-workspace-tabs";
 import { IDENTITY_EMPTY_STATES } from "@/lib/identity-empty-states";
+import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 
 type AiOverlay = {
   currentProfessionalIdentity: string | null;
@@ -86,7 +87,7 @@ export function JourneyView({
           body: JSON.stringify({
             clientId: client.id,
             relationshipId: client.id,
-            clientName: client.name,
+            clientName: getRelationshipDisplayName(client),
             evidence,
           }),
         });
@@ -148,7 +149,7 @@ export function JourneyView({
       {onTabChange && (
         <ClientWorkspaceTabs
           active="identity-journey"
-          clientName={client.name}
+          clientName={getRelationshipDisplayName(client)}
           onChange={onTabChange}
         />
       )}
@@ -156,7 +157,7 @@ export function JourneyView({
       <div className="page-heading row-between">
         <div>
           <p className="eyebrow">DEVELOPMENT JOURNEY</p>
-          <h1>{client.name}</h1>
+          <h1>{getRelationshipDisplayName(client)}</h1>
           <p>
             A clear narrative of development from approved coaching sessions — evidence based,
             coach controlled, never invented.
@@ -209,7 +210,7 @@ export function JourneyView({
           <p className="eyebrow">BUILDING THE JOURNEY</p>
           <h2>Your coaching record is taking shape</h2>
           <p className="muted empty-state">
-            After two approved coaching sessions, this space will show how {client.name}&apos;s
+            After two approved coaching sessions, this space will show how {getRelationshipDisplayName(client)}&apos;s
             professional identity is evolving — strengths developing, values emerging, themes
             recurring, milestones reached, and open commitments.
           </p>
@@ -221,7 +222,7 @@ export function JourneyView({
           <p className="muted empty-state">
             {journey.approvedSessionCount === 0
               ? "Approve your first session to begin gathering the evidence."
-              : `One more approved session and ${client.name}'s journey will appear here.`}
+              : `One more approved session and ${getRelationshipDisplayName(client)}'s journey will appear here.`}
           </p>
           {onPrepare && (
             <div className="button-row">

@@ -31,22 +31,36 @@ export async function loadClients(): Promise<Client[]> {
  * coach_id is assigned on the server from the authenticated session.
  */
 export async function createClientRecord(input: {
-  name: string;
+  name?: string;
   organisation?: string;
   role?: string;
   currentFocus?: string;
   email?: string;
+  identityMode?: "standard" | "confidential";
+  displayLabel?: string;
+  aiNameAllowed?: boolean;
+  privateRealName?: string;
+  privateEmail?: string;
+  privatePhone?: string;
+  privateNotes?: string;
 }): Promise<Client> {
   try {
     const data = await apiJson<{ client: Client }>("/api/clients", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        name: input.name,
+        name: input.name ?? "",
         organisation: input.organisation ?? "",
         role: input.role ?? "",
         currentFocus: input.currentFocus ?? "",
         email: input.email ?? "",
+        identityMode: input.identityMode ?? "standard",
+        displayLabel: input.displayLabel ?? "",
+        aiNameAllowed: Boolean(input.aiNameAllowed),
+        privateRealName: input.privateRealName ?? "",
+        privateEmail: input.privateEmail ?? "",
+        privatePhone: input.privatePhone ?? "",
+        privateNotes: input.privateNotes ?? "",
       }),
     });
     return data.client;

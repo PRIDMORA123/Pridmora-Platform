@@ -517,11 +517,18 @@ export function HomeApp() {
   }
 
   async function createClient(fields: {
-    name: string;
+    name?: string;
     organisation: string;
     role: string;
     currentFocus: string;
     email: string;
+    identityMode?: "standard" | "confidential";
+    displayLabel?: string;
+    aiNameAllowed?: boolean;
+    privateRealName?: string;
+    privateEmail?: string;
+    privatePhone?: string;
+    privateNotes?: string;
   }) {
     if (creatingClient || !authReady || !profile) return;
     setStorageError("");
@@ -554,11 +561,18 @@ export function HomeApp() {
 
   /** Quiet client create for first-user onboarding — no navigation. */
   async function createClientForOnboarding(fields: {
-    name: string;
+    name?: string;
     organisation: string;
     role: string;
     currentFocus: string;
     email: string;
+    identityMode?: "standard" | "confidential";
+    displayLabel?: string;
+    aiNameAllowed?: boolean;
+    privateRealName?: string;
+    privateEmail?: string;
+    privatePhone?: string;
+    privateNotes?: string;
   }): Promise<{ id: string; name: string }> {
     if (!authReady || !profile) {
       throw new Error("Sign in before creating a relationship.");

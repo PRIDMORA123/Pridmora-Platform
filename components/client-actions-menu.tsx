@@ -14,6 +14,7 @@ import type { Client } from "@/lib/types";
 import { isClientArchived } from "@/lib/types";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { DeleteClientDialog } from "@/components/delete-client-dialog";
+import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 
 const POPOVER_WIDTH = 220;
 const POPOVER_GAP = 8;
@@ -333,7 +334,7 @@ export function ClientActionsMenu({
 
       <DeleteClientDialog
         isOpen={deleteOpen}
-        clientName={client.name}
+        clientName={getRelationshipDisplayName(client)}
         isDeleting={submitting || busy}
         errorMessage={actionError}
         onClose={() => {

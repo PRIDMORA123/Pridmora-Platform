@@ -5,11 +5,14 @@ import type {
   RelationshipAgreement,
   SupportingContextItem,
 } from "@/lib/relationship-meta";
+import type { IdentityMode } from "@/lib/relationship-identity";
 import type {
   CoachingIntelligenceMode,
   CoachingIntelligenceStatus,
   IntelligenceSource,
 } from "@/types/coaching-intelligence";
+
+export type { IdentityMode };
 
 export type ClientStatus = "Active" | "Paused" | "Archived";
 export type StrengthStage = "Emerging" | "Developing" | "Established";
@@ -163,6 +166,18 @@ export type Client = {
   role: string;
   /** Optional contact email for the client (empty string when unset). */
   email: string;
+  /**
+   * How relationship identity is managed.
+   * confidential: public row holds display label + reference only.
+   * Defaults to standard when absent (legacy rows / fixtures).
+   */
+  identityMode?: IdentityMode;
+  /** Coach-facing public label (never private real name in confidential mode). */
+  displayLabel?: string;
+  /** Short non-identifying reference (e.g. C-7K4M2P); null in standard mode. */
+  confidentialReference?: string | null;
+  /** When true in standard mode, AI may use the preferred name. */
+  aiNameAllowed?: boolean;
   status: ClientStatus;
   /** ISO timestamp when archived; null/undefined when active. */
   archivedAt?: string | null;

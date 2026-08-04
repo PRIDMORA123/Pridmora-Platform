@@ -41,6 +41,7 @@ import { getFutureOrOpenSession } from "@/lib/session-workflow";
 import { RelationshipCanvas } from "@/components/relationship-workspace";
 import type { AddSessionFormValues } from "@/lib/relationship-workspace";
 import type { SessionModuleId } from "@/lib/relationship-workspace";
+import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 
 export function CoachSpaceView({
   client,
@@ -229,7 +230,7 @@ export function CoachSpaceView({
         "[relationship-isolation] Relationship Canvas render integrity check failed",
         {
           relationshipId: client.id,
-          personName: client.name,
+          personName: getRelationshipDisplayName(client),
           error:
             err instanceof Error
               ? { name: err.name, message: err.message }
@@ -258,8 +259,8 @@ export function CoachSpaceView({
       page.currentPosition.headline ||
       page.lookingAhead.nextFocus ||
       "";
-    return getCurrentPositionSnapshot(source, { clientName: client.name });
-  }, [page, client.name]);
+    return getCurrentPositionSnapshot(source, { clientName: getRelationshipDisplayName(client) });
+  }, [page, client]);
 
   function handlePrimaryAction(action: RelationshipPrimaryAction) {
     switch (action.kind) {
@@ -426,7 +427,7 @@ export function CoachSpaceView({
             }}
             onSaveAgreement={async agreement => {
               await onEditClient({
-                name: client.name,
+                name: getRelationshipDisplayName(client),
                 organisation: client.organisation,
                 role: client.role,
                 email: client.email,
@@ -435,7 +436,7 @@ export function CoachSpaceView({
             }}
             onSaveInitialConversation={async initialConversation => {
               await onEditClient({
-                name: client.name,
+                name: getRelationshipDisplayName(client),
                 organisation: client.organisation,
                 role: client.role,
                 email: client.email,
@@ -449,7 +450,7 @@ export function CoachSpaceView({
             clientId={client.id}
             isSaving={lifecycleBusy}
             initialValues={{
-              name: client.name,
+              name: getRelationshipDisplayName(client),
               role: client.role,
               organisation: client.organisation,
               email: client.email ?? "",
@@ -494,7 +495,7 @@ export function CoachSpaceView({
 
           <ScheduleSessionDialog
             open={scheduleOpen}
-            clientName={client.name}
+            clientName={getRelationshipDisplayName(client)}
             busy={scheduling}
             onClose={() => {
               if (!scheduling) setScheduleOpen(false);
@@ -513,7 +514,7 @@ export function CoachSpaceView({
           <CoachingMomentWorkspace
             open={coachingMomentOpen}
             clientId={client.id}
-            clientName={client.name}
+            clientName={getRelationshipDisplayName(client)}
             initialMoment={activeCoachingMoment}
             triggerRef={coachingMomentTriggerRef}
             onClose={() => {

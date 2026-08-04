@@ -74,11 +74,14 @@ export function IdentityHomePage({
   userId?: string;
   coachId?: string;
   onCreateClientForOnboarding?: (fields: {
-    name: string;
+    name?: string;
     organisation: string;
     role: string;
     currentFocus: string;
     email: string;
+    identityMode?: "standard" | "confidential";
+    displayLabel?: string;
+    aiNameAllowed?: boolean;
   }) => Promise<{ id: string; name: string }>;
   onCreateSessionForOnboarding?: (input: {
     clientId: string;

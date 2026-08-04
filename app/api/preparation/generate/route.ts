@@ -30,6 +30,10 @@ import {
   assertRelationshipOwnership,
   containsUnexpectedPersonName,
 } from "@/lib/relationship-scope";
+import {
+  buildRelationshipAiContext,
+  formatRelationshipAiPersonContext,
+} from "@/lib/relationship-identity";
 import { rowToSession } from "@/lib/supabase/map";
 import {
   parseSupportingContext,
@@ -112,7 +116,7 @@ export async function POST(request: Request) {
     const { data: client, error: clientError } = await supabase
       .from("clients")
       .select(
-        "id, name, organisation, role, current_focus, identity_summary, coach_insight, preparation_style_override, updated_at"
+        "id, name, organisation, role, current_focus, identity_summary, coach_insight, preparation_style_override, updated_at, identity_mode, display_label, confidential_reference, ai_name_allowed"
       )
       .eq("id", clientId)
       .eq("coach_id", coachId)
@@ -185,14 +189,28 @@ export async function POST(request: Request) {
     );
     const currentSession = sessions.find(item => item.id === sessionId) ?? rowToSession(sessionRow, 0, 1);
 
+    const aiContext = buildRelationshipAiContext({
+      name: String(client.name ?? ""),
+      organisation: client.organisation ? String(client.organisation) : "",
+      role: client.role ? String(client.role) : "",
+      identityMode: client.identity_mode,
+      displayLabel: client.display_label,
+      confidentialReference: client.confidential_reference,
+      aiNameAllowed: client.ai_name_allowed,
+    });
+
     const journey = buildClientJourneySnapshot(
       {
         id: client.id,
-        name: client.name,
+        name: aiContext.aiDisplayName,
         initials: "",
         organisation: client.organisation ?? "",
         role: client.role ?? "",
         email: "",
+        identityMode: aiContext.identityMode,
+        displayLabel: aiContext.displayLabel,
+        confidentialReference: aiContext.confidentialReference,
+        aiNameAllowed: Boolean(client.ai_name_allowed),
         status: "Active",
         nextSession: "",
         currentFocus: client.current_focus ?? "",
@@ -253,13 +271,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const personContext = [
-      `Name: ${client.name}`,
-      client.organisation ? `Organisation: ${client.organisation}` : "",
-      client.role ? `Role: ${client.role}` : "",
-    ]
-      .filter(Boolean)
-      .join("\n");
+    const personContext = formatRelationshipAiPersonContext(aiContext).join("\n");
 
     const latestConversation = latest
       ? [
@@ -367,7 +379,7 @@ export async function POST(request: Request) {
     if (
       containsUnexpectedPersonName(
         outputText,
-        String(client.name),
+        aiContext.allowedClientName,
         knownOtherNames
       )
     ) {

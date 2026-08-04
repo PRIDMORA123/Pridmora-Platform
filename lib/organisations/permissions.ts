@@ -135,6 +135,21 @@ export function canAccessCoachingContent(input: {
 }
 
 /**
+ * Private identity (real name / email / phone / notes) requires the same
+ * direct practitioner access as confidential coaching content.
+ *
+ * Organisation owner, administrator, or oversight membership alone is never enough.
+ * Legacy coach_id ownership is modelled as assignmentRole "primary" only when
+ * there are no active assignments (see requireAssignedClientAccess).
+ */
+export function canAccessPrivateIdentity(input: {
+  role: MembershipRole;
+  assignmentRole: AssignmentRole | null;
+}): boolean {
+  return canAccessCoachingContent(input);
+}
+
+/**
  * Private notes: primary / co_practitioner / cover when role allows.
  * Supervisor assignment never grants private notes.
  * After transfer, previous practitioner-only notes are filtered at the API layer

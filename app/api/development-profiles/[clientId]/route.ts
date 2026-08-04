@@ -6,6 +6,7 @@ import {
   listDevelopmentUpdatesForClient,
 } from "@/lib/development-updates/repository";
 import { assertRelationshipOwnership } from "@/lib/relationship-scope";
+import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 
 type Params = { params: Promise<{ clientId: string }> };
 
@@ -19,7 +20,9 @@ export async function GET(_request: Request, { params }: Params) {
   try {
     const { data: client, error } = await auth.context.supabase
       .from("clients")
-      .select("id, name, current_focus")
+      .select(
+        "id, name, current_focus, identity_mode, display_label, confidential_reference, ai_name_allowed, role, organisation"
+      )
       .eq("id", clientId)
       .eq("coach_id", coachId)
       .maybeSingle();
@@ -50,7 +53,16 @@ export async function GET(_request: Request, { params }: Params) {
       profile,
       pendingUpdate,
       updates,
-      clientName: client.name,
+      clientName: getRelationshipDisplayName({
+        name: String(client.name ?? ""),
+        identityMode: (client as { identity_mode?: string }).identity_mode,
+        displayLabel: (client as { display_label?: string }).display_label,
+        confidentialReference: (client as { confidential_reference?: string })
+          .confidential_reference,
+        aiNameAllowed: (client as { ai_name_allowed?: boolean }).ai_name_allowed,
+        role: (client as { role?: string }).role,
+        organisation: (client as { organisation?: string }).organisation,
+      }),
       relationshipId: clientId,
       coachId,
     });

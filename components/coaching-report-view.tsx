@@ -7,7 +7,7 @@ import { isClientArchived } from "@/lib/types";
 import { approvedSessions } from "@/lib/journey";
 import {
   DEMO_COACH_DISPLAY_NAME,
-  DEFAULT_REPORT_PRIVACY,
+  defaultReportPrivacyForClient,
   buildCoachingReportDraft,
   coachingReportAiEvidence,
   formatReportPeriodLabel,
@@ -19,6 +19,7 @@ import {
   type ReportPrivacyOptions,
   type ReportType,
 } from "@/lib/coaching-report";
+import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 import { ClientWorkspaceTabs } from "@/components/client-workspace-tabs";
 import { requireBrowserAuth } from "@/lib/auth/browser";
 import { apiJson, AuthRequiredError, errorMessage, toError } from "@/lib/api-client";
@@ -89,10 +90,17 @@ export function CoachingReportView({
   const [generateError, setGenerateError] = useState("");
   const [aiPartialNotice, setAiPartialNotice] = useState("");
 
-  const [privacy, setPrivacy] = useState<ReportPrivacyOptions>(DEFAULT_REPORT_PRIVACY);
+  const [privacy, setPrivacy] = useState<ReportPrivacyOptions>(() =>
+    defaultReportPrivacyForClient(client)
+  );
   const [reviewed, setReviewed] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState("");
+
+  const [namedExportConfirm, setNamedExportConfirm] = useState(false);
+
+  const displayName = getRelationshipDisplayName(client);
+  const isConfidential = client.identityMode === "confidential";
 
   const periodSelection: ReportPeriodSelection = useMemo(() => {
     if (periodMode === "date-range") {
@@ -157,6 +165,7 @@ export function CoachingReportView({
       coachName,
       coachingContext: preservedEdits?.coachingContext,
       suggestedNextFocus: preservedEdits?.suggestedNextFocus,
+      includePrivateName: Boolean(privacy.includePrivateName),
     });
 
     if (preservedEdits) {
@@ -181,7 +190,8 @@ export function CoachingReportView({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          clientName: client.name,
+          clientId: client.id,
+          clientName: displayName,
           reportType,
           reportPeriodLabel: periodLabel,
           evidence: coachingReportAiEvidence(previewSessions),
@@ -254,7 +264,7 @@ export function CoachingReportView({
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       const type = draft.reportType === "final" ? "final-coaching-report" : "progress-report";
-      const safeName = client.name
+      const safeName = displayName
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-|-$/g, "");
@@ -289,7 +299,7 @@ export function CoachingReportView({
       {onTabChange && (
         <ClientWorkspaceTabs
           active="identity-journey"
-          clientName={client.name}
+          clientName={displayName}
           onChange={onTabChange}
         />
       )}
@@ -297,7 +307,7 @@ export function CoachingReportView({
       <div className="page-heading row-between">
         <div>
           <p className="eyebrow">COACHING REPORT</p>
-          <h1>{client.name}</h1>
+          <h1>{displayName}</h1>
           <p>
             Create a factual coaching report from approved sessions and the{" "}
             {BRAND.journeyName}. Preview and edit before export — you remain
@@ -793,11 +803,15 @@ export function CoachingReportView({
               <article className="panel">
                 <p className="eyebrow">PRIVACY OPTIONS</p>
                 <h2>Choose what to include in the PDF</h2>
-                <p className="muted">Defaults include all options. Adjust before export.</p>
+                <p className="muted">
+                  {isConfidential
+                    ? "Defaults use the confidential reference and display label. Private names are excluded unless you choose a named export."
+                    : "Defaults include standard options. Adjust before export."}
+                </p>
                 <div className="report-privacy-list">
                   {(
                     [
-                      ["includeClientName", "Client name"],
+                      ["includeClientName", isConfidential ? "Display label / reference" : "Client name"],
                       ["includeCoachName", "Coach name"],
                       ["includeSessionDates", "Individual session dates"],
                       ["includeOutstandingCommitments", "Outstanding commitments"],
@@ -815,7 +829,55 @@ export function CoachingReportView({
                       <span>{label}</span>
                     </label>
                   ))}
+                  <label className="report-privacy-option">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(privacy.includePrivateName)}
+                      onChange={e => {
+                        if (e.target.checked) {
+                          setNamedExportConfirm(true);
+                        } else {
+                          setPrivacy(current => ({
+                            ...current,
+                            includePrivateName: false,
+                          }));
+                        }
+                      }}
+                    />
+                    <span>Include private name (named export)</span>
+                  </label>
                 </div>
+                {namedExportConfirm ? (
+                  <div className="report-named-export-confirm" role="alertdialog">
+                    <p>
+                      Named exports include the private name on this report. Confirm only when you
+                      intend to share a named document. Organisation and aggregate reports never
+                      include private identity.
+                    </p>
+                    <div className="report-named-export-actions">
+                      <button
+                        type="button"
+                        className="secondary"
+                        onClick={() => setNamedExportConfirm(false)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        className="primary"
+                        onClick={() => {
+                          setPrivacy(current => ({
+                            ...current,
+                            includePrivateName: true,
+                          }));
+                          setNamedExportConfirm(false);
+                        }}
+                      >
+                        Confirm named export
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
               </article>
 
               <article className="panel">

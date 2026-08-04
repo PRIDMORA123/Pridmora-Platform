@@ -109,9 +109,7 @@ export function CareerJourneyView({
       />
 
       <ClientIdentityHeader
-        name={client.name}
-        role={client.role}
-        organisation={client.organisation}
+        client={client}
         journeyStage={coachingStatusLabel(client, updates)}
         developmentFocus={client.currentFocus.trim() || null}
         latestConversationDate={

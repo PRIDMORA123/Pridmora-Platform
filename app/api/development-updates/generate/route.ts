@@ -23,6 +23,10 @@ import {
 import { listApprovedIntelligenceForClient } from "@/lib/intelligence/repository";
 import { getApprovedRelationshipEvidence } from "@/lib/journey/load-journey-view-model";
 import { assertRelationshipOwnership } from "@/lib/relationship-scope";
+import {
+  buildRelationshipAiContext,
+  formatRelationshipAiPersonContext,
+} from "@/lib/relationship-identity";
 
 type GenerateRequest = {
   clientId?: string;
@@ -175,7 +179,9 @@ export async function POST(request: Request) {
 
     const { data: client, error: clientError } = await supabase
       .from("clients")
-      .select("id, name, organisation, role, current_focus, identity_summary, coach_insight")
+      .select(
+        "id, name, organisation, role, current_focus, identity_summary, coach_insight, identity_mode, display_label, confidential_reference, ai_name_allowed"
+      )
       .eq("id", clientId)
       .eq("coach_id", coachId)
       .maybeSingle();
@@ -184,7 +190,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Person not found." }, { status: 404 });
     }
 
-    const clientName = String(client.name);
+    const aiContext = buildRelationshipAiContext({
+      name: String(client.name ?? ""),
+      organisation: client.organisation ? String(client.organisation) : "",
+      role: client.role ? String(client.role) : "",
+      identityMode: client.identity_mode,
+      displayLabel: client.display_label,
+      confidentialReference: client.confidential_reference,
+      aiNameAllowed: client.ai_name_allowed,
+    });
+    const clientName = aiContext.aiDisplayName;
     const notes = String(session.notes ?? "").trim();
     const summary = String(session.summary ?? session.ai_draft_summary ?? "").trim();
     const commitments = String(session.commitments ?? session.agreed_actions ?? "").trim();
@@ -260,9 +275,7 @@ export async function POST(request: Request) {
     }
 
     const personContext = [
-      `Name: ${clientName}`,
-      client.organisation ? `Organisation: ${client.organisation}` : "",
-      client.role ? `Role: ${client.role}` : "",
+      ...formatRelationshipAiPersonContext(aiContext),
       client.current_focus ? `Recorded focus: ${client.current_focus}` : "",
       client.identity_summary
         ? `Professional identity summary: ${client.identity_summary}`

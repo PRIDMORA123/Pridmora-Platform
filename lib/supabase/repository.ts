@@ -352,6 +352,137 @@ export async function createClientInDb(
   }
 }
 
+export type AtomicRelationshipCreateInput = {
+  organisationId: string;
+  identityMode: "standard" | "confidential";
+  name: string;
+  displayLabel: string;
+  role: string;
+  organisationLabel: string;
+  email: string;
+  currentFocus: string;
+  aiNameAllowed: boolean;
+  initials: string;
+  privateRealName?: string;
+  privateEmail?: string;
+  privatePhone?: string;
+  privateNotes?: string;
+};
+
+/**
+ * Atomically create client + primary assignment + optional private identity
+ * via SECURITY DEFINER RPC. coach_id and confidential_reference are never
+ * accepted from the browser — the RPC derives/generates them.
+ */
+export async function createRelationshipAtomicInDb(
+  supabase: SupabaseClient,
+  input: AtomicRelationshipCreateInput
+): Promise<Client> {
+  try {
+    const organisationId = input.organisationId.trim();
+    if (!organisationId) {
+      throw new RelationshipOrganisationMissingError(
+        "Client creation requires organisation ownership from the current workspace."
+      );
+    }
+
+    const { data, error } = await supabase.rpc("create_coaching_relationship", {
+      p_organisation_id: organisationId,
+      p_identity_mode: input.identityMode,
+      p_name: input.name,
+      p_display_label: input.displayLabel,
+      p_role: input.role || null,
+      p_organisation_label: input.organisationLabel || null,
+      p_email: input.email || null,
+      p_current_focus: input.currentFocus || null,
+      p_ai_name_allowed: Boolean(input.aiNameAllowed),
+      p_initials: input.initials || null,
+      p_private_real_name: input.privateRealName?.trim() || null,
+      p_private_email: input.privateEmail?.trim() || null,
+      p_private_phone: input.privatePhone?.trim() || null,
+      p_private_notes: input.privateNotes?.trim() || null,
+    });
+
+    if (error) {
+      throwFromSupabase(error, undefined, "create_coaching_relationship");
+    }
+
+    const payload = (data ?? {}) as {
+      ok?: boolean;
+      code?: string;
+      message?: string;
+      clientId?: string;
+    };
+
+    if (!payload.ok || !payload.clientId) {
+      const code = payload.code ?? "CREATE_FAILED";
+      if (code === "PERMISSION_DENIED") {
+        throw new Error("Permission denied.");
+      }
+      if (code === "ORGANISATION_REQUIRED") {
+        throw new RelationshipOrganisationMissingError();
+      }
+      throw new Error(
+        payload.message?.trim() ||
+          `Unable to create the relationship (${code}).`
+      );
+    }
+
+    const { data: clientRow, error: loadError } = await supabase
+      .from("clients")
+      .select("*")
+      .eq("id", payload.clientId)
+      .maybeSingle();
+
+    if (loadError) {
+      throw new Error(loadError.message);
+    }
+
+    if (clientRow) {
+      return assembleClient(clientRow as ClientRow, [], []);
+    }
+
+    // Fallback public representation if reload races schema cache.
+    return {
+      id: payload.clientId,
+      name: String((payload as { name?: string }).name ?? input.name),
+      initials: input.initials || initialsFromName(input.name),
+      organisation: input.organisationLabel,
+      role: input.role,
+      email: input.identityMode === "confidential" ? "" : input.email,
+      identityMode: input.identityMode,
+      displayLabel: String(
+        (payload as { displayLabel?: string }).displayLabel ?? input.displayLabel
+      ),
+      confidentialReference:
+        ((payload as { confidentialReference?: string | null })
+          .confidentialReference as string | null) ?? null,
+      aiNameAllowed:
+        input.identityMode === "confidential" ? false : Boolean(input.aiNameAllowed),
+      status: "Active",
+      nextSession: "Not scheduled",
+      currentFocus: input.currentFocus,
+      identitySummary: "",
+      coachInsight: "",
+      preparationStyleOverride: null,
+      strengths: [],
+      values: [],
+      themes: [],
+      goals: [],
+      actions: [],
+      quotes: [],
+      sessions: [],
+      journey: [],
+    };
+  } catch (error) {
+    if (error instanceof RelationshipOrganisationMissingError) throw error;
+    wrapDbError(
+      error,
+      "Unable to create the relationship in Supabase. Please check your connection and try again."
+    );
+  }
+}
+
 export async function saveSessionInDb(
   supabase: SupabaseClient,
   coachId: string,

@@ -125,6 +125,8 @@ describe("explore dismisses correctly", () => {
     saveFirstUserOnboardingDraft(window.sessionStorage, userId, {
       step: "relationship",
       relationship: {
+        identityMode: "standard",
+        displayLabel: "",
         name: "Alex",
         role: "",
         organisation: "",
@@ -183,7 +185,7 @@ describe("FirstUserOnboarding UI", () => {
   });
 
   it("creates relationship via existing APIs without organisation_id from the browser", async () => {
-    const onCreateClient = vi.fn(async (fields: Record<string, string>) => {
+    const onCreateClient = vi.fn(async (fields: Record<string, unknown>) => {
       expect(fields).not.toHaveProperty("organisationId");
       expect(fields).not.toHaveProperty("organisation_id");
       expect(fields.name).toBe("Jordan Lee");
@@ -363,6 +365,8 @@ describe("FirstUserOnboarding UI", () => {
     saveFirstUserOnboardingDraft(window.sessionStorage, "user-e", {
       step: "conversation",
       relationship: {
+        identityMode: "standard",
+        displayLabel: "",
         name: "Casey",
         role: "Director",
         organisation: "Acme",
@@ -398,20 +402,42 @@ describe("FirstUserOnboarding UI", () => {
 describe("payload helpers", () => {
   it("builds client payload without organisation ownership fields", () => {
     const payload = buildFirstUserClientPayload({
+      identityMode: "standard",
+      displayLabel: "",
       name: "Alex",
       role: "VP",
       organisation: "Northwind",
       coachingFocus: "Leadership",
     });
     expect(payload).toEqual({
+      identityMode: "standard",
+      displayLabel: "Alex",
       name: "Alex",
       role: "VP",
       organisation: "Northwind",
       currentFocus: "Leadership",
       email: "",
+      aiNameAllowed: false,
     });
     expect(payload).not.toHaveProperty("organisationId");
     expect(payload).not.toHaveProperty("organisation_id");
+  });
+
+  it("builds confidential onboarding payload without a real name", () => {
+    const payload = buildFirstUserClientPayload({
+      identityMode: "confidential",
+      displayLabel: "Programme lead",
+      name: "",
+      role: "Head of Finance",
+      organisation: "Northwind",
+      coachingFocus: "Leadership",
+    });
+    expect(payload).toMatchObject({
+      identityMode: "confidential",
+      displayLabel: "Programme lead",
+      name: "",
+      aiNameAllowed: false,
+    });
   });
 
   it("strips organisation_id from browser session bodies", () => {
@@ -552,6 +578,8 @@ describe("draft cleanup helper", () => {
     saveFirstUserOnboardingDraft(window.sessionStorage, "z", {
       step: "welcome",
       relationship: {
+        identityMode: "standard",
+        displayLabel: "",
         name: "",
         role: "",
         organisation: "",

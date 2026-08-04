@@ -1,7 +1,7 @@
 "use client";
 
 import { Plus, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Client } from "@/lib/types";
 import { isClientArchived } from "@/lib/types";
 import {
@@ -16,7 +16,9 @@ import {
   getPeopleNextActionLabel,
   sortClientsByAttention,
 } from "@/lib/people/attention-order";
+import { getRelationshipDisplayName, relationshipPublicIdentity } from "@/lib/relationship-identity";
 import { getConciseDevelopmentFocus } from "@/lib/people/development-focus-display";
+import { apiJson } from "@/lib/api-client";
 
 export type ClientsListFilter = "active" | "archived" | "all";
 
@@ -35,6 +37,38 @@ export function ClientsView({
 }) {
   const [query, setQuery] = useState("");
   const [listFilter, setListFilter] = useState<ClientsListFilter>("active");
+  const [privateMatchIds, setPrivateMatchIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) {
+      setPrivateMatchIds([]);
+      return;
+    }
+
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        try {
+          const data = await apiJson<{
+            results: Array<{ id: string }>;
+          }>(`/api/clients/search?q=${encodeURIComponent(q)}`, {
+            method: "GET",
+          });
+          if (!cancelled) {
+            setPrivateMatchIds(data.results.map(item => item.id));
+          }
+        } catch {
+          if (!cancelled) setPrivateMatchIds([]);
+        }
+      })();
+    }, 280);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [query]);
 
   const filtered = useMemo(() => {
     const byStatus = clients.filter(client => {
@@ -44,14 +78,26 @@ export function ClientsView({
       return true;
     });
 
-    const matched = byStatus.filter(c =>
-      `${c.name} ${c.organisation} ${c.currentFocus}`
-        .toLowerCase()
-        .includes(query.toLowerCase())
-    );
+    const lower = query.toLowerCase();
+    const matched = byStatus.filter(c => {
+      if (!lower) return true;
+      const identity = relationshipPublicIdentity(c);
+      const publicHaystack = [
+        identity.displayName,
+        identity.displayLabel,
+        identity.confidentialReference ?? "",
+        identity.role,
+        identity.organisation,
+        c.name,
+        c.currentFocus,
+      ]
+        .join(" ")
+        .toLowerCase();
+      return publicHaystack.includes(lower) || privateMatchIds.includes(c.id);
+    });
 
     return sortClientsByAttention(matched);
-  }, [clients, query, listFilter]);
+  }, [clients, query, listFilter, privateMatchIds]);
 
   const activeCount = clients.filter(c => !isClientArchived(c)).length;
   const archivedCount = clients.filter(c => isClientArchived(c)).length;
@@ -99,8 +145,8 @@ export function ClientsView({
         <input
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="Search name, organisation or coaching purpose"
-          aria-label="Search clients"
+          placeholder="Search reference, label, organisation or purpose"
+          aria-label="Search relationships"
         />
       </div>
 
@@ -141,8 +187,14 @@ export function ClientsView({
                 <PersonRow
                   person={{
                     id: client.id,
-                    name: client.name,
-                    role: client.role,
+                    name: getRelationshipDisplayName(client),
+                    role:
+                      client.identityMode === "confidential" &&
+                      client.confidentialReference
+                        ? `${client.confidentialReference}${
+                            client.role ? ` · ${client.role}` : ""
+                          }`
+                        : client.role,
                     organisation: client.organisation,
                     journeyStatus: archived
                       ? "Archived"

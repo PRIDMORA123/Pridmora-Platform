@@ -1,5 +1,6 @@
 import { apiJson } from "@/lib/api-client";
 import { modeToPreparationStyle } from "@/lib/coaching-intelligence/mode";
+import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 import type {
   CoachingIntelligenceMode,
   GeneratedPreparationBrief,
@@ -78,7 +79,7 @@ export async function updateRelationshipIntelligenceMode(input: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      name: input.client.name,
+      name: getRelationshipDisplayName(input.client),
       organisation: input.client.organisation ?? "",
       role: input.client.role ?? "",
       email: input.client.email ?? "",

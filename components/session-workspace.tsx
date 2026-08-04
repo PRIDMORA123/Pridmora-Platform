@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Client, CoachingAction, Session } from "@/lib/types";
 import { isClientArchived } from "@/lib/types";
+import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 import {
   canCompleteSession,
   formatSessionDateTime,
@@ -514,7 +515,7 @@ export function SessionWorkspace({
           notes: debriefEvidence || sourceSession.notes,
           focus: sourceSession.focus || sourceSession.title,
           preparation: sourceSession.preparation,
-          clientName: client.name,
+          clientName: getRelationshipDisplayName(client),
         }),
       });
 
@@ -926,7 +927,7 @@ export function SessionWorkspace({
 
   const identityBar = (
     <RelationshipIdentityBar
-      clientName={client.name}
+      clientName={getRelationshipDisplayName(client)}
       role={client.role}
       organisation={client.organisation}
       sessionNumber={session.sessionNumber}
@@ -962,7 +963,7 @@ export function SessionWorkspace({
             <dl className="meta-list">
               <div>
                 <dt>Client</dt>
-                <dd>{client.name}</dd>
+                <dd>{getRelationshipDisplayName(client)}</dd>
               </div>
               <div>
                 <dt>Date and time</dt>
@@ -1113,7 +1114,7 @@ export function SessionWorkspace({
           key={session.id}
           initialData={coachWorkspaceData}
           session={session}
-          clientName={client.name}
+          clientName={getRelationshipDisplayName(client)}
           previousCommitment={previousCommitment}
           onPersist={persistCoachSession}
           onSessionUpdated={handleCoachSessionUpdated}
@@ -1169,7 +1170,7 @@ export function SessionWorkspace({
 
       {stage === "actions" ? (
         <SessionNextSteps
-          clientName={client.name}
+          clientName={getRelationshipDisplayName(client)}
           clientId={client.id}
           session={session}
           actions={sessionActions}
@@ -1463,7 +1464,7 @@ export function SessionWorkspace({
 
       <ScheduleSessionDialog
         open={scheduleOpen}
-        clientName={client.name}
+        clientName={getRelationshipDisplayName(client)}
         onClose={() => setScheduleOpen(false)}
         onSchedule={onScheduleNext}
       />

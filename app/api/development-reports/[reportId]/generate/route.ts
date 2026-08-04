@@ -15,6 +15,7 @@ import {
 import {
   containsUnexpectedPersonName,
 } from "@/lib/relationship-scope";
+import { buildRelationshipAiContext } from "@/lib/relationship-identity";
 import { REPORT_TYPE_LABELS, type ReportEvidenceItem } from "@/lib/reports/types";
 
 type Params = { params: Promise<{ reportId: string }> };
@@ -90,12 +91,24 @@ export async function POST(request: Request, { params }: Params) {
 
     const { data: person } = await auth.context.supabase
       .from("clients")
-      .select("name")
+      .select(
+        "name, identity_mode, display_label, confidential_reference, ai_name_allowed, organisation, role"
+      )
       .eq("id", existing.relationshipId)
       .eq("coach_id", auth.context.coachId)
       .maybeSingle();
 
-    const coacheeName = String(person?.name ?? "");
+    const coacheeName = person
+      ? buildRelationshipAiContext({
+          name: String(person.name ?? ""),
+          organisation: person.organisation ? String(person.organisation) : "",
+          role: person.role ? String(person.role) : "",
+          identityMode: person.identity_mode,
+          displayLabel: person.display_label,
+          confidentialReference: person.confidential_reference,
+          aiNameAllowed: person.ai_name_allowed,
+        }).aiDisplayName
+      : "";
     const { data: otherClients } = await auth.context.supabase
       .from("clients")
       .select("name")

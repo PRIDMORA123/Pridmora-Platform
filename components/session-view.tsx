@@ -17,6 +17,7 @@ import {
 } from "@/lib/sessions";
 import { ClientWorkspaceTabs } from "@/components/client-workspace-tabs";
 import { apiJson, AuthRequiredError, errorMessage, toError } from "@/lib/api-client";
+import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 
 function parseCoachingQuestions(text: string): string[] {
   return text
@@ -308,7 +309,7 @@ export function SessionView({
           notes: session.notes,
           focus: session.focus,
           preparation: session.preparation,
-          clientName: client.name,
+          clientName: getRelationshipDisplayName(client),
         }),
       });
 
@@ -369,7 +370,7 @@ export function SessionView({
       {onTabChange && (
         <ClientWorkspaceTabs
           active="sessions"
-          clientName={client.name}
+          clientName={getRelationshipDisplayName(client)}
           onChange={onTabChange}
         />
       )}
@@ -377,7 +378,7 @@ export function SessionView({
       <div className="page-heading row-between">
         <div>
           <p className="eyebrow">SESSION WORKSPACE</p>
-          <h1>{client.name}</h1>
+          <h1>{getRelationshipDisplayName(client)}</h1>
           <p>
             Session {session.sessionNumber}
             {session.date ? ` · ${session.date}` : ""}
@@ -414,8 +415,8 @@ export function SessionView({
         <div className="inline-success" role="status">
           <p>
             {session.aiSummaryApproved
-              ? `Session approved and added to ${client.name}'s Development Journey.`
-              : `Session saved for ${client.name}. Approve the coaching record when you are ready for it to shape their journey.`}
+              ? `Session approved and added to ${getRelationshipDisplayName(client)}'s Development Journey.`
+              : `Session saved for ${getRelationshipDisplayName(client)}. Approve the coaching record when you are ready for it to shape their journey.`}
           </p>
           {onOpenJourney && session.aiSummaryApproved && (
             <button type="button" className="text-link" onClick={onOpenJourney}>

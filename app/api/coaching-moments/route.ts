@@ -31,6 +31,7 @@ import {
   startCoachingMoment,
 } from "@/lib/coaching-moments/repository";
 import { containsUnexpectedPersonName } from "@/lib/relationship-scope";
+import { buildRelationshipAiContext } from "@/lib/relationship-identity";
 import { isUuid } from "@/lib/uuid";
 
 export const runtime = "nodejs";
@@ -250,7 +251,9 @@ export async function POST(request: Request) {
 
         const { data: client } = await supabase
           .from("clients")
-          .select("id, name, organisation, role, status, archived_at")
+          .select(
+            "id, name, organisation, role, status, archived_at, identity_mode, display_label, confidential_reference, ai_name_allowed"
+          )
           .eq("id", saved.clientId)
           .eq("coach_id", coachId)
           .maybeSingle();
@@ -289,15 +292,22 @@ export async function POST(request: Request) {
         }
 
         const openai = new OpenAI({ apiKey });
+        const momentAiContext = buildRelationshipAiContext({
+          name: String(client.name ?? ""),
+          organisation: client.organisation ? String(client.organisation) : "",
+          role: client.role ? String(client.role) : "",
+          identityMode: client.identity_mode,
+          displayLabel: client.display_label,
+          confidentialReference: client.confidential_reference,
+          aiNameAllowed: client.ai_name_allowed,
+        });
         const response = await openai.responses.create({
           model: "gpt-5.5",
           instructions: COACHING_MOMENT_PREPARATION_PROMPT,
           input: buildCoachingMomentPreparationInput({
-            personName: String(client.name),
-            organisation: client.organisation
-              ? String(client.organisation)
-              : null,
-            role: client.role ? String(client.role) : null,
+            personName: momentAiContext.aiDisplayName,
+            organisation: momentAiContext.organisation || null,
+            role: momentAiContext.role || null,
             situation,
             desiredOutcome,
             authorisedEvidence: context.authorisedEvidenceText,
@@ -330,7 +340,7 @@ export async function POST(request: Request) {
         if (
           containsUnexpectedPersonName(
             outputText,
-            String(client.name),
+            momentAiContext.allowedClientName,
             knownOtherNames
           )
         ) {
@@ -506,7 +516,9 @@ export async function POST(request: Request) {
 
         const { data: client } = await supabase
           .from("clients")
-          .select("id, name")
+          .select(
+            "id, name, organisation, role, identity_mode, display_label, confidential_reference, ai_name_allowed"
+          )
           .eq("id", existing.clientId)
           .eq("coach_id", coachId)
           .maybeSingle();
@@ -517,12 +529,22 @@ export async function POST(request: Request) {
           coachId,
         });
 
+        const insightAiContext = buildRelationshipAiContext({
+          name: String(client.name ?? ""),
+          organisation: client.organisation ? String(client.organisation) : "",
+          role: client.role ? String(client.role) : "",
+          identityMode: client.identity_mode,
+          displayLabel: client.display_label,
+          confidentialReference: client.confidential_reference,
+          aiNameAllowed: client.ai_name_allowed,
+        });
+
         const openai = new OpenAI({ apiKey });
         const response = await openai.responses.create({
           model: "gpt-5.5",
           instructions: COACHING_MOMENT_INSIGHT_PROMPT,
           input: buildCoachingMomentInsightInput({
-            personName: String(client.name),
+            personName: insightAiContext.aiDisplayName,
             situation: existing.situation,
             desiredOutcome: existing.desiredOutcome,
             outcomeNotes: existing.outcomeNotes,

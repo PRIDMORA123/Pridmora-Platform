@@ -33,11 +33,14 @@ type FirstUserOnboardingProps = {
   onDismiss: () => void;
   onFlowActive?: () => void;
   onCreateClient: (fields: {
-    name: string;
+    name?: string;
     organisation: string;
     role: string;
     currentFocus: string;
     email: string;
+    identityMode?: "standard" | "confidential";
+    displayLabel?: string;
+    aiNameAllowed?: boolean;
   }) => Promise<{ id: string; name: string }>;
   onCreateSession: (input: {
     clientId: string;
@@ -82,7 +85,9 @@ export function FirstUserOnboarding({
       return {
         step: "complete",
         relationship: {
+          identityMode: "standard",
           name: "Jordan Lee",
+          displayLabel: "",
           role: "",
           organisation: "",
           coachingFocus: "",
@@ -150,8 +155,15 @@ export function FirstUserOnboarding({
   }
 
   function handleContinueFromRelationship() {
-    const name = draft.relationship.name.trim();
-    if (!name) {
+    if (draft.relationship.identityMode === "confidential") {
+      if (
+        !draft.relationship.displayLabel.trim() &&
+        !draft.relationship.role.trim()
+      ) {
+        setNameError("Add a display label or role for this confidential relationship.");
+        return;
+      }
+    } else if (!draft.relationship.name.trim()) {
       setNameError("Person’s name is required.");
       return;
     }
@@ -165,8 +177,16 @@ export function FirstUserOnboarding({
       return;
     }
 
-    const name = draft.relationship.name.trim();
-    if (!name) {
+    if (draft.relationship.identityMode === "confidential") {
+      if (
+        !draft.relationship.displayLabel.trim() &&
+        !draft.relationship.role.trim()
+      ) {
+        setNameError("Add a display label or role for this confidential relationship.");
+        goTo("relationship");
+        return;
+      }
+    } else if (!draft.relationship.name.trim()) {
       setNameError("Person’s name is required.");
       goTo("relationship");
       return;
@@ -177,14 +197,19 @@ export function FirstUserOnboarding({
 
     try {
       let clientId = draft.createdClientId;
-      let personName = name;
+      let personName =
+        draft.relationship.identityMode === "confidential"
+          ? draft.relationship.displayLabel.trim() ||
+            draft.relationship.role.trim() ||
+            "Confidential relationship"
+          : draft.relationship.name.trim();
 
       if (!clientId) {
         const client = await onCreateClient(
           buildFirstUserClientPayload(draft.relationship)
         );
         clientId = client.id;
-        personName = client.name || name;
+        personName = client.name || personName;
         setDraft(current => ({ ...current, createdClientId: clientId }));
       }
 
@@ -268,19 +293,71 @@ export function FirstUserOnboarding({
         <div className="first-user-onboarding__panel">
           <PremiumPageHeader
             title="Who are you supporting?"
-            description="Add the essentials now. You can enrich the profile later."
+            description="Choose how identity is managed, then add the essentials. You can enrich the profile later."
           />
           <div className="first-user-onboarding__form">
-            <PremiumInput
-              label="Person’s name"
-              name="personName"
-              autoComplete="name"
-              value={draft.relationship.name}
-              onChange={event => updateRelationship({ name: event.target.value })}
-              error={nameError}
-              required
-              autoFocus
-            />
+            <fieldset className="identity-mode-choice identity-mode-choice--onboarding">
+              <legend className="dialog-field-label">How would you like to manage identity?</legend>
+              <label className="identity-mode-option">
+                <input
+                  type="radio"
+                  name="onboarding-identity-mode"
+                  checked={draft.relationship.identityMode === "standard"}
+                  onChange={() => updateRelationship({ identityMode: "standard" })}
+                />
+                <span>
+                  <strong>Standard</strong>
+                  <span className="identity-mode-option-copy">
+                    Store the person’s name and optional contact details.
+                  </span>
+                </span>
+              </label>
+              <label className="identity-mode-option">
+                <input
+                  type="radio"
+                  name="onboarding-identity-mode"
+                  checked={draft.relationship.identityMode === "confidential"}
+                  onChange={() =>
+                    updateRelationship({ identityMode: "confidential", name: "" })
+                  }
+                />
+                <span>
+                  <strong>
+                    Confidential{" "}
+                    <span className="identity-mode-recommended">
+                      Recommended for sensitive coaching
+                    </span>
+                  </strong>
+                  <span className="identity-mode-option-copy">
+                    Use a confidential reference and keep private identity separate.
+                  </span>
+                </span>
+              </label>
+            </fieldset>
+
+            {draft.relationship.identityMode === "standard" ? (
+              <PremiumInput
+                label="Person’s name"
+                name="personName"
+                autoComplete="name"
+                value={draft.relationship.name}
+                onChange={event => updateRelationship({ name: event.target.value })}
+                error={nameError}
+                required
+                autoFocus
+              />
+            ) : (
+              <PremiumInput
+                label="Display label"
+                name="displayLabel"
+                value={draft.relationship.displayLabel}
+                onChange={event =>
+                  updateRelationship({ displayLabel: event.target.value })
+                }
+                error={nameError}
+                autoFocus
+              />
+            )}
             <PremiumInput
               label="Role"
               name="role"

@@ -72,7 +72,7 @@ describe("first conversation organisation ownership", () => {
     expect(route).toContain("requireOrganisationContext");
     expect(route).toContain("Never trust browser-supplied organisation");
     expect(route).toContain("auth.context.organisation.organisationId");
-    expect(route).toContain("createClientInDb");
+    expect(route).toContain("createRelationshipAtomicInDb");
     expect(route).not.toContain("organisationId !== coachId ? organisationId");
   });
 
@@ -81,6 +81,8 @@ describe("first conversation organisation ownership", () => {
     expect(repository).toContain("RelationshipOrganisationMissingError");
     expect(repository).toContain("organisation_id: organisationId");
     expect(repository).toContain("createPrimaryAssignment");
+    expect(repository).toContain("createRelationshipAtomicInDb");
+    expect(repository).toContain('rpc("create_coaching_relationship"');
   });
 
   it("assigned access returns clientOrganisationId for session derivation", () => {

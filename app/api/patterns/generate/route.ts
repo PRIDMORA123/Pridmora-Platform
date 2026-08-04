@@ -21,6 +21,7 @@ import {
 import { parsePatternCandidatesFromModel } from "@/lib/patterns/schema";
 import { parseSupportingContext } from "@/lib/relationship-meta";
 import { assertRelationshipOwnership } from "@/lib/relationship-scope";
+import { buildRelationshipAiContext } from "@/lib/relationship-identity";
 import { rowToSession } from "@/lib/supabase/map";
 
 type GenerateRequest = {
@@ -58,7 +59,9 @@ export async function POST(request: Request) {
   try {
     const { data: client, error: clientError } = await supabase
       .from("clients")
-      .select("id, name, current_focus, supporting_context")
+      .select(
+        "id, name, current_focus, supporting_context, identity_mode, display_label, confidential_reference, ai_name_allowed, organisation, role"
+      )
       .eq("id", clientId)
       .eq("coach_id", coachId)
       .maybeSingle();
@@ -166,7 +169,17 @@ export async function POST(request: Request) {
           model: "gpt-5.5",
           instructions: PATTERN_RECOGNITION_SYSTEM_PROMPT,
           input: buildPatternRecognitionInput({
-            personName: String(client.name ?? "Client"),
+            personName: buildRelationshipAiContext({
+              name: String(client.name ?? "Client"),
+              organisation: client.organisation
+                ? String(client.organisation)
+                : "",
+              role: client.role ? String(client.role) : "",
+              identityMode: client.identity_mode,
+              displayLabel: client.display_label,
+              confidentialReference: client.confidential_reference,
+              aiNameAllowed: client.ai_name_allowed,
+            }).aiDisplayName,
             coachingGoal: String(client.current_focus ?? profile.currentFocus ?? ""),
             evidenceCatalogue: formatEvidenceCatalogue(points),
             existingAcceptedPatterns: existingSummary,

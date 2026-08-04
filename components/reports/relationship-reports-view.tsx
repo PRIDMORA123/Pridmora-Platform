@@ -20,6 +20,7 @@ import { ReportPrivacyNotice } from "@/components/reports/report-privacy-notice"
 import { ReportTypeSelection } from "@/components/reports/report-type-selection";
 import { ReportsList } from "@/components/reports/reports-list";
 import { ReportsUnavailableState } from "@/components/reports/reports-unavailable-state";
+import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 
 export function RelationshipReportsView({
   client,
@@ -140,12 +141,12 @@ export function RelationshipReportsView({
     <JourneyStagePage
       className="client-reports-page"
       back={
-        <IdentityBackLink onClick={onBack}>{`Back to ${client.name}`}</IdentityBackLink>
+        <IdentityBackLink onClick={onBack}>{`Back to ${getRelationshipDisplayName(client)}`}</IdentityBackLink>
       }
       navigation={null}
       identity={
         <RelationshipIdentityBar
-          clientName={client.name}
+          clientName={getRelationshipDisplayName(client)}
           role={client.role}
           organisation={client.organisation}
         />

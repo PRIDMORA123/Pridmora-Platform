@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Client, Session } from "@/lib/types";
 import { isClientArchived } from "@/lib/types";
+import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 import { apiJson, AuthRequiredError, serialiseError } from "@/lib/api-client";
 import { buildPreparationText } from "@/lib/session-workflow";
 import type { ClientWorkspaceTab } from "@/components/client-workspace-tabs";
@@ -778,7 +779,7 @@ export function PrepareSessionView({
       }
       identity={
         <RelationshipIdentityBar
-          clientName={client.name}
+          clientName={getRelationshipDisplayName(client)}
           role={client.role}
           organisation={client.organisation}
           sessionNumber={draft.sessionNumber}
@@ -808,7 +809,7 @@ export function PrepareSessionView({
         />
         <PreparationView
           conversationId={draft.id}
-          clientName={client.name}
+          clientName={getRelationshipDisplayName(client)}
           intelligence={intelligence}
           initialPreparation={formSeed}
           preparationStyle={preparationStyle}
@@ -928,7 +929,7 @@ export function PrepareSessionView({
         defaultMode={coachDefaultMode}
         initialMode={intelligenceMode}
         client={{
-          name: client.name,
+          name: getRelationshipDisplayName(client),
           organisation: client.organisation,
           role: client.role,
           email: client.email,

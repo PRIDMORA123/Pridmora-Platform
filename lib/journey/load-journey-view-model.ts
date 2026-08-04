@@ -16,6 +16,7 @@ import {
   assertRelationshipOwnership,
   type RelationshipScope,
 } from "@/lib/relationship-scope";
+import { parseIdentityMode } from "@/lib/relationship-identity";
 import { listSessionsForClientInDb } from "@/lib/supabase/repository";
 import type { Client, Session } from "@/lib/types";
 
@@ -40,7 +41,7 @@ async function getRelationship(
   const { data, error } = await supabase
     .from("clients")
     .select(
-      "id, name, organisation, role, email, status, archived_at, current_focus, identity_summary, coach_insight, preparation_style_override, initials, created_at, updated_at, next_session, next_session_label"
+      "id, name, organisation, role, email, status, archived_at, current_focus, identity_summary, coach_insight, preparation_style_override, initials, created_at, updated_at, next_session, next_session_label, identity_mode, display_label, confidential_reference, ai_name_allowed"
     )
     .eq("id", relationshipId)
     .eq("coach_id", coachId)
@@ -55,6 +56,10 @@ async function getRelationship(
     organisation: data.organisation ?? "",
     role: data.role ?? "",
     email: data.email ?? "",
+    identityMode: parseIdentityMode(data.identity_mode),
+    displayLabel: data.display_label?.trim() || data.name,
+    confidentialReference: data.confidential_reference?.trim() || null,
+    aiNameAllowed: Boolean(data.ai_name_allowed),
     status: (data.status as Client["status"]) || "Active",
     archivedAt: data.archived_at ?? null,
     createdAt: data.created_at ?? "",

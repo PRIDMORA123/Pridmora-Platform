@@ -9,7 +9,9 @@ export type FirstUserOnboardingStep =
   | "complete";
 
 export type FirstUserRelationshipDraft = {
+  identityMode: "standard" | "confidential";
   name: string;
+  displayLabel: string;
   role: string;
   organisation: string;
   coachingFocus: string;
@@ -31,7 +33,9 @@ export type FirstUserOnboardingDraft = {
 };
 
 export const EMPTY_RELATIONSHIP_DRAFT: FirstUserRelationshipDraft = {
+  identityMode: "standard",
   name: "",
+  displayLabel: "",
   role: "",
   organisation: "",
   coachingFocus: "",
@@ -146,7 +150,12 @@ export function loadFirstUserOnboardingDraft(
     return {
       step,
       relationship: {
+        identityMode:
+          parsed.relationship?.identityMode === "confidential"
+            ? "confidential"
+            : "standard",
         name: String(parsed.relationship?.name ?? ""),
+        displayLabel: String(parsed.relationship?.displayLabel ?? ""),
         role: String(parsed.relationship?.role ?? ""),
         organisation: String(parsed.relationship?.organisation ?? ""),
         coachingFocus: String(parsed.relationship?.coachingFocus ?? ""),
@@ -195,12 +204,27 @@ export function clearFirstUserOnboardingDraft(
 
 /** Client create payload — never includes organisation_id / organisationId. */
 export function buildFirstUserClientPayload(draft: FirstUserRelationshipDraft) {
+  if (draft.identityMode === "confidential") {
+    return {
+      identityMode: "confidential" as const,
+      name: "",
+      displayLabel: draft.displayLabel.trim() || draft.role.trim(),
+      role: draft.role.trim(),
+      organisation: draft.organisation.trim(),
+      currentFocus: draft.coachingFocus.trim(),
+      email: "",
+      aiNameAllowed: false,
+    };
+  }
   return {
+    identityMode: "standard" as const,
     name: draft.name.trim(),
+    displayLabel: draft.name.trim(),
     role: draft.role.trim(),
     organisation: draft.organisation.trim(),
     currentFocus: draft.coachingFocus.trim(),
     email: "",
+    aiNameAllowed: false,
   };
 }
 

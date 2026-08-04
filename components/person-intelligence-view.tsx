@@ -21,6 +21,7 @@ import type { Client } from "@/lib/types";
 import type { SupportingContextItem } from "@/lib/relationship-meta";
 import { updateClientRecord } from "@/lib/storage";
 import type { CoachingPattern } from "@/lib/patterns/types";
+import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 
 export function PersonIntelligenceView({
   client,
@@ -140,7 +141,7 @@ export function PersonIntelligenceView({
 
   async function saveSupportingContext(next: SupportingContextItem[]) {
     const updated = await updateClientRecord(client.id, {
-      name: client.name,
+      name: getRelationshipDisplayName(client),
       organisation: client.organisation,
       role: client.role,
       email: client.email,
@@ -203,7 +204,7 @@ export function PersonIntelligenceView({
   if (loading) {
     return (
       <section className="page identity-reveal identity-page-shell journey-stage-page">
-        <IdentityBackLink onClick={onBack}>{`Back to ${client.name}`}</IdentityBackLink>
+        <IdentityBackLink onClick={onBack}>{`Back to ${getRelationshipDisplayName(client)}`}</IdentityBackLink>
         <div className="skeleton-loading-block" aria-busy="true" aria-live="polite">
           <div className="skeleton-block skeleton-heading" />
           <div className="skeleton-block skeleton-line" />
@@ -216,7 +217,7 @@ export function PersonIntelligenceView({
   return (
     <JourneyStagePage
       back={
-        <IdentityBackLink onClick={onBack}>{`Back to ${client.name}`}</IdentityBackLink>
+        <IdentityBackLink onClick={onBack}>{`Back to ${getRelationshipDisplayName(client)}`}</IdentityBackLink>
       }
       navigation={null}
       banners={
@@ -236,7 +237,7 @@ export function PersonIntelligenceView({
       }
       identity={
         <RelationshipIdentityBar
-          clientName={client.name}
+          clientName={getRelationshipDisplayName(client)}
           role={client.role}
           organisation={client.organisation}
         />

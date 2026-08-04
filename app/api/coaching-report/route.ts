@@ -8,12 +8,17 @@ import {
   type CoachingReportAiEvidence,
   type ReportType,
 } from "@/lib/coaching-report";
+import { buildRelationshipAiContext } from "@/lib/relationship-identity";
 
 type CoachingReportRequest = {
   clientName?: string;
+  /** Prefer clientId so the server derives a safe AI display name. */
+  clientId?: string;
   reportType?: ReportType;
   reportPeriodLabel?: string;
   evidence?: CoachingReportAiEvidence[];
+  /** Explicit coach choice to include a named identity in AI context. */
+  includePrivateName?: boolean;
 };
 
 export type CoachingReportAiResponse = {
@@ -119,6 +124,33 @@ export async function POST(request: Request) {
   const reportTypeLabel =
     body.reportType === "final" ? "Final Coaching Report" : "Progress Report";
 
+  let safeClientLabel = "";
+  if (body.clientId?.trim()) {
+    const { data: clientRow } = await auth.context.supabase
+      .from("clients")
+      .select(
+        "name, identity_mode, display_label, confidential_reference, ai_name_allowed, organisation, role"
+      )
+      .eq("id", body.clientId.trim())
+      .eq("coach_id", auth.context.user.id)
+      .maybeSingle();
+
+    if (clientRow) {
+      safeClientLabel = buildRelationshipAiContext({
+        name: String(clientRow.name ?? ""),
+        organisation: clientRow.organisation ? String(clientRow.organisation) : "",
+        role: clientRow.role ? String(clientRow.role) : "",
+        identityMode: clientRow.identity_mode,
+        displayLabel: clientRow.display_label,
+        confidentialReference: clientRow.confidential_reference,
+        aiNameAllowed: clientRow.ai_name_allowed,
+      }).aiDisplayName;
+    }
+  } else if (body.clientName?.trim()) {
+    // Legacy callers: treat supplied name as a display label only — never enrich with private identity.
+    safeClientLabel = body.clientName.trim();
+  }
+
   const openai = new OpenAI({ apiKey });
 
   const evidenceBlock = evidence
@@ -146,7 +178,7 @@ export async function POST(request: Request) {
   const input = [
     COACHING_REPORT_TASK_PROMPT,
     "",
-    body.clientName ? `Client: ${body.clientName}` : null,
+    safeClientLabel ? `Client: ${safeClientLabel}` : null,
     `Report type: ${reportTypeLabel}`,
     `Report period: ${reportPeriodLabel}`,
     "",

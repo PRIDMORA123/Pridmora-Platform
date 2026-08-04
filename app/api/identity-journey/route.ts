@@ -14,6 +14,7 @@ import {
   assertRelationshipOwnership,
   validateGeneratedJourney,
 } from "@/lib/relationship-scope";
+import { buildRelationshipAiContext } from "@/lib/relationship-identity";
 import { isUuid } from "@/lib/uuid";
 
 type IdentityJourneyRequest = {
@@ -101,7 +102,9 @@ export async function POST(request: Request) {
 
   const { data: client, error: clientError } = await supabase
     .from("clients")
-    .select("id, name")
+    .select(
+      "id, name, identity_mode, display_label, confidential_reference, ai_name_allowed, organisation, role"
+    )
     .eq("id", relationshipId)
     .eq("coach_id", coachId)
     .maybeSingle();
@@ -149,7 +152,16 @@ export async function POST(request: Request) {
     .neq("id", relationshipId);
 
   const knownOtherNames = (otherClients ?? []).map(row => String(row.name ?? ""));
-  const coacheeName = String(client.name);
+  const aiContext = buildRelationshipAiContext({
+    name: String(client.name ?? ""),
+    organisation: client.organisation ? String(client.organisation) : "",
+    role: client.role ? String(client.role) : "",
+    identityMode: client.identity_mode,
+    displayLabel: client.display_label,
+    confidentialReference: client.confidential_reference,
+    aiNameAllowed: client.ai_name_allowed,
+  });
+  const coacheeName = aiContext.aiDisplayName;
   const openai = new OpenAI({ apiKey });
 
   const evidenceBlock = scopedEvidence

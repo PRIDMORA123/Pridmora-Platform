@@ -5,16 +5,18 @@ import {
 } from "@/lib/auth/session";
 import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
 import { canCreateRelationships } from "@/lib/organisations/permissions";
-import { createClientInDb, listClientsFromDb } from "@/lib/supabase/repository";
+import {
+  createRelationshipAtomicInDb,
+  listClientsFromDb,
+} from "@/lib/supabase/repository";
 import { initialsFromName } from "@/lib/supabase/map";
 import { supabaseErrorResponse } from "@/lib/supabase/errors";
-import type { Client } from "@/lib/types";
+import {
+  generateConfidentialReference,
+  validateCreateRelationshipIdentity,
+} from "@/lib/relationship-identity";
 
 export const runtime = "nodejs";
-
-function asOptionalTrimmed(value: unknown): string {
-  return typeof value === "string" ? value.trim() : "";
-}
 
 export async function GET() {
   const auth = await requireOrganisationContext();
@@ -60,35 +62,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Permission denied." }, { status: 403 });
     }
 
-    const body = (await request.json()) as {
-      name?: unknown;
-      organisation?: unknown;
-      role?: unknown;
-      currentFocus?: unknown;
-      email?: unknown;
-      // Never trust browser-supplied organisation ownership.
-      organisationId?: unknown;
-      client?: {
-        name?: unknown;
-        organisation?: unknown;
-        role?: unknown;
-        currentFocus?: unknown;
-        email?: unknown;
-      };
-    };
-
-    const source = body.client ?? body;
-    const name = asOptionalTrimmed(source.name);
-    if (!name) {
-      return NextResponse.json({ error: "Client name is required." }, { status: 400 });
-    }
-
-    const organisation = asOptionalTrimmed(source.organisation);
-    const role = asOptionalTrimmed(source.role);
-    const currentFocus = asOptionalTrimmed(source.currentFocus);
-    const email = asOptionalTrimmed(source.email);
+    const body = (await request.json()) as Record<string, unknown>;
+    const source =
+      body.client && typeof body.client === "object"
+        ? (body.client as Record<string, unknown>)
+        : body;
 
     // Organisation ownership comes from secure context — never from the body.
+    // Never trust browser-supplied organisationId / organisation_id.
+    // Never trust browser-supplied coachId / coach_id / confidential_reference.
     const organisationId = auth.context.organisation.organisationId;
     if (!organisationId) {
       return NextResponse.json(
@@ -96,37 +78,58 @@ export async function POST(request: Request) {
         { status: 422 }
       );
     }
-    const id = crypto.randomUUID();
-    const coachId = auth.context.coachId;
-    const client: Client = {
-      id,
-      name,
-      initials: initialsFromName(name),
-      organisation,
-      role,
-      email,
-      status: "Active",
-      nextSession: "Not scheduled",
-      currentFocus,
-      identitySummary: "",
-      coachInsight: "",
-      preparationStyleOverride: null,
-      strengths: [],
-      values: [],
-      themes: [],
-      goals: [],
-      actions: [],
-      quotes: [],
-      sessions: [],
-      journey: [],
-    };
 
-    const saved = await createClientInDb(
-      auth.context.supabase,
-      coachId,
-      client,
-      organisationId
+    const validated = validateCreateRelationshipIdentity(
+      {
+        identityMode: source.identityMode,
+        name: source.name,
+        displayLabel: source.displayLabel,
+        role: source.role,
+        organisation: source.organisation,
+        currentFocus: source.currentFocus,
+        email: source.email,
+        aiNameAllowed: source.aiNameAllowed,
+        privateRealName: source.privateRealName ?? source.realName,
+        privateEmail: source.privateEmail,
+        privatePhone: source.privatePhone ?? source.phone,
+        privateNotes: source.privateNotes,
+        confidentialReference: source.confidentialReference,
+        organisationId: source.organisationId ?? body.organisationId,
+        organisation_id: source.organisation_id ?? body.organisation_id,
+        coachId: source.coachId ?? body.coachId,
+        coach_id: source.coach_id ?? body.coach_id,
+      },
+      {
+        // Local validation only — the SECURITY DEFINER RPC regenerates the
+        // confidential reference server-side and never accepts a browser value.
+        generateReference: generateConfidentialReference,
+      }
     );
+
+    if ("status" in validated) {
+      return NextResponse.json(
+        { error: validated.error },
+        { status: validated.status }
+      );
+    }
+
+    const saved = await createRelationshipAtomicInDb(auth.context.supabase, {
+      organisationId,
+      identityMode: validated.identityMode,
+      name: validated.name,
+      displayLabel: validated.displayLabel,
+      role: validated.role,
+      organisationLabel: validated.organisation,
+      email: validated.email,
+      currentFocus: validated.currentFocus,
+      aiNameAllowed: validated.aiNameAllowed,
+      initials: initialsFromName(validated.name),
+      privateRealName: validated.privateIdentity?.realName,
+      privateEmail: validated.privateIdentity?.email,
+      privatePhone: validated.privateIdentity?.phone,
+      privateNotes: validated.privateIdentity?.privateNotes,
+    });
+
     return NextResponse.json({ client: saved, organisationId }, { status: 201 });
   } catch (error) {
     return supabaseErrorResponse(error);

@@ -12,6 +12,7 @@ import {
 import { useMemo } from "react";
 import type { Client } from "@/lib/types";
 import { buildProfessionalIdentityJourney } from "@/lib/journey";
+import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 
 export function IntelligenceView({
   client,
@@ -31,7 +32,7 @@ export function IntelligenceView({
       </button>
       <div className="page-heading">
         <p className="eyebrow">CLIENT BRIEFING</p>
-        <h1>{client.name}</h1>
+        <h1>{getRelationshipDisplayName(client)}</h1>
         <p>What you need to prepare, think and reflect before the next conversation.</p>
       </div>
 

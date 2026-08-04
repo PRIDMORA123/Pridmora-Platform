@@ -34,6 +34,7 @@ import {
   parseInitialConversation,
   parseSupportingContext,
 } from "@/lib/relationship-meta";
+import { parseIdentityMode } from "@/lib/relationship-identity";
 
 export type ClientRow = {
   id: string;
@@ -42,6 +43,10 @@ export type ClientRow = {
   organisation: string | null;
   role: string | null;
   email: string | null;
+  identity_mode?: string | null;
+  confidential_reference?: string | null;
+  display_label?: string | null;
+  ai_name_allowed?: boolean | null;
   status: string;
   archived_at?: string | null;
   archived_by?: string | null;
@@ -559,6 +564,10 @@ export function clientToRow(client: Client, coachId: string): Omit<ClientRow, "c
     organisation: client.organisation || null,
     role: client.role || null,
     email: client.email.trim() || null,
+    identity_mode: client.identityMode || "standard",
+    confidential_reference: client.confidentialReference || null,
+    display_label: client.displayLabel || null,
+    ai_name_allowed: Boolean(client.aiNameAllowed),
     status,
     archived_at: archivedAt,
     next_session: toNextSessionTimestamp(client.nextSession),
@@ -772,6 +781,10 @@ export function assembleClient(
     organisation: row.organisation ?? "",
     role: row.role ?? "",
     email: row.email ?? "",
+    identityMode: parseIdentityMode(row.identity_mode),
+    displayLabel: row.display_label?.trim() || row.name,
+    confidentialReference: row.confidential_reference?.trim() || null,
+    aiNameAllowed: Boolean(row.ai_name_allowed),
     status: asClientStatus(row.status, row.archived_at),
     archivedAt: row.archived_at ?? null,
     createdAt: row.created_at ?? "",
