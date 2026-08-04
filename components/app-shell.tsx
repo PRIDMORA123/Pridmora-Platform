@@ -7,6 +7,7 @@ import { IdentityProductMark } from "@/components/identity/product-mark";
 import { WorkspaceSelector } from "@/components/organisation/workspace-selector";
 import { BRAND } from "@/lib/brand";
 import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { useCanManageSampleOrganisation } from "@/lib/organisations/use-can-manage-sample-organisation";
 
 export type AppView =
   | "today"
@@ -70,6 +71,7 @@ export function AppShell({
   children,
 }: Props) {
   const organisation = useOrganisation();
+  const showSampleOrganisation = useCanManageSampleOrganisation();
   const items = [
     { key: "dashboard" as const, label: "Home", icon: Home },
     { key: "people" as const, label: "People", icon: Users },
@@ -154,6 +156,15 @@ export function AppShell({
               onClick={() => setMobileOpen(false)}
             >
               <Building2 size={18} aria-hidden /> Organisation
+            </a>
+          ) : null}
+          {showSampleOrganisation ? (
+            <a
+              href="/settings/sample-organisation"
+              className="identity-nav-link identity-sidebar-nav-item"
+              onClick={() => setMobileOpen(false)}
+            >
+              <Building2 size={18} aria-hidden /> Sample organisation
             </a>
           ) : null}
         </nav>

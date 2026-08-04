@@ -1,0 +1,56 @@
+{
+  "packKey": "northbridge-healthcare",
+  "packVersion": "1.0.0",
+  "title": "Northbridge Healthcare Trust",
+  "summary": "Create a realistic fictional coaching environment for demonstrations, training and evaluation.",
+  "locale": "en-GB",
+  "estimatedSetupSeconds": 60,
+  "period": {
+    "start": "2026-02-05",
+    "end": "2026-08-04",
+    "label": "Approximately six months"
+  },
+  "expectedCounts": {
+    "organisations": 1,
+    "relationships": 12,
+    "standardRelationships": 10,
+    "confidentialRelationships": 2,
+    "sessions": 72,
+    "actions": 72,
+    "developmentUpdates": 24,
+    "intelligenceItems": 72,
+    "organisationIntelligenceSnapshots": 1
+  },
+  "features": [
+    "12 coaching relationships",
+    "72 development conversations",
+    "72 actions",
+    "24 development updates",
+    "72 intelligence items",
+    "2 Confidential Coaching examples",
+    "6 months of coaching history",
+    "Organisation Intelligence included"
+  ],
+  "recurringThemes": [
+    "confidence",
+    "delegation",
+    "communication",
+    "difficult_conversations",
+    "strategic_leadership",
+    "stakeholder_influence"
+  ],
+  "privacy": {
+    "minimumThemeRelationships": 5,
+    "confidentialIdentityMode": "confidential",
+    "notes": "All names and coaching records in this sample are fictional."
+  },
+  "files": {
+    "organisation": "organisation.json",
+    "relationships": "relationships.json",
+    "assignments": "assignments.json",
+    "sessions": "sessions.json",
+    "actions": "actions.json",
+    "developmentUpdates": "development-updates.json",
+    "intelligenceItems": "intelligence-items.json"
+  }
+}

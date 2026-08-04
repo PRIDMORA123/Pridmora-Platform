@@ -8967,6 +8967,49 @@ button.coaching-moments-section__item:focus-visible {
   gap: var(--identity-space-6, 24px);
 }
 
+.organisation-workspace--compact-header .organisation-header {
+  margin-bottom: var(--identity-space-4, 16px);
+  align-items: flex-start;
+}
+
+.organisation-workspace--compact-header .organisation-header__main {
+  max-width: 40rem;
+}
+
+.organisation-workspace--compact-header .organisation-header__eyebrow {
+  margin-bottom: 0.35rem;
+}
+
+.organisation-workspace--compact-header .organisation-header__title {
+  font-size: clamp(1.7rem, 2.4vw, 2.2rem);
+  line-height: 1.12;
+}
+
+.organisation-workspace--compact-header .organisation-header__subtitle {
+  margin-top: 0.45rem;
+  max-width: 36rem;
+}
+
+.organisation-workspace--compact-header .organisation-header__back {
+  margin-top: 1.55rem;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--identity-text-secondary, #687b8a);
+}
+
+.organisation-workspace--compact-header .organisation-header__back:hover {
+  color: var(--identity-teal);
+}
+
+.organisation-workspace--compact-header .organisation-nav {
+  margin-bottom: var(--identity-space-5, 20px);
+}
+
+.organisation-workspace--compact-header .organisation-workspace__content {
+  gap: var(--identity-space-5, 20px);
+  max-width: 68rem;
+}
+
 /* Header */
 .organisation-header {
   display: flex;
@@ -9745,5 +9788,134 @@ button.coaching-moments-section__item:focus-visible {
 
   .organisation-member-card__meta {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Sample organisation installer */
+.sample-organisation {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 42rem;
+}
+
+.sample-organisation__panel {
+  display: grid;
+  gap: 1rem;
+  padding: 0;
+}
+
+.sample-organisation__lead {
+  margin: 0;
+  color: var(--identity-text-muted, #5c5a57);
+  line-height: 1.5;
+}
+
+.sample-organisation__features,
+.sample-organisation__counts,
+.sample-organisation__stages {
+  margin: 0;
+  padding-left: 1.15rem;
+  display: grid;
+  gap: 0.35rem;
+  color: var(--identity-text, #1f1d1a);
+  line-height: 1.45;
+}
+
+.sample-organisation__meta {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  color: var(--identity-text-muted, #5c5a57);
+}
+
+.sample-organisation__meta strong {
+  color: var(--identity-text, #1f1d1a);
+  font-weight: 600;
+}
+
+.sample-organisation__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.sample-organisation__progress {
+  height: 0.35rem;
+  background: color-mix(in srgb, var(--identity-border, #d8d4ce) 80%, white);
+  overflow: hidden;
+}
+
+.sample-organisation__progress-bar {
+  display: block;
+  height: 100%;
+  background: var(--identity-text, #1f1d1a);
+  transition: width 0.25s ease;
+}
+
+.sample-organisation__stages li.is-done {
+  color: var(--identity-text-muted, #5c5a57);
+}
+
+.sample-organisation__stages li.is-current {
+  font-weight: 600;
+}
+
+.sample-organisation__status {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.sample-organisation__status div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.sample-organisation__status dt {
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--identity-text-muted, #5c5a57);
+}
+
+.sample-organisation__status dd {
+  margin: 0;
+}
+
+.sample-organisation__dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, #1f1d1a 35%, transparent);
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  z-index: 40;
+}
+
+.sample-organisation__dialog {
+  width: min(100%, 28rem);
+  background: var(--identity-surface, #fff);
+  border: 1px solid var(--identity-border, #d8d4ce);
+  padding: 1.35rem 1.25rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.sample-organisation__dialog:focus-visible,
+.sample-organisation__dialog input:focus-visible,
+.sample-organisation__actions .identity-button:focus-visible {
+  outline: 2px solid var(--identity-focus, #1f1d1a);
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .sample-organisation__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sample-organisation__actions .identity-button {
+    width: 100%;
   }
 }

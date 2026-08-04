@@ -51,14 +51,26 @@ export function serialiseError(error: unknown): Record<string, unknown> {
                 name: error.cause.name,
                 message: error.cause.message,
               }
-            : String(error.cause),
+            : typeof Event !== "undefined" && error.cause instanceof Event
+              ? `Unexpected browser event (${error.cause.type || "unknown"})`
+              : errorMessage(error.cause),
       status: withExtras.status ?? null,
       code: withExtras.code ?? null,
     };
   }
 
+  if (typeof Event !== "undefined" && error instanceof Event) {
+    return {
+      message: `Unexpected browser event (${error.type || "unknown"})`,
+    };
+  }
+
+  if (typeof error === "string") {
+    return { message: error };
+  }
+
   return {
-    message: String(error),
+    message: errorMessage(error),
   };
 }
 

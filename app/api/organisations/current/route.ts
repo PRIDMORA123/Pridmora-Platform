@@ -3,6 +3,7 @@ import { ensureCoachProfile } from "@/lib/auth/session";
 import {
   requireOrganisationContext,
 } from "@/lib/organisations/current-organisation";
+import { canManageSampleOrganisation } from "@/lib/organisations/permissions";
 import {
   listUserMemberships,
   setCurrentOrganisationPreference,
@@ -20,13 +21,15 @@ export async function GET() {
       auth.context.supabase,
       auth.context.user.id
     );
+    const role = auth.context.organisation.role;
 
     return NextResponse.json({
       current: {
         organisation: auth.context.organisation.organisation,
         membership: auth.context.organisation.membership,
-        role: auth.context.organisation.role,
+        role,
         professionalRole: auth.context.organisation.professionalRole,
+        canManageSampleOrganisation: canManageSampleOrganisation(role),
         organisations,
       },
       organisations,

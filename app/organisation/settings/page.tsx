@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 import { IdentityButton } from "@/components/identity/button";
 import { OrganisationShell } from "@/components/organisation/organisation-shell";
@@ -48,6 +49,7 @@ type Settings = {
 export default function OrganisationSettingsPage() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [canManage, setCanManage] = useState(false);
+  const [canManageSample, setCanManageSample] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -59,12 +61,15 @@ export default function OrganisationSettingsPage() {
   const retentionId = useId();
 
   useEffect(() => {
-    apiJson<{ settings: Settings; canManage: boolean }>(
-      "/api/organisations/settings"
-    )
+    apiJson<{
+      settings: Settings;
+      canManage: boolean;
+      canManageSampleOrganisation?: boolean;
+    }>("/api/organisations/settings")
       .then(payload => {
         setSettings(payload.settings);
         setCanManage(payload.canManage);
+        setCanManageSample(Boolean(payload.canManageSampleOrganisation));
       })
       .catch(err =>
         setError(err instanceof Error ? err.message : "Unable to load settings.")
@@ -112,6 +117,17 @@ export default function OrganisationSettingsPage() {
       {saved ? (
         <p className="organisation-success-message" role="status">
           Changes saved
+        </p>
+      ) : null}
+
+      {canManageSample ? (
+        <p className="organisation-muted" style={{ marginBottom: "1.25rem" }}>
+          <Link className="organisation-text-link" href="/settings/sample-organisation">
+            Sample organisation
+          </Link>
+          {" — "}
+          install a fictional coaching environment for demonstrations, training and
+          evaluation.
         </p>
       ) : null}
 

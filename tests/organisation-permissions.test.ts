@@ -89,6 +89,18 @@ describe("organisation permissions", () => {
     expect(canSeeOrganisationNav("viewer")).toBe(false);
   });
 
+  it("grants sample organisation management to owners and administrators only", () => {
+    expect(hasPermission("owner", "sample_organisation.manage")).toBe(true);
+    expect(hasPermission("administrator", "sample_organisation.manage")).toBe(
+      true
+    );
+    expect(hasPermission("practitioner", "sample_organisation.manage")).toBe(
+      false
+    );
+    expect(hasPermission("oversight", "sample_organisation.manage")).toBe(false);
+    expect(hasPermission("viewer", "sample_organisation.manage")).toBe(false);
+  });
+
   it("keeps oversight away from private notes and coaching content permissions", () => {
     expect(hasPermission("oversight", "organisation.view_safe_oversight")).toBe(
       true

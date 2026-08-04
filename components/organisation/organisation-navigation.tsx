@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useCanManageSampleOrganisation } from "@/lib/organisations/use-can-manage-sample-organisation";
 
-const NAV: Array<{ href: string; label: string; exact?: boolean }> = [
+const BASE_NAV: Array<{ href: string; label: string; exact?: boolean }> = [
   { href: "/organisation", label: "Overview", exact: true },
   { href: "/organisation/members", label: "Members" },
   { href: "/organisation/assignments", label: "Assignments" },
@@ -13,11 +14,19 @@ const NAV: Array<{ href: string; label: string; exact?: boolean }> = [
 
 export function OrganisationNavigation() {
   const pathname = usePathname();
+  const showSample = useCanManageSampleOrganisation();
+
+  const nav = showSample
+    ? [
+        ...BASE_NAV,
+        { href: "/settings/sample-organisation", label: "Sample organisation" },
+      ]
+    : BASE_NAV;
 
   return (
     <nav className="organisation-nav" aria-label="Organisation">
       <div className="organisation-nav__scroller">
-        {NAV.map(item => {
+        {nav.map(item => {
           const active = item.exact
             ? pathname === item.href
             : pathname === item.href || pathname.startsWith(`${item.href}/`);

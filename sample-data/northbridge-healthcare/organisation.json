@@ -1,0 +1,14 @@
+{
+  "name": "Northbridge Healthcare Trust",
+  "slugHint": "northbridge-healthcare-trust-sample",
+  "organisationType": "public_sector",
+  "defaultPreparationStyle": "guided",
+  "aiEnabled": true,
+  "dataRetentionPolicyLabel": "standard",
+  "licence": {
+    "planName": "Sample",
+    "seatsPurchased": 5,
+    "status": "active"
+  },
+  "description": "Fictional healthcare trust used for demonstrations, training and evaluation."
+}

@@ -28,6 +28,7 @@ const ROLE_PERMISSIONS: Record<MembershipRole, readonly OrganisationPermission[]
     "reports.generate",
     "reports.view_relationship",
     "billing.manage",
+    "sample_organisation.manage",
     // coaching_content.view / private_notes.view require assignment — see canAccessCoachingContent
   ],
   administrator: [
@@ -41,6 +42,7 @@ const ROLE_PERMISSIONS: Record<MembershipRole, readonly OrganisationPermission[]
     "relationships.create",
     "relationships.view_assigned",
     "relationships.transfer",
+    "sample_organisation.manage",
   ],
   oversight: [
     "organisation.view_usage",
@@ -93,6 +95,7 @@ export function canViewSafeOversight(role: MembershipRole): boolean {
   return hasPermission(role, "organisation.view_safe_oversight");
 }
 
+
 export function canInviteMembers(role: MembershipRole): boolean {
   return hasPermission(role, "members.invite");
 }
@@ -107,6 +110,10 @@ export function canManageAssignments(role: MembershipRole): boolean {
 
 export function canCreateRelationships(role: MembershipRole): boolean {
   return hasPermission(role, "relationships.create");
+}
+
+export function canManageSampleOrganisation(role: MembershipRole): boolean {
+  return hasPermission(role, "sample_organisation.manage");
 }
 
 export function canSeeOrganisationNav(role: MembershipRole): boolean {

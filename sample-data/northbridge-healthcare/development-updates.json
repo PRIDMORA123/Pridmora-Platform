@@ -1,0 +1,1180 @@
+{
+  "developmentUpdates": [
+    {
+      "key": "sarah-mitchell-update-1",
+      "relationshipKey": "sarah-mitchell",
+      "sessionKey": "sarah-mitchell-session-2",
+      "status": "applied",
+      "conversationSummary": "Reviewed a handoff that slipped. The brief was incomplete rather than the capability of the colleague. Clearer this month, though old habits returned in one meeting.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Confidence, delegation and communication",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "confidence",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "delegation",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Letting go of work that belongs elsewhere",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Reviewed a handoff that slipped. The brief was incomplete rather than the capability of the colleague. Clearer this month, though old habits returned in one mee",
+          "sourceExcerpt": "Setting clearer ownership"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-05-25T16:00:00.000Z",
+      "reviewedAt": "2026-05-25T17:00:00.000Z",
+      "appliedAt": "2026-05-25T18:00:00.000Z"
+    },
+    {
+      "key": "sarah-mitchell-update-2",
+      "relationshipKey": "sarah-mitchell",
+      "sessionKey": "sarah-mitchell-session-5",
+      "status": "applied",
+      "conversationSummary": "Reviewed a handoff that slipped. The brief was incomplete rather than the capability of the colleague. Confidence rising in familiar settings; still uneven elsewhere.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Confidence, delegation and communication",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "confidence",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "delegation",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Letting go of work that belongs elsewhere",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Reviewed a handoff that slipped. The brief was incomplete rather than the capability of the colleague. Confidence rising in familiar settings; still uneven else",
+          "sourceExcerpt": "Setting clearer ownership"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-06-30T16:00:00.000Z",
+      "reviewedAt": "2026-06-30T17:00:00.000Z",
+      "appliedAt": "2026-06-30T18:00:00.000Z"
+    },
+    {
+      "key": "james-carter-update-3",
+      "relationshipKey": "james-carter",
+      "sessionKey": "james-carter-session-2",
+      "status": "applied",
+      "conversationSummary": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Clearer this month, though old habits returned in one meeting.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Confidence and difficult conversations",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "confidence",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "difficult conversations",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Naming the issue earlier",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Clearer this month, though old habits returned in one meeting.",
+          "sourceExcerpt": "Staying present when challenged"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-05-26T16:00:00.000Z",
+      "reviewedAt": "2026-05-26T17:00:00.000Z",
+      "appliedAt": "2026-05-26T18:00:00.000Z"
+    },
+    {
+      "key": "james-carter-update-4",
+      "relationshipKey": "james-carter",
+      "sessionKey": "james-carter-session-5",
+      "status": "applied",
+      "conversationSummary": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Confidence rising in familiar settings; still uneven elsewhere.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Confidence and difficult conversations",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "confidence",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "difficult conversations",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Naming the issue earlier",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Confidence rising in familiar settings; still uneven elsewhere.",
+          "sourceExcerpt": "Staying present when challenged"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-07-01T16:00:00.000Z",
+      "reviewedAt": "2026-07-01T17:00:00.000Z",
+      "appliedAt": "2026-07-01T18:00:00.000Z"
+    },
+    {
+      "key": "emma-hughes-update-5",
+      "relationshipKey": "emma-hughes",
+      "sessionKey": "emma-hughes-session-2",
+      "status": "applied",
+      "conversationSummary": "Practised framing a recommendation with options and a preferred path. Clearer this month, though old habits returned in one meeting.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Delegation and strategic leadership",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "delegation",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "strategic leadership",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Shifting from operational detail to direction",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Practised framing a recommendation with options and a preferred path. Clearer this month, though old habits returned in one meeting.",
+          "sourceExcerpt": "Influencing without the formal mandate"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-05-27T16:00:00.000Z",
+      "reviewedAt": "2026-05-27T17:00:00.000Z",
+      "appliedAt": "2026-05-27T18:00:00.000Z"
+    },
+    {
+      "key": "emma-hughes-update-6",
+      "relationshipKey": "emma-hughes",
+      "sessionKey": "emma-hughes-session-5",
+      "status": "applied",
+      "conversationSummary": "Practised framing a recommendation with options and a preferred path. Confidence rising in familiar settings; still uneven elsewhere.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Delegation and strategic leadership",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "delegation",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "strategic leadership",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Shifting from operational detail to direction",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Practised framing a recommendation with options and a preferred path. Confidence rising in familiar settings; still uneven elsewhere.",
+          "sourceExcerpt": "Influencing without the formal mandate"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-07-02T16:00:00.000Z",
+      "reviewedAt": "2026-07-02T17:00:00.000Z",
+      "appliedAt": "2026-07-02T18:00:00.000Z"
+    },
+    {
+      "key": "daniel-roberts-update-7",
+      "relationshipKey": "daniel-roberts",
+      "sessionKey": "daniel-roberts-session-2",
+      "status": "applied",
+      "conversationSummary": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Clearer this month, though old habits returned in one meeting.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Feedback conversations",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "difficult conversations",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "communication",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Clearer messages under time pressure",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Clearer this month, though old habits returned in one meeting.",
+          "sourceExcerpt": "Listening before advising"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-05-25T16:00:00.000Z",
+      "reviewedAt": "2026-05-25T17:00:00.000Z",
+      "appliedAt": "2026-05-25T18:00:00.000Z"
+    },
+    {
+      "key": "daniel-roberts-update-8",
+      "relationshipKey": "daniel-roberts",
+      "sessionKey": "daniel-roberts-session-5",
+      "status": "applied",
+      "conversationSummary": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Confidence rising in familiar settings; still uneven elsewhere.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Feedback conversations",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "difficult conversations",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "communication",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Clearer messages under time pressure",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Confidence rising in familiar settings; still uneven elsewhere.",
+          "sourceExcerpt": "Listening before advising"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-06-30T16:00:00.000Z",
+      "reviewedAt": "2026-06-30T17:00:00.000Z",
+      "appliedAt": "2026-06-30T18:00:00.000Z"
+    },
+    {
+      "key": "priya-shah-update-9",
+      "relationshipKey": "priya-shah",
+      "sessionKey": "priya-shah-session-2",
+      "status": "applied",
+      "conversationSummary": "Practised framing a recommendation with options and a preferred path. Clearer this month, though old habits returned in one meeting.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Stakeholder influence",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "stakeholder influence",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "strategic leadership",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Shifting from operational detail to direction",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Practised framing a recommendation with options and a preferred path. Clearer this month, though old habits returned in one meeting.",
+          "sourceExcerpt": "Influencing without the formal mandate"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-05-26T16:00:00.000Z",
+      "reviewedAt": "2026-05-26T17:00:00.000Z",
+      "appliedAt": "2026-05-26T18:00:00.000Z"
+    },
+    {
+      "key": "priya-shah-update-10",
+      "relationshipKey": "priya-shah",
+      "sessionKey": "priya-shah-session-5",
+      "status": "applied",
+      "conversationSummary": "Practised framing a recommendation with options and a preferred path. Confidence rising in familiar settings; still uneven elsewhere.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Stakeholder influence",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "stakeholder influence",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "strategic leadership",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Shifting from operational detail to direction",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Practised framing a recommendation with options and a preferred path. Confidence rising in familiar settings; still uneven elsewhere.",
+          "sourceExcerpt": "Influencing without the formal mandate"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-07-01T16:00:00.000Z",
+      "reviewedAt": "2026-07-01T17:00:00.000Z",
+      "appliedAt": "2026-07-01T18:00:00.000Z"
+    },
+    {
+      "key": "michael-green-update-11",
+      "relationshipKey": "michael-green",
+      "sessionKey": "michael-green-session-2",
+      "status": "applied",
+      "conversationSummary": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Clearer this month, though old habits returned in one meeting.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Accountability and delegation",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "delegation",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "confidence",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Building steadiness under pressure",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Clearer this month, though old habits retu",
+          "sourceExcerpt": "Speaking with clearer authority"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-05-27T16:00:00.000Z",
+      "reviewedAt": "2026-05-27T17:00:00.000Z",
+      "appliedAt": "2026-05-27T18:00:00.000Z"
+    },
+    {
+      "key": "michael-green-update-12",
+      "relationshipKey": "michael-green",
+      "sessionKey": "michael-green-session-5",
+      "status": "applied",
+      "conversationSummary": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Confidence rising in familiar settings; still uneven elsewhere.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Accountability and delegation",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "delegation",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "confidence",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Building steadiness under pressure",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Confidence rising in familiar settings; st",
+          "sourceExcerpt": "Speaking with clearer authority"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-07-02T16:00:00.000Z",
+      "reviewedAt": "2026-07-02T17:00:00.000Z",
+      "appliedAt": "2026-07-02T18:00:00.000Z"
+    },
+    {
+      "key": "helen-brooks-update-13",
+      "relationshipKey": "helen-brooks",
+      "sessionKey": "helen-brooks-session-2",
+      "status": "applied",
+      "conversationSummary": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Clearer this month, though old habits returned in one meeting.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Executive presence and strategic influence",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "strategic leadership",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "stakeholder influence",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Mapping who shapes decisions",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Clearer this month, though old habits returned in one meeting.",
+          "sourceExcerpt": "Building alliances earlier"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-05-25T16:00:00.000Z",
+      "reviewedAt": "2026-05-25T17:00:00.000Z",
+      "appliedAt": "2026-05-25T18:00:00.000Z"
+    },
+    {
+      "key": "helen-brooks-update-14",
+      "relationshipKey": "helen-brooks",
+      "sessionKey": "helen-brooks-session-5",
+      "status": "applied",
+      "conversationSummary": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Confidence rising in familiar settings; still uneven elsewhere.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Executive presence and strategic influence",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "strategic leadership",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "stakeholder influence",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Mapping who shapes decisions",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Confidence rising in familiar settings; still uneven elsewhere.",
+          "sourceExcerpt": "Building alliances earlier"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-06-30T16:00:00.000Z",
+      "reviewedAt": "2026-06-30T17:00:00.000Z",
+      "appliedAt": "2026-06-30T18:00:00.000Z"
+    },
+    {
+      "key": "clinical-lead-a-update-15",
+      "relationshipKey": "clinical-lead-a",
+      "sessionKey": "clinical-lead-a-session-2",
+      "status": "applied",
+      "conversationSummary": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Clearer this month, though old habits returned in one meeting.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Psychological safety",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "confidence",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "communication",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Clearer messages under time pressure",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Clearer this month, though old habits returned in one meeting.",
+          "sourceExcerpt": "Listening before advising"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-05-26T16:00:00.000Z",
+      "reviewedAt": "2026-05-26T17:00:00.000Z",
+      "appliedAt": "2026-05-26T18:00:00.000Z"
+    },
+    {
+      "key": "clinical-lead-a-update-16",
+      "relationshipKey": "clinical-lead-a",
+      "sessionKey": "clinical-lead-a-session-5",
+      "status": "applied",
+      "conversationSummary": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Confidence rising in familiar settings; still uneven elsewhere.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Psychological safety",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "confidence",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "communication",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Clearer messages under time pressure",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Confidence rising in familiar settings; still uneven elsewhere.",
+          "sourceExcerpt": "Listening before advising"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-07-01T16:00:00.000Z",
+      "reviewedAt": "2026-07-01T17:00:00.000Z",
+      "appliedAt": "2026-07-01T18:00:00.000Z"
+    },
+    {
+      "key": "rachel-morgan-update-17",
+      "relationshipKey": "rachel-morgan",
+      "sessionKey": "rachel-morgan-session-2",
+      "status": "applied",
+      "conversationSummary": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Clearer this month, though old habits returned in one meeting.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Coaching culture",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "delegation",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "communication",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Clearer messages under time pressure",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Clearer this month, though old habits returned in one meeting.",
+          "sourceExcerpt": "Listening before advising"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-05-27T16:00:00.000Z",
+      "reviewedAt": "2026-05-27T17:00:00.000Z",
+      "appliedAt": "2026-05-27T18:00:00.000Z"
+    },
+    {
+      "key": "rachel-morgan-update-18",
+      "relationshipKey": "rachel-morgan",
+      "sessionKey": "rachel-morgan-session-5",
+      "status": "applied",
+      "conversationSummary": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Confidence rising in familiar settings; still uneven elsewhere.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Coaching culture",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "delegation",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "communication",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Clearer messages under time pressure",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Confidence rising in familiar settings; still uneven elsewhere.",
+          "sourceExcerpt": "Listening before advising"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-07-02T16:00:00.000Z",
+      "reviewedAt": "2026-07-02T17:00:00.000Z",
+      "appliedAt": "2026-07-02T18:00:00.000Z"
+    },
+    {
+      "key": "owen-lewis-update-19",
+      "relationshipKey": "owen-lewis",
+      "sessionKey": "owen-lewis-session-2",
+      "status": "applied",
+      "conversationSummary": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Clearer this month, though old habits returned in one meeting.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Collaboration and communication",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "communication",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "stakeholder influence",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Mapping who shapes decisions",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Clearer this month, though old habits returned in one meeting.",
+          "sourceExcerpt": "Building alliances earlier"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-05-25T16:00:00.000Z",
+      "reviewedAt": "2026-05-25T17:00:00.000Z",
+      "appliedAt": "2026-05-25T18:00:00.000Z"
+    },
+    {
+      "key": "owen-lewis-update-20",
+      "relationshipKey": "owen-lewis",
+      "sessionKey": "owen-lewis-session-5",
+      "status": "applied",
+      "conversationSummary": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Confidence rising in familiar settings; still uneven elsewhere.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Collaboration and communication",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "communication",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "stakeholder influence",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Mapping who shapes decisions",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Confidence rising in familiar settings; still uneven elsewhere.",
+          "sourceExcerpt": "Building alliances earlier"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-06-30T16:00:00.000Z",
+      "reviewedAt": "2026-06-30T17:00:00.000Z",
+      "appliedAt": "2026-06-30T18:00:00.000Z"
+    },
+    {
+      "key": "operations-director-b-update-21",
+      "relationshipKey": "operations-director-b",
+      "sessionKey": "operations-director-b-session-2",
+      "status": "applied",
+      "conversationSummary": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Clearer this month, though old habits returned in one meeting.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Leading change",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "strategic leadership",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "difficult conversations",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Naming the issue earlier",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Clearer this month, though old habits returned in one meeting.",
+          "sourceExcerpt": "Staying present when challenged"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-05-26T16:00:00.000Z",
+      "reviewedAt": "2026-05-26T17:00:00.000Z",
+      "appliedAt": "2026-05-26T18:00:00.000Z"
+    },
+    {
+      "key": "operations-director-b-update-22",
+      "relationshipKey": "operations-director-b",
+      "sessionKey": "operations-director-b-session-5",
+      "status": "applied",
+      "conversationSummary": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Confidence rising in familiar settings; still uneven elsewhere.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Leading change",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "strategic leadership",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "difficult conversations",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Naming the issue earlier",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Confidence rising in familiar settings; still uneven elsewhere.",
+          "sourceExcerpt": "Staying present when challenged"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-07-01T16:00:00.000Z",
+      "reviewedAt": "2026-07-01T17:00:00.000Z",
+      "appliedAt": "2026-07-01T18:00:00.000Z"
+    },
+    {
+      "key": "aisha-khan-update-23",
+      "relationshipKey": "aisha-khan",
+      "sessionKey": "aisha-khan-session-2",
+      "status": "applied",
+      "conversationSummary": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Clearer this month, though old habits returned in one meeting.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Strategic leadership and visibility",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "strategic leadership",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "confidence",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Building steadiness under pressure",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Clearer this month, though old habits retu",
+          "sourceExcerpt": "Speaking with clearer authority"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-05-27T16:00:00.000Z",
+      "reviewedAt": "2026-05-27T17:00:00.000Z",
+      "appliedAt": "2026-05-27T18:00:00.000Z"
+    },
+    {
+      "key": "aisha-khan-update-24",
+      "relationshipKey": "aisha-khan",
+      "sessionKey": "aisha-khan-session-5",
+      "status": "applied",
+      "conversationSummary": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Confidence rising in familiar settings; still uneven elsewhere.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Strategic leadership and visibility",
+          "reason": "Confirmed through recent conversations"
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "strategic leadership",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            },
+            {
+              "value": "confidence",
+              "status": "supported",
+              "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Building steadiness under pressure",
+              "status": "emerging",
+              "reason": "Active development focus"
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "emergingThemes",
+          "evidenceText": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Confidence rising in familiar settings; st",
+          "sourceExcerpt": "Speaking with clearer authority"
+        }
+      ],
+      "coachNote": "Sample applied update for evaluation.",
+      "generatedAt": "2026-07-02T16:00:00.000Z",
+      "reviewedAt": "2026-07-02T17:00:00.000Z",
+      "appliedAt": "2026-07-02T18:00:00.000Z"
+    }
+  ]
+}

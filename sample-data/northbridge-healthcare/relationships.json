@@ -1,0 +1,196 @@
+{
+  "relationships": [
+    {
+      "key": "sarah-mitchell",
+      "identityMode": "standard",
+      "name": "Sarah Mitchell",
+      "displayLabel": "Sarah Mitchell",
+      "role": "Ward Manager",
+      "organisationLabel": "Northbridge Healthcare Trust",
+      "email": "sarah.mitchell.sample@northbridge.example",
+      "currentFocus": "Confidence, delegation and communication",
+      "aiNameAllowed": true,
+      "themes": [
+        "confidence",
+        "delegation",
+        "communication"
+      ]
+    },
+    {
+      "key": "james-carter",
+      "identityMode": "standard",
+      "name": "James Carter",
+      "displayLabel": "James Carter",
+      "role": "Call Centre Manager (Acting)",
+      "organisationLabel": "Northbridge Healthcare Trust",
+      "email": "james.carter.sample@northbridge.example",
+      "currentFocus": "Confidence and difficult conversations",
+      "aiNameAllowed": true,
+      "themes": [
+        "confidence",
+        "difficult_conversations",
+        "communication"
+      ]
+    },
+    {
+      "key": "emma-hughes",
+      "identityMode": "standard",
+      "name": "Emma Hughes",
+      "displayLabel": "Emma Hughes",
+      "role": "Finance Manager",
+      "organisationLabel": "Northbridge Healthcare Trust",
+      "email": "emma.hughes.sample@northbridge.example",
+      "currentFocus": "Delegation and strategic leadership",
+      "aiNameAllowed": true,
+      "themes": [
+        "delegation",
+        "strategic_leadership",
+        "stakeholder_influence"
+      ]
+    },
+    {
+      "key": "daniel-roberts",
+      "identityMode": "standard",
+      "name": "Daniel Roberts",
+      "displayLabel": "Daniel Roberts",
+      "role": "Estates Manager",
+      "organisationLabel": "Northbridge Healthcare Trust",
+      "email": "daniel.roberts.sample@northbridge.example",
+      "currentFocus": "Feedback conversations",
+      "aiNameAllowed": true,
+      "themes": [
+        "difficult_conversations",
+        "communication",
+        "confidence"
+      ]
+    },
+    {
+      "key": "priya-shah",
+      "identityMode": "standard",
+      "name": "Priya Shah",
+      "displayLabel": "Priya Shah",
+      "role": "Procurement Manager",
+      "organisationLabel": "Northbridge Healthcare Trust",
+      "email": "priya.shah.sample@northbridge.example",
+      "currentFocus": "Stakeholder influence",
+      "aiNameAllowed": true,
+      "themes": [
+        "stakeholder_influence",
+        "strategic_leadership",
+        "communication"
+      ]
+    },
+    {
+      "key": "michael-green",
+      "identityMode": "standard",
+      "name": "Michael Green",
+      "displayLabel": "Michael Green",
+      "role": "Outpatient Services Manager",
+      "organisationLabel": "Northbridge Healthcare Trust",
+      "email": "michael.green.sample@northbridge.example",
+      "currentFocus": "Accountability and delegation",
+      "aiNameAllowed": true,
+      "themes": [
+        "delegation",
+        "confidence",
+        "difficult_conversations"
+      ]
+    },
+    {
+      "key": "helen-brooks",
+      "identityMode": "standard",
+      "name": "Helen Brooks",
+      "displayLabel": "Helen Brooks",
+      "role": "HR Business Partner",
+      "organisationLabel": "Northbridge Healthcare Trust",
+      "email": "helen.brooks.sample@northbridge.example",
+      "currentFocus": "Executive presence and strategic influence",
+      "aiNameAllowed": true,
+      "themes": [
+        "strategic_leadership",
+        "stakeholder_influence",
+        "communication"
+      ]
+    },
+    {
+      "key": "clinical-lead-a",
+      "identityMode": "confidential",
+      "name": "Clinical Lead programme",
+      "displayLabel": "Clinical Lead programme",
+      "role": "Clinical Lead",
+      "organisationLabel": "Northbridge Healthcare Trust",
+      "email": "",
+      "currentFocus": "Psychological safety",
+      "aiNameAllowed": false,
+      "themes": [
+        "confidence",
+        "communication",
+        "difficult_conversations"
+      ]
+    },
+    {
+      "key": "rachel-morgan",
+      "identityMode": "standard",
+      "name": "Rachel Morgan",
+      "displayLabel": "Rachel Morgan",
+      "role": "Head of Administration",
+      "organisationLabel": "Northbridge Healthcare Trust",
+      "email": "rachel.morgan.sample@northbridge.example",
+      "currentFocus": "Coaching culture",
+      "aiNameAllowed": true,
+      "themes": [
+        "delegation",
+        "communication",
+        "stakeholder_influence"
+      ]
+    },
+    {
+      "key": "owen-lewis",
+      "identityMode": "standard",
+      "name": "Owen Lewis",
+      "displayLabel": "Owen Lewis",
+      "role": "IT Service Manager",
+      "organisationLabel": "Northbridge Healthcare Trust",
+      "email": "owen.lewis.sample@northbridge.example",
+      "currentFocus": "Collaboration and communication",
+      "aiNameAllowed": true,
+      "themes": [
+        "communication",
+        "stakeholder_influence",
+        "difficult_conversations"
+      ]
+    },
+    {
+      "key": "operations-director-b",
+      "identityMode": "confidential",
+      "name": "Operations leadership programme",
+      "displayLabel": "Operations leadership programme",
+      "role": "Operations Director",
+      "organisationLabel": "Northbridge Healthcare Trust",
+      "email": "",
+      "currentFocus": "Leading change",
+      "aiNameAllowed": false,
+      "themes": [
+        "strategic_leadership",
+        "difficult_conversations",
+        "delegation"
+      ]
+    },
+    {
+      "key": "aisha-khan",
+      "identityMode": "standard",
+      "name": "Aisha Khan",
+      "displayLabel": "Aisha Khan",
+      "role": "Service Improvement Lead",
+      "organisationLabel": "Northbridge Healthcare Trust",
+      "email": "aisha.khan.sample@northbridge.example",
+      "currentFocus": "Strategic leadership and visibility",
+      "aiNameAllowed": true,
+      "themes": [
+        "strategic_leadership",
+        "confidence",
+        "stakeholder_influence"
+      ]
+    }
+  ]
+}

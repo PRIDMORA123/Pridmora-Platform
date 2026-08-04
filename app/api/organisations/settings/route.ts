@@ -3,6 +3,7 @@ import {
   requireOrganisationContext,
   requireOrganisationPermission,
 } from "@/lib/organisations/current-organisation";
+import { canManageSampleOrganisation } from "@/lib/organisations/permissions";
 import { writeOrganisationAudit } from "@/lib/organisations/repository";
 import { ORGANISATION_TYPES } from "@/lib/organisations/types";
 import {
@@ -60,6 +61,9 @@ export async function GET() {
       },
     },
     canManage: !denied,
+    canManageSampleOrganisation: canManageSampleOrganisation(
+      auth.context.organisation.role
+    ),
   });
 }
 

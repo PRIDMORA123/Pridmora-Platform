@@ -59,6 +59,7 @@ export {
   canManageMembers,
   canManageAssignments,
   canCreateRelationships,
+  canManageSampleOrganisation,
   invitableRoles,
   canAssignRole,
   permissionsForRole,

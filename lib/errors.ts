@@ -3,21 +3,39 @@
  * Prevents React console noise like "[object Event]".
  */
 export function toError(value: unknown, fallback = "Something went wrong. Please try again."): Error {
-  if (value instanceof Error) return value;
+  if (value instanceof Error) {
+    const message = value.message.trim();
+    if (!message || /^\[object [\w]*Event\]$/.test(message)) {
+      return new Error(fallback);
+    }
+    return value;
+  }
 
   // Never rethrow or surface browser Event objects (React shows "[object Event]").
   if (typeof Event !== "undefined" && value instanceof Event) {
-    const type = value.type || "unknown";
-    return new Error(`Unexpected browser event (${type}). ${fallback}`);
+    return new Error(fallback);
   }
 
   if (typeof value === "string" && value.trim()) {
-    return new Error(value);
+    const message = value.trim();
+    if (/^\[object [\w]*Event\]$/.test(message)) {
+      return new Error(fallback);
+    }
+    return new Error(message);
   }
 
   if (value && typeof value === "object" && "message" in value) {
+    // React SyntheticEvent / DOM Event-like objects can own incidental fields;
+    // never treat them as application errors.
+    if ("nativeEvent" in value || "currentTarget" in value || "target" in value) {
+      if ("preventDefault" in value || "stopPropagation" in value) {
+        return new Error(fallback);
+      }
+    }
     const message = String((value as { message: unknown }).message || "").trim();
-    if (message) return new Error(message);
+    if (message && !/^\[object [\w]*Event\]$/.test(message)) {
+      return new Error(message);
+    }
   }
 
   return new Error(fallback);

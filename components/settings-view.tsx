@@ -11,6 +11,7 @@ import {
 import { IdentityButton, IdentityPageHeader } from "@/components/identity";
 import { BRAND } from "@/lib/brand";
 import { identityMessages } from "@/lib/identity-language";
+import { useCanManageSampleOrganisation } from "@/lib/organisations/use-can-manage-sample-organisation";
 import type { CoachingIntelligenceMode } from "@/types/coaching-intelligence";
 
 export function SettingsView({
@@ -20,6 +21,7 @@ export function SettingsView({
   profile: CoachProfile & { email?: string | null };
   onProfileUpdated?: (profile: CoachProfile & { email?: string | null }) => void;
 }) {
+  const showSampleOrganisation = useCanManageSampleOrganisation();
   const [intelligenceMode, setIntelligenceMode] =
     useState<CoachingIntelligenceMode>(() =>
       parseCoachingIntelligenceMode(
@@ -175,6 +177,21 @@ export function SettingsView({
           </IdentityButton>
         </div>
       </article>
+
+      {showSampleOrganisation ? (
+        <article className="panel" style={{ marginTop: 22 }}>
+          <h2>Sample organisation</h2>
+          <p className="muted">
+            Install a fictional coaching environment for demonstrations, training and
+            evaluation.
+          </p>
+          <p style={{ marginTop: 12 }}>
+            <a className="organisation-text-link" href="/settings/sample-organisation">
+              Open Sample organisation
+            </a>
+          </p>
+        </article>
+      ) : null}
 
       <article className="panel" style={{ marginTop: 22 }}>
         <h2>Privacy and trust</h2>
