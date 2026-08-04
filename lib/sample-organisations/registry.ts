@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { isSampleOrganisationIntelligenceGenerationAvailable } from "@/lib/sample-organisations/organisation-intelligence";
 import {
   validateSamplePack,
   type PackValidationResult,
@@ -99,15 +100,25 @@ export function toPackSummary(
   pack: ValidatedSamplePack,
   installation: SamplePackSummary["installation"]
 ): SamplePackSummary {
+  const generationAvailable =
+    isSampleOrganisationIntelligenceGenerationAvailable();
+
   return {
     packKey: pack.manifest.packKey,
     packVersion: pack.manifest.packVersion,
     title: pack.manifest.title,
     summary: pack.manifest.summary,
-    features: pack.manifest.features,
+    features: generationAvailable
+      ? pack.manifest.features
+      : pack.manifest.features.map(feature =>
+          feature === "Organisation Intelligence included"
+            ? "Organisation Intelligence when released"
+            : feature
+        ),
     estimatedSetupSeconds: pack.manifest.estimatedSetupSeconds,
     expectedCounts: pack.manifest.expectedCounts,
     privacyNote: pack.manifest.privacy.notes,
     installation,
+    organisationIntelligenceGenerationAvailable: generationAvailable,
   };
 }

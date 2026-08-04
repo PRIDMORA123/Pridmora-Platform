@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { isSampleOrganisationIntelligenceGenerationAvailable } from "@/lib/sample-organisations/organisation-intelligence";
 import {
   isSampleInstallationStage,
   isSampleInstallationStatus,
@@ -65,7 +66,9 @@ export function mapInstallationRow(
     errorSummary: row.error_summary,
     failureCategory: row.failure_category,
     progressPercent: progressPercentForStage(stage, status),
-    canRetryIntelligence: status === "intelligence_pending",
+    canRetryIntelligence:
+      status === "intelligence_pending" &&
+      isSampleOrganisationIntelligenceGenerationAvailable(),
   };
 }
 

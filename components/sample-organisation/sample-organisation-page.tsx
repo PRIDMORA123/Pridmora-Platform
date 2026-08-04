@@ -123,8 +123,13 @@ export function SampleOrganisationPage() {
         body: JSON.stringify({}),
       });
       setInstallation(payload.installation);
-      if (payload.installation.status === "ready") {
-        setJustCompleted(true);
+      if (
+        payload.installation.status === "ready" ||
+        payload.installation.status === "intelligence_pending"
+      ) {
+        if (payload.installation.status === "ready") {
+          setJustCompleted(true);
+        }
         idempotencyKeyRef.current = null;
       }
       await loadPack();
@@ -331,20 +336,10 @@ export function SampleOrganisationPage() {
               <li>{installation.counts.actions} actions</li>
               <li>{installation.counts.developmentUpdates} development updates</li>
               <li>{installation.counts.intelligenceItems} intelligence items</li>
-              <li>Organisation Intelligence ready</li>
             </ul>
             <div className="sample-organisation__actions">
               <IdentityButton variant="primary" disabled={busy} onClick={openSample}>
                 Open sample organisation
-              </IdentityButton>
-              <IdentityButton
-                variant="secondary"
-                disabled={busy}
-                onClick={() => {
-                  window.location.assign("/organisation/intelligence");
-                }}
-              >
-                View Organisation Intelligence
               </IdentityButton>
             </div>
           </section>
@@ -356,7 +351,7 @@ export function SampleOrganisationPage() {
             <dl className="sample-organisation__status">
               <div>
                 <dt>Status</dt>
-                <dd>Ready</dd>
+                <dd>Sample organisation ready</dd>
               </div>
               <div>
                 <dt>Installed on</dt>
@@ -405,14 +400,66 @@ export function SampleOrganisationPage() {
 
         {intelligencePending && installation ? (
           <section className="sample-organisation__panel">
-            <h2 className="organisation-section-title">Intelligence pending</h2>
-            <p className="organisation-muted">
-              Sample data was created but Organisation Intelligence could not be generated.
+            <h2 className="organisation-section-title">Sample organisation ready</h2>
+            <dl className="sample-organisation__status">
+              <div>
+                <dt>Status</dt>
+                <dd>Sample organisation ready</dd>
+              </div>
+              <div>
+                <dt>Organisation Intelligence</dt>
+                <dd>Not yet available</dd>
+              </div>
+              <div>
+                <dt>Installed on</dt>
+                <dd>{formatInstalledAt(installation.installedAt)}</dd>
+              </div>
+              <div>
+                <dt>Installed by</dt>
+                <dd>{installation.installedByName ?? "You"}</dd>
+              </div>
+            </dl>
+            <p className="organisation-muted sample-organisation__lead">
+              Organisation Intelligence will become available when the organisation
+              intelligence module is released.
             </p>
+            <ul className="sample-organisation__counts">
+              <li>{installation.counts.relationships} relationships</li>
+              <li>{installation.counts.sessions} conversations</li>
+              <li>{installation.counts.actions} actions</li>
+              <li>{installation.counts.developmentUpdates} development updates</li>
+              <li>{installation.counts.intelligenceItems} intelligence items</li>
+            </ul>
             <div className="sample-organisation__actions">
-              <IdentityButton variant="primary" disabled={busy} onClick={retryIntelligence}>
-                Retry intelligence generation
+              <IdentityButton variant="primary" disabled={busy} onClick={openSample}>
+                Open sample organisation
               </IdentityButton>
+              <IdentityButton
+                variant="secondary"
+                disabled={busy}
+                onClick={() => setConfirmMode("reset")}
+              >
+                Reset sample organisation
+              </IdentityButton>
+              <IdentityButton
+                variant="danger"
+                disabled={busy}
+                onClick={() => {
+                  setRemoveText("");
+                  setConfirmMode("remove");
+                }}
+              >
+                Remove sample organisation
+              </IdentityButton>
+              {installation.canRetryIntelligence ? (
+                <IdentityButton
+                  variant="secondary"
+                  disabled={busy}
+                  onClick={retryIntelligence}
+                >
+                  Retry intelligence generation
+                </IdentityButton>
+              ) : null}
             </div>
           </section>
         ) : null}

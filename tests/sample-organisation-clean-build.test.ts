@@ -72,7 +72,12 @@ describe("sample organisation clean-build dependency contracts", () => {
       "utf8"
     );
     expect(bridge).toContain("generateSampleOrganisationIntelligenceSnapshot");
-    expect(bridge).toContain("not available in this release");
-    expect(bridge).not.toContain("@/lib/organisation-intelligence");
+    expect(bridge).toContain(
+      "SAMPLE_ORGANISATION_INTELLIGENCE_GENERATION_AVAILABLE = false"
+    );
+    expect(bridge).toContain(
+      "isSampleOrganisationIntelligenceGenerationAvailable"
+    );
+    expect(bridge).not.toMatch(/from ["']@\/lib\/organisation-intelligence/);
   });
 });

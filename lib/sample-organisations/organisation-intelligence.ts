@@ -7,10 +7,17 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * That package is released separately. Importing it from the installer caused the
  * production build for commit 3e6f009 to fail when the WIP was not in git.
  *
- * When Organisation Intelligence is shipped, wire the real generator into this
- * module and return a successful snapshot id. Until then, installation completes
- * as intelligence_pending and the UI exposes Retry intelligence generation.
+ * When Organisation Intelligence is shipped:
+ * 1. Set SAMPLE_ORGANISATION_INTELLIGENCE_GENERATION_AVAILABLE to true
+ * 2. Wire the real generator into generateSampleOrganisationIntelligenceSnapshot
  */
+
+/** Flip to true when the Organisation Intelligence generator is released and wired. */
+export const SAMPLE_ORGANISATION_INTELLIGENCE_GENERATION_AVAILABLE = false;
+
+export function isSampleOrganisationIntelligenceGenerationAvailable(): boolean {
+  return SAMPLE_ORGANISATION_INTELLIGENCE_GENERATION_AVAILABLE;
+}
 
 export type SampleOrganisationIntelligenceResult =
   | { ok: true; snapshotId: string }
@@ -22,6 +29,15 @@ export async function generateSampleOrganisationIntelligenceSnapshot(_input: {
   organisationId: string;
   organisationName: string;
 }): Promise<SampleOrganisationIntelligenceResult> {
+  if (!isSampleOrganisationIntelligenceGenerationAvailable()) {
+    return {
+      ok: false,
+      error:
+        "Organisation Intelligence generation is not available in this release.",
+      code: "unavailable",
+    };
+  }
+
   return {
     ok: false,
     error:

@@ -43,5 +43,10 @@ export {
   stageLabel,
   isActiveInstallationStatus,
 } from "@/lib/sample-organisations/progress";
+export {
+  generateSampleOrganisationIntelligenceSnapshot,
+  isSampleOrganisationIntelligenceGenerationAvailable,
+  SAMPLE_ORGANISATION_INTELLIGENCE_GENERATION_AVAILABLE,
+} from "@/lib/sample-organisations/organisation-intelligence";
 export { requireSampleOrganisationManage } from "@/lib/sample-organisations/access";
 export { canManageSampleOrganisation } from "@/lib/organisations/permissions";

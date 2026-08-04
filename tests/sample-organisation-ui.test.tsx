@@ -73,6 +73,7 @@ const packPayload = {
     },
     privacyNote: "All names and coaching records in this sample are fictional.",
     installation: null,
+    organisationIntelligenceGenerationAvailable: false,
   },
 };
 
@@ -177,5 +178,60 @@ describe("sample organisation UI", () => {
     ) as HTMLButtonElement | undefined;
     expect(confirmRemove?.disabled).toBe(true);
     expect(container.querySelector("input")).toBeTruthy();
+  });
+
+  it("renders intelligence_pending as ready without a failing Retry action", async () => {
+    apiJson.mockResolvedValue({
+      pack: {
+        ...packPayload.pack,
+        organisationIntelligenceGenerationAvailable: false,
+        installation: {
+          id: "11111111-1111-4111-8111-111111111111",
+          organisationId: "22222222-2222-4222-8222-222222222222",
+          sourceOrganisationId: "33333333-3333-4333-8333-333333333333",
+          packKey: "northbridge-healthcare",
+          packVersion: "1.0.0",
+          status: "intelligence_pending",
+          stage: "generating_organisation_intelligence",
+          stageLabel: "Generating Organisation Intelligence",
+          installedBy: "user",
+          installedByName: "Alex Coach",
+          installedAt: "2026-08-04T10:00:00.000Z",
+          updatedAt: "2026-08-04T10:00:00.000Z",
+          counts: {
+            relationships: 12,
+            sessions: 72,
+            actions: 72,
+            developmentUpdates: 24,
+            intelligenceItems: 72,
+          },
+          errorSummary:
+            "Sample data was created but Organisation Intelligence could not be generated.",
+          failureCategory: "intelligence_generation",
+          progressPercent: 90,
+          canRetryIntelligence: false,
+        },
+      },
+    });
+
+    const container = await renderView(<SampleOrganisationPage />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toContain("Sample organisation ready");
+    expect(container.textContent).toContain("Organisation Intelligence");
+    expect(container.textContent).toContain("Not yet available");
+    expect(container.textContent).toContain(
+      "Organisation Intelligence will become available when the organisation intelligence module is released."
+    );
+    expect(container.textContent).toContain("Open sample organisation");
+    expect(container.textContent).toContain("Reset sample organisation");
+    expect(container.textContent).toContain("Remove sample organisation");
+    expect(container.textContent).not.toContain("Retry intelligence generation");
+    expect(container.textContent).not.toContain("Organisation Intelligence ready");
+    expect(container.textContent).not.toContain("Executive brief ready");
+    expect(container.textContent).not.toContain("Intelligence generated");
+    expect(container.textContent).not.toContain("View Organisation Intelligence");
   });
 });

@@ -263,15 +263,51 @@ describe("sample organisation privacy regression contracts", () => {
   it("does not bypass Organisation Intelligence privacy threshold", () => {
     const bridge = read("lib/sample-organisations/organisation-intelligence.ts");
     expect(bridge).toContain("generateSampleOrganisationIntelligenceSnapshot");
-    expect(bridge).not.toContain("@/lib/organisation-intelligence");
+    expect(bridge).toContain(
+      "SAMPLE_ORGANISATION_INTELLIGENCE_GENERATION_AVAILABLE = false"
+    );
+    expect(bridge).toContain(
+      "isSampleOrganisationIntelligenceGenerationAvailable"
+    );
+    expect(bridge).not.toMatch(
+      /from ["']@\/lib\/organisation-intelligence/
+    );
 
     const install = read("lib/sample-organisations/install.ts");
     expect(install).toContain("generateSampleOrganisationIntelligenceSnapshot");
     expect(install).toContain("intelligence_pending");
-    expect(install).not.toContain("@/lib/organisation-intelligence");
+    expect(install).not.toMatch(
+      /from ["']@\/lib\/organisation-intelligence/
+    );
 
     const reseed = read("lib/sample-organisations/reseed.ts");
     expect(reseed).toContain("generateSampleOrganisationIntelligenceSnapshot");
-    expect(reseed).not.toContain("@/lib/organisation-intelligence");
+    expect(reseed).not.toMatch(
+      /from ["']@\/lib\/organisation-intelligence/
+    );
+  });
+
+  it("shows pending intelligence as ready without a failing Retry control", () => {
+    const page = read(
+      "components/sample-organisation/sample-organisation-page.tsx"
+    );
+    expect(page).toContain("Sample organisation ready");
+    expect(page).toContain("Not yet available");
+    expect(page).toContain(
+      "Organisation Intelligence will become available when the organisation"
+    );
+    expect(page).toContain("canRetryIntelligence");
+    expect(page).toContain("Open sample organisation");
+    expect(page).toContain("Reset sample organisation");
+    expect(page).toContain("Remove sample organisation");
+    expect(page).not.toContain("Organisation Intelligence ready");
+    expect(page).not.toContain("View Organisation Intelligence");
+    expect(page).not.toContain("Executive brief ready");
+
+    const status = read("lib/sample-organisations/status.ts");
+    expect(status).toContain(
+      "isSampleOrganisationIntelligenceGenerationAvailable"
+    );
+    expect(status).toContain("canRetryIntelligence:");
   });
 });

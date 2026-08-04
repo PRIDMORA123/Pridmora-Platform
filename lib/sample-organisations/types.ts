@@ -284,4 +284,6 @@ export type SamplePackSummary = {
   expectedCounts: SampleExpectedCounts;
   privacyNote: string;
   installation: SampleInstallationView | null;
+  /** True when Retry intelligence generation can succeed. */
+  organisationIntelligenceGenerationAvailable: boolean;
 };
