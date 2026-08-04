@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { generateOrganisationIntelligence } from "@/lib/organisation-intelligence/generate";
 import { writeSampleOrganisationAudit } from "@/lib/sample-organisations/audit";
+import { generateSampleOrganisationIntelligenceSnapshot } from "@/lib/sample-organisations/organisation-intelligence";
 import { buildInstallPlan } from "@/lib/sample-organisations/planner";
 import { requireSamplePack } from "@/lib/sample-organisations/registry";
 import {
@@ -114,12 +114,11 @@ async function generateSampleOrganisationIntelligence(input: {
     status: "installing",
   });
 
-  const result = await generateOrganisationIntelligence({
+  const result = await generateSampleOrganisationIntelligenceSnapshot({
     supabase: input.supabase,
+    userId: input.userId,
     organisationId: input.organisationId,
     organisationName: input.organisationName,
-    userId: input.userId,
-    preset: "last_90_days",
   });
 
   if (!result.ok) {
@@ -130,10 +129,35 @@ async function generateSampleOrganisationIntelligence(input: {
     supabase: input.supabase,
     installationId: input.installationId,
     recordType: "intelligence_snapshot",
-    recordId: result.view.id,
+    recordId: result.snapshotId,
   });
 
-  return { ok: true, snapshotId: result.view.id };
+  return { ok: true, snapshotId: result.snapshotId };
+}
+
+async function markIntelligencePending(input: {
+  supabase: SupabaseClient;
+  installationId: string;
+  counts: {
+    relationships: number;
+    sessions: number;
+    actions: number;
+    developmentUpdates: number;
+    intelligenceItems: number;
+  };
+  summary: string;
+}): Promise<SampleInstallationView | null> {
+  await updateInstallationStage({
+    supabase: input.supabase,
+    installationId: input.installationId,
+    stage: "generating_organisation_intelligence",
+    status: "intelligence_pending",
+    counts: input.counts,
+    errorSummary: input.summary,
+    failureCategory: "intelligence_generation",
+    markInstalled: true,
+  });
+  return getInstallationById(input.supabase, input.installationId);
 }
 
 /**
@@ -261,26 +285,76 @@ export async function installSampleOrganisation(input: {
         installationId,
       });
 
+      const expectedCounts = {
+        relationships: pack.manifest.expectedCounts.relationships,
+        confidentialRelationships:
+          pack.manifest.expectedCounts.confidentialRelationships,
+        sessions: pack.manifest.expectedCounts.sessions,
+        actions: pack.manifest.expectedCounts.actions,
+        developmentUpdates: pack.manifest.expectedCounts.developmentUpdates,
+        intelligenceItems: pack.manifest.expectedCounts.intelligenceItems,
+      };
+
       if (!intelligence.ok) {
-        await updateInstallationStage({
+        const pendingVerification = await verifyInstalledDataset({
+          supabase: input.supabase,
+          organisationId,
+          installationId,
+          expected: expectedCounts,
+          requireIntelligenceSnapshot: false,
+        });
+
+        if (!pendingVerification.ok) {
+          await failInstallation({
+            supabase: input.supabase,
+            installationId,
+            organisationId: input.sourceOrganisationId,
+            actorUserId: input.userId,
+            packKey: pack.manifest.packKey,
+            packVersion: pack.manifest.packVersion,
+            category: "verification_failed",
+            summary:
+              "Installation checks did not pass. Sample records were removed.",
+            deleteOrganisation: true,
+          });
+          return {
+            ok: false,
+            error:
+              "Installation checks did not pass. Sample records were removed.",
+            code: "VERIFICATION_FAILED",
+          };
+        }
+
+        const pending = await markIntelligencePending({
           supabase: input.supabase,
           installationId,
-          stage: "generating_organisation_intelligence",
-          status: "intelligence_pending",
           counts: seeded.counts,
-          errorSummary:
+          summary:
             "Sample data was created but Organisation Intelligence could not be generated.",
+        });
+
+        await writeSampleOrganisationAudit({
+          supabase: input.supabase,
+          organisationId,
+          actorUserId: input.userId,
+          action: "sample_organisation_installed",
+          installationId,
+          packKey: pack.manifest.packKey,
+          packVersion: pack.manifest.packVersion,
+          counts: seeded.counts,
           failureCategory: "intelligence_generation",
         });
 
-        const pending = await getInstallationById(input.supabase, installationId);
-        return {
-          ok: false,
-          error:
-            "Sample data was created but Organisation Intelligence could not be generated.",
-          code: "INTELLIGENCE_PENDING",
-          installation: pending,
-        };
+        if (!pending) {
+          return {
+            ok: false,
+            error: "Installation completed but status could not be loaded.",
+            code: "STATUS_MISSING",
+          };
+        }
+
+        // Dataset is installed; intelligence remains retryable.
+        return { ok: true, installation: pending, resumed: false };
       }
 
       await updateInstallationStage({
@@ -295,15 +369,8 @@ export async function installSampleOrganisation(input: {
         supabase: input.supabase,
         organisationId,
         installationId,
-        expected: {
-          relationships: pack.manifest.expectedCounts.relationships,
-          confidentialRelationships:
-            pack.manifest.expectedCounts.confidentialRelationships,
-          sessions: pack.manifest.expectedCounts.sessions,
-          actions: pack.manifest.expectedCounts.actions,
-          developmentUpdates: pack.manifest.expectedCounts.developmentUpdates,
-          intelligenceItems: pack.manifest.expectedCounts.intelligenceItems,
-        },
+        expected: expectedCounts,
+        requireIntelligenceSnapshot: true,
       });
 
       if (!verification.ok) {
@@ -440,6 +507,7 @@ export async function retrySampleOrganisationIntelligence(input: {
       developmentUpdates: pack.manifest.expectedCounts.developmentUpdates,
       intelligenceItems: pack.manifest.expectedCounts.intelligenceItems,
     },
+    requireIntelligenceSnapshot: true,
   });
 
   if (!verification.ok) {

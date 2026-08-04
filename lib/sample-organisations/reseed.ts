@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { generateSampleOrganisationIntelligenceSnapshot } from "@/lib/sample-organisations/organisation-intelligence";
 import { requireSamplePack } from "@/lib/sample-organisations/registry";
 import {
   getInstallationById,
@@ -19,12 +20,10 @@ export async function reseedSampleOrganisation(input: {
   packKey: string;
 }): Promise<
   | { ok: true; installation: SampleInstallationView }
-  | { ok: false; error: string; code?: string }
+  | { ok: false; error: string; code?: string; installation?: SampleInstallationView }
 > {
   const pack = requireSamplePack(input.packKey);
 
-  // Import seed helper from install module internals via dynamic path.
-  // Re-implement seeding by calling the shared seed function.
   const { seedExistingSampleOrganisation } = await import(
     "@/lib/sample-organisations/seed-content"
   );
@@ -38,10 +37,6 @@ export async function reseedSampleOrganisation(input: {
       pack,
     });
 
-    const { generateOrganisationIntelligence } = await import(
-      "@/lib/organisation-intelligence/generate"
-    );
-
     await updateInstallationStage({
       supabase: input.supabase,
       installationId: input.installationId,
@@ -50,15 +45,39 @@ export async function reseedSampleOrganisation(input: {
       counts: seeded.counts,
     });
 
-    const intelligence = await generateOrganisationIntelligence({
+    const intelligence = await generateSampleOrganisationIntelligenceSnapshot({
       supabase: input.supabase,
       organisationId: input.organisationId,
       organisationName: pack.organisation.name,
       userId: input.userId,
-      preset: "last_90_days",
     });
 
+    const expectedCounts = {
+      relationships: pack.manifest.expectedCounts.relationships,
+      confidentialRelationships:
+        pack.manifest.expectedCounts.confidentialRelationships,
+      sessions: pack.manifest.expectedCounts.sessions,
+      actions: pack.manifest.expectedCounts.actions,
+      developmentUpdates: pack.manifest.expectedCounts.developmentUpdates,
+      intelligenceItems: pack.manifest.expectedCounts.intelligenceItems,
+    };
+
     if (!intelligence.ok) {
+      const pendingVerification = await verifyInstalledDataset({
+        supabase: input.supabase,
+        organisationId: input.organisationId,
+        installationId: input.installationId,
+        expected: expectedCounts,
+        requireIntelligenceSnapshot: false,
+      });
+      if (!pendingVerification.ok) {
+        return {
+          ok: false,
+          error: "Reset checks did not pass.",
+          code: "VERIFICATION_FAILED",
+        };
+      }
+
       await updateInstallationStage({
         supabase: input.supabase,
         installationId: input.installationId,
@@ -68,24 +87,26 @@ export async function reseedSampleOrganisation(input: {
         errorSummary:
           "Sample data was restored but Organisation Intelligence could not be generated.",
         failureCategory: "intelligence_generation",
+        markInstalled: true,
       });
       const pending = await getInstallationById(
         input.supabase,
         input.installationId
       );
-      return {
-        ok: false,
-        error:
-          "Sample data was restored but Organisation Intelligence could not be generated.",
-        code: "INTELLIGENCE_PENDING",
-        ...(pending ? {} : {}),
-      };
+      if (!pending) {
+        return {
+          ok: false,
+          error: "Reset completed but status could not be loaded.",
+          code: "STATUS_MISSING",
+        };
+      }
+      return { ok: true, installation: pending };
     }
 
     await input.supabase.rpc("map_sample_organisation_record", {
       p_installation_id: input.installationId,
       p_record_type: "intelligence_snapshot",
-      p_record_id: intelligence.view.id,
+      p_record_id: intelligence.snapshotId,
       p_pack_entity_key: null,
     });
 
@@ -93,15 +114,8 @@ export async function reseedSampleOrganisation(input: {
       supabase: input.supabase,
       organisationId: input.organisationId,
       installationId: input.installationId,
-      expected: {
-        relationships: pack.manifest.expectedCounts.relationships,
-        confidentialRelationships:
-          pack.manifest.expectedCounts.confidentialRelationships,
-        sessions: pack.manifest.expectedCounts.sessions,
-        actions: pack.manifest.expectedCounts.actions,
-        developmentUpdates: pack.manifest.expectedCounts.developmentUpdates,
-        intelligenceItems: pack.manifest.expectedCounts.intelligenceItems,
-      },
+      expected: expectedCounts,
+      requireIntelligenceSnapshot: true,
     });
 
     if (!verification.ok) {

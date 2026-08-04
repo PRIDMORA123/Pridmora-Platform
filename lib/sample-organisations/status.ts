@@ -203,8 +203,10 @@ export async function verifyInstalledDataset(input: {
     developmentUpdates: number;
     intelligenceItems: number;
   };
+  requireIntelligenceSnapshot?: boolean;
 }): Promise<InstalledDatasetVerification> {
   const issues: string[] = [];
+  const requireSnapshot = input.requireIntelligenceSnapshot !== false;
 
   const { data: mappedRelationships } = await input.supabase
     .from("sample_organisation_records")
@@ -268,17 +270,29 @@ export async function verifyInstalledDataset(input: {
     .eq("status", "approved")
     .in("client_id", relationshipIds.length ? relationshipIds : ["00000000-0000-0000-0000-000000000000"]);
 
-  const { count: snapshotCount } = await input.supabase
+  let snapshots = 0;
+  const snapshotQuery = await input.supabase
     .from("organisation_intelligence_snapshots")
     .select("id", { count: "exact", head: true })
     .eq("organisation_id", input.organisationId)
     .eq("status", "ready");
 
+  if (snapshotQuery.error) {
+    // Table may be absent until Organisation Intelligence is released.
+    if (requireSnapshot) {
+      issues.push("Organisation Intelligence snapshot missing.");
+    }
+  } else {
+    snapshots = snapshotQuery.count ?? 0;
+    if (requireSnapshot && snapshots < 1) {
+      issues.push("Organisation Intelligence snapshot missing.");
+    }
+  }
+
   const sessions = sessionCount ?? 0;
   const actions = actionCount ?? 0;
   const updates = updateCount ?? 0;
   const intelligence = intelligenceCount ?? 0;
-  const snapshots = snapshotCount ?? 0;
 
   if (sessions !== input.expected.sessions) {
     issues.push(`Expected ${input.expected.sessions} sessions, found ${sessions}`);
@@ -295,9 +309,6 @@ export async function verifyInstalledDataset(input: {
     issues.push(
       `Expected ${input.expected.intelligenceItems} intelligence items, found ${intelligence}`
     );
-  }
-  if (snapshots < 1) {
-    issues.push("Organisation Intelligence snapshot missing.");
   }
 
   // Every relationship should have an active primary assignment.

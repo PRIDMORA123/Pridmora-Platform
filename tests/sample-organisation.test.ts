@@ -158,6 +158,14 @@ describe("sample organisation migration", () => {
     expect(sql).not.toMatch(/\bdrop table\b/i);
     expect(sql).not.toMatch(/truncate\b/i);
     expect(sql).not.toContain("service_role_key");
+
+    const cleanupSoftening = read(
+      "supabase/migrations/20260804190000_sample_organisation_cleanup_optional_intelligence.sql"
+    );
+    expect(cleanupSoftening).toContain("cleanup_sample_organisation_installation");
+    expect(cleanupSoftening).toContain("to_regclass");
+    expect(cleanupSoftening).toContain("organisation_intelligence_snapshots");
+    expect(cleanupSoftening).not.toMatch(/\bdrop table\b/i);
   });
 
   it("extends permission helper without weakening coaching content rules", () => {
@@ -253,8 +261,17 @@ describe("sample organisation privacy regression contracts", () => {
   });
 
   it("does not bypass Organisation Intelligence privacy threshold", () => {
+    const bridge = read("lib/sample-organisations/organisation-intelligence.ts");
+    expect(bridge).toContain("generateSampleOrganisationIntelligenceSnapshot");
+    expect(bridge).not.toContain("@/lib/organisation-intelligence");
+
     const install = read("lib/sample-organisations/install.ts");
-    expect(install).toContain("generateOrganisationIntelligence");
-    expect(install).toContain("last_90_days");
+    expect(install).toContain("generateSampleOrganisationIntelligenceSnapshot");
+    expect(install).toContain("intelligence_pending");
+    expect(install).not.toContain("@/lib/organisation-intelligence");
+
+    const reseed = read("lib/sample-organisations/reseed.ts");
+    expect(reseed).toContain("generateSampleOrganisationIntelligenceSnapshot");
+    expect(reseed).not.toContain("@/lib/organisation-intelligence");
   });
 });
