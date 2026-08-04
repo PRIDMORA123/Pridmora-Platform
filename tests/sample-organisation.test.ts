@@ -303,11 +303,24 @@ describe("sample organisation privacy regression contracts", () => {
     expect(page).not.toContain("Organisation Intelligence ready");
     expect(page).not.toContain("View Organisation Intelligence");
     expect(page).not.toContain("Executive brief ready");
+    // intelligence_pending must not be treated as a failed/not-ready banner.
+    expect(page).toContain('installation?.status === "failed"');
+    expect(page).toContain("statusError");
+    expect(page).toContain("displayError");
 
     const status = read("lib/sample-organisations/status.ts");
     expect(status).toContain(
       "isSampleOrganisationIntelligenceGenerationAvailable"
     );
     expect(status).toContain("canRetryIntelligence:");
+  });
+
+  it("allows opening sample organisations that are ready or intelligence_pending", () => {
+    const open = read("lib/sample-organisations/reset-remove.ts");
+    expect(open).toContain("openSampleOrganisation");
+    expect(open).toContain('installation.status !== "ready"');
+    expect(open).toContain('installation.status !== "intelligence_pending"');
+    expect(open).toContain("Sample organisation is not ready.");
+    expect(open).toContain("NOT_READY");
   });
 });

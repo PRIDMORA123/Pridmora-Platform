@@ -232,7 +232,17 @@ export function SampleOrganisationPage() {
     installation?.status === "installing" ||
     installation?.status === "resetting";
   const intelligencePending = installation?.status === "intelligence_pending";
-  const showAvailable = !installation || installation.status === "removed" || installation.status === "failed";
+  const failed = installation?.status === "failed";
+  const showAvailable =
+    !installation || installation.status === "removed" || failed;
+  // intelligence_pending may store an intelligence-generation note in
+  // errorSummary — that is not a failure and must not render as an error banner.
+  const statusError =
+    failed
+      ? installation?.errorSummary?.trim() ||
+        "Sample organisation installation failed."
+      : "";
+  const displayError = error || statusError;
 
   return (
     <OrganisationShell
@@ -242,9 +252,9 @@ export function SampleOrganisationPage() {
       compactHeader
     >
       <div className="sample-organisation">
-        {error ? (
+        {displayError ? (
           <p className="organisation-error" role="alert">
-            {error}
+            {displayError}
           </p>
         ) : null}
 

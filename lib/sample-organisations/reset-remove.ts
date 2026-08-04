@@ -231,7 +231,13 @@ export async function openSampleOrganisation(input: {
     input.supabase,
     input.installationId
   );
-  if (!installation || installation.status !== "ready") {
+  // Dataset is usable once installed. Organisation Intelligence may still be
+  // pending; that must not block opening the sample organisation.
+  if (
+    !installation ||
+    (installation.status !== "ready" &&
+      installation.status !== "intelligence_pending")
+  ) {
     return {
       ok: false,
       error: "Sample organisation is not ready.",
