@@ -81,10 +81,31 @@ describe("sample organisation pack", () => {
       expect(count).toBeGreaterThanOrEqual(manifest.privacy.minimumThemeRelationships);
     }
 
+    for (const update of developmentUpdates) {
+      expect(update.status).toBe("applied");
+      const changes = update.proposedChanges as {
+        emergingThemes?: { add?: unknown[] };
+        growthAreas?: { add?: unknown[] };
+        strengths?: { add?: unknown[] };
+        currentFocus?: { value?: string };
+      };
+      expect(changes.emergingThemes?.add?.length).toBeGreaterThan(0);
+      expect(changes.growthAreas?.add?.length).toBeGreaterThan(0);
+      expect(changes.strengths?.add?.length).toBeGreaterThan(0);
+      expect(changes.currentFocus?.value).toBeTruthy();
+    }
+
     const plan = buildInstallPlan(result.pack);
     expect(plan.steps.some(step => step.type === "organisation_intelligence")).toBe(
       true
     );
+  });
+
+  it("applies development updates into profiles during seed", () => {
+    const seed = read("lib/sample-organisations/seed-content.ts");
+    expect(seed).toContain('apply_development_update');
+    expect(seed).toContain('shouldApply ? "ready_for_review"');
+    expect(seed).toContain("Unable to apply sample development update.");
   });
 
   it("rejects packs with private email on confidential relationships", () => {

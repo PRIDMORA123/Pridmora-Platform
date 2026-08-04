@@ -250,26 +250,60 @@ export async function seedExistingSampleOrganisation(input: {
     }
 
     const updateId = crypto.randomUUID();
+    // Pack marks historical updates as "applied", but inserting them already
+    // applied skips apply_development_update (alreadyApplied no-op). Seed as
+    // ready_for_review, then apply so development_profiles JSON is populated.
+    const shouldApply = update.status === "applied";
     const { error } = await input.supabase.from("development_updates").insert({
       id: updateId,
       client_id: clientId,
       session_id: sessionId,
       coach_id: input.userId,
       organisation_id: input.organisationId,
-      status: update.status,
+      status: shouldApply ? "ready_for_review" : update.status,
       conversation_summary: update.conversationSummary,
       proposed_changes: update.proposedChanges,
       edited_changes: null,
-      applied_changes: update.proposedChanges,
+      applied_changes: null,
       evidence_summary: update.evidenceSummary,
       has_meaningful_changes: update.hasMeaningfulChanges,
       coach_note: update.coachNote ?? null,
       generated_at: update.generatedAt ?? new Date().toISOString(),
-      reviewed_at: update.reviewedAt ?? null,
-      applied_at: update.appliedAt ?? null,
+      reviewed_at: shouldApply ? null : update.reviewedAt ?? null,
+      applied_at: null,
       updated_at: new Date().toISOString(),
     });
     if (error) throw new Error("Unable to create development update.");
+
+    if (shouldApply) {
+      const { data: applyResult, error: applyError } = await input.supabase.rpc(
+        "apply_development_update",
+        { p_update_id: updateId }
+      );
+      if (
+        applyError ||
+        !applyResult ||
+        typeof applyResult !== "object" ||
+        !(applyResult as { ok?: boolean }).ok
+      ) {
+        throw new Error("Unable to apply sample development update.");
+      }
+
+      // Preserve pack timeline after the apply RPC stamps applied_at = now().
+      if (update.appliedAt || update.reviewedAt) {
+        const { error: stampError } = await input.supabase
+          .from("development_updates")
+          .update({
+            reviewed_at: update.reviewedAt ?? update.appliedAt ?? null,
+            applied_at: update.appliedAt ?? null,
+            updated_at: update.appliedAt ?? new Date().toISOString(),
+          })
+          .eq("id", updateId);
+        if (stampError) {
+          throw new Error("Unable to finalise sample development update.");
+        }
+      }
+    }
 
     updateCount += 1;
     await mapRecord({

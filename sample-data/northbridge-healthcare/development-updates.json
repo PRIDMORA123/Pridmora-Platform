@@ -27,12 +27,40 @@
             }
           ]
         },
+        "strengths": {
+          "add": [
+            {
+              "value": "Quiet preparation",
+              "status": "supported",
+              "reason": "Observed across reviewed conversations"
+            },
+            {
+              "value": "Thoughtful listening",
+              "status": "supported",
+              "reason": "Observed across reviewed conversations"
+            }
+          ]
+        },
         "growthAreas": {
           "add": [
             {
               "value": "Letting go of work that belongs elsewhere",
               "status": "emerging",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Reclaiming delegated work",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Detail-first messaging",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -42,6 +70,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Reviewed a handoff that slipped. The brief was incomplete rather than the capability of the colleague. Clearer this month, though old habits returned in one mee",
           "sourceExcerpt": "Setting clearer ownership"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Reviewed a handoff that slipped. The brief was incomplete rather than the capability of the colleague. Clearer this month, though old habits returned in one mee",
+          "sourceExcerpt": "Quiet preparation"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -66,13 +99,27 @@
           "add": [
             {
               "value": "confidence",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
             },
             {
               "value": "delegation",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "Quiet preparation",
+              "status": "well_established",
+              "reason": "Observed across reviewed conversations"
+            },
+            {
+              "value": "Thoughtful listening",
+              "status": "well_established",
+              "reason": "Observed across reviewed conversations"
             }
           ]
         },
@@ -80,8 +127,22 @@
           "add": [
             {
               "value": "Letting go of work that belongs elsewhere",
-              "status": "emerging",
+              "status": "supported",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Reclaiming delegated work",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Detail-first messaging",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -91,6 +152,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Reviewed a handoff that slipped. The brief was incomplete rather than the capability of the colleague. Confidence rising in familiar settings; still uneven else",
           "sourceExcerpt": "Setting clearer ownership"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Reviewed a handoff that slipped. The brief was incomplete rather than the capability of the colleague. Confidence rising in familiar settings; still uneven else",
+          "sourceExcerpt": "Quiet preparation"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -125,12 +191,40 @@
             }
           ]
         },
+        "strengths": {
+          "add": [
+            {
+              "value": "Quiet preparation",
+              "status": "supported",
+              "reason": "Observed across reviewed conversations"
+            },
+            {
+              "value": "Thoughtful listening",
+              "status": "supported",
+              "reason": "Observed across reviewed conversations"
+            }
+          ]
+        },
         "growthAreas": {
           "add": [
             {
               "value": "Naming the issue earlier",
               "status": "emerging",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Avoidance before candour",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Detail-first messaging",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -140,6 +234,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Clearer this month, though old habits returned in one meeting.",
           "sourceExcerpt": "Staying present when challenged"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Clearer this month, though old habits returned in one meeting.",
+          "sourceExcerpt": "Quiet preparation"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -164,13 +263,27 @@
           "add": [
             {
               "value": "confidence",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
             },
             {
               "value": "difficult conversations",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "Quiet preparation",
+              "status": "well_established",
+              "reason": "Observed across reviewed conversations"
+            },
+            {
+              "value": "Thoughtful listening",
+              "status": "well_established",
+              "reason": "Observed across reviewed conversations"
             }
           ]
         },
@@ -178,8 +291,22 @@
           "add": [
             {
               "value": "Naming the issue earlier",
-              "status": "emerging",
+              "status": "supported",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Avoidance before candour",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Detail-first messaging",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -189,6 +316,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Confidence rising in familiar settings; still uneven elsewhere.",
           "sourceExcerpt": "Staying present when challenged"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Confidence rising in familiar settings; still uneven elsewhere.",
+          "sourceExcerpt": "Quiet preparation"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -223,12 +355,35 @@
             }
           ]
         },
+        "strengths": {
+          "add": [
+            {
+              "value": "Relationship awareness",
+              "status": "supported",
+              "reason": "Observed across reviewed conversations"
+            }
+          ]
+        },
         "growthAreas": {
           "add": [
             {
               "value": "Shifting from operational detail to direction",
               "status": "emerging",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Reclaiming delegated work",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Detail as safety",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -238,6 +393,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Practised framing a recommendation with options and a preferred path. Clearer this month, though old habits returned in one meeting.",
           "sourceExcerpt": "Influencing without the formal mandate"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Practised framing a recommendation with options and a preferred path. Clearer this month, though old habits returned in one meeting.",
+          "sourceExcerpt": "Relationship awareness"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -262,13 +422,22 @@
           "add": [
             {
               "value": "delegation",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
             },
             {
               "value": "strategic leadership",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "Relationship awareness",
+              "status": "well_established",
+              "reason": "Observed across reviewed conversations"
             }
           ]
         },
@@ -276,8 +445,22 @@
           "add": [
             {
               "value": "Shifting from operational detail to direction",
-              "status": "emerging",
+              "status": "supported",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Reclaiming delegated work",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Detail as safety",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -287,6 +470,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Practised framing a recommendation with options and a preferred path. Confidence rising in familiar settings; still uneven elsewhere.",
           "sourceExcerpt": "Influencing without the formal mandate"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Practised framing a recommendation with options and a preferred path. Confidence rising in familiar settings; still uneven elsewhere.",
+          "sourceExcerpt": "Relationship awareness"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -321,12 +509,40 @@
             }
           ]
         },
+        "strengths": {
+          "add": [
+            {
+              "value": "Thoughtful listening",
+              "status": "supported",
+              "reason": "Observed across reviewed conversations"
+            },
+            {
+              "value": "Quiet preparation",
+              "status": "supported",
+              "reason": "Observed across reviewed conversations"
+            }
+          ]
+        },
         "growthAreas": {
           "add": [
             {
               "value": "Clearer messages under time pressure",
               "status": "emerging",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Avoidance before candour",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Detail-first messaging",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -336,6 +552,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Clearer this month, though old habits returned in one meeting.",
           "sourceExcerpt": "Listening before advising"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Clearer this month, though old habits returned in one meeting.",
+          "sourceExcerpt": "Thoughtful listening"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -360,13 +581,27 @@
           "add": [
             {
               "value": "difficult conversations",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
             },
             {
               "value": "communication",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "Thoughtful listening",
+              "status": "well_established",
+              "reason": "Observed across reviewed conversations"
+            },
+            {
+              "value": "Quiet preparation",
+              "status": "well_established",
+              "reason": "Observed across reviewed conversations"
             }
           ]
         },
@@ -374,8 +609,22 @@
           "add": [
             {
               "value": "Clearer messages under time pressure",
-              "status": "emerging",
+              "status": "supported",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Avoidance before candour",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Detail-first messaging",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -385,6 +634,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Confidence rising in familiar settings; still uneven elsewhere.",
           "sourceExcerpt": "Listening before advising"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Confidence rising in familiar settings; still uneven elsewhere.",
+          "sourceExcerpt": "Thoughtful listening"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -419,12 +673,40 @@
             }
           ]
         },
+        "strengths": {
+          "add": [
+            {
+              "value": "Relationship awareness",
+              "status": "supported",
+              "reason": "Observed across reviewed conversations"
+            },
+            {
+              "value": "Thoughtful listening",
+              "status": "supported",
+              "reason": "Observed across reviewed conversations"
+            }
+          ]
+        },
         "growthAreas": {
           "add": [
             {
               "value": "Shifting from operational detail to direction",
               "status": "emerging",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Detail as safety",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Detail-first messaging",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -434,6 +716,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Practised framing a recommendation with options and a preferred path. Clearer this month, though old habits returned in one meeting.",
           "sourceExcerpt": "Influencing without the formal mandate"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Practised framing a recommendation with options and a preferred path. Clearer this month, though old habits returned in one meeting.",
+          "sourceExcerpt": "Relationship awareness"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -458,13 +745,27 @@
           "add": [
             {
               "value": "stakeholder influence",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
             },
             {
               "value": "strategic leadership",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "Relationship awareness",
+              "status": "well_established",
+              "reason": "Observed across reviewed conversations"
+            },
+            {
+              "value": "Thoughtful listening",
+              "status": "well_established",
+              "reason": "Observed across reviewed conversations"
             }
           ]
         },
@@ -472,8 +773,22 @@
           "add": [
             {
               "value": "Shifting from operational detail to direction",
-              "status": "emerging",
+              "status": "supported",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Detail as safety",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Detail-first messaging",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -483,6 +798,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Practised framing a recommendation with options and a preferred path. Confidence rising in familiar settings; still uneven elsewhere.",
           "sourceExcerpt": "Influencing without the formal mandate"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Practised framing a recommendation with options and a preferred path. Confidence rising in familiar settings; still uneven elsewhere.",
+          "sourceExcerpt": "Relationship awareness"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -517,12 +837,35 @@
             }
           ]
         },
+        "strengths": {
+          "add": [
+            {
+              "value": "Quiet preparation",
+              "status": "supported",
+              "reason": "Observed across reviewed conversations"
+            }
+          ]
+        },
         "growthAreas": {
           "add": [
             {
               "value": "Building steadiness under pressure",
               "status": "emerging",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Reclaiming delegated work",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Avoidance before candour",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -532,6 +875,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Clearer this month, though old habits retu",
           "sourceExcerpt": "Speaking with clearer authority"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Clearer this month, though old habits retu",
+          "sourceExcerpt": "Quiet preparation"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -556,13 +904,22 @@
           "add": [
             {
               "value": "delegation",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
             },
             {
               "value": "confidence",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "Quiet preparation",
+              "status": "well_established",
+              "reason": "Observed across reviewed conversations"
             }
           ]
         },
@@ -570,8 +927,22 @@
           "add": [
             {
               "value": "Building steadiness under pressure",
-              "status": "emerging",
+              "status": "supported",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Reclaiming delegated work",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Avoidance before candour",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -581,6 +952,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Confidence rising in familiar settings; st",
           "sourceExcerpt": "Speaking with clearer authority"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Confidence rising in familiar settings; st",
+          "sourceExcerpt": "Quiet preparation"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -615,12 +991,40 @@
             }
           ]
         },
+        "strengths": {
+          "add": [
+            {
+              "value": "Relationship awareness",
+              "status": "supported",
+              "reason": "Observed across reviewed conversations"
+            },
+            {
+              "value": "Thoughtful listening",
+              "status": "supported",
+              "reason": "Observed across reviewed conversations"
+            }
+          ]
+        },
         "growthAreas": {
           "add": [
             {
               "value": "Mapping who shapes decisions",
               "status": "emerging",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Detail as safety",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Detail-first messaging",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -630,6 +1034,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Clearer this month, though old habits returned in one meeting.",
           "sourceExcerpt": "Building alliances earlier"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Clearer this month, though old habits returned in one meeting.",
+          "sourceExcerpt": "Relationship awareness"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -654,13 +1063,27 @@
           "add": [
             {
               "value": "strategic leadership",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
             },
             {
               "value": "stakeholder influence",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "Relationship awareness",
+              "status": "well_established",
+              "reason": "Observed across reviewed conversations"
+            },
+            {
+              "value": "Thoughtful listening",
+              "status": "well_established",
+              "reason": "Observed across reviewed conversations"
             }
           ]
         },
@@ -668,8 +1091,22 @@
           "add": [
             {
               "value": "Mapping who shapes decisions",
-              "status": "emerging",
+              "status": "supported",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Detail as safety",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Detail-first messaging",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -679,6 +1116,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Confidence rising in familiar settings; still uneven elsewhere.",
           "sourceExcerpt": "Building alliances earlier"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Confidence rising in familiar settings; still uneven elsewhere.",
+          "sourceExcerpt": "Relationship awareness"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -713,12 +1155,40 @@
             }
           ]
         },
+        "strengths": {
+          "add": [
+            {
+              "value": "Quiet preparation",
+              "status": "supported",
+              "reason": "Observed across reviewed conversations"
+            },
+            {
+              "value": "Thoughtful listening",
+              "status": "supported",
+              "reason": "Observed across reviewed conversations"
+            }
+          ]
+        },
         "growthAreas": {
           "add": [
             {
               "value": "Clearer messages under time pressure",
               "status": "emerging",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Detail-first messaging",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Avoidance before candour",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -728,6 +1198,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Clearer this month, though old habits returned in one meeting.",
           "sourceExcerpt": "Listening before advising"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Clearer this month, though old habits returned in one meeting.",
+          "sourceExcerpt": "Quiet preparation"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -752,13 +1227,27 @@
           "add": [
             {
               "value": "confidence",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
             },
             {
               "value": "communication",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "Quiet preparation",
+              "status": "well_established",
+              "reason": "Observed across reviewed conversations"
+            },
+            {
+              "value": "Thoughtful listening",
+              "status": "well_established",
+              "reason": "Observed across reviewed conversations"
             }
           ]
         },
@@ -766,8 +1255,22 @@
           "add": [
             {
               "value": "Clearer messages under time pressure",
-              "status": "emerging",
+              "status": "supported",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Detail-first messaging",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Avoidance before candour",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -777,6 +1280,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Confidence rising in familiar settings; still uneven elsewhere.",
           "sourceExcerpt": "Listening before advising"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Confidence rising in familiar settings; still uneven elsewhere.",
+          "sourceExcerpt": "Quiet preparation"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -811,12 +1319,40 @@
             }
           ]
         },
+        "strengths": {
+          "add": [
+            {
+              "value": "Thoughtful listening",
+              "status": "supported",
+              "reason": "Observed across reviewed conversations"
+            },
+            {
+              "value": "Relationship awareness",
+              "status": "supported",
+              "reason": "Observed across reviewed conversations"
+            }
+          ]
+        },
         "growthAreas": {
           "add": [
             {
               "value": "Clearer messages under time pressure",
               "status": "emerging",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Reclaiming delegated work",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Detail-first messaging",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -826,6 +1362,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Clearer this month, though old habits returned in one meeting.",
           "sourceExcerpt": "Listening before advising"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Clearer this month, though old habits returned in one meeting.",
+          "sourceExcerpt": "Thoughtful listening"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -850,13 +1391,27 @@
           "add": [
             {
               "value": "delegation",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
             },
             {
               "value": "communication",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "Thoughtful listening",
+              "status": "well_established",
+              "reason": "Observed across reviewed conversations"
+            },
+            {
+              "value": "Relationship awareness",
+              "status": "well_established",
+              "reason": "Observed across reviewed conversations"
             }
           ]
         },
@@ -864,8 +1419,22 @@
           "add": [
             {
               "value": "Clearer messages under time pressure",
-              "status": "emerging",
+              "status": "supported",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Reclaiming delegated work",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Detail-first messaging",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -875,6 +1444,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Confidence rising in familiar settings; still uneven elsewhere.",
           "sourceExcerpt": "Listening before advising"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Confidence rising in familiar settings; still uneven elsewhere.",
+          "sourceExcerpt": "Thoughtful listening"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -909,12 +1483,40 @@
             }
           ]
         },
+        "strengths": {
+          "add": [
+            {
+              "value": "Thoughtful listening",
+              "status": "supported",
+              "reason": "Observed across reviewed conversations"
+            },
+            {
+              "value": "Relationship awareness",
+              "status": "supported",
+              "reason": "Observed across reviewed conversations"
+            }
+          ]
+        },
         "growthAreas": {
           "add": [
             {
               "value": "Mapping who shapes decisions",
               "status": "emerging",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Detail-first messaging",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Avoidance before candour",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -924,6 +1526,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Clearer this month, though old habits returned in one meeting.",
           "sourceExcerpt": "Building alliances earlier"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Clearer this month, though old habits returned in one meeting.",
+          "sourceExcerpt": "Thoughtful listening"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -948,13 +1555,27 @@
           "add": [
             {
               "value": "communication",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
             },
             {
               "value": "stakeholder influence",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "Thoughtful listening",
+              "status": "well_established",
+              "reason": "Observed across reviewed conversations"
+            },
+            {
+              "value": "Relationship awareness",
+              "status": "well_established",
+              "reason": "Observed across reviewed conversations"
             }
           ]
         },
@@ -962,8 +1583,22 @@
           "add": [
             {
               "value": "Mapping who shapes decisions",
-              "status": "emerging",
+              "status": "supported",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Detail-first messaging",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Avoidance before candour",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -973,6 +1608,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Confidence rising in familiar settings; still uneven elsewhere.",
           "sourceExcerpt": "Building alliances earlier"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Confidence rising in familiar settings; still uneven elsewhere.",
+          "sourceExcerpt": "Thoughtful listening"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -1007,12 +1647,35 @@
             }
           ]
         },
+        "strengths": {
+          "add": [
+            {
+              "value": "Practical reflection",
+              "status": "supported",
+              "reason": "Observed across reviewed conversations"
+            }
+          ]
+        },
         "growthAreas": {
           "add": [
             {
               "value": "Naming the issue earlier",
               "status": "emerging",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Detail as safety",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Avoidance before candour",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -1022,6 +1685,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Clearer this month, though old habits returned in one meeting.",
           "sourceExcerpt": "Staying present when challenged"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Clearer this month, though old habits returned in one meeting.",
+          "sourceExcerpt": "Practical reflection"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -1046,13 +1714,22 @@
           "add": [
             {
               "value": "strategic leadership",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
             },
             {
               "value": "difficult conversations",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "Practical reflection",
+              "status": "well_established",
+              "reason": "Observed across reviewed conversations"
             }
           ]
         },
@@ -1060,8 +1737,22 @@
           "add": [
             {
               "value": "Naming the issue earlier",
-              "status": "emerging",
+              "status": "supported",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Detail as safety",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
+            },
+            {
+              "value": "Avoidance before candour",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -1071,6 +1762,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Confidence rising in familiar settings; still uneven elsewhere.",
           "sourceExcerpt": "Staying present when challenged"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Confidence rising in familiar settings; still uneven elsewhere.",
+          "sourceExcerpt": "Practical reflection"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -1105,12 +1801,35 @@
             }
           ]
         },
+        "strengths": {
+          "add": [
+            {
+              "value": "Quiet preparation",
+              "status": "supported",
+              "reason": "Observed across reviewed conversations"
+            },
+            {
+              "value": "Relationship awareness",
+              "status": "supported",
+              "reason": "Observed across reviewed conversations"
+            }
+          ]
+        },
         "growthAreas": {
           "add": [
             {
               "value": "Building steadiness under pressure",
               "status": "emerging",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Detail as safety",
+              "status": "supported",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -1120,6 +1839,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Clearer this month, though old habits retu",
           "sourceExcerpt": "Speaking with clearer authority"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Clearer this month, though old habits retu",
+          "sourceExcerpt": "Quiet preparation"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",
@@ -1144,13 +1868,27 @@
           "add": [
             {
               "value": "strategic leadership",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
             },
             {
               "value": "confidence",
-              "status": "supported",
+              "status": "well_established",
               "reason": "Repeated across conversations"
+            }
+          ]
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "Quiet preparation",
+              "status": "well_established",
+              "reason": "Observed across reviewed conversations"
+            },
+            {
+              "value": "Relationship awareness",
+              "status": "well_established",
+              "reason": "Observed across reviewed conversations"
             }
           ]
         },
@@ -1158,8 +1896,17 @@
           "add": [
             {
               "value": "Building steadiness under pressure",
-              "status": "emerging",
+              "status": "supported",
               "reason": "Active development focus"
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Detail as safety",
+              "status": "well_established",
+              "reason": "Recognised across reviewed conversations"
             }
           ]
         }
@@ -1169,6 +1916,11 @@
           "changeKey": "emergingThemes",
           "evidenceText": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Confidence rising in familiar settings; st",
           "sourceExcerpt": "Speaking with clearer authority"
+        },
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Confidence rising in familiar settings; st",
+          "sourceExcerpt": "Quiet preparation"
         }
       ],
       "coachNote": "Sample applied update for evaluation.",

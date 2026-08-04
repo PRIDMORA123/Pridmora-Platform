@@ -548,9 +548,38 @@ for (const rel of RELATIONSHIPS) {
       themeKey,
     });
 
-    // 2 development updates per relationship (sessions 2 and 5)
+    // 2 development updates per relationship (sessions 2 and 5).
+    // These are applied during install via apply_development_update so the
+    // development_profiles JSON the Development Intelligence UI reads is populated.
     if (i === 1 || i === 4) {
       updateSeq += 1;
+      const entryStatus = i === 4 ? "well_established" : "supported";
+      const growthStatus = i === 4 ? "supported" : "emerging";
+      const strengthTitles = [];
+      const patternTitles = [];
+      for (const theme of rel.themes) {
+        const themeIntel = THEME_COPY[theme]?.intelligence ?? [];
+        for (const item of themeIntel) {
+          if (item.category === "strength" && !strengthTitles.includes(item.title)) {
+            strengthTitles.push(item.title);
+          }
+          if (
+            (item.category === "behaviour_pattern" ||
+              item.category === "emotional_pattern" ||
+              item.category === "communication_style") &&
+            !patternTitles.includes(item.title)
+          ) {
+            patternTitles.push(item.title);
+          }
+        }
+      }
+      if (strengthTitles.length === 0) {
+        strengthTitles.push(
+          copy.intelligence.find((x) => x.category === "strength")?.title ??
+            "Practical reflection"
+        );
+      }
+
       developmentUpdates.push({
         key: `${rel.key}-update-${updateSeq}`,
         relationshipKey: rel.key,
@@ -567,18 +596,32 @@ for (const rel of RELATIONSHIPS) {
           emergingThemes: {
             add: rel.themes.slice(0, 2).map((t) => ({
               value: t.replace(/_/g, " "),
-              status: "supported",
+              status: entryStatus,
               reason: "Repeated across conversations",
+            })),
+          },
+          strengths: {
+            add: strengthTitles.slice(0, 3).map((value) => ({
+              value,
+              status: entryStatus,
+              reason: "Observed across reviewed conversations",
             })),
           },
           growthAreas: {
             add: [
               {
                 value: copy.focus[0],
-                status: "emerging",
+                status: growthStatus,
                 reason: "Active development focus",
               },
             ],
+          },
+          patterns: {
+            add: patternTitles.slice(0, 2).map((value) => ({
+              value,
+              status: entryStatus,
+              reason: "Recognised across reviewed conversations",
+            })),
           },
         },
         evidenceSummary: [
@@ -586,6 +629,11 @@ for (const rel of RELATIONSHIPS) {
             changeKey: "emergingThemes",
             evidenceText: notes.slice(0, 160),
             sourceExcerpt: focus,
+          },
+          {
+            changeKey: "strengths",
+            evidenceText: notes.slice(0, 160),
+            sourceExcerpt: strengthTitles[0] ?? focus,
           },
         ],
         coachNote: "Sample applied update for evaluation.",
