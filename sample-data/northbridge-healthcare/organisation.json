@@ -10,5 +10,5 @@
     "seatsPurchased": 5,
     "status": "active"
   },
-  "description": "Fictional healthcare trust used for demonstrations, training and evaluation."
+  "description": "Fictional healthcare trust used for demonstrations, training and evaluation. Conversation intelligence is generated with the production AI workflow and coach-reviewed before freezing."
 }

@@ -5,79 +5,92 @@
       "relationshipKey": "sarah-mitchell",
       "sessionKey": "sarah-mitchell-session-2",
       "status": "applied",
-      "conversationSummary": "Reviewed a handoff that slipped. The brief was incomplete rather than the capability of the colleague. Clearer this month, though old habits returned in one meeting.",
+      "conversationSummary": "Sarah Mitchell opened with a specific workplace moment rather than a general self-critique. Working as Ward Manager at Northbridge Healthcare Trust, they described how briefed a colleague on a rota change with clearer outcomes; still intervened twice before the agreed check-in. Sarah Mitchell stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Between sessions, Sarah Mitchell had attempted a contained experiment linked to bri",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Confidence, delegation and communication",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Sarah Mitchell."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "confidence",
+              "value": "A recurring coaching theme for Sarah Mitchell is delegation: the gap between intended and enacted behaviour when pressure rises.",
               "status": "supported",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on briefing outcomes rather than methods."
             },
             {
-              "value": "delegation",
-              "status": "supported",
-              "reason": "Repeated across conversations"
+              "value": "delegation is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "emerging",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Quiet preparation",
+              "value": "Sarah Mitchell uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
               "status": "supported",
-              "reason": "Observed across reviewed conversations"
+              "reason": "Repeated across reviewed conversations."
             },
             {
-              "value": "Thoughtful listening",
-              "status": "supported",
-              "reason": "Observed across reviewed conversations"
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "emerging",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Letting go of work that belongs elsewhere",
+              "value": "Briefing outcomes rather than methods",
               "status": "emerging",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted delegation under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Reclaiming delegated work",
+              "value": "Under increased pace or scrutiny, delegation quality drops unless a prepared opening, brief or pause is protected.",
               "status": "supported",
-              "reason": "Recognised across reviewed conversations"
-            },
-            {
-              "value": "Detail-first messaging",
-              "status": "supported",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Reviewed a handoff that slipped. The brief was incomplete rather than the capability of the colleague. Clearer this month, though old habits returned in one mee",
-          "sourceExcerpt": "Setting clearer ownership"
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "Sarah Mitchell opened with a specific workplace moment rather than a general self-critique. Working as Ward Manager at Northbridge Healthcare Trust, they described how briefed a colleague on a rota change with clearer ou",
+          "sourceExcerpt": "Briefing outcomes rather than methods"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Reviewed a handoff that slipped. The brief was incomplete rather than the capability of the colleague. Clearer this month, though old habits returned in one mee",
-          "sourceExcerpt": "Quiet preparation"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "Sarah Mitchell opened with a specific workplace moment rather than a general self-critique. Working as Ward Manager at Northbridge Healthcare Trust, they described how briefed a colleague on a rota change with clearer ou",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "Sarah Mitchell opened with a specific workplace moment rather than a general self-critique. Working as Ward Manager at Northbridge Healthcare Trust, they described how briefed a co",
+          "sourceExcerpt": "Briefing outcomes rather than methods"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
       "generatedAt": "2026-05-25T16:00:00.000Z",
       "reviewedAt": "2026-05-25T17:00:00.000Z",
       "appliedAt": "2026-05-25T18:00:00.000Z"
@@ -85,1848 +98,2411 @@
     {
       "key": "sarah-mitchell-update-2",
       "relationshipKey": "sarah-mitchell",
-      "sessionKey": "sarah-mitchell-session-5",
+      "sessionKey": "sarah-mitchell-session-6",
       "status": "applied",
-      "conversationSummary": "Reviewed a handoff that slipped. The brief was incomplete rather than the capability of the colleague. Confidence rising in familiar settings; still uneven elsewhere.",
+      "conversationSummary": "By conversation 6, Sarah Mitchell could name the communication pattern through a fresh example: Clarity held with peers and one senior update; under incident pressure, old length returned. Sarah Mitchell stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Looking across the arc, Sarah Mitchell's practice is steadier on keeping clarity when the room speeds up, though unfinished edges remain visible whenever pace or challenge i",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Confidence, delegation and communication",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Sarah Mitchell."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "confidence",
+              "value": "A recurring coaching theme for Sarah Mitchell is communication: the gap between intended and enacted behaviour when pressure rises.",
               "status": "well_established",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on keeping clarity when the room speeds up."
             },
             {
-              "value": "delegation",
-              "status": "well_established",
-              "reason": "Repeated across conversations"
+              "value": "communication is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "supported",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [
+            {
+              "value": "A recurring coaching theme for Sarah Mitchell is delegation: the gap between intended and enacted behaviour when pressure rises.",
+              "status": "well_established",
+              "reason": "Strengthened by later conversation evidence."
+            }
+          ],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Quiet preparation",
-              "status": "well_established",
-              "reason": "Observed across reviewed conversations"
+              "value": "Sarah Mitchell uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
+              "status": "supported",
+              "reason": "Repeated across reviewed conversations."
             },
             {
-              "value": "Thoughtful listening",
-              "status": "well_established",
-              "reason": "Observed across reviewed conversations"
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "supported",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Letting go of work that belongs elsewhere",
+              "value": "Keeping clarity when the room speeds up",
               "status": "supported",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted communication under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Reclaiming delegated work",
+              "value": "Under increased pace or scrutiny, communication quality drops unless a prepared opening, brief or pause is protected.",
               "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
-            },
-            {
-              "value": "Detail-first messaging",
-              "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Reviewed a handoff that slipped. The brief was incomplete rather than the capability of the colleague. Confidence rising in familiar settings; still uneven else",
-          "sourceExcerpt": "Setting clearer ownership"
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "By conversation 6, Sarah Mitchell could name the communication pattern through a fresh example: Clarity held with peers and one senior update; under incident pressure, old length returned. Sarah Mitchell stayed with beha",
+          "sourceExcerpt": "Keeping clarity when the room speeds up"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Reviewed a handoff that slipped. The brief was incomplete rather than the capability of the colleague. Confidence rising in familiar settings; still uneven else",
-          "sourceExcerpt": "Quiet preparation"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "By conversation 6, Sarah Mitchell could name the communication pattern through a fresh example: Clarity held with peers and one senior update; under incident pressure, old length returned. Sarah Mitchell stayed with beha",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "By conversation 6, Sarah Mitchell could name the communication pattern through a fresh example: Clarity held with peers and one senior update; under incident pressure, old length r",
+          "sourceExcerpt": "Keeping clarity when the room speeds up"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
-      "generatedAt": "2026-06-30T16:00:00.000Z",
-      "reviewedAt": "2026-06-30T17:00:00.000Z",
-      "appliedAt": "2026-06-30T18:00:00.000Z"
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
+      "generatedAt": "2026-07-12T16:00:00.000Z",
+      "reviewedAt": "2026-07-12T17:00:00.000Z",
+      "appliedAt": "2026-07-12T18:00:00.000Z"
     },
     {
-      "key": "james-carter-update-3",
+      "key": "james-carter-update-1",
       "relationshipKey": "james-carter",
       "sessionKey": "james-carter-session-2",
       "status": "applied",
-      "conversationSummary": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Clearer this month, though old habits returned in one meeting.",
+      "conversationSummary": "James Carter reviewed a live feedback conversation where a rehearsed opening stayed polite and avoided naming impact. The session separated intention from enacted behaviour under pressure, building on the previous example of delayed contribution in a senior huddle, and agreed a further behavioural experiment with a specific example to bring back.",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
-        "currentFocus": {
-          "action": "replace",
-          "value": "Confidence and difficult conversations",
-          "reason": "Confirmed through recent conversations"
+        "strengths": {
+          "add": [
+            {
+              "value": "Uses concrete behavioural examples in coaching, which helps keep the work focused on observable actions rather than broad self-criticism.",
+              "status": "supported",
+              "reason": ""
+            }
+          ],
+          "update": [],
+          "remove": []
+        },
+        "values": {
+          "add": [],
+          "update": [],
+          "remove": []
+        },
+        "motivators": {
+          "add": [],
+          "update": [],
+          "remove": []
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "confidence",
+              "value": "A recurring coaching theme is the gap between intended behaviour and enacted behaviour in higher-pressure conversations or forums.",
               "status": "supported",
-              "reason": "Repeated across conversations"
+              "reason": ""
             },
             {
-              "value": "difficult conversations",
-              "status": "supported",
-              "reason": "Repeated across conversations"
+              "value": "Difficult conversations are becoming most useful to explore through one live example at a time, especially by comparing what was prepared, what was said, what was avoided and what changed under pressure.",
+              "status": "emerging",
+              "reason": ""
             }
-          ]
-        },
-        "strengths": {
-          "add": [
-            {
-              "value": "Quiet preparation",
-              "status": "supported",
-              "reason": "Observed across reviewed conversations"
-            },
-            {
-              "value": "Thoughtful listening",
-              "status": "supported",
-              "reason": "Observed across reviewed conversations"
-            }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Naming the issue earlier",
+              "value": "Practise opening feedback conversations with a clearer statement of purpose and impact, while noticing what changes in the live moment.",
               "status": "emerging",
-              "reason": "Active development focus"
+              "reason": ""
+            },
+            {
+              "value": "Strengthen enacted contribution under pressure so that prepared recommendations or feedback are not softened, delayed or left implicit.",
+              "status": "supported",
+              "reason": ""
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Future sessions are likely to be most productive when anchored to one recent, specific example and examined through observable behaviour rather than broad traits.",
+              "status": "supported",
+              "reason": ""
+            }
+          ],
+          "update": [],
+          "remove": []
+        },
+        "beliefs": {
+          "add": [],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Avoidance before candour",
+              "value": "Under pressure, there may be a tendency for prepared or intended contributions to become less direct in the live interaction, such as pausing long enough for someone else to step in or keeping feedback polite without naming impact.",
               "status": "supported",
-              "reason": "Recognised across reviewed conversations"
-            },
-            {
-              "value": "Detail-first messaging",
-              "status": "supported",
-              "reason": "Recognised across reviewed conversations"
+              "reason": ""
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
+        },
+        "commitments": {
+          "add": [
+            {
+              "value": "Run the agreed experiment this week, bring back one specific example, and note what changed under pressure.",
+              "dueDate": null
+            }
+          ],
+          "complete": [],
+          "remove": []
+        },
+        "currentFocus": {
+          "action": "replace",
+          "value": "Confidence and difficult conversations",
+          "reason": "Confirmed through recent conversations"
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Clearer this month, though old habits returned in one meeting.",
-          "sourceExcerpt": "Staying present when challenged"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "James has twice described coaching material in specific behavioural terms, enabling the work to stay concrete.",
+          "sourceExcerpt": "James Carter described the moment in concrete behavioural terms rather than general self-criticism."
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Clearer this month, though old habits returned in one meeting.",
-          "sourceExcerpt": "Quiet preparation"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "The previous session also noted behavioural specificity.",
+          "sourceExcerpt": "James described the incident in specific behavioural terms"
+        },
+        {
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "The latest session explicitly separated intended behaviour from enacted behaviour under pressure.",
+          "sourceExcerpt": "We separated intention from enacted behaviour and identified where pressure changed the pattern."
+        },
+        {
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "The prior example also involved an intended contribution not being enacted in the senior forum.",
+          "sourceExcerpt": "James intended to contribute in the directorate huddle, but paused long enough for a peer to fill"
+        },
+        {
+          "changeKey": "emergingThemes.add.1",
+          "evidenceText": "The session found value in working from one concrete example and examining the prepared versus actual behaviour.",
+          "sourceExcerpt": "what was prepared, what was said, what was avoided, and what changed in the live interaction"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "The live feedback conversation remained polite and did not name impact, suggesting a specific practice area for openings.",
+          "sourceExcerpt": "an opening line had been rehearsed, but the actual conversation remained polite and avoided naming impact"
+        },
+        {
+          "changeKey": "growthAreas.add.1",
+          "evidenceText": "Across two examples, pressure appears linked with less direct enacted contribution.",
+          "sourceExcerpt": "where he paused for long enough that a peer stepped in and offered a thinner recommendation"
+        },
+        {
+          "changeKey": "growthAreas.add.1",
+          "evidenceText": "The latest feedback example showed a prepared opening becoming less impactful in the live conversation.",
+          "sourceExcerpt": "the live conversation stayed polite and avoided impact"
+        },
+        {
+          "changeKey": "coachingPreferences.add.0",
+          "evidenceText": "The coach reflection specifically recommends using one live example and observable behaviour in the next conversation.",
+          "sourceExcerpt": "Keep the next conversation anchored to one live example rather than broad traits."
+        },
+        {
+          "changeKey": "patterns.add.0",
+          "evidenceText": "The latest session identified a pressure-related shift between preparation and enactment.",
+          "sourceExcerpt": "identified where pressure changed the pattern"
+        },
+        {
+          "changeKey": "patterns.add.0",
+          "evidenceText": "The pattern is supported by the earlier senior huddle example.",
+          "sourceExcerpt": "paused long enough for a peer to fill"
+        },
+        {
+          "changeKey": "commitments.add.0",
+          "evidenceText": "A specific experiment and follow-up example were agreed.",
+          "sourceExcerpt": "Run one agreed experiment this week and bring a specific example back."
+        },
+        {
+          "changeKey": "commitments.add.0",
+          "evidenceText": "The session summary adds that James should notice changes under pressure.",
+          "sourceExcerpt": "Complete the agreed experiment and note what changed under pressure."
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
       "generatedAt": "2026-05-26T16:00:00.000Z",
       "reviewedAt": "2026-05-26T17:00:00.000Z",
       "appliedAt": "2026-05-26T18:00:00.000Z"
     },
     {
-      "key": "james-carter-update-4",
+      "key": "james-carter-update-2",
       "relationshipKey": "james-carter",
-      "sessionKey": "james-carter-session-5",
+      "sessionKey": "james-carter-session-6",
       "status": "applied",
-      "conversationSummary": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Confidence rising in familiar settings; still uneven elsewhere.",
+      "conversationSummary": "The session remained focused on confidence and difficult conversations, specifically how James Carter keeps clarity when situations accelerate. He reported clearer communication holding with peers and in one senior update, while under incident pressure a previous pattern of longer communication returned. The conversation again used concrete behavioural evidence and led to two short-term commitments.",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
-        "currentFocus": {
-          "action": "replace",
-          "value": "Confidence and difficult conversations",
-          "reason": "Confirmed through recent conversations"
+        "strengths": {
+          "add": [
+            {
+              "value": "Maintains clearer communication in some live contexts, including peer interactions and one senior update, suggesting increasing translation of intended clarity into enacted behaviour.",
+              "status": "supported",
+              "reason": "This extends the existing profile by adding evidence that clarity is now being enacted in some settings, not only discussed or prepared."
+            }
+          ],
+          "update": [
+            {
+              "value": "Consistently uses concrete behavioural examples in coaching, which helps keep the work focused on observable actions rather than broad self-criticism.",
+              "status": "well_established",
+              "reason": "The latest session again notes that James described the moment behaviourally rather than through general self-criticism, strengthening a pattern already seen across prior sessions."
+            }
+          ],
+          "remove": []
+        },
+        "values": {
+          "add": [],
+          "update": [],
+          "remove": []
+        },
+        "motivators": {
+          "add": [],
+          "update": [],
+          "remove": []
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "confidence",
+              "value": "Concise clarity is becoming a specific communication theme because it is being linked in coaching to credibility, team ownership and influence within the trust.",
+              "status": "emerging",
+              "reason": "The latest session explicitly named communication and connected the pattern to credibility, team ownership and influence."
+            }
+          ],
+          "update": [
+            {
+              "value": "A well-established coaching theme is the gap between intended behaviour and enacted behaviour when pressure or pace increases, including senior forums, feedback conversations and incident situations.",
               "status": "well_established",
-              "reason": "Repeated across conversations"
+              "reason": "The latest session adds incident pressure and again separates intention from enacted behaviour, reinforcing a theme already present across the relationship."
             },
             {
-              "value": "difficult conversations",
-              "status": "well_established",
-              "reason": "Repeated across conversations"
+              "value": "Difficult conversations are most useful to explore through one recent live example at a time, especially by comparing what was prepared, what was said or done, what was avoided and what changed under pressure.",
+              "status": "supported",
+              "reason": "The latest coach reflection again recommends anchoring the next conversation to one live example rather than broad traits, strengthening this from emerging to supported."
             }
-          ]
-        },
-        "strengths": {
-          "add": [
-            {
-              "value": "Quiet preparation",
-              "status": "well_established",
-              "reason": "Observed across reviewed conversations"
-            },
-            {
-              "value": "Thoughtful listening",
-              "status": "well_established",
-              "reason": "Observed across reviewed conversations"
-            }
-          ]
+          ],
+          "remove": []
         },
         "growthAreas": {
-          "add": [
+          "add": [],
+          "update": [
             {
-              "value": "Naming the issue earlier",
-              "status": "supported",
-              "reason": "Active development focus"
+              "value": "Strengthen enacted contribution and concise clarity under pressure so that prepared recommendations, feedback or updates are not softened, delayed, left implicit or lengthened when the room speeds up.",
+              "status": "well_established",
+              "reason": "The latest session adds a specific pressure pattern: under incident pressure, longer communication returned. This usefully refines the existing growth area."
             }
-          ]
+          ],
+          "remove": []
+        },
+        "coachingPreferences": {
+          "add": [],
+          "update": [
+            {
+              "value": "Future sessions are likely to be most productive when anchored to one recent, specific live example and examined through observable behaviour rather than broad traits or identity-based interpretation.",
+              "status": "well_established",
+              "reason": "The latest coach reflection repeats this preference and cautions against broad trait or identity-based interpretation."
+            }
+          ],
+          "remove": []
+        },
+        "beliefs": {
+          "add": [],
+          "update": [],
+          "remove": []
         },
         "patterns": {
+          "add": [],
+          "update": [
+            {
+              "value": "Under pressure or when the room speeds up, intended contributions may become less direct or less concise, such as pausing long enough for someone else to step in, keeping feedback polite without naming impact, or reverting to longer communication during incident pressure.",
+              "status": "well_established",
+              "reason": "The latest session strengthens the existing pattern by adding evidence that incident pressure can bring back lengthier communication."
+            }
+          ],
+          "remove": []
+        },
+        "commitments": {
           "add": [
             {
-              "value": "Avoidance before candour",
-              "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
+              "value": "Choose one sustaining habit for the next fortnight.",
+              "dueDate": null
             },
             {
-              "value": "Detail-first messaging",
-              "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
+              "value": "Choose one risk situation to watch for the next fortnight.",
+              "dueDate": null
             }
-          ]
+          ],
+          "complete": [],
+          "remove": []
+        },
+        "currentFocus": {
+          "action": "replace",
+          "value": "Confidence and difficult conversations",
+          "reason": "Confirmed through recent conversations"
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Confidence rising in familiar settings; still uneven elsewhere.",
-          "sourceExcerpt": "Staying present when challenged"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "James reported that clarity had held with peers and in one senior update, indicating enacted behaviour in some live contexts.",
+          "sourceExcerpt": "Clarity held with peers and one senior update; under incident pressure, old length returned."
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Confidence rising in familiar settings; still uneven elsewhere.",
-          "sourceExcerpt": "Quiet preparation"
+          "changeKey": "strengths.update.0",
+          "evidenceText": "The latest session again showed James using behavioural specificity rather than broad self-criticism.",
+          "sourceExcerpt": "James Carter described the moment in concrete behavioural terms rather than general self-criticism."
+        },
+        {
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "The latest notes identify communication as the theme and link the pattern to credibility, team ownership and influence.",
+          "sourceExcerpt": "Theme in play: communication. The pattern matters because it affects credibility, team ownership or influence in the trust."
+        },
+        {
+          "changeKey": "emergingThemes.update.0",
+          "evidenceText": "The session again separated intention from enacted behaviour and identified pressure as the point where the pattern changed.",
+          "sourceExcerpt": "We separated intention from enacted behaviour and identified where pressure changed the pattern."
+        },
+        {
+          "changeKey": "emergingThemes.update.1",
+          "evidenceText": "The coach reflection reinforces the usefulness of working from one live behavioural example rather than broad interpretation.",
+          "sourceExcerpt": "Keep the next conversation anchored to one live example rather than broad traits."
+        },
+        {
+          "changeKey": "growthAreas.update.0",
+          "evidenceText": "The latest session adds the specific issue of length returning under incident pressure, refining the existing growth area around enacted contribution under pressure.",
+          "sourceExcerpt": "Clarity held with peers and one senior update; under incident pressure, old length returned."
+        },
+        {
+          "changeKey": "coachingPreferences.update.0",
+          "evidenceText": "The latest coach reflection explicitly supports staying with one live example and avoiding broad traits or identity-based interpretation.",
+          "sourceExcerpt": "Keep the next conversation anchored to one live example rather than broad traits."
+        },
+        {
+          "changeKey": "patterns.update.0",
+          "evidenceText": "The existing pattern of pressure changing communication is strengthened by new evidence that incident pressure brought back longer communication.",
+          "sourceExcerpt": "Under incident pressure, his previous tendency towards longer communication returned."
+        },
+        {
+          "changeKey": "commitments.add.0",
+          "evidenceText": "James agreed to choose one sustaining habit for the next fortnight.",
+          "sourceExcerpt": "Choose one sustaining habit for the next fortnight and one risk situation to watch."
+        },
+        {
+          "changeKey": "commitments.add.1",
+          "evidenceText": "James agreed to choose one risk situation to watch for the next fortnight.",
+          "sourceExcerpt": "Choose one sustaining habit for the next fortnight and one risk situation to watch."
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
-      "generatedAt": "2026-07-01T16:00:00.000Z",
-      "reviewedAt": "2026-07-01T17:00:00.000Z",
-      "appliedAt": "2026-07-01T18:00:00.000Z"
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
+      "generatedAt": "2026-07-13T16:00:00.000Z",
+      "reviewedAt": "2026-07-13T17:00:00.000Z",
+      "appliedAt": "2026-07-13T18:00:00.000Z"
     },
     {
-      "key": "emma-hughes-update-5",
+      "key": "emma-hughes-update-1",
       "relationshipKey": "emma-hughes",
       "sessionKey": "emma-hughes-session-2",
       "status": "applied",
-      "conversationSummary": "Practised framing a recommendation with options and a preferred path. Clearer this month, though old habits returned in one meeting.",
+      "conversationSummary": "Emma Hughes opened with a specific workplace moment rather than a general self-critique. Working as Finance Manager at Northbridge Healthcare Trust, they described how practised framing options plus a preferred path; still defaulted to detail when unsure. Emma Hughes stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Between sessions, Emma Hughes had attempted a contained experiment linked to framing recommendations with tra",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Delegation and strategic leadership",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Emma Hughes."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "delegation",
+              "value": "A recurring coaching theme for Emma Hughes is strategic leadership: the gap between intended and enacted behaviour when pressure rises.",
               "status": "supported",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on framing recommendations with trade-offs."
             },
             {
-              "value": "strategic leadership",
-              "status": "supported",
-              "reason": "Repeated across conversations"
+              "value": "strategic leadership is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "emerging",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Relationship awareness",
+              "value": "Emma Hughes uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
               "status": "supported",
-              "reason": "Observed across reviewed conversations"
+              "reason": "Repeated across reviewed conversations."
+            },
+            {
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "emerging",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Shifting from operational detail to direction",
+              "value": "Framing recommendations with trade-offs",
               "status": "emerging",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted strategic leadership under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Reclaiming delegated work",
+              "value": "Under increased pace or scrutiny, strategic leadership quality drops unless a prepared opening, brief or pause is protected.",
               "status": "supported",
-              "reason": "Recognised across reviewed conversations"
-            },
-            {
-              "value": "Detail as safety",
-              "status": "supported",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Practised framing a recommendation with options and a preferred path. Clearer this month, though old habits returned in one meeting.",
-          "sourceExcerpt": "Influencing without the formal mandate"
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "Emma Hughes opened with a specific workplace moment rather than a general self-critique. Working as Finance Manager at Northbridge Healthcare Trust, they described how practised framing options plus a preferred path; sti",
+          "sourceExcerpt": "Framing recommendations with trade-offs"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Practised framing a recommendation with options and a preferred path. Clearer this month, though old habits returned in one meeting.",
-          "sourceExcerpt": "Relationship awareness"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "Emma Hughes opened with a specific workplace moment rather than a general self-critique. Working as Finance Manager at Northbridge Healthcare Trust, they described how practised framing options plus a preferred path; sti",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "Emma Hughes opened with a specific workplace moment rather than a general self-critique. Working as Finance Manager at Northbridge Healthcare Trust, they described how practised fr",
+          "sourceExcerpt": "Framing recommendations with trade-offs"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
       "generatedAt": "2026-05-27T16:00:00.000Z",
       "reviewedAt": "2026-05-27T17:00:00.000Z",
       "appliedAt": "2026-05-27T18:00:00.000Z"
     },
     {
-      "key": "emma-hughes-update-6",
+      "key": "emma-hughes-update-2",
       "relationshipKey": "emma-hughes",
-      "sessionKey": "emma-hughes-session-5",
+      "sessionKey": "emma-hughes-session-6",
       "status": "applied",
-      "conversationSummary": "Practised framing a recommendation with options and a preferred path. Confidence rising in familiar settings; still uneven elsewhere.",
+      "conversationSummary": "By conversation 6, Emma Hughes could name the stakeholder influence pattern through a fresh example: Influence was steadier this month; one late engagement repeated the old pattern. Emma Hughes stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Looking across the arc, Emma Hughes's practice is steadier on keeping alliances warm between decisions, though unfinished edges remain visible whenever pace or challenge increases. Th",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Delegation and strategic leadership",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Emma Hughes."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "delegation",
+              "value": "A recurring coaching theme for Emma Hughes is stakeholder influence: the gap between intended and enacted behaviour when pressure rises.",
               "status": "well_established",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on keeping alliances warm between decisions."
             },
             {
-              "value": "strategic leadership",
-              "status": "well_established",
-              "reason": "Repeated across conversations"
+              "value": "stakeholder influence is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "supported",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [
+            {
+              "value": "A recurring coaching theme for Emma Hughes is strategic leadership: the gap between intended and enacted behaviour when pressure rises.",
+              "status": "well_established",
+              "reason": "Strengthened by later conversation evidence."
+            }
+          ],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Relationship awareness",
-              "status": "well_established",
-              "reason": "Observed across reviewed conversations"
+              "value": "Emma Hughes uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
+              "status": "supported",
+              "reason": "Repeated across reviewed conversations."
+            },
+            {
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "supported",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Shifting from operational detail to direction",
+              "value": "Keeping alliances warm between decisions",
               "status": "supported",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted stakeholder influence under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Reclaiming delegated work",
+              "value": "Under increased pace or scrutiny, stakeholder influence quality drops unless a prepared opening, brief or pause is protected.",
               "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
-            },
-            {
-              "value": "Detail as safety",
-              "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Practised framing a recommendation with options and a preferred path. Confidence rising in familiar settings; still uneven elsewhere.",
-          "sourceExcerpt": "Influencing without the formal mandate"
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "By conversation 6, Emma Hughes could name the stakeholder influence pattern through a fresh example: Influence was steadier this month; one late engagement repeated the old pattern. Emma Hughes stayed with behavioural de",
+          "sourceExcerpt": "Keeping alliances warm between decisions"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Practised framing a recommendation with options and a preferred path. Confidence rising in familiar settings; still uneven elsewhere.",
-          "sourceExcerpt": "Relationship awareness"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "By conversation 6, Emma Hughes could name the stakeholder influence pattern through a fresh example: Influence was steadier this month; one late engagement repeated the old pattern. Emma Hughes stayed with behavioural de",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "By conversation 6, Emma Hughes could name the stakeholder influence pattern through a fresh example: Influence was steadier this month; one late engagement repeated the old pattern",
+          "sourceExcerpt": "Keeping alliances warm between decisions"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
-      "generatedAt": "2026-07-02T16:00:00.000Z",
-      "reviewedAt": "2026-07-02T17:00:00.000Z",
-      "appliedAt": "2026-07-02T18:00:00.000Z"
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
+      "generatedAt": "2026-07-14T16:00:00.000Z",
+      "reviewedAt": "2026-07-14T17:00:00.000Z",
+      "appliedAt": "2026-07-14T18:00:00.000Z"
     },
     {
-      "key": "daniel-roberts-update-7",
+      "key": "daniel-roberts-update-1",
       "relationshipKey": "daniel-roberts",
       "sessionKey": "daniel-roberts-session-2",
       "status": "applied",
-      "conversationSummary": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Clearer this month, though old habits returned in one meeting.",
+      "conversationSummary": "Daniel Roberts opened with a specific workplace moment rather than a general self-critique. Working as Estates Manager at Northbridge Healthcare Trust, they described how in a 1:1, advice arrived early and the other person closed down; listening shortened. Daniel Roberts stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Between sessions, Daniel Roberts had attempted a contained experiment linked to listening before advising",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Feedback conversations",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Daniel Roberts."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "difficult conversations",
+              "value": "A recurring coaching theme for Daniel Roberts is communication: the gap between intended and enacted behaviour when pressure rises.",
               "status": "supported",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on listening before advising."
             },
             {
-              "value": "communication",
-              "status": "supported",
-              "reason": "Repeated across conversations"
+              "value": "communication is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "emerging",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Thoughtful listening",
+              "value": "Daniel Roberts uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
               "status": "supported",
-              "reason": "Observed across reviewed conversations"
+              "reason": "Repeated across reviewed conversations."
             },
             {
-              "value": "Quiet preparation",
-              "status": "supported",
-              "reason": "Observed across reviewed conversations"
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "emerging",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Clearer messages under time pressure",
+              "value": "Listening before advising",
               "status": "emerging",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted communication under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Avoidance before candour",
+              "value": "Under increased pace or scrutiny, communication quality drops unless a prepared opening, brief or pause is protected.",
               "status": "supported",
-              "reason": "Recognised across reviewed conversations"
-            },
-            {
-              "value": "Detail-first messaging",
-              "status": "supported",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Clearer this month, though old habits returned in one meeting.",
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "Daniel Roberts opened with a specific workplace moment rather than a general self-critique. Working as Estates Manager at Northbridge Healthcare Trust, they described how in a 1:1, advice arrived early and the other pers",
           "sourceExcerpt": "Listening before advising"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Clearer this month, though old habits returned in one meeting.",
-          "sourceExcerpt": "Thoughtful listening"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "Daniel Roberts opened with a specific workplace moment rather than a general self-critique. Working as Estates Manager at Northbridge Healthcare Trust, they described how in a 1:1, advice arrived early and the other pers",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "Daniel Roberts opened with a specific workplace moment rather than a general self-critique. Working as Estates Manager at Northbridge Healthcare Trust, they described how in a 1:1,",
+          "sourceExcerpt": "Listening before advising"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
       "generatedAt": "2026-05-25T16:00:00.000Z",
       "reviewedAt": "2026-05-25T17:00:00.000Z",
       "appliedAt": "2026-05-25T18:00:00.000Z"
     },
     {
-      "key": "daniel-roberts-update-8",
+      "key": "daniel-roberts-update-2",
       "relationshipKey": "daniel-roberts",
-      "sessionKey": "daniel-roberts-session-5",
+      "sessionKey": "daniel-roberts-session-6",
       "status": "applied",
-      "conversationSummary": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Confidence rising in familiar settings; still uneven elsewhere.",
+      "conversationSummary": "By conversation 6, Daniel Roberts could name the confidence pattern through a fresh example: Across two forums this month, contribution was earlier and cleaner, with one relapse when the room felt adversarial. Daniel Roberts stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Looking across the arc, Daniel Roberts's practice is steadier on sustaining confidence across uneven weeks, though unfinished edges remain visible whene",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Feedback conversations",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Daniel Roberts."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "difficult conversations",
+              "value": "A recurring coaching theme for Daniel Roberts is confidence: the gap between intended and enacted behaviour when pressure rises.",
               "status": "well_established",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on sustaining confidence across uneven weeks."
             },
             {
-              "value": "communication",
-              "status": "well_established",
-              "reason": "Repeated across conversations"
+              "value": "confidence is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "supported",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [
+            {
+              "value": "A recurring coaching theme for Daniel Roberts is communication: the gap between intended and enacted behaviour when pressure rises.",
+              "status": "well_established",
+              "reason": "Strengthened by later conversation evidence."
+            }
+          ],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Thoughtful listening",
-              "status": "well_established",
-              "reason": "Observed across reviewed conversations"
+              "value": "Daniel Roberts uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
+              "status": "supported",
+              "reason": "Repeated across reviewed conversations."
             },
             {
-              "value": "Quiet preparation",
-              "status": "well_established",
-              "reason": "Observed across reviewed conversations"
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "supported",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Clearer messages under time pressure",
+              "value": "Sustaining confidence across uneven weeks",
               "status": "supported",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted confidence under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Avoidance before candour",
+              "value": "Under increased pace or scrutiny, confidence quality drops unless a prepared opening, brief or pause is protected.",
               "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
-            },
-            {
-              "value": "Detail-first messaging",
-              "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Confidence rising in familiar settings; still uneven elsewhere.",
-          "sourceExcerpt": "Listening before advising"
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "By conversation 6, Daniel Roberts could name the confidence pattern through a fresh example: Across two forums this month, contribution was earlier and cleaner, with one relapse when the room felt adversarial. Daniel Rob",
+          "sourceExcerpt": "Sustaining confidence across uneven weeks"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Confidence rising in familiar settings; still uneven elsewhere.",
-          "sourceExcerpt": "Thoughtful listening"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "By conversation 6, Daniel Roberts could name the confidence pattern through a fresh example: Across two forums this month, contribution was earlier and cleaner, with one relapse when the room felt adversarial. Daniel Rob",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "By conversation 6, Daniel Roberts could name the confidence pattern through a fresh example: Across two forums this month, contribution was earlier and cleaner, with one relapse wh",
+          "sourceExcerpt": "Sustaining confidence across uneven weeks"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
-      "generatedAt": "2026-06-30T16:00:00.000Z",
-      "reviewedAt": "2026-06-30T17:00:00.000Z",
-      "appliedAt": "2026-06-30T18:00:00.000Z"
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
+      "generatedAt": "2026-07-12T16:00:00.000Z",
+      "reviewedAt": "2026-07-12T17:00:00.000Z",
+      "appliedAt": "2026-07-12T18:00:00.000Z"
     },
     {
-      "key": "priya-shah-update-9",
+      "key": "priya-shah-update-1",
       "relationshipKey": "priya-shah",
       "sessionKey": "priya-shah-session-2",
       "status": "applied",
-      "conversationSummary": "Practised framing a recommendation with options and a preferred path. Clearer this month, though old habits returned in one meeting.",
+      "conversationSummary": "Priya Shah opened with a specific workplace moment rather than a general self-critique. Working as Procurement Manager at Northbridge Healthcare Trust, they described how practised framing options plus a preferred path; still defaulted to detail when unsure. Priya Shah stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Between sessions, Priya Shah had attempted a contained experiment linked to framing recommendations with tr",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Stakeholder influence",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Priya Shah."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "stakeholder influence",
+              "value": "A recurring coaching theme for Priya Shah is strategic leadership: the gap between intended and enacted behaviour when pressure rises.",
               "status": "supported",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on framing recommendations with trade-offs."
             },
             {
-              "value": "strategic leadership",
-              "status": "supported",
-              "reason": "Repeated across conversations"
+              "value": "strategic leadership is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "emerging",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Relationship awareness",
+              "value": "Priya Shah uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
               "status": "supported",
-              "reason": "Observed across reviewed conversations"
+              "reason": "Repeated across reviewed conversations."
             },
             {
-              "value": "Thoughtful listening",
-              "status": "supported",
-              "reason": "Observed across reviewed conversations"
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "emerging",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Shifting from operational detail to direction",
+              "value": "Framing recommendations with trade-offs",
               "status": "emerging",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted strategic leadership under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Detail as safety",
+              "value": "Under increased pace or scrutiny, strategic leadership quality drops unless a prepared opening, brief or pause is protected.",
               "status": "supported",
-              "reason": "Recognised across reviewed conversations"
-            },
-            {
-              "value": "Detail-first messaging",
-              "status": "supported",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Practised framing a recommendation with options and a preferred path. Clearer this month, though old habits returned in one meeting.",
-          "sourceExcerpt": "Influencing without the formal mandate"
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "Priya Shah opened with a specific workplace moment rather than a general self-critique. Working as Procurement Manager at Northbridge Healthcare Trust, they described how practised framing options plus a preferred path; ",
+          "sourceExcerpt": "Framing recommendations with trade-offs"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Practised framing a recommendation with options and a preferred path. Clearer this month, though old habits returned in one meeting.",
-          "sourceExcerpt": "Relationship awareness"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "Priya Shah opened with a specific workplace moment rather than a general self-critique. Working as Procurement Manager at Northbridge Healthcare Trust, they described how practised framing options plus a preferred path; ",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "Priya Shah opened with a specific workplace moment rather than a general self-critique. Working as Procurement Manager at Northbridge Healthcare Trust, they described how practised",
+          "sourceExcerpt": "Framing recommendations with trade-offs"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
       "generatedAt": "2026-05-26T16:00:00.000Z",
       "reviewedAt": "2026-05-26T17:00:00.000Z",
       "appliedAt": "2026-05-26T18:00:00.000Z"
     },
     {
-      "key": "priya-shah-update-10",
+      "key": "priya-shah-update-2",
       "relationshipKey": "priya-shah",
-      "sessionKey": "priya-shah-session-5",
+      "sessionKey": "priya-shah-session-6",
       "status": "applied",
-      "conversationSummary": "Practised framing a recommendation with options and a preferred path. Confidence rising in familiar settings; still uneven elsewhere.",
+      "conversationSummary": "By conversation 6, Priya Shah could name the communication pattern through a fresh example: Clarity held with peers and one senior update; under incident pressure, old length returned. Priya Shah stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Looking across the arc, Priya Shah's practice is steadier on keeping clarity when the room speeds up, though unfinished edges remain visible whenever pace or challenge increases. Th",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Stakeholder influence",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Priya Shah."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "stakeholder influence",
+              "value": "A recurring coaching theme for Priya Shah is communication: the gap between intended and enacted behaviour when pressure rises.",
               "status": "well_established",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on keeping clarity when the room speeds up."
             },
             {
-              "value": "strategic leadership",
-              "status": "well_established",
-              "reason": "Repeated across conversations"
+              "value": "communication is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "supported",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [
+            {
+              "value": "A recurring coaching theme for Priya Shah is strategic leadership: the gap between intended and enacted behaviour when pressure rises.",
+              "status": "well_established",
+              "reason": "Strengthened by later conversation evidence."
+            }
+          ],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Relationship awareness",
-              "status": "well_established",
-              "reason": "Observed across reviewed conversations"
+              "value": "Priya Shah uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
+              "status": "supported",
+              "reason": "Repeated across reviewed conversations."
             },
             {
-              "value": "Thoughtful listening",
-              "status": "well_established",
-              "reason": "Observed across reviewed conversations"
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "supported",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Shifting from operational detail to direction",
+              "value": "Keeping clarity when the room speeds up",
               "status": "supported",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted communication under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Detail as safety",
+              "value": "Under increased pace or scrutiny, communication quality drops unless a prepared opening, brief or pause is protected.",
               "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
-            },
-            {
-              "value": "Detail-first messaging",
-              "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Practised framing a recommendation with options and a preferred path. Confidence rising in familiar settings; still uneven elsewhere.",
-          "sourceExcerpt": "Influencing without the formal mandate"
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "By conversation 6, Priya Shah could name the communication pattern through a fresh example: Clarity held with peers and one senior update; under incident pressure, old length returned. Priya Shah stayed with behavioural ",
+          "sourceExcerpt": "Keeping clarity when the room speeds up"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Practised framing a recommendation with options and a preferred path. Confidence rising in familiar settings; still uneven elsewhere.",
-          "sourceExcerpt": "Relationship awareness"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "By conversation 6, Priya Shah could name the communication pattern through a fresh example: Clarity held with peers and one senior update; under incident pressure, old length returned. Priya Shah stayed with behavioural ",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "By conversation 6, Priya Shah could name the communication pattern through a fresh example: Clarity held with peers and one senior update; under incident pressure, old length retur",
+          "sourceExcerpt": "Keeping clarity when the room speeds up"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
-      "generatedAt": "2026-07-01T16:00:00.000Z",
-      "reviewedAt": "2026-07-01T17:00:00.000Z",
-      "appliedAt": "2026-07-01T18:00:00.000Z"
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
+      "generatedAt": "2026-07-13T16:00:00.000Z",
+      "reviewedAt": "2026-07-13T17:00:00.000Z",
+      "appliedAt": "2026-07-13T18:00:00.000Z"
     },
     {
-      "key": "michael-green-update-11",
+      "key": "michael-green-update-1",
       "relationshipKey": "michael-green",
       "sessionKey": "michael-green-session-2",
       "status": "applied",
-      "conversationSummary": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Clearer this month, though old habits returned in one meeting.",
+      "conversationSummary": "Michael Green opened with a specific workplace moment rather than a general self-critique. Working as Outpatient Services Manager at Northbridge Healthcare Trust, they described how prepared extensively for a quality board update, then compressed the ask so tightly that the decision request was unclear. Michael Green stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Between sessions, Michael Green had attempted a contained ",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Accountability and delegation",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Michael Green."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "delegation",
+              "value": "A recurring coaching theme for Michael Green is confidence: the gap between intended and enacted behaviour when pressure rises.",
               "status": "supported",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on speaking earlier without over-preparing."
             },
             {
-              "value": "confidence",
-              "status": "supported",
-              "reason": "Repeated across conversations"
+              "value": "confidence is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "emerging",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Quiet preparation",
+              "value": "Michael Green uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
               "status": "supported",
-              "reason": "Observed across reviewed conversations"
+              "reason": "Repeated across reviewed conversations."
+            },
+            {
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "emerging",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Building steadiness under pressure",
+              "value": "Speaking earlier without over-preparing",
               "status": "emerging",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted confidence under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Reclaiming delegated work",
+              "value": "Under increased pace or scrutiny, confidence quality drops unless a prepared opening, brief or pause is protected.",
               "status": "supported",
-              "reason": "Recognised across reviewed conversations"
-            },
-            {
-              "value": "Avoidance before candour",
-              "status": "supported",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Clearer this month, though old habits retu",
-          "sourceExcerpt": "Speaking with clearer authority"
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "Michael Green opened with a specific workplace moment rather than a general self-critique. Working as Outpatient Services Manager at Northbridge Healthcare Trust, they described how prepared extensively for a quality boa",
+          "sourceExcerpt": "Speaking earlier without over-preparing"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Clearer this month, though old habits retu",
-          "sourceExcerpt": "Quiet preparation"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "Michael Green opened with a specific workplace moment rather than a general self-critique. Working as Outpatient Services Manager at Northbridge Healthcare Trust, they described how prepared extensively for a quality boa",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "Michael Green opened with a specific workplace moment rather than a general self-critique. Working as Outpatient Services Manager at Northbridge Healthcare Trust, they described ho",
+          "sourceExcerpt": "Speaking earlier without over-preparing"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
       "generatedAt": "2026-05-27T16:00:00.000Z",
       "reviewedAt": "2026-05-27T17:00:00.000Z",
       "appliedAt": "2026-05-27T18:00:00.000Z"
     },
     {
-      "key": "michael-green-update-12",
+      "key": "michael-green-update-2",
       "relationshipKey": "michael-green",
-      "sessionKey": "michael-green-session-5",
+      "sessionKey": "michael-green-session-6",
       "status": "applied",
-      "conversationSummary": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Confidence rising in familiar settings; still uneven elsewhere.",
+      "conversationSummary": "By conversation 6, Michael Green could name the difficult conversations pattern through a fresh example: Two conversations held well this month; one still softened when relationships felt fragile. Michael Green stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Looking across the arc, Michael Green's practice is steadier on making difficult talks more routine, though unfinished edges remain visible whenever pace or challenge",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Accountability and delegation",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Michael Green."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "delegation",
+              "value": "A recurring coaching theme for Michael Green is difficult conversations: the gap between intended and enacted behaviour when pressure rises.",
               "status": "well_established",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on making difficult talks more routine."
             },
             {
-              "value": "confidence",
-              "status": "well_established",
-              "reason": "Repeated across conversations"
+              "value": "difficult conversations is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "supported",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [
+            {
+              "value": "A recurring coaching theme for Michael Green is confidence: the gap between intended and enacted behaviour when pressure rises.",
+              "status": "well_established",
+              "reason": "Strengthened by later conversation evidence."
+            }
+          ],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Quiet preparation",
-              "status": "well_established",
-              "reason": "Observed across reviewed conversations"
+              "value": "Michael Green uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
+              "status": "supported",
+              "reason": "Repeated across reviewed conversations."
+            },
+            {
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "supported",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Building steadiness under pressure",
+              "value": "Making difficult talks more routine",
               "status": "supported",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted difficult conversations under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Reclaiming delegated work",
+              "value": "Under increased pace or scrutiny, difficult conversations quality drops unless a prepared opening, brief or pause is protected.",
               "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
-            },
-            {
-              "value": "Avoidance before candour",
-              "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Confidence rising in familiar settings; st",
-          "sourceExcerpt": "Speaking with clearer authority"
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "By conversation 6, Michael Green could name the difficult conversations pattern through a fresh example: Two conversations held well this month; one still softened when relationships felt fragile. Michael Green stayed wi",
+          "sourceExcerpt": "Making difficult talks more routine"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Confidence rising in familiar settings; st",
-          "sourceExcerpt": "Quiet preparation"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "By conversation 6, Michael Green could name the difficult conversations pattern through a fresh example: Two conversations held well this month; one still softened when relationships felt fragile. Michael Green stayed wi",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "By conversation 6, Michael Green could name the difficult conversations pattern through a fresh example: Two conversations held well this month; one still softened when relationshi",
+          "sourceExcerpt": "Making difficult talks more routine"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
-      "generatedAt": "2026-07-02T16:00:00.000Z",
-      "reviewedAt": "2026-07-02T17:00:00.000Z",
-      "appliedAt": "2026-07-02T18:00:00.000Z"
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
+      "generatedAt": "2026-07-14T16:00:00.000Z",
+      "reviewedAt": "2026-07-14T17:00:00.000Z",
+      "appliedAt": "2026-07-14T18:00:00.000Z"
     },
     {
-      "key": "helen-brooks-update-13",
+      "key": "helen-brooks-update-1",
       "relationshipKey": "helen-brooks",
       "sessionKey": "helen-brooks-session-2",
       "status": "applied",
-      "conversationSummary": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Clearer this month, though old habits returned in one meeting.",
+      "conversationSummary": "Helen Brooks opened with a specific workplace moment rather than a general self-critique. Working as HR Business Partner at Northbridge Healthcare Trust, they described how an influence attempt felt pushy; agreed to lead with shared interests next time. Helen Brooks stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Between sessions, Helen Brooks had attempted a contained experiment linked to building alliances earlier. Revi",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Executive presence and strategic influence",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Helen Brooks."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "strategic leadership",
+              "value": "A recurring coaching theme for Helen Brooks is stakeholder influence: the gap between intended and enacted behaviour when pressure rises.",
               "status": "supported",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on building alliances earlier."
             },
             {
-              "value": "stakeholder influence",
-              "status": "supported",
-              "reason": "Repeated across conversations"
+              "value": "stakeholder influence is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "emerging",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Relationship awareness",
+              "value": "Helen Brooks uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
               "status": "supported",
-              "reason": "Observed across reviewed conversations"
+              "reason": "Repeated across reviewed conversations."
             },
             {
-              "value": "Thoughtful listening",
-              "status": "supported",
-              "reason": "Observed across reviewed conversations"
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "emerging",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Mapping who shapes decisions",
+              "value": "Building alliances earlier",
               "status": "emerging",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted stakeholder influence under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Detail as safety",
+              "value": "Under increased pace or scrutiny, stakeholder influence quality drops unless a prepared opening, brief or pause is protected.",
               "status": "supported",
-              "reason": "Recognised across reviewed conversations"
-            },
-            {
-              "value": "Detail-first messaging",
-              "status": "supported",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Clearer this month, though old habits returned in one meeting.",
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "Helen Brooks opened with a specific workplace moment rather than a general self-critique. Working as HR Business Partner at Northbridge Healthcare Trust, they described how an influence attempt felt pushy; agreed to lead",
           "sourceExcerpt": "Building alliances earlier"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Clearer this month, though old habits returned in one meeting.",
-          "sourceExcerpt": "Relationship awareness"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "Helen Brooks opened with a specific workplace moment rather than a general self-critique. Working as HR Business Partner at Northbridge Healthcare Trust, they described how an influence attempt felt pushy; agreed to lead",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "Helen Brooks opened with a specific workplace moment rather than a general self-critique. Working as HR Business Partner at Northbridge Healthcare Trust, they described how an infl",
+          "sourceExcerpt": "Building alliances earlier"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
       "generatedAt": "2026-05-25T16:00:00.000Z",
       "reviewedAt": "2026-05-25T17:00:00.000Z",
       "appliedAt": "2026-05-25T18:00:00.000Z"
     },
     {
-      "key": "helen-brooks-update-14",
+      "key": "helen-brooks-update-2",
       "relationshipKey": "helen-brooks",
-      "sessionKey": "helen-brooks-session-5",
+      "sessionKey": "helen-brooks-session-6",
       "status": "applied",
-      "conversationSummary": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Confidence rising in familiar settings; still uneven elsewhere.",
+      "conversationSummary": "By conversation 6, Helen Brooks could name the communication pattern through a fresh example: Clarity held with peers and one senior update; under incident pressure, old length returned. Helen Brooks stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Looking across the arc, Helen Brooks's practice is steadier on keeping clarity when the room speeds up, though unfinished edges remain visible whenever pace or challenge increas",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Executive presence and strategic influence",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Helen Brooks."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "strategic leadership",
+              "value": "A recurring coaching theme for Helen Brooks is communication: the gap between intended and enacted behaviour when pressure rises.",
               "status": "well_established",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on keeping clarity when the room speeds up."
             },
             {
-              "value": "stakeholder influence",
-              "status": "well_established",
-              "reason": "Repeated across conversations"
+              "value": "communication is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "supported",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [
+            {
+              "value": "A recurring coaching theme for Helen Brooks is stakeholder influence: the gap between intended and enacted behaviour when pressure rises.",
+              "status": "well_established",
+              "reason": "Strengthened by later conversation evidence."
+            }
+          ],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Relationship awareness",
-              "status": "well_established",
-              "reason": "Observed across reviewed conversations"
+              "value": "Helen Brooks uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
+              "status": "supported",
+              "reason": "Repeated across reviewed conversations."
             },
             {
-              "value": "Thoughtful listening",
-              "status": "well_established",
-              "reason": "Observed across reviewed conversations"
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "supported",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Mapping who shapes decisions",
+              "value": "Keeping clarity when the room speeds up",
               "status": "supported",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted communication under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Detail as safety",
+              "value": "Under increased pace or scrutiny, communication quality drops unless a prepared opening, brief or pause is protected.",
               "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
-            },
-            {
-              "value": "Detail-first messaging",
-              "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Confidence rising in familiar settings; still uneven elsewhere.",
-          "sourceExcerpt": "Building alliances earlier"
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "By conversation 6, Helen Brooks could name the communication pattern through a fresh example: Clarity held with peers and one senior update; under incident pressure, old length returned. Helen Brooks stayed with behaviou",
+          "sourceExcerpt": "Keeping clarity when the room speeds up"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Confidence rising in familiar settings; still uneven elsewhere.",
-          "sourceExcerpt": "Relationship awareness"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "By conversation 6, Helen Brooks could name the communication pattern through a fresh example: Clarity held with peers and one senior update; under incident pressure, old length returned. Helen Brooks stayed with behaviou",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "By conversation 6, Helen Brooks could name the communication pattern through a fresh example: Clarity held with peers and one senior update; under incident pressure, old length ret",
+          "sourceExcerpt": "Keeping clarity when the room speeds up"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
-      "generatedAt": "2026-06-30T16:00:00.000Z",
-      "reviewedAt": "2026-06-30T17:00:00.000Z",
-      "appliedAt": "2026-06-30T18:00:00.000Z"
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
+      "generatedAt": "2026-07-12T16:00:00.000Z",
+      "reviewedAt": "2026-07-12T17:00:00.000Z",
+      "appliedAt": "2026-07-12T18:00:00.000Z"
     },
     {
-      "key": "clinical-lead-a-update-15",
+      "key": "clinical-lead-a-update-1",
       "relationshipKey": "clinical-lead-a",
       "sessionKey": "clinical-lead-a-session-2",
       "status": "applied",
-      "conversationSummary": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Clearer this month, though old habits returned in one meeting.",
+      "conversationSummary": "Clinical Lead programme opened with a specific workplace moment rather than a general self-critique. Working as Clinical Lead at Northbridge Healthcare Trust, they described how in a 1:1, advice arrived early and the other person closed down; listening shortened. Clinical Lead programme stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Between sessions, Clinical Lead programme had attempted a contained experiment linked to ",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Psychological safety",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Clinical Lead programme."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "confidence",
+              "value": "A recurring coaching theme for Clinical Lead programme is communication: the gap between intended and enacted behaviour when pressure rises.",
               "status": "supported",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on listening before advising."
             },
             {
-              "value": "communication",
-              "status": "supported",
-              "reason": "Repeated across conversations"
+              "value": "communication is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "emerging",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Quiet preparation",
+              "value": "Clinical Lead programme uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
               "status": "supported",
-              "reason": "Observed across reviewed conversations"
+              "reason": "Repeated across reviewed conversations."
             },
             {
-              "value": "Thoughtful listening",
-              "status": "supported",
-              "reason": "Observed across reviewed conversations"
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "emerging",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Clearer messages under time pressure",
+              "value": "Listening before advising",
               "status": "emerging",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted communication under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Detail-first messaging",
+              "value": "Under increased pace or scrutiny, communication quality drops unless a prepared opening, brief or pause is protected.",
               "status": "supported",
-              "reason": "Recognised across reviewed conversations"
-            },
-            {
-              "value": "Avoidance before candour",
-              "status": "supported",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Clearer this month, though old habits returned in one meeting.",
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "Clinical Lead programme opened with a specific workplace moment rather than a general self-critique. Working as Clinical Lead at Northbridge Healthcare Trust, they described how in a 1:1, advice arrived early and the oth",
           "sourceExcerpt": "Listening before advising"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Clearer this month, though old habits returned in one meeting.",
-          "sourceExcerpt": "Quiet preparation"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "Clinical Lead programme opened with a specific workplace moment rather than a general self-critique. Working as Clinical Lead at Northbridge Healthcare Trust, they described how in a 1:1, advice arrived early and the oth",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "Clinical Lead programme opened with a specific workplace moment rather than a general self-critique. Working as Clinical Lead at Northbridge Healthcare Trust, they described how in",
+          "sourceExcerpt": "Listening before advising"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
       "generatedAt": "2026-05-26T16:00:00.000Z",
       "reviewedAt": "2026-05-26T17:00:00.000Z",
       "appliedAt": "2026-05-26T18:00:00.000Z"
     },
     {
-      "key": "clinical-lead-a-update-16",
+      "key": "clinical-lead-a-update-2",
       "relationshipKey": "clinical-lead-a",
-      "sessionKey": "clinical-lead-a-session-5",
+      "sessionKey": "clinical-lead-a-session-6",
       "status": "applied",
-      "conversationSummary": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Confidence rising in familiar settings; still uneven elsewhere.",
+      "conversationSummary": "By conversation 6, Clinical Lead programme could name the difficult conversations pattern through a fresh example: Two conversations held well this month; one still softened when relationships felt fragile. Clinical Lead programme stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Looking across the arc, Clinical Lead programme's practice is steadier on making difficult talks more routine, though unfinished edges remain visi",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Psychological safety",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Clinical Lead programme."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "confidence",
+              "value": "A recurring coaching theme for Clinical Lead programme is difficult conversations: the gap between intended and enacted behaviour when pressure rises.",
               "status": "well_established",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on making difficult talks more routine."
             },
             {
-              "value": "communication",
-              "status": "well_established",
-              "reason": "Repeated across conversations"
+              "value": "difficult conversations is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "supported",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [
+            {
+              "value": "A recurring coaching theme for Clinical Lead programme is communication: the gap between intended and enacted behaviour when pressure rises.",
+              "status": "well_established",
+              "reason": "Strengthened by later conversation evidence."
+            }
+          ],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Quiet preparation",
-              "status": "well_established",
-              "reason": "Observed across reviewed conversations"
+              "value": "Clinical Lead programme uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
+              "status": "supported",
+              "reason": "Repeated across reviewed conversations."
             },
             {
-              "value": "Thoughtful listening",
-              "status": "well_established",
-              "reason": "Observed across reviewed conversations"
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "supported",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Clearer messages under time pressure",
+              "value": "Making difficult talks more routine",
               "status": "supported",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted difficult conversations under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Detail-first messaging",
+              "value": "Under increased pace or scrutiny, difficult conversations quality drops unless a prepared opening, brief or pause is protected.",
               "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
-            },
-            {
-              "value": "Avoidance before candour",
-              "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Confidence rising in familiar settings; still uneven elsewhere.",
-          "sourceExcerpt": "Listening before advising"
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "By conversation 6, Clinical Lead programme could name the difficult conversations pattern through a fresh example: Two conversations held well this month; one still softened when relationships felt fragile. Clinical Lead",
+          "sourceExcerpt": "Making difficult talks more routine"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Confidence rising in familiar settings; still uneven elsewhere.",
-          "sourceExcerpt": "Quiet preparation"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "By conversation 6, Clinical Lead programme could name the difficult conversations pattern through a fresh example: Two conversations held well this month; one still softened when relationships felt fragile. Clinical Lead",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "By conversation 6, Clinical Lead programme could name the difficult conversations pattern through a fresh example: Two conversations held well this month; one still softened when r",
+          "sourceExcerpt": "Making difficult talks more routine"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
-      "generatedAt": "2026-07-01T16:00:00.000Z",
-      "reviewedAt": "2026-07-01T17:00:00.000Z",
-      "appliedAt": "2026-07-01T18:00:00.000Z"
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
+      "generatedAt": "2026-07-13T16:00:00.000Z",
+      "reviewedAt": "2026-07-13T17:00:00.000Z",
+      "appliedAt": "2026-07-13T18:00:00.000Z"
     },
     {
-      "key": "rachel-morgan-update-17",
+      "key": "rachel-morgan-update-1",
       "relationshipKey": "rachel-morgan",
       "sessionKey": "rachel-morgan-session-2",
       "status": "applied",
-      "conversationSummary": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Clearer this month, though old habits returned in one meeting.",
+      "conversationSummary": "Rachel Morgan opened with a specific workplace moment rather than a general self-critique. Working as Head of Administration at Northbridge Healthcare Trust, they described how in a 1:1, advice arrived early and the other person closed down; listening shortened. Rachel Morgan stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Between sessions, Rachel Morgan had attempted a contained experiment linked to listening before advi",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Coaching culture",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Rachel Morgan."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "delegation",
+              "value": "A recurring coaching theme for Rachel Morgan is communication: the gap between intended and enacted behaviour when pressure rises.",
               "status": "supported",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on listening before advising."
             },
             {
-              "value": "communication",
-              "status": "supported",
-              "reason": "Repeated across conversations"
+              "value": "communication is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "emerging",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Thoughtful listening",
+              "value": "Rachel Morgan uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
               "status": "supported",
-              "reason": "Observed across reviewed conversations"
+              "reason": "Repeated across reviewed conversations."
             },
             {
-              "value": "Relationship awareness",
-              "status": "supported",
-              "reason": "Observed across reviewed conversations"
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "emerging",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Clearer messages under time pressure",
+              "value": "Listening before advising",
               "status": "emerging",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted communication under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Reclaiming delegated work",
+              "value": "Under increased pace or scrutiny, communication quality drops unless a prepared opening, brief or pause is protected.",
               "status": "supported",
-              "reason": "Recognised across reviewed conversations"
-            },
-            {
-              "value": "Detail-first messaging",
-              "status": "supported",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Clearer this month, though old habits returned in one meeting.",
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "Rachel Morgan opened with a specific workplace moment rather than a general self-critique. Working as Head of Administration at Northbridge Healthcare Trust, they described how in a 1:1, advice arrived early and the othe",
           "sourceExcerpt": "Listening before advising"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Clearer this month, though old habits returned in one meeting.",
-          "sourceExcerpt": "Thoughtful listening"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "Rachel Morgan opened with a specific workplace moment rather than a general self-critique. Working as Head of Administration at Northbridge Healthcare Trust, they described how in a 1:1, advice arrived early and the othe",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "Rachel Morgan opened with a specific workplace moment rather than a general self-critique. Working as Head of Administration at Northbridge Healthcare Trust, they described how in ",
+          "sourceExcerpt": "Listening before advising"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
       "generatedAt": "2026-05-27T16:00:00.000Z",
       "reviewedAt": "2026-05-27T17:00:00.000Z",
       "appliedAt": "2026-05-27T18:00:00.000Z"
     },
     {
-      "key": "rachel-morgan-update-18",
+      "key": "rachel-morgan-update-2",
       "relationshipKey": "rachel-morgan",
-      "sessionKey": "rachel-morgan-session-5",
+      "sessionKey": "rachel-morgan-session-6",
       "status": "applied",
-      "conversationSummary": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Confidence rising in familiar settings; still uneven elsewhere.",
+      "conversationSummary": "By conversation 6, Rachel Morgan could name the stakeholder influence pattern through a fresh example: Influence was steadier this month; one late engagement repeated the old pattern. Rachel Morgan stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Looking across the arc, Rachel Morgan's practice is steadier on keeping alliances warm between decisions, though unfinished edges remain visible whenever pace or challenge increas",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Coaching culture",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Rachel Morgan."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "delegation",
+              "value": "A recurring coaching theme for Rachel Morgan is stakeholder influence: the gap between intended and enacted behaviour when pressure rises.",
               "status": "well_established",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on keeping alliances warm between decisions."
             },
             {
-              "value": "communication",
-              "status": "well_established",
-              "reason": "Repeated across conversations"
+              "value": "stakeholder influence is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "supported",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [
+            {
+              "value": "A recurring coaching theme for Rachel Morgan is communication: the gap between intended and enacted behaviour when pressure rises.",
+              "status": "well_established",
+              "reason": "Strengthened by later conversation evidence."
+            }
+          ],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Thoughtful listening",
-              "status": "well_established",
-              "reason": "Observed across reviewed conversations"
+              "value": "Rachel Morgan uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
+              "status": "supported",
+              "reason": "Repeated across reviewed conversations."
             },
             {
-              "value": "Relationship awareness",
-              "status": "well_established",
-              "reason": "Observed across reviewed conversations"
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "supported",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Clearer messages under time pressure",
+              "value": "Keeping alliances warm between decisions",
               "status": "supported",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted stakeholder influence under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Reclaiming delegated work",
+              "value": "Under increased pace or scrutiny, stakeholder influence quality drops unless a prepared opening, brief or pause is protected.",
               "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
-            },
-            {
-              "value": "Detail-first messaging",
-              "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Confidence rising in familiar settings; still uneven elsewhere.",
-          "sourceExcerpt": "Listening before advising"
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "By conversation 6, Rachel Morgan could name the stakeholder influence pattern through a fresh example: Influence was steadier this month; one late engagement repeated the old pattern. Rachel Morgan stayed with behavioura",
+          "sourceExcerpt": "Keeping alliances warm between decisions"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Explored a conversation that escalated. Listening shortened early and advice arrived too soon. Confidence rising in familiar settings; still uneven elsewhere.",
-          "sourceExcerpt": "Thoughtful listening"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "By conversation 6, Rachel Morgan could name the stakeholder influence pattern through a fresh example: Influence was steadier this month; one late engagement repeated the old pattern. Rachel Morgan stayed with behavioura",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "By conversation 6, Rachel Morgan could name the stakeholder influence pattern through a fresh example: Influence was steadier this month; one late engagement repeated the old patte",
+          "sourceExcerpt": "Keeping alliances warm between decisions"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
-      "generatedAt": "2026-07-02T16:00:00.000Z",
-      "reviewedAt": "2026-07-02T17:00:00.000Z",
-      "appliedAt": "2026-07-02T18:00:00.000Z"
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
+      "generatedAt": "2026-07-14T16:00:00.000Z",
+      "reviewedAt": "2026-07-14T17:00:00.000Z",
+      "appliedAt": "2026-07-14T18:00:00.000Z"
     },
     {
-      "key": "owen-lewis-update-19",
+      "key": "owen-lewis-update-1",
       "relationshipKey": "owen-lewis",
       "sessionKey": "owen-lewis-session-2",
       "status": "applied",
-      "conversationSummary": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Clearer this month, though old habits returned in one meeting.",
+      "conversationSummary": "Owen Lewis opened with a specific workplace moment rather than a general self-critique. Working as IT Service Manager at Northbridge Healthcare Trust, they described how an influence attempt felt pushy; agreed to lead with shared interests next time. Owen Lewis stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Between sessions, Owen Lewis had attempted a contained experiment linked to building alliances earlier. Reviewing i",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Collaboration and communication",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Owen Lewis."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "communication",
+              "value": "A recurring coaching theme for Owen Lewis is stakeholder influence: the gap between intended and enacted behaviour when pressure rises.",
               "status": "supported",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on building alliances earlier."
             },
             {
-              "value": "stakeholder influence",
-              "status": "supported",
-              "reason": "Repeated across conversations"
+              "value": "stakeholder influence is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "emerging",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Thoughtful listening",
+              "value": "Owen Lewis uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
               "status": "supported",
-              "reason": "Observed across reviewed conversations"
+              "reason": "Repeated across reviewed conversations."
             },
             {
-              "value": "Relationship awareness",
-              "status": "supported",
-              "reason": "Observed across reviewed conversations"
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "emerging",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Mapping who shapes decisions",
+              "value": "Building alliances earlier",
               "status": "emerging",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted stakeholder influence under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Detail-first messaging",
+              "value": "Under increased pace or scrutiny, stakeholder influence quality drops unless a prepared opening, brief or pause is protected.",
               "status": "supported",
-              "reason": "Recognised across reviewed conversations"
-            },
-            {
-              "value": "Avoidance before candour",
-              "status": "supported",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Clearer this month, though old habits returned in one meeting.",
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "Owen Lewis opened with a specific workplace moment rather than a general self-critique. Working as IT Service Manager at Northbridge Healthcare Trust, they described how an influence attempt felt pushy; agreed to lead wi",
           "sourceExcerpt": "Building alliances earlier"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Clearer this month, though old habits returned in one meeting.",
-          "sourceExcerpt": "Thoughtful listening"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "Owen Lewis opened with a specific workplace moment rather than a general self-critique. Working as IT Service Manager at Northbridge Healthcare Trust, they described how an influence attempt felt pushy; agreed to lead wi",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "Owen Lewis opened with a specific workplace moment rather than a general self-critique. Working as IT Service Manager at Northbridge Healthcare Trust, they described how an influen",
+          "sourceExcerpt": "Building alliances earlier"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
       "generatedAt": "2026-05-25T16:00:00.000Z",
       "reviewedAt": "2026-05-25T17:00:00.000Z",
       "appliedAt": "2026-05-25T18:00:00.000Z"
     },
     {
-      "key": "owen-lewis-update-20",
+      "key": "owen-lewis-update-2",
       "relationshipKey": "owen-lewis",
-      "sessionKey": "owen-lewis-session-5",
+      "sessionKey": "owen-lewis-session-6",
       "status": "applied",
-      "conversationSummary": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Confidence rising in familiar settings; still uneven elsewhere.",
+      "conversationSummary": "By conversation 6, Owen Lewis could name the difficult conversations pattern through a fresh example: Two conversations held well this month; one still softened when relationships felt fragile. Owen Lewis stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Looking across the arc, Owen Lewis's practice is steadier on making difficult talks more routine, though unfinished edges remain visible whenever pace or challenge increase",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Collaboration and communication",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Owen Lewis."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "communication",
+              "value": "A recurring coaching theme for Owen Lewis is difficult conversations: the gap between intended and enacted behaviour when pressure rises.",
               "status": "well_established",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on making difficult talks more routine."
             },
             {
-              "value": "stakeholder influence",
-              "status": "well_established",
-              "reason": "Repeated across conversations"
+              "value": "difficult conversations is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "supported",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [
+            {
+              "value": "A recurring coaching theme for Owen Lewis is stakeholder influence: the gap between intended and enacted behaviour when pressure rises.",
+              "status": "well_established",
+              "reason": "Strengthened by later conversation evidence."
+            }
+          ],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Thoughtful listening",
-              "status": "well_established",
-              "reason": "Observed across reviewed conversations"
+              "value": "Owen Lewis uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
+              "status": "supported",
+              "reason": "Repeated across reviewed conversations."
             },
             {
-              "value": "Relationship awareness",
-              "status": "well_established",
-              "reason": "Observed across reviewed conversations"
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "supported",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Mapping who shapes decisions",
+              "value": "Making difficult talks more routine",
               "status": "supported",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted difficult conversations under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Detail-first messaging",
+              "value": "Under increased pace or scrutiny, difficult conversations quality drops unless a prepared opening, brief or pause is protected.",
               "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
-            },
-            {
-              "value": "Avoidance before candour",
-              "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Confidence rising in familiar settings; still uneven elsewhere.",
-          "sourceExcerpt": "Building alliances earlier"
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "By conversation 6, Owen Lewis could name the difficult conversations pattern through a fresh example: Two conversations held well this month; one still softened when relationships felt fragile. Owen Lewis stayed with beh",
+          "sourceExcerpt": "Making difficult talks more routine"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Reviewed an influence attempt that felt pushy. Agreed to lead with shared interests. Confidence rising in familiar settings; still uneven elsewhere.",
-          "sourceExcerpt": "Thoughtful listening"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "By conversation 6, Owen Lewis could name the difficult conversations pattern through a fresh example: Two conversations held well this month; one still softened when relationships felt fragile. Owen Lewis stayed with beh",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "By conversation 6, Owen Lewis could name the difficult conversations pattern through a fresh example: Two conversations held well this month; one still softened when relationships ",
+          "sourceExcerpt": "Making difficult talks more routine"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
-      "generatedAt": "2026-06-30T16:00:00.000Z",
-      "reviewedAt": "2026-06-30T17:00:00.000Z",
-      "appliedAt": "2026-06-30T18:00:00.000Z"
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
+      "generatedAt": "2026-07-12T16:00:00.000Z",
+      "reviewedAt": "2026-07-12T17:00:00.000Z",
+      "appliedAt": "2026-07-12T18:00:00.000Z"
     },
     {
-      "key": "operations-director-b-update-21",
+      "key": "operations-director-b-update-1",
       "relationshipKey": "operations-director-b",
       "sessionKey": "operations-director-b-session-2",
       "status": "applied",
-      "conversationSummary": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Clearer this month, though old habits returned in one meeting.",
+      "conversationSummary": "Operations leadership programme opened with a specific workplace moment rather than a general self-critique. Working as Operations Director at Northbridge Healthcare Trust, they described how rehearsed an opening line; the live conversation stayed polite and avoided impact. Operations leadership programme stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Between sessions, Operations leadership programme had attempted a cont",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Leading change",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Operations leadership programme."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "strategic leadership",
+              "value": "A recurring coaching theme for Operations leadership programme is difficult conversations: the gap between intended and enacted behaviour when pressure rises.",
               "status": "supported",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on opening feedback with purpose."
             },
             {
-              "value": "difficult conversations",
-              "status": "supported",
-              "reason": "Repeated across conversations"
+              "value": "difficult conversations is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "emerging",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Practical reflection",
+              "value": "Operations leadership programme uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
               "status": "supported",
-              "reason": "Observed across reviewed conversations"
+              "reason": "Repeated across reviewed conversations."
+            },
+            {
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "emerging",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Naming the issue earlier",
+              "value": "Opening feedback with purpose",
               "status": "emerging",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted difficult conversations under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Detail as safety",
+              "value": "Under increased pace or scrutiny, difficult conversations quality drops unless a prepared opening, brief or pause is protected.",
               "status": "supported",
-              "reason": "Recognised across reviewed conversations"
-            },
-            {
-              "value": "Avoidance before candour",
-              "status": "supported",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Clearer this month, though old habits returned in one meeting.",
-          "sourceExcerpt": "Staying present when challenged"
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "Operations leadership programme opened with a specific workplace moment rather than a general self-critique. Working as Operations Director at Northbridge Healthcare Trust, they described how rehearsed an opening line; t",
+          "sourceExcerpt": "Opening feedback with purpose"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Clearer this month, though old habits returned in one meeting.",
-          "sourceExcerpt": "Practical reflection"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "Operations leadership programme opened with a specific workplace moment rather than a general self-critique. Working as Operations Director at Northbridge Healthcare Trust, they described how rehearsed an opening line; t",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "Operations leadership programme opened with a specific workplace moment rather than a general self-critique. Working as Operations Director at Northbridge Healthcare Trust, they de",
+          "sourceExcerpt": "Opening feedback with purpose"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
       "generatedAt": "2026-05-26T16:00:00.000Z",
       "reviewedAt": "2026-05-26T17:00:00.000Z",
       "appliedAt": "2026-05-26T18:00:00.000Z"
     },
     {
-      "key": "operations-director-b-update-22",
+      "key": "operations-director-b-update-2",
       "relationshipKey": "operations-director-b",
-      "sessionKey": "operations-director-b-session-5",
+      "sessionKey": "operations-director-b-session-6",
       "status": "applied",
-      "conversationSummary": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Confidence rising in familiar settings; still uneven elsewhere.",
+      "conversationSummary": "By conversation 6, Operations leadership programme could name the delegation pattern through a fresh example: Delegation held through a busy week on two tasks; a third was pulled back when a complaint arrived. Operations leadership programme stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Looking across the arc, Operations leadership programme's practice is steadier on protecting delegation when operational heat rises, th",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Leading change",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Operations leadership programme."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "strategic leadership",
+              "value": "A recurring coaching theme for Operations leadership programme is delegation: the gap between intended and enacted behaviour when pressure rises.",
               "status": "well_established",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on protecting delegation when operational heat rises."
             },
             {
-              "value": "difficult conversations",
-              "status": "well_established",
-              "reason": "Repeated across conversations"
+              "value": "delegation is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "supported",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [
+            {
+              "value": "A recurring coaching theme for Operations leadership programme is difficult conversations: the gap between intended and enacted behaviour when pressure rises.",
+              "status": "well_established",
+              "reason": "Strengthened by later conversation evidence."
+            }
+          ],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Practical reflection",
-              "status": "well_established",
-              "reason": "Observed across reviewed conversations"
+              "value": "Operations leadership programme uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
+              "status": "supported",
+              "reason": "Repeated across reviewed conversations."
+            },
+            {
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "supported",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Naming the issue earlier",
+              "value": "Protecting delegation when operational heat rises",
               "status": "supported",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted delegation under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Detail as safety",
+              "value": "Under increased pace or scrutiny, delegation quality drops unless a prepared opening, brief or pause is protected.",
               "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
-            },
-            {
-              "value": "Avoidance before candour",
-              "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Confidence rising in familiar settings; still uneven elsewhere.",
-          "sourceExcerpt": "Staying present when challenged"
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "By conversation 6, Operations leadership programme could name the delegation pattern through a fresh example: Delegation held through a busy week on two tasks; a third was pulled back when a complaint arrived. Operations",
+          "sourceExcerpt": "Protecting delegation when operational heat rises"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Reviewed a conversation that stayed too polite. Agreed to name the impact next time. Confidence rising in familiar settings; still uneven elsewhere.",
-          "sourceExcerpt": "Practical reflection"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "By conversation 6, Operations leadership programme could name the delegation pattern through a fresh example: Delegation held through a busy week on two tasks; a third was pulled back when a complaint arrived. Operations",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "By conversation 6, Operations leadership programme could name the delegation pattern through a fresh example: Delegation held through a busy week on two tasks; a third was pulled b",
+          "sourceExcerpt": "Protecting delegation when operational heat rises"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
-      "generatedAt": "2026-07-01T16:00:00.000Z",
-      "reviewedAt": "2026-07-01T17:00:00.000Z",
-      "appliedAt": "2026-07-01T18:00:00.000Z"
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
+      "generatedAt": "2026-07-13T16:00:00.000Z",
+      "reviewedAt": "2026-07-13T17:00:00.000Z",
+      "appliedAt": "2026-07-13T18:00:00.000Z"
     },
     {
-      "key": "aisha-khan-update-23",
+      "key": "aisha-khan-update-1",
       "relationshipKey": "aisha-khan",
       "sessionKey": "aisha-khan-session-2",
       "status": "applied",
-      "conversationSummary": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Clearer this month, though old habits returned in one meeting.",
+      "conversationSummary": "Aisha Khan opened with a specific workplace moment rather than a general self-critique. Working as Service Improvement Lead at Northbridge Healthcare Trust, they described how prepared extensively for a quality board update, then compressed the ask so tightly that the decision request was unclear. Aisha Khan stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Between sessions, Aisha Khan had attempted a contained experiment l",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Strategic leadership and visibility",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Aisha Khan."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "strategic leadership",
+              "value": "A recurring coaching theme for Aisha Khan is confidence: the gap between intended and enacted behaviour when pressure rises.",
               "status": "supported",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on speaking earlier without over-preparing."
             },
             {
-              "value": "confidence",
-              "status": "supported",
-              "reason": "Repeated across conversations"
+              "value": "confidence is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "emerging",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Quiet preparation",
+              "value": "Aisha Khan uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
               "status": "supported",
-              "reason": "Observed across reviewed conversations"
+              "reason": "Repeated across reviewed conversations."
             },
             {
-              "value": "Relationship awareness",
-              "status": "supported",
-              "reason": "Observed across reviewed conversations"
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "emerging",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Building steadiness under pressure",
+              "value": "Speaking earlier without over-preparing",
               "status": "emerging",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted confidence under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Detail as safety",
+              "value": "Under increased pace or scrutiny, confidence quality drops unless a prepared opening, brief or pause is protected.",
               "status": "supported",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Clearer this month, though old habits retu",
-          "sourceExcerpt": "Speaking with clearer authority"
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "Aisha Khan opened with a specific workplace moment rather than a general self-critique. Working as Service Improvement Lead at Northbridge Healthcare Trust, they described how prepared extensively for a quality board upd",
+          "sourceExcerpt": "Speaking earlier without over-preparing"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Clearer this month, though old habits retu",
-          "sourceExcerpt": "Quiet preparation"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "Aisha Khan opened with a specific workplace moment rather than a general self-critique. Working as Service Improvement Lead at Northbridge Healthcare Trust, they described how prepared extensively for a quality board upd",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "Aisha Khan opened with a specific workplace moment rather than a general self-critique. Working as Service Improvement Lead at Northbridge Healthcare Trust, they described how prep",
+          "sourceExcerpt": "Speaking earlier without over-preparing"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
       "generatedAt": "2026-05-27T16:00:00.000Z",
       "reviewedAt": "2026-05-27T17:00:00.000Z",
       "appliedAt": "2026-05-27T18:00:00.000Z"
     },
     {
-      "key": "aisha-khan-update-24",
+      "key": "aisha-khan-update-2",
       "relationshipKey": "aisha-khan",
-      "sessionKey": "aisha-khan-session-5",
+      "sessionKey": "aisha-khan-session-6",
       "status": "applied",
-      "conversationSummary": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Confidence rising in familiar settings; still uneven elsewhere.",
+      "conversationSummary": "By conversation 6, Aisha Khan could name the stakeholder influence pattern through a fresh example: Influence was steadier this month; one late engagement repeated the old pattern. Aisha Khan stayed with behavioural detail long enough for the coaching to separate intention from enacted action. Looking across the arc, Aisha Khan's practice is steadier on keeping alliances warm between decisions, though unfinished edges remain visible whenever pace or challenge increases. The t",
       "hasMeaningfulChanges": true,
       "proposedChanges": {
         "currentFocus": {
           "action": "replace",
           "value": "Strategic leadership and visibility",
-          "reason": "Confirmed through recent conversations"
+          "reason": "Confirmed through recent conversations with Aisha Khan."
         },
         "emergingThemes": {
           "add": [
             {
-              "value": "strategic leadership",
+              "value": "A recurring coaching theme for Aisha Khan is stakeholder influence: the gap between intended and enacted behaviour when pressure rises.",
               "status": "well_established",
-              "reason": "Repeated across conversations"
+              "reason": "Supported by conversation evidence focused on keeping alliances warm between decisions."
             },
             {
-              "value": "confidence",
-              "status": "well_established",
-              "reason": "Repeated across conversations"
+              "value": "stakeholder influence is most usefully coached through one live example at a time, comparing preparation, enactment and impact.",
+              "status": "supported",
+              "reason": "Repeated useful structure across conversations."
             }
-          ]
+          ],
+          "update": [
+            {
+              "value": "A recurring coaching theme for Aisha Khan is confidence: the gap between intended and enacted behaviour when pressure rises.",
+              "status": "well_established",
+              "reason": "Strengthened by later conversation evidence."
+            }
+          ],
+          "remove": []
         },
         "strengths": {
           "add": [
             {
-              "value": "Quiet preparation",
-              "status": "well_established",
-              "reason": "Observed across reviewed conversations"
+              "value": "Aisha Khan uses concrete behavioural examples in coaching, which keeps the work focused on observable actions.",
+              "status": "supported",
+              "reason": "Repeated across reviewed conversations."
             },
             {
-              "value": "Relationship awareness",
-              "status": "well_established",
-              "reason": "Observed across reviewed conversations"
+              "value": "Willingness to agree and review practical experiments between sessions.",
+              "status": "supported",
+              "reason": "Visible in commitments and follow-through discussion."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "growthAreas": {
           "add": [
             {
-              "value": "Building steadiness under pressure",
+              "value": "Keeping alliances warm between decisions",
               "status": "supported",
-              "reason": "Active development focus"
+              "reason": "Active development focus evidenced in the latest conversation."
+            },
+            {
+              "value": "Strengthen enacted stakeholder influence under pressure so preparation is not softened, delayed or abandoned in the live moment.",
+              "status": "supported",
+              "reason": "Pattern repeatedly visible when stakes rise."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         },
         "patterns": {
           "add": [
             {
-              "value": "Detail as safety",
+              "value": "Under increased pace or scrutiny, stakeholder influence quality drops unless a prepared opening, brief or pause is protected.",
               "status": "well_established",
-              "reason": "Recognised across reviewed conversations"
+              "reason": "Recognised across reviewed conversations."
             }
-          ]
+          ],
+          "update": [],
+          "remove": []
         }
       },
       "evidenceSummary": [
         {
-          "changeKey": "emergingThemes",
-          "evidenceText": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Confidence rising in familiar settings; st",
-          "sourceExcerpt": "Speaking with clearer authority"
+          "changeKey": "emergingThemes.add.0",
+          "evidenceText": "By conversation 6, Aisha Khan could name the stakeholder influence pattern through a fresh example: Influence was steadier this month; one late engagement repeated the old pattern. Aisha Khan stayed with behavioural deta",
+          "sourceExcerpt": "Keeping alliances warm between decisions"
         },
         {
-          "changeKey": "strengths",
-          "evidenceText": "Reviewed a recent meeting. Progress is uneven: clearer in familiar settings, still cautious with senior stakeholders. Confidence rising in familiar settings; st",
-          "sourceExcerpt": "Quiet preparation"
+          "changeKey": "strengths.add.0",
+          "evidenceText": "By conversation 6, Aisha Khan could name the stakeholder influence pattern through a fresh example: Influence was steadier this month; one late engagement repeated the old pattern. Aisha Khan stayed with behavioural deta",
+          "sourceExcerpt": "Specific self-observation"
+        },
+        {
+          "changeKey": "growthAreas.add.0",
+          "evidenceText": "By conversation 6, Aisha Khan could name the stakeholder influence pattern through a fresh example: Influence was steadier this month; one late engagement repeated the old pattern.",
+          "sourceExcerpt": "Keeping alliances warm between decisions"
         }
       ],
-      "coachNote": "Sample applied update for evaluation.",
-      "generatedAt": "2026-07-02T16:00:00.000Z",
-      "reviewedAt": "2026-07-02T17:00:00.000Z",
-      "appliedAt": "2026-07-02T18:00:00.000Z"
+      "coachNote": "Coach-reviewed and accepted for the Northbridge demonstration pack.",
+      "generatedAt": "2026-07-14T16:00:00.000Z",
+      "reviewedAt": "2026-07-14T17:00:00.000Z",
+      "appliedAt": "2026-07-14T18:00:00.000Z"
     }
   ]
 }

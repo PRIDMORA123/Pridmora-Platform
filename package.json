@@ -14,6 +14,7 @@
     "qa:multi-client:smoke": "node --experimental-strip-types scripts/qa-multi-client-reliability.mjs --mode=smoke",
     "qa:multi-client:scale": "node --experimental-strip-types scripts/qa-multi-client-reliability.mjs --mode=scale",
     "verify:organisation-migration": "node --experimental-strip-types scripts/verify-organisation-migration.mjs",
+    "rebuild:northbridge": "node --import ./scripts/ts-alias-loader.mjs --experimental-strip-types scripts/rebuild-northbridge-production-pack.mjs",
     "db": "node scripts/db.mjs",
     "db:login": "node scripts/db.mjs login",
     "db:link": "node scripts/db.mjs link",

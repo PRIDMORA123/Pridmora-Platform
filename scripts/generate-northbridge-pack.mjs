@@ -1,6 +1,12 @@
 /**
- * Generates the Northbridge Healthcare Trust sample organisation pack JSON files.
- * Run: node scripts/generate-northbridge-pack.mjs
+ * Offline template generator for Northbridge pack structure checks.
+ *
+ * Demonstration pack intelligence is produced by the production AI rebuild:
+ *   node --import ./scripts/ts-alias-loader.mjs --experimental-strip-types \
+ *     scripts/rebuild-northbridge-production-pack.mjs
+ *
+ * Do not use this template generator to overwrite the demonstration pack
+ * unless you intentionally want non-AI placeholder content.
  */
 import { writeFileSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -11,7 +17,7 @@ const outDir = join(root, "sample-data", "northbridge-healthcare");
 mkdirSync(outDir, { recursive: true });
 
 const ORGANISATION_LABEL = "Northbridge Healthcare Trust";
-const PACK_VERSION = "1.0.0";
+const PACK_VERSION = "1.0.0-templates";
 
 /** Anchor end date: ~today relative for six months of history. */
 const ANCHOR = new Date("2026-08-04T12:00:00.000Z");

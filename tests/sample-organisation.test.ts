@@ -84,14 +84,23 @@ describe("sample organisation pack", () => {
     for (const update of developmentUpdates) {
       expect(update.status).toBe("applied");
       const changes = update.proposedChanges as {
-        emergingThemes?: { add?: unknown[] };
-        growthAreas?: { add?: unknown[] };
-        strengths?: { add?: unknown[] };
+        emergingThemes?: { add?: unknown[]; update?: unknown[] };
+        growthAreas?: { add?: unknown[]; update?: unknown[] };
+        strengths?: { add?: unknown[]; update?: unknown[] };
         currentFocus?: { value?: string };
       };
-      expect(changes.emergingThemes?.add?.length).toBeGreaterThan(0);
-      expect(changes.growthAreas?.add?.length).toBeGreaterThan(0);
-      expect(changes.strengths?.add?.length).toBeGreaterThan(0);
+      const themeCount =
+        (changes.emergingThemes?.add?.length || 0) +
+        (changes.emergingThemes?.update?.length || 0);
+      const growthCount =
+        (changes.growthAreas?.add?.length || 0) +
+        (changes.growthAreas?.update?.length || 0);
+      const strengthCount =
+        (changes.strengths?.add?.length || 0) +
+        (changes.strengths?.update?.length || 0);
+      expect(themeCount).toBeGreaterThan(0);
+      expect(growthCount).toBeGreaterThan(0);
+      expect(strengthCount).toBeGreaterThan(0);
       expect(changes.currentFocus?.value).toBeTruthy();
     }
 
@@ -108,11 +117,57 @@ describe("sample organisation pack", () => {
     expect(seed).toContain("Unable to apply sample development update.");
   });
 
-  it("seeds approved summary status for completed sample conversations", () => {
+  it("freezes production-shaped conversation intelligence in the pack", () => {
+    const loaded = loadSamplePack("northbridge-healthcare");
+    expect(loaded.ok).toBe(true);
+    if (!loaded.ok) return;
+
+    const { sessions, developmentUpdates, manifest } = loaded.pack;
+    expect(manifest.packVersion.startsWith("2.")).toBe(true);
+
+    for (const session of sessions) {
+      expect(session.aiSummaryApproved).toBe(true);
+      expect(String(session.summary || "").trim().length).toBeGreaterThan(200);
+      expect(String(session.emergingThemes || "").trim().length).toBeGreaterThan(20);
+      expect(String(session.strengthsObserved || "").trim().length).toBeGreaterThan(10);
+      expect(
+        String(session.valuesBecomingVisible || "").trim().length
+      ).toBeGreaterThan(10);
+      expect(
+        String(session.professionalIdentityDevelopment || "").trim().length
+      ).toBeGreaterThan(10);
+    }
+
+    for (const update of developmentUpdates) {
+      const changes = update.proposedChanges as {
+        strengths?: { add?: unknown[] };
+        emergingThemes?: { add?: unknown[] };
+        growthAreas?: { add?: unknown[] };
+      };
+      expect(
+        (changes.strengths?.add?.length || 0) +
+          (changes.emergingThemes?.add?.length || 0) +
+          (changes.growthAreas?.add?.length || 0)
+      ).toBeGreaterThan(0);
+    }
+
+    const rebuild = read("scripts/rebuild-northbridge-production-pack.mjs");
+    expect(rebuild).toContain("DRAFT_SUMMARY_INSTRUCTIONS");
+    expect(rebuild).toContain("DEVELOPMENT_UPDATE_SYSTEM_PROMPT");
+    expect(rebuild).toContain("serialiseSummaryContent");
+    expect(rebuild).toContain("parseSummaryInsightsFromModel");
+    expect(rebuild).not.toMatch(/seedExistingSampleOrganisation/);
+  });
+
+  it("does not regenerate conversation intelligence during sample install", () => {
     const seed = read("lib/sample-organisations/seed-content.ts");
-    expect(seed).toContain(
-      'summary_status: session.aiSummaryApproved ? "approved" : "not_generated"'
-    );
+    const install = read("lib/sample-organisations/install.ts");
+    expect(seed).not.toContain("DRAFT_SUMMARY_INSTRUCTIONS");
+    expect(seed).not.toContain("openai.responses.create");
+    expect(seed).toContain("summary: session.summary");
+    expect(seed).toContain("apply_development_update");
+    expect(install).not.toContain("DRAFT_SUMMARY_INSTRUCTIONS");
+    expect(install).not.toContain("rebuild-northbridge-production-pack");
   });
 
   it("rejects packs with private email on confidential relationships", () => {

@@ -1,8 +1,8 @@
 {
   "packKey": "northbridge-healthcare",
-  "packVersion": "1.0.0",
+  "packVersion": "2.0.0",
   "title": "Northbridge Healthcare Trust",
-  "summary": "Create a realistic fictional coaching environment for demonstrations, training and evaluation.",
+  "summary": "Demonstration coaching environment for Northbridge Healthcare Trust. Intelligence is generated with the production AI workflow, coach-reviewed, and frozen into the pack.",
   "locale": "en-GB",
   "estimatedSetupSeconds": 60,
   "period": {
@@ -29,6 +29,7 @@
     "72 intelligence items",
     "2 Confidential Coaching examples",
     "6 months of coaching history",
+    "Production AI summaries coach-reviewed and frozen",
     "Organisation Intelligence included"
   ],
   "recurringThemes": [
