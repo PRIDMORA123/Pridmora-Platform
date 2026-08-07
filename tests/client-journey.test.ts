@@ -136,7 +136,7 @@ describe("journey stage derivation", () => {
   it("newly created client with purpose and no sessions", () => {
     const stage = deriveJourneyStage(client({ sessions: [] }));
     expect(stage.id).toBe("relationship_established");
-    expect(stage.label).toBe("Coaching relationship established");
+    expect(stage.label).toBe("Development relationship established");
   });
 
   it("completed session awaiting review", () => {

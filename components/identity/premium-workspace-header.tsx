@@ -5,6 +5,7 @@ export type PremiumWorkspaceHeaderProps = {
   greeting: string;
   summary: string;
   onCreatePerson: () => void;
+  eyebrow?: string;
 };
 
 export function PremiumWorkspaceHeader({
@@ -12,6 +13,7 @@ export function PremiumWorkspaceHeader({
   greeting,
   summary,
   onCreatePerson,
+  eyebrow = "My Management Overview",
 }: PremiumWorkspaceHeaderProps) {
   return (
     <header className="premium-workspace-header">
@@ -19,7 +21,7 @@ export function PremiumWorkspaceHeader({
         <IdentitySectionMark />
 
         <div>
-          <p className="premium-workspace-eyebrow">Your coaching workspace</p>
+          <p className="premium-workspace-eyebrow">{eyebrow}</p>
 
           <h1>
             {greeting}, {coachName}

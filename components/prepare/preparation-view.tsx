@@ -30,6 +30,9 @@ import {
 import { PreparationBrief } from "@/components/prepare/preparation-brief";
 import { PreparationRefinement } from "@/components/prepare/preparation-refinement";
 import { PreparationForm } from "@/components/prepare/preparation-form";
+import { ManagerScenarioPicker } from "@/components/prepare/manager-scenario-picker";
+import type { ManagerScenario } from "@/lib/manager-scenarios";
+import { BRAND } from "@/lib/brand";
 
 export type PreparationViewProps = {
   conversationId: string;
@@ -191,7 +194,28 @@ export function PreparationView({
   const refinementSectionRef = useRef<HTMLDivElement | null>(null);
   const shouldFocusRefinementRef = useRef(false);
   const [refinementOpen, setRefinementOpen] = useState(false);
+  const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
+  const [scenarioNotice, setScenarioNotice] = useState<string>("");
   const mode = preparationStyleToMode(preparationStyle);
+
+  const handleScenarioSelect = useCallback(
+    (scenario: ManagerScenario) => {
+      setSelectedScenarioId(scenario.id);
+      const notice =
+        scenario.sensitivity === "elevated"
+          ? `${BRAND.intelligenceName} can support preparation and reflection for this situation. She does not provide HR, legal, disciplinary or clinical advice.`
+          : `${BRAND.intelligenceName} will use this scenario to shape preparation questions and focus.`;
+      setScenarioNotice(notice);
+      onValuesChange?.({
+        purpose: scenario.focusPrompt,
+        topics: initialPreparation.prepTopics,
+        questions: initialPreparation.prepQuestions,
+        desiredOutcome: initialPreparation.prepRisks,
+        privateNotes: initialPreparation.prepPrivateNotes,
+      });
+    },
+    [initialPreparation, onValuesChange]
+  );
 
   const brief = useMemo(
     () =>
@@ -261,6 +285,18 @@ export function PreparationView({
 
   return (
     <div className="identity-prepare-workspace preparation-view">
+      <ManagerScenarioPicker
+        compact
+        selectedId={selectedScenarioId}
+        onSelect={handleScenarioSelect}
+      />
+
+      {scenarioNotice ? (
+        <p className="aurelia-scenario-nudge" role="status">
+          {scenarioNotice}
+        </p>
+      ) : null}
+
       <PreparationApproachControl
         value={preparationStyle}
         defaultValue={defaultPreparationStyle}

@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { notFoundOrForbidden, requireAuthenticatedUser } from "@/lib/auth/session";
+import { notFoundOrForbidden } from "@/lib/auth/session";
+import {
+  requireAssignedClientAccess,
+  requireOrganisationContext,
+} from "@/lib/organisations/current-organisation";
 import { isPreparationStyle, type PreparationStyle } from "@/lib/preparation-style";
 import {
   parseAgreement,
@@ -26,7 +30,7 @@ function parseOverrideField(
 }
 
 export async function PATCH(request: Request, context: RouteContext) {
-  const auth = await requireAuthenticatedUser();
+  const auth = await requireOrganisationContext();
   if (!auth.ok) return auth.response;
 
   try {
@@ -34,6 +38,13 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (!clientId || !isUuid(clientId)) {
       return notFoundOrForbidden();
     }
+
+    const access = await requireAssignedClientAccess({
+      supabase: auth.context.supabase,
+      context: auth.context,
+      clientId,
+    });
+    if (!access.ok) return access.response;
 
     const body = (await request.json()) as {
       name?: string;
@@ -50,7 +61,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     const name = typeof body.name === "string" ? body.name.trim() : "";
     if (!name) {
-      return NextResponse.json({ error: "Client name is required." }, { status: 400 });
+      return NextResponse.json({ error: "Person name is required." }, { status: 400 });
     }
 
     if (
@@ -62,7 +73,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       return NextResponse.json(
         {
           error:
-            "Choose Manual, Assisted or Comprehensive support for this coaching relationship.",
+            "Choose Manual, Assisted or Comprehensive support for this development relationship.",
         },
         { status: 400 }
       );
@@ -107,7 +118,10 @@ export async function PATCH(request: Request, context: RouteContext) {
       return notFoundOrForbidden();
     }
 
-    return NextResponse.json({ client });
+    return NextResponse.json({
+      client,
+      organisationId: auth.context.organisation.organisationId,
+    });
   } catch (error) {
     console.error("Supabase update client error:", error);
     const message =
@@ -119,7 +133,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 }
 
 export async function DELETE(_request: Request, context: RouteContext) {
-  const auth = await requireAuthenticatedUser();
+  const auth = await requireOrganisationContext();
   if (!auth.ok) return auth.response;
 
   try {
@@ -128,9 +142,13 @@ export async function DELETE(_request: Request, context: RouteContext) {
       return notFoundOrForbidden();
     }
 
-    // Ownership is verified from the authenticated session, then dependents +
-    // the client row are deleted server-side (no PostgREST RPC dependency).
-    // Foreign-owned or missing IDs return the same 404 (no existence leak).
+    const access = await requireAssignedClientAccess({
+      supabase: auth.context.supabase,
+      context: auth.context,
+      clientId,
+    });
+    if (!access.ok) return access.response;
+
     const deleted = await permanentlyDeleteClientInDb(
       auth.context.supabase,
       auth.context.coachId,
@@ -141,7 +159,10 @@ export async function DELETE(_request: Request, context: RouteContext) {
       return notFoundOrForbidden();
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({
+      ok: true,
+      organisationId: auth.context.organisation.organisationId,
+    });
   } catch (error) {
     console.error("Supabase permanently delete client error:", error);
     return NextResponse.json(

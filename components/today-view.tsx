@@ -42,6 +42,9 @@ import {
   type OnboardingStage,
 } from "@/lib/onboarding";
 import type { DevelopmentReport } from "@/lib/reports/types";
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { resolveProductLanguage } from "@/lib/role-language";
+import { BRAND } from "@/lib/brand";
 
 export function IdentityHomePage({
   clients,
@@ -92,6 +95,8 @@ export function IdentityHomePage({
   onPrepareAfterOnboarding?: (result: FirstUserOnboardingResult) => void;
   onViewRelationshipAfterOnboarding?: (result: FirstUserOnboardingResult) => void;
 }) {
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
   const [awaitingUpdates, setAwaitingUpdates] = useState<DevelopmentUpdateReviewTask[]>([]);
   const [recentlyApplied, setRecentlyApplied] = useState<
     Array<{ update: DevelopmentUpdate; clientId: string; clientName: string }>
@@ -379,7 +384,8 @@ export function IdentityHomePage({
       <PremiumWorkspaceHeader
         coachName={viewModel.coachName}
         greeting={viewModel.greeting}
-        summary={viewModel.workspaceSummary}
+        summary={viewModel.workspaceSummary || language.homeSummary}
+        eyebrow={language.homeTitle}
         onCreatePerson={() => onCreatePerson?.()}
       />
 
@@ -392,6 +398,15 @@ export function IdentityHomePage({
       ) : null}
 
       <div className="identity-home-sections">
+        {awaitingUpdates.length > 0 ? (
+          <p className="aurelia-home-nudge" role="status">
+            <strong>{BRAND.intelligenceName}:</strong>{" "}
+            {awaitingUpdates.length === 1
+              ? "One team member has an action or update awaiting review."
+              : `${awaitingUpdates.length} team members have actions or updates awaiting review.`}
+          </p>
+        ) : null}
+
         <div className="home-primary-grid">
           {viewModel.nextBestAction ? (
             <NextBestAction
@@ -423,9 +438,12 @@ export function IdentityHomePage({
           )}
 
           <CoachingPracticeOverview
+            eyebrow={language.overviewEyebrow}
+            title={language.overviewTitle}
+            description={language.overviewDescription}
             items={[
               {
-                label: "Active relationships",
+                label: language.peopleISupport,
                 value: viewModel.overview.activeRelationships,
               },
               {

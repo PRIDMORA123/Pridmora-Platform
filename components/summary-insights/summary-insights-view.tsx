@@ -31,12 +31,12 @@ function reviewStateForStatus(
 
 function evidenceLabelForStatus(status: SummaryStatus): string {
   if (status === "approved") {
-    return "Approved coaching record · Supported by approved coaching evidence";
+    return "Approved development record · Supported by reviewed conversation evidence";
   }
   if (status === "draft") {
-    return "Draft · Supported by approved coaching evidence";
+    return "Draft · Supported by reviewed conversation evidence";
   }
-  return "Supported by approved coaching evidence";
+  return "Supported by reviewed conversation evidence";
 }
 
 function updateInsightList(
@@ -199,16 +199,16 @@ export function SummaryInsightsView({
         Panel title is rendered here (not via the panel title prop) so section
         h2 / insight h3 headings keep a valid document outline.
       */}
-      <p className="summary-insights-panel__title">Session Summary & Insights</p>
+      <p className="summary-insights-panel__title">Conversation Summary & Insights</p>
       <div
         className={`summary-insights-content${editing ? " is-editing" : ""}`}
         data-mode={editing ? "edit" : "read"}
       >
         {editing ? (
           <>
-            <SummarySection title="Session Summary">
+            <SummarySection title="Conversation Summary">
               <label htmlFor="summary-session-summary">
-                Session summary
+                Conversation summary
                 <textarea
                   id="summary-session-summary"
                   rows={5}
@@ -329,9 +329,9 @@ export function SummaryInsightsView({
               </label>
             </SummarySection>
 
-            <SummarySection title="Coaching Context">
+            <SummarySection title="Management Context">
               <label htmlFor="summary-coaching-context">
-                Coaching context
+                What the manager should remember next time
                 <textarea
                   id="summary-coaching-context"
                   rows={4}
@@ -369,7 +369,7 @@ export function SummaryInsightsView({
               />
             </SummarySection>
 
-            <SummarySection title="Possible Next Focus">
+            <SummarySection title="Next Focus">
               <StringListEditor
                 label="Focus"
                 items={content.possibleNextFocus}
@@ -399,7 +399,7 @@ export function SummaryInsightsView({
         ) : (
           <>
             {content.sessionSummary ? (
-              <SummarySection title="Session Summary">
+              <SummarySection title="Conversation Summary">
                 <p>{content.sessionSummary}</p>
               </SummarySection>
             ) : null}
@@ -456,7 +456,7 @@ export function SummaryInsightsView({
             ) : null}
 
             {content.coachingContext ? (
-              <SummarySection title="Coaching Context">
+              <SummarySection title="Management Context">
                 <p>{content.coachingContext}</p>
               </SummarySection>
             ) : null}
@@ -466,7 +466,7 @@ export function SummaryInsightsView({
             </SummarySection>
 
             {content.possibleNextFocus.length > 0 ? (
-              <SummarySection title="Possible Next Focus">
+              <SummarySection title="Next Focus">
                 <ul className="summary-next-focus-list">
                   {content.possibleNextFocus.map((focus, index) => (
                     <li key={`${index}-${focus}`}>{focus}</li>

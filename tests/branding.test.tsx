@@ -52,9 +52,12 @@ describe("Pridmora Development Platform branding", () => {
     expect(BRAND.productName).toBe("Pridmora Development Platform");
     expect(BRAND.productShortName).toBe("Development Platform");
     expect(BRAND.productDescriptor).toBe(
-      "Development intelligence for better conversations"
+      "Manager development and intelligence for organisations"
     );
-    expect(BRAND.intelligenceName).toBe("Pridmora Intelligence");
+    expect(BRAND.intelligenceName).toBe("Aurelia");
+    expect(BRAND.intelligenceRole).toBe(
+      "Manager Development Intelligence Assistant"
+    );
     expect(BRAND.legalCompanyName).toBe("Pridmora Ltd");
     expect(BRAND.journeyName).toBe("Development Journey");
   });
@@ -102,13 +105,13 @@ describe("Pridmora Development Platform branding", () => {
     expect(container.textContent).not.toContain("Identity by Pridmora");
   });
 
-  it("shows Pridmora Intelligence on AI surfaces", async () => {
+  it("shows Aurelia on AI surfaces", async () => {
     const container = await renderView(
       <IdentityIntelligencePanel level="insight">
         <p>Sample insight</p>
       </IdentityIntelligencePanel>
     );
-    expect(container.textContent).toContain("Pridmora Intelligence");
+    expect(container.textContent).toContain("Aurelia");
     expect(container.textContent).not.toContain("Identity Intelligence");
   });
 
@@ -179,7 +182,7 @@ describe("Pridmora Development Platform branding", () => {
     expect(intelligence).not.toContain("Professional Identity Journey");
   });
 
-  it("AI actor copy uses Pridmora Intelligence", () => {
+  it("AI actor copy uses Aurelia via BRAND.intelligenceName", () => {
     const modeConfig = readFileSync(
       resolve(process.cwd(), "lib/coaching-intelligence/mode-config.ts"),
       "utf8"

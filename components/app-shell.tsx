@@ -1,6 +1,18 @@
 "use client";
 
-import { Building2, Home, Users, LogOut, Menu, X, Plus, Settings } from "lucide-react";
+import {
+  Building2,
+  FileText,
+  Home,
+  MessageSquare,
+  Sparkles,
+  Users,
+  LogOut,
+  Menu,
+  X,
+  Plus,
+  Settings,
+} from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { IdentityButton } from "@/components/identity/button";
 import { IdentityProductMark } from "@/components/identity/product-mark";
@@ -8,6 +20,7 @@ import { WorkspaceSelector } from "@/components/organisation/workspace-selector"
 import { BRAND } from "@/lib/brand";
 import { useOrganisation } from "@/lib/organisations/organisation-context";
 import { useCanManageSampleOrganisation } from "@/lib/organisations/use-can-manage-sample-organisation";
+import { resolveProductLanguage } from "@/lib/role-language";
 
 export type AppView =
   | "today"
@@ -16,6 +29,7 @@ export type AppView =
   | "people"
   | "sessions"
   | "global-intelligence"
+  | "my-development"
   | "settings"
   | "coach-space"
   | "prepare"
@@ -54,7 +68,12 @@ const PEOPLE_FLOW_VIEWS: AppView[] = [
   "journey",
   "career-journey",
   "coaching-report",
-  "reports",
+];
+
+const DEVELOPMENT_FLOW_VIEWS: AppView[] = [
+  "global-intelligence",
+  "my-development",
+  "intelligence",
 ];
 
 export function AppShell({
@@ -72,9 +91,17 @@ export function AppShell({
 }: Props) {
   const organisation = useOrganisation();
   const showSampleOrganisation = useCanManageSampleOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
   const items = [
     { key: "dashboard" as const, label: "Home", icon: Home },
-    { key: "people" as const, label: "People", icon: Users },
+    { key: "people" as const, label: language.peopleNavLabel, icon: Users },
+    { key: "sessions" as const, label: "Conversations", icon: MessageSquare },
+    {
+      key: "global-intelligence" as const,
+      label: "Development",
+      icon: Sparkles,
+    },
+    { key: "reports" as const, label: "Reports", icon: FileText },
     { key: "settings" as const, label: "Settings", icon: Settings },
   ];
 
@@ -92,6 +119,10 @@ export function AppShell({
   function isNavActive(key: (typeof items)[number]["key"]) {
     if (key === "dashboard") return view === "dashboard" || view === "today";
     if (key === "people") return PEOPLE_FLOW_VIEWS.includes(view);
+    if (key === "sessions") return view === "sessions";
+    if (key === "global-intelligence")
+      return DEVELOPMENT_FLOW_VIEWS.includes(view);
+    if (key === "reports") return view === "reports" || view === "coaching-report";
     if (key === "settings") return view === "settings";
     return false;
   }
@@ -130,53 +161,55 @@ export function AppShell({
           </button>
         </div>
 
-        <nav>
-          {items.map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              type="button"
-              className={
-                isNavActive(key)
-                  ? "identity-nav-link identity-sidebar-nav-item is-active nav-active"
-                  : "identity-nav-link identity-sidebar-nav-item"
-              }
-              aria-current={isNavActive(key) ? "page" : undefined}
-              onClick={() => {
-                onNavigate(key);
-                setMobileOpen(false);
-              }}
-            >
-              <Icon size={18} aria-hidden /> {label}
-            </button>
-          ))}
-          {organisation?.showOrganisationNav ? (
-            <a
-              href="/organisation"
-              className="identity-nav-link identity-sidebar-nav-item"
-              onClick={() => setMobileOpen(false)}
-            >
-              <Building2 size={18} aria-hidden /> Organisation
-            </a>
-          ) : null}
-          {showSampleOrganisation ? (
-            <a
-              href="/settings/sample-organisation"
-              className="identity-nav-link identity-sidebar-nav-item"
-              onClick={() => setMobileOpen(false)}
-            >
-              <Building2 size={18} aria-hidden /> Sample organisation
-            </a>
-          ) : null}
-        </nav>
+        <div className="identity-sidebar-scroll">
+          <nav aria-label="Primary">
+            {items.map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                type="button"
+                className={
+                  isNavActive(key)
+                    ? "identity-nav-link identity-sidebar-nav-item is-active nav-active"
+                    : "identity-nav-link identity-sidebar-nav-item"
+                }
+                aria-current={isNavActive(key) ? "page" : undefined}
+                onClick={() => {
+                  onNavigate(key);
+                  setMobileOpen(false);
+                }}
+              >
+                <Icon size={18} aria-hidden /> {label}
+              </button>
+            ))}
+            {organisation?.showOrganisationNav ? (
+              <a
+                href="/organisation"
+                className="identity-nav-link identity-sidebar-nav-item"
+                onClick={() => setMobileOpen(false)}
+              >
+                <Building2 size={18} aria-hidden /> Organisation
+              </a>
+            ) : null}
+            {showSampleOrganisation ? (
+              <a
+                href="/settings/sample-organisation"
+                className="identity-nav-link identity-sidebar-nav-item"
+                onClick={() => setMobileOpen(false)}
+              >
+                <Building2 size={18} aria-hidden /> Sample organisation
+              </a>
+            ) : null}
+          </nav>
 
-        <a
-          href="/professional-principles"
-          className="identity-sidebar-principle"
-        >
-          <strong>Evidence before certainty</strong>
-          <span>Insights remain proposed until reviewed.</span>
-          <small>Professional principles</small>
-        </a>
+          <a
+            href="/professional-principles"
+            className="identity-sidebar-principle"
+          >
+            <strong>Evidence before certainty</strong>
+            <span>Insights remain proposed until reviewed.</span>
+            <small>Professional principles</small>
+          </a>
+        </div>
 
         <div className="sidebar-footer identity-sidebar-account">
           <div className="coach-mini">

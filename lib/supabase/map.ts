@@ -39,6 +39,7 @@ import { parseIdentityMode } from "@/lib/relationship-identity";
 export type ClientRow = {
   id: string;
   coach_id: string;
+  organisation_id?: string | null;
   name: string;
   organisation: string | null;
   role: string | null;

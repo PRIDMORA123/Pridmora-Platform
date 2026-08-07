@@ -167,12 +167,29 @@ export async function requireAssignedClientAccess(input: {
     return { ok: false, response: notFoundOrForbidden() };
   }
 
+  const activeOrganisationId = input.context.organisation.organisationId;
+  const clientOrganisationId =
+    typeof client.organisation_id === "string" && client.organisation_id.trim()
+      ? client.organisation_id.trim()
+      : null;
+
   // Reject cross-organisation IDs with 404 (no existence leak).
-  if (
-    client.organisation_id &&
-    client.organisation_id !== input.context.organisation.organisationId &&
-    client.organisation_id !== input.context.user.id
-  ) {
+  // Active workspace must match the client's organisation ownership.
+  // Legacy null organisation_id is only allowed for the coach's personal workspace
+  // when the client is coach-owned (pre-migration rows).
+  const isPersonalWorkspace =
+    input.context.organisation.organisation.organisationType === "personal" ||
+    activeOrganisationId === input.context.user.id;
+  const legacyPersonalOwner =
+    !clientOrganisationId &&
+    isPersonalWorkspace &&
+    client.coach_id === input.context.user.id;
+
+  if (clientOrganisationId) {
+    if (clientOrganisationId !== activeOrganisationId) {
+      return { ok: false, response: notFoundOrForbidden() };
+    }
+  } else if (!legacyPersonalOwner) {
     return { ok: false, response: notFoundOrForbidden() };
   }
 
@@ -194,11 +211,6 @@ export async function requireAssignedClientAccess(input: {
   ) {
     return { ok: false, response: notFoundOrForbidden() };
   }
-
-  const clientOrganisationId =
-    typeof client.organisation_id === "string" && client.organisation_id.trim()
-      ? client.organisation_id.trim()
-      : null;
 
   return {
     ok: true,

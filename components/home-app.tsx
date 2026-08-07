@@ -12,6 +12,7 @@ import { DevelopmentUpdateReviewView } from "@/components/development-update-rev
 import { PersonActionsView } from "@/components/person-actions-view";
 import { GlobalIntelligenceView } from "@/components/global-intelligence-view";
 import { SessionsView } from "@/components/sessions-view";
+import { MyDevelopmentView } from "@/components/my-development-view";
 import { SettingsView } from "@/components/settings-view";
 import { JourneyView } from "@/components/journey-view";
 import { CareerJourneyView } from "@/components/career-journey-view";
@@ -1157,6 +1158,35 @@ export function HomeApp() {
                 navigate("development-update");
                 void refreshSessionsForClient(client.id);
               }}
+              onOpenMyDevelopment={() => navigate("my-development")}
+            />
+          )}
+          {view === "my-development" && (
+            <MyDevelopmentView
+              isPersonalWorkspace={
+                organisationState?.organisation.organisationType === "personal"
+              }
+              onOpenPeople={() => navigate("people")}
+              onSwitchToPersonal={() => {
+                const personal = organisationState?.organisations.find(
+                  entry => entry.organisation.organisationType === "personal"
+                );
+                if (personal) {
+                  void (async () => {
+                    const { apiJson } = await import("@/lib/api-client");
+                    await apiJson("/api/organisations/current", {
+                      method: "POST",
+                      body: JSON.stringify({
+                        organisationId: personal.organisation.id,
+                      }),
+                    });
+                    setSelectedId("");
+                    setClients([]);
+                    setFocusSessionId(null);
+                    window.location.assign("/?view=dashboard");
+                  })();
+                }
+              }}
             />
           )}
           {view === "settings" && profile && (
@@ -1572,7 +1602,7 @@ export function HomeApp() {
                 <article className="panel empty-panel">
                   <h2 className="identity-subheading">No person selected</h2>
                   <p className="muted empty-state">
-                    Choose a coaching relationship from People to open their journey.
+                    Choose someone from People to open their development journey.
                   </p>
                   <div className="button-row">
                     <button

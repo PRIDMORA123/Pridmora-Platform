@@ -1,7 +1,7 @@
 /**
  * Canonical visible product brand.
  * Internal namespaces (identity-*, IdentityButton, API routes, DB) remain for compatibility.
- * Visible product brand: Pridmora Development Platform.
+ * Visible product brand: Pridmora Development Platform — Manager Development & Intelligence.
  */
 export const BRAND = {
   companyName: "Pridmora",
@@ -12,9 +12,12 @@ export const BRAND = {
   productShortName: "Development Platform",
 
   productDescriptor:
-    "Development intelligence for better conversations",
+    "Manager development and intelligence for organisations",
 
-  intelligenceName: "Pridmora Intelligence",
+  /** Embedded Manager Development Intelligence Assistant (not a standalone chatbot). */
+  intelligenceName: "Aurelia",
+
+  intelligenceRole: "Manager Development Intelligence Assistant",
 
   /** Visible journey feature name (replaces Professional Identity Journey™ in UI). */
   journeyName: "Development Journey",

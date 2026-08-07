@@ -52,7 +52,7 @@ export function ClientIdentityHeader({
     >
       <div className="client-identity-primary">
         <p className="client-identity-eyebrow">
-          {isConfidential ? "Confidential relationship" : "Coaching relationship"}
+          {isConfidential ? "Confidential relationship" : "Development relationship"}
         </p>
 
         {isConfidential && resolved.confidentialReference ? (

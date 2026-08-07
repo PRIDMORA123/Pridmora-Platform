@@ -47,16 +47,16 @@ export function SessionsView({
   return (
     <section className="page">
       <div className="page-heading">
-        <p className="eyebrow">Sessions</p>
-        <h1>Sessions</h1>
+        <p className="eyebrow">Conversations</p>
+        <h1>Development conversations</h1>
         <p>Open the next step for each conversation without leaving the workflow.</p>
       </div>
 
       {rows.length === 0 ? (
         <article className="panel empty-panel">
-          <h2>No sessions yet</h2>
+          <h2>No conversations yet</h2>
           <p className="muted empty-state">
-            Schedule a session from a person&apos;s overview to begin preparation.
+            Schedule a conversation from a person&apos;s overview to begin preparation.
           </p>
         </article>
       ) : (

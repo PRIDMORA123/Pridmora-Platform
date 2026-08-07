@@ -1,12 +1,13 @@
 /**
  * Central product language — user-facing labels and messages.
  * Prefer these over ad-hoc software terminology in the UI.
+ * Role-specific wording lives in lib/role-language.ts.
  */
 
 export const identityLanguage = {
   relationship: {
-    singular: "coaching relationship",
-    plural: "coaching relationships",
+    singular: "development relationship",
+    plural: "development relationships",
   },
 
   conversation: {
@@ -33,8 +34,8 @@ export const identityLanguage = {
 } as const;
 
 export const coachingStageLabels = {
-  relationshipCreated: "Coaching relationship established",
-  purposeRequired: "Coaching purpose to be agreed",
+  relationshipCreated: "Development relationship established",
+  purposeRequired: "Purpose to be agreed",
   readyForPreparation: "Ready for preparation",
   preparationInProgress: "Preparation in progress",
   readyForConversation: "Ready for development conversation",
@@ -43,12 +44,12 @@ export const coachingStageLabels = {
   reflectionInProgress: "Reflection in progress",
   developmentUpdateAvailable: "Development update available",
   betweenConversations: "Reflecting between conversations",
-  relationshipComplete: "Coaching relationship complete",
+  relationshipComplete: "Development relationship complete",
 } as const;
 
 export const identityMessages = {
-  personCreated: "Coaching relationship created.",
-  purposeSaved: "Coaching purpose saved.",
+  personCreated: "Development relationship created.",
+  purposeSaved: "Purpose saved.",
   preparationSaved: "Preparation saved.",
   preparationUpdated:
     "Preparation Brief updated with the latest approved information.",
@@ -57,31 +58,31 @@ export const identityMessages = {
     "Development conversation completed. Reflection can now begin.",
   reflectionSaved: "Reflection saved.",
   reflectionCompleted:
-    "Reflection captured. The coaching journey continues.",
+    "Reflection captured. The development journey continues.",
   developmentApplied:
-    "Development Update applied to the coaching journey.",
-  preferenceSaved: "Coaching intelligence preference saved.",
+    "Development Update applied to the development journey.",
+  preferenceSaved: "Development intelligence preference saved.",
 } as const;
 
 export const identityEmptyStates = {
   noRelationships: {
-    title: "Begin your first coaching relationship.",
+    title: "Add the first person you support.",
     description:
-      "Add the person you will be coaching and establish the purpose of the work.",
+      "Create a development relationship and agree the purpose of the work.",
   },
   noPreparation: {
     title: "Preparation begins when you are ready to think ahead.",
     description:
-      "Create a brief using the latest approved coaching information.",
+      "Create a brief using the latest approved development information.",
   },
   noPreviousConversation: {
-    title: "This will be the first development conversation in this coaching relationship.",
+    title: "This will be the first development conversation in this relationship.",
     description: "",
   },
   noDevelopmentEvidence: {
     title: "The development story is still forming",
     description:
-      "Meaningful development evidence will appear after coaching conversations, reflections and commitments have been reviewed.",
+      "Meaningful development evidence will appear after conversations, reflections and commitments have been reviewed.",
   },
   noCommitments: {
     title: "No open commitments",
@@ -98,12 +99,12 @@ export const identityEmptyStates = {
   noEvidence: {
     title: "Evidence still emerging",
     description:
-      "Further reviewed coaching evidence will help establish a clearer development picture.",
+      "Further reviewed development evidence will help establish a clearer picture.",
   },
   noInsights: {
     title: "Insights still emerging",
     description:
-      "Reviewed insights will appear as the coaching relationship develops.",
+      "Reviewed insights will appear as the relationship develops.",
   },
   noSummary: {
     title: "No summary generated yet",
@@ -117,7 +118,7 @@ export const identityEmptyStates = {
   noDevelopment: {
     title: "The development story is still forming",
     description:
-      "Meaningful development evidence will appear after coaching conversations, reflections and commitments have been reviewed.",
+      "Meaningful development evidence will appear after conversations, reflections and commitments have been reviewed.",
   },
 } as const;
 
@@ -125,16 +126,16 @@ export const identityErrorMessages = {
   loadFailure: {
     title: "We could not load this information.",
     description:
-      "Please try again. Your saved coaching information has not been changed.",
+      "Please try again. Your saved information has not been changed.",
   },
   preparationUnavailable: {
     title: "Preparation support is temporarily unavailable.",
     description:
-      "Your client information and coach notes remain available below.",
+      "Your person information and notes remain available below.",
   },
   saveFailure: {
     title: "Your changes could not be saved.",
     description: "Please try again before leaving this page.",
   },
-  unsavedChanges: "You have unsaved coaching information. Leave without saving?",
+  unsavedChanges: "You have unsaved information. Leave without saving?",
 } as const;

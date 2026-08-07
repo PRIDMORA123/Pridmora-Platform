@@ -20,10 +20,12 @@ export function GlobalIntelligenceView({
   clients,
   onOpenClient,
   onReviewUpdate,
+  onOpenMyDevelopment,
 }: {
   clients: Client[];
   onOpenClient: (client: Client) => void;
   onReviewUpdate?: (client: Client, updateId: string) => void;
+  onOpenMyDevelopment?: () => void;
 }) {
   const [tasks, setTasks] = useState<DevelopmentUpdateReviewTask[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,9 +59,20 @@ export function GlobalIntelligenceView({
   return (
     <section className="page">
       <div className="page-heading">
-        <p className="eyebrow">Development intelligence</p>
+        <p className="eyebrow">Development</p>
         <h1>Development Intelligence</h1>
-        <p>A living, evidence-based understanding built across coaching conversations.</p>
+        <p>
+          Individual and team development intelligence built from reviewed conversation
+          evidence. Separate from your own development record.
+        </p>
+      </div>
+
+      <div className="button-row" style={{ marginBottom: 24 }}>
+        {onOpenMyDevelopment ? (
+          <button type="button" className="secondary" onClick={onOpenMyDevelopment}>
+            My development
+          </button>
+        ) : null}
       </div>
 
       {error ? (

@@ -44,7 +44,7 @@ function makeClient(sessions: Session[]): Client {
 }
 
 describe("Summary & Insights availability", () => {
-  it("makes Pridmora Intelligence available after notes are saved", () => {
+  it("makes Aurelia summary intelligence available after notes are saved", () => {
     const state = deriveSessionWorkspaceState(
       makeSession({
         id: "session-2",

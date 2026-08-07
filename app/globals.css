@@ -438,11 +438,12 @@ p{line-height:1.65;font-weight:400}
 .prepare-question-error{display:grid;gap:8px;justify-items:start}
 .app-shell{min-height:100vh;min-height:100dvh;background:var(--identity-app-bg)}
 .sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(8,39,68,.35);border:0;padding:0;z-index:15;cursor:pointer}
-.sidebar,.identity-sidebar{position:fixed;inset:0 auto 0 0;width:var(--identity-sidebar-width,248px);background:var(--identity-sidebar-bg);color:var(--identity-sidebar-text);padding:24px 16px;display:flex;flex-direction:column;min-height:100dvh;z-index:20;border-right:1px solid var(--identity-sidebar-border)}
-.sidebar-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sidebar,.identity-sidebar{position:fixed;inset:0 auto 0 0;width:var(--identity-sidebar-width,248px);height:100dvh;max-height:100dvh;min-height:0;overflow:hidden;background:var(--identity-sidebar-bg);color:var(--identity-sidebar-text);padding:24px 16px;display:flex;flex-direction:column;z-index:20;border-right:1px solid var(--identity-sidebar-border)}
+.sidebar-top,.identity-sidebar-brand{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
+.identity-sidebar-scroll{flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;-webkit-overflow-scrolling:touch}
 .brand-button{background:none;border:0;color:inherit;padding:0;display:flex;align-items:center;text-align:left;cursor:pointer}
 .brand-button:focus-visible{outline:3px solid rgba(24,175,179,.55);outline-offset:3px;border-radius:var(--identity-radius-md)}
-.sidebar nav{margin-top:36px;display:grid;gap:4px}
+.sidebar nav,.identity-sidebar-scroll nav{margin-top:24px;display:grid;gap:4px;flex-shrink:0}
 .sidebar nav button,.sidebar-footer>button,.identity-sidebar-sign-out{background:transparent;border:0;color:var(--identity-sidebar-text);text-align:left;padding:0 12px;border-radius:var(--identity-radius-md);display:flex;align-items:center;gap:12px;min-height:42px;font-size:.9rem;font-weight:500;font-family:inherit;transition:background var(--identity-transition-fast),color var(--identity-transition-fast)}
 .sidebar nav button:hover,.identity-sidebar .identity-nav-link:hover{background:var(--identity-sidebar-hover);color:var(--identity-sidebar-text-strong)}
 .sidebar nav button[aria-current="page"],.sidebar nav .nav-active,.identity-sidebar .identity-nav-link[aria-current="page"],.identity-sidebar-nav-item.is-active{background:rgba(39,184,189,.13);color:var(--identity-white);font-weight:600;position:relative}
@@ -453,7 +454,8 @@ p{line-height:1.65;font-weight:400}
 .identity-principle:not(.identity-sidebar-principle) p:last-child{margin:0;color:rgba(255,255,255,.58);font-size:.73rem;line-height:1.55}
 .identity-sidebar-brand{padding:18px 6px 24px}
 .identity-sidebar-logo{max-width:132px}
-.sidebar-footer,.identity-sidebar-account{margin-top:auto;padding:22px 18px;border-top:1px solid var(--identity-sidebar-border)}
+.sidebar-footer,.identity-sidebar-account{flex-shrink:0;margin-top:0;padding:16px 8px 8px;border-top:1px solid var(--identity-sidebar-border)}
+.identity-sidebar-scroll .identity-sidebar-principle,.identity-sidebar-scroll .identity-principle{margin-top:auto}
 .sidebar-footer>button,.identity-sidebar-sign-out{width:100%;margin-top:8px;color:rgba(255,255,255,.64)}
 .sidebar-footer>button:hover,.identity-sidebar-sign-out:hover{background:var(--identity-sidebar-hover);color:var(--identity-sidebar-text-strong)}
 .coach-mini{display:flex;gap:10px;align-items:center;padding:0 0 4px}
@@ -1257,3 +1259,63 @@ p{line-height:1.65;font-weight:400}
 .private-identity-edit-form textarea{resize:vertical;min-height:96px}
 .report-named-export-confirm{margin-top:14px;padding:12px 14px;border:1px solid #e8dcc8;border-radius:14px;background:#f7f1e8}
 .report-named-export-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+
+/* Manager platform — sidebar scroll + scenario entry points */
+.identity-sidebar-scroll .identity-sidebar-principle,
+.identity-sidebar-scroll .identity-principle{
+  margin:18px 10px 12px;
+  padding-top:16px;
+}
+.manager-scenario-picker{margin:0 0 28px}
+.manager-scenario-header{margin-bottom:16px;max-width:720px}
+.manager-scenario-header h2{margin:0 0 8px;font-size:1.15rem}
+.manager-scenario-header p{margin:0;color:var(--identity-text-secondary);line-height:1.55}
+.manager-scenario-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:10px;
+}
+.manager-scenario-card{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  align-items:flex-start;
+  text-align:left;
+  min-height:72px;
+  padding:14px 14px;
+  border:1px solid var(--identity-border-light);
+  border-radius:var(--identity-radius-md);
+  background:var(--identity-surface);
+  color:var(--identity-text-primary);
+  font:inherit;
+  cursor:pointer;
+  transition:border-color var(--identity-transition-fast),background var(--identity-transition-fast);
+}
+.manager-scenario-card:hover,
+.manager-scenario-card:focus-visible{
+  border-color:var(--identity-border-teal);
+  background:var(--identity-surface-teal);
+}
+.manager-scenario-card.is-selected{
+  border-color:var(--identity-teal-500);
+  background:var(--identity-surface-teal);
+  box-shadow:inset 3px 0 0 var(--identity-teal-500);
+}
+.manager-scenario-card strong{font-size:.9rem;font-weight:650}
+.manager-scenario-card span{font-size:.78rem;line-height:1.45;color:var(--identity-text-secondary)}
+.manager-scenario-card small{font-size:.7rem;color:var(--identity-teal-700)}
+.manager-scenario-picker.is-compact .manager-scenario-grid{
+  grid-template-columns:repeat(auto-fill,minmax(132px,1fr));
+}
+.manager-scenario-picker.is-compact .manager-scenario-card{min-height:52px;padding:12px}
+.aurelia-home-nudge,
+.aurelia-scenario-nudge{
+  margin:0 0 18px;
+  padding:12px 16px;
+  border-left:3px solid var(--identity-teal-500);
+  background:var(--identity-surface-teal);
+  color:var(--identity-text-secondary);
+  font-size:.92rem;
+  line-height:1.55;
+}
+.aurelia-home-nudge strong{color:var(--identity-text-primary)}

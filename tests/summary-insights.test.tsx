@@ -315,13 +315,13 @@ describe("SummaryInsightsView", () => {
       />
     );
 
-    expect(container.textContent).toContain("Pridmora Intelligence");
+    expect(container.textContent).toContain("Aurelia");
     expect(container.textContent).not.toContain("Identity Intelligence");
-    expect(container.querySelector("h2")?.textContent).toBe("Session Summary");
+    expect(container.querySelector("h2")?.textContent).toBe("Conversation Summary");
     expect(container.textContent).toContain("Key Insights");
     expect(container.textContent).toContain("Delegation and ownership");
     expect(container.textContent).not.toContain("Strengths Observed");
-    expect(container.textContent).not.toContain("Coaching Context");
+    expect(container.textContent).not.toContain("Management Context");
     expect(container.textContent).toContain("Agreed Commitments");
     expect(container.textContent).toContain("No commitment was recorded.");
     expect(container.textContent).toMatch(/Draft/);
@@ -338,7 +338,9 @@ describe("SummaryInsightsView", () => {
     expect(container.querySelectorAll(".summary-next-focus-list li").length).toBe(
       2
     );
-    expect(container.textContent).toContain("Approved coaching record");
+    expect(container.textContent).toContain("Approved development record");
+    expect(container.textContent).toContain("Management Context");
+    expect(container.textContent).toContain("Next Focus");
   });
 
   it("keeps heading order accessible for screen readers", async () => {

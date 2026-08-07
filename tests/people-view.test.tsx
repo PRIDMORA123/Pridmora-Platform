@@ -85,7 +85,7 @@ describe("ClientsView visual polish", () => {
     );
     expect(labels.some(label => label === "New person")).toBe(false);
     expect(container.textContent).toContain(
-      "Your developmental relationships — ordered by what needs attention next."
+      "Team members and people you support — ordered by what needs attention next."
     );
     root.unmount();
     container.remove();

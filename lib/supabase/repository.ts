@@ -241,22 +241,29 @@ export async function listClientsFromDb(
 ): Promise<Client[]> {
   try {
     let query = supabase.from("clients").select("*");
+    const organisationId =
+      typeof options?.organisationId === "string" && options.organisationId.trim()
+        ? options.organisationId.trim()
+        : null;
 
-    if (options?.organisationId && options.organisationId !== coachId) {
-      query = query.eq("organisation_id", options.organisationId);
+    // Always scope to the active organisation when provided.
+    // Do not fall back to coach_id-only listing — that leaks cross-workspace records.
+    if (organisationId) {
+      query = query.eq("organisation_id", organisationId);
 
-      if (options.assignedOnly !== false) {
+      if (options?.assignedOnly !== false) {
         try {
           const { listAssignedClientIds } = await import(
             "@/lib/organisations/repository"
           );
           const assignedIds = await listAssignedClientIds(
             supabase,
-            options.organisationId,
+            organisationId,
             coachId
           );
 
-          // Solo owner fallback: if no assignments table rows yet, use coach_id.
+          // Solo owner fallback: if no assignments table rows yet, use coach_id
+          // still within the organisation_id filter above.
           if (assignedIds.length > 0) {
             query = query.in("id", assignedIds);
           } else {
@@ -276,17 +283,30 @@ export async function listClientsFromDb(
     );
 
     if (clientError) {
-      // Pre-migration: organisation_id filter may fail.
+      // Pre-migration: organisation_id filter may fail. Fail closed rather than
+      // returning cross-workspace coach_id results.
       if (
-        options?.organisationId &&
+        organisationId &&
         /organisation_id|schema cache|could not find/i.test(clientError.message)
       ) {
-        return listClientsFromDb(supabase, coachId);
+        return [];
       }
       throw new Error(clientError.message);
     }
 
-    const rows = (clientRows ?? []) as ClientRow[];
+    let rows = (clientRows ?? []) as Array<
+      ClientRow & { organisation_id?: string | null }
+    >;
+
+    // Defence in depth: never return rows from another organisation.
+    if (organisationId) {
+      rows = rows.filter(
+        row =>
+          typeof row.organisation_id === "string" &&
+          row.organisation_id === organisationId
+      );
+    }
+
     if (rows.length === 0) return [];
 
     const clientIds = rows.map(row => row.id);

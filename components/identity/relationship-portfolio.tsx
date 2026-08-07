@@ -24,7 +24,7 @@ export function RelationshipPortfolio({
     >
       <header className="relationship-portfolio-header">
         <div>
-          <p className="home-section-eyebrow">Relationships</p>
+          <p className="home-section-eyebrow">People I support</p>
           <h2 id="relationship-portfolio-title">Your coaching relationships</h2>
           <p>A focused view of your active coaching portfolio.</p>
         </div>

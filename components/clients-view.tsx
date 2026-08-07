@@ -105,9 +105,9 @@ export function ClientsView({
   return (
     <section className="page identity-reveal">
       <IdentityPageHeader
-        eyebrow="Workspace"
+        eyebrow="People I support"
         title="People"
-        description="Your developmental relationships — ordered by what needs attention next."
+        description="Team members and people you support — ordered by what needs attention next."
       />
 
       {flashMessage ? (
@@ -117,7 +117,7 @@ export function ClientsView({
       ) : null}
 
       {clients.length > 0 ? (
-        <div className="clients-filter" role="tablist" aria-label="Client status filter">
+        <div className="clients-filter" role="tablist" aria-label="People status filter">
           {(
             [
               { id: "active", label: "Active", count: activeCount },
