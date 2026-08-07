@@ -10,19 +10,32 @@ import type {
   SamplePackSummary,
   ValidatedSamplePack,
 } from "@/lib/sample-organisations/types";
+import {
+  DEFAULT_SAMPLE_PACK_KEY,
+  LEGACY_CLEANUP_SAMPLE_PACK_KEYS,
+} from "@/lib/sample-organisations/types";
 
 const PACK_ROOT = join(process.cwd(), "sample-data");
 
 type PackRegistration = {
   packKey: SamplePackKey;
   directory: string;
+  /** When false, pack may still load for reset/remove of legacy installs. */
+  installable: boolean;
 };
 
 /** Future packs are added here by registering another folder. */
 const PACK_REGISTRY: PackRegistration[] = [
   {
+    packKey: "averly-services-group",
+    directory: "averly-services-group",
+    installable: true,
+  },
+  {
     packKey: "northbridge-healthcare",
     directory: "northbridge-healthcare",
+    // Retained for cleanup/reset of existing installations only.
+    installable: false,
   },
 ];
 
@@ -32,6 +45,24 @@ function readJson(path: string): unknown {
 
 export function listRegisteredPackKeys(): SamplePackKey[] {
   return PACK_REGISTRY.map(pack => pack.packKey);
+}
+
+/** Packs that may be offered for new installations. */
+export function listInstallablePackKeys(): SamplePackKey[] {
+  return PACK_REGISTRY.filter(pack => pack.installable).map(pack => pack.packKey);
+}
+
+export function isInstallableSamplePack(packKey: string): boolean {
+  const registration = getPackRegistration(packKey);
+  return Boolean(registration?.installable);
+}
+
+export function isLegacyCleanupSamplePack(packKey: string): boolean {
+  return (LEGACY_CLEANUP_SAMPLE_PACK_KEYS as readonly string[]).includes(packKey);
+}
+
+export function getDefaultSamplePackKey(): SamplePackKey {
+  return DEFAULT_SAMPLE_PACK_KEY;
 }
 
 export function getPackRegistration(
@@ -102,6 +133,7 @@ export function toPackSummary(
 ): SamplePackSummary {
   const generationAvailable =
     isSampleOrganisationIntelligenceGenerationAvailable();
+  const registration = getPackRegistration(pack.manifest.packKey);
 
   return {
     packKey: pack.manifest.packKey,
@@ -120,5 +152,6 @@ export function toPackSummary(
     privacyNote: pack.manifest.privacy.notes,
     installation,
     organisationIntelligenceGenerationAvailable: generationAvailable,
+    installable: Boolean(registration?.installable),
   };
 }

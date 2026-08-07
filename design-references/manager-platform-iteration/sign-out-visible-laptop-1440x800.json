@@ -1,0 +1,14 @@
+{
+  "viewport": {
+    "name": "laptop-1440x800",
+    "width": 1440,
+    "height": 800
+  },
+  "boundingBox": {
+    "x": 24,
+    "y": 723,
+    "width": 199,
+    "height": 45
+  },
+  "visibleInViewport": true
+}

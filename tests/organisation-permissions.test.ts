@@ -105,9 +105,22 @@ describe("organisation permissions", () => {
     expect(hasPermission("oversight", "organisation.view_safe_oversight")).toBe(
       true
     );
+    expect(hasPermission("oversight", "intelligence.organisation.read")).toBe(
+      true
+    );
     expect(hasPermission("oversight", "private_notes.view")).toBe(false);
     expect(hasPermission("oversight", "coaching_content.view")).toBe(false);
     expect(hasPermission("oversight", "members.invite")).toBe(false);
+  });
+
+  it("grants organisation intelligence to owner and administrator only among content roles", () => {
+    expect(hasPermission("owner", "intelligence.organisation.read")).toBe(true);
+    expect(hasPermission("administrator", "intelligence.organisation.read")).toBe(
+      true
+    );
+    expect(hasPermission("practitioner", "intelligence.organisation.read")).toBe(
+      false
+    );
   });
 });
 

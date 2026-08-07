@@ -14,9 +14,9 @@ import {
 } from "@/lib/preparation-style";
 
 describe("preparation style label maps", () => {
-  it("maps Manual to minimal, Assisted to guided, Comprehensive to enhanced", () => {
+  it("maps Manual to minimal, Standard to guided, Comprehensive to enhanced", () => {
     expect(PREPARATION_STYLE_LABELS.minimal).toBe("Manual");
-    expect(PREPARATION_STYLE_LABELS.guided).toBe("Assisted");
+    expect(PREPARATION_STYLE_LABELS.guided).toBe("Standard");
     expect(PREPARATION_STYLE_LABELS.enhanced).toBe("Comprehensive");
   });
 
@@ -25,12 +25,14 @@ describe("preparation style label maps", () => {
       "No AI preparation. Use your own notes and professional judgement."
     );
     expect(PREPARATION_STYLE_DESCRIPTIONS.guided).toBe(
-      "A concise briefing based on the latest approved coaching evidence."
+      "Concise insight for everyday management use."
     );
     expect(PREPARATION_STYLE_DESCRIPTIONS.enhanced).toBe(
-      "A deeper briefing based on the wider approved coaching journey, including relevant themes and patterns."
+      "Deeper analysis across development history, evidence and behavioural patterns."
     );
-    expect(PREPARATION_STYLE_SHORT_DESCRIPTIONS.enhanced).toBe("Full context");
+    expect(PREPARATION_STYLE_SHORT_DESCRIPTIONS.enhanced).toBe(
+      "Longitudinal depth"
+    );
   });
 
   it("describes relationship and session scope accurately", () => {
@@ -75,14 +77,14 @@ describe("PreparationApproachControl", () => {
 
     expect(container.textContent).toContain("Preparation approach");
     expect(container.textContent).toContain("Comprehensive");
-    expect(container.textContent).toContain("Full context");
+    expect(container.textContent).toContain("Longitudinal depth");
     expect(container.textContent).toContain(
       PREPARATION_STYLE_DESCRIPTIONS.enhanced
     );
     expect(container.textContent).toContain(
       preparationApproachScopeCopy("relationship")
     );
-    expect(container.textContent).toContain("Your default: Assisted");
+    expect(container.textContent).toContain("Your default: Standard");
     expect(container.textContent).not.toContain("minimal");
     expect(container.textContent).not.toContain("enhanced");
   });
@@ -211,7 +213,7 @@ describe("SessionBriefCard preparation modes", () => {
     ).toBe(true);
   });
 
-  it("renders Assisted lists semantically and limits content", () => {
+  it("renders Standard lists semantically and limits content", () => {
     act(() => {
       root.render(
         <SessionBriefCard

@@ -84,8 +84,10 @@ export function NextBestAction({
 
 export function NextBestActionUpToDate({
   onReviewRelationships,
+  title,
 }: {
   onReviewRelationships: () => void;
+  title?: string;
 }) {
   return (
     <section
@@ -102,7 +104,9 @@ export function NextBestActionUpToDate({
       </header>
 
       <div className="next-best-action-body">
-        <h2 id="next-best-action-title">Your coaching work is up to date</h2>
+        <h2 id="next-best-action-title">
+          {title ?? "Your coaching work is up to date"}
+        </h2>
         <p className="next-best-action-explanation">
           There are no relationships requiring immediate input. You can review a
           journey, prepare for a future conversation or add a new person.

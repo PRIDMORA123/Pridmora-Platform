@@ -6,6 +6,7 @@ import { IdentityButton } from "@/components/identity/button";
 import { OrganisationShell } from "@/components/organisation/organisation-shell";
 import { apiJson } from "@/lib/api-client";
 import {
+  DEFAULT_SAMPLE_PACK_KEY,
   SAMPLE_ORGANISATION_SETUP_ESTIMATE,
   SAMPLE_PROGRESS_STAGES,
   SAMPLE_STAGE_LABELS,
@@ -13,7 +14,7 @@ import {
   type SamplePackSummary,
 } from "@/lib/sample-organisations/types";
 
-type ConfirmMode = "install" | "reset" | "remove" | null;
+type ConfirmMode = "install" | "reset" | "remove" | "remove-legacy" | null;
 
 function formatInstalledAt(value: string | null): string {
   if (!value) return "—";
@@ -27,9 +28,20 @@ function formatInstalledAt(value: string | null): string {
   }
 }
 
+function isActiveInstallation(
+  installation: SampleInstallationView | null | undefined
+): installation is SampleInstallationView {
+  return Boolean(
+    installation &&
+      installation.status !== "removed" &&
+      installation.status !== "failed"
+  );
+}
+
 export function SampleOrganisationPage() {
   const router = useRouter();
   const [pack, setPack] = useState<SamplePackSummary | null>(null);
+  const [legacyPack, setLegacyPack] = useState<SamplePackSummary | null>(null);
   const [installation, setInstallation] = useState<SampleInstallationView | null>(
     null
   );
@@ -51,12 +63,25 @@ export function SampleOrganisationPage() {
   }, []);
 
   const loadPack = useCallback(async () => {
-    const payload = await apiJson<{ pack: SamplePackSummary }>(
-      "/api/sample-organisations/northbridge-healthcare"
+    const payload = await apiJson<{ packs: SamplePackSummary[] }>(
+      "/api/sample-organisations"
     );
-    setPack(payload.pack);
-    setInstallation(payload.pack.installation);
-    return payload.pack;
+    const packs = payload.packs ?? [];
+    const primary =
+      packs.find(entry => entry.packKey === DEFAULT_SAMPLE_PACK_KEY) ??
+      packs.find(entry => entry.installable) ??
+      null;
+    const legacy =
+      packs.find(
+        entry =>
+          !entry.installable &&
+          isActiveInstallation(entry.installation)
+      ) ?? null;
+
+    setPack(primary);
+    setLegacyPack(legacy);
+    setInstallation(primary?.installation ?? null);
+    return primary;
   }, []);
 
   useEffect(() => {
@@ -103,7 +128,7 @@ export function SampleOrganisationPage() {
   }, [installation, loadPack, stopPolling]);
 
   async function runInstall() {
-    if (busy) return;
+    if (busy || !pack) return;
     setBusy(true);
     setError("");
     setConfirmMode(null);
@@ -115,7 +140,7 @@ export function SampleOrganisationPage() {
       const payload = await apiJson<{
         installation: SampleInstallationView;
         resumed?: boolean;
-      }>("/api/sample-organisations/northbridge-healthcare/install", {
+      }>(`/api/sample-organisations/${pack.packKey}/install`, {
         method: "POST",
         headers: {
           "Idempotency-Key": idempotencyKeyRef.current,
@@ -165,20 +190,22 @@ export function SampleOrganisationPage() {
     }
   }
 
-  async function runRemove() {
-    if (busy || !installation || removeText.trim() !== "REMOVE") return;
+  async function runRemove(target: SampleInstallationView | null) {
+    if (busy || !target || removeText.trim() !== "REMOVE") return;
     setBusy(true);
     setError("");
     setConfirmMode(null);
     try {
-      await apiJson(`/api/sample-organisations/installations/${installation.id}`, {
+      await apiJson(`/api/sample-organisations/installations/${target.id}`, {
         method: "DELETE",
         body: JSON.stringify({ confirmation: "REMOVE" }),
       });
-      setInstallation(null);
-      setJustCompleted(false);
+      if (installation?.id === target.id) {
+        setInstallation(null);
+        setJustCompleted(false);
+        idempotencyKeyRef.current = null;
+      }
       setRemoveText("");
-      idempotencyKeyRef.current = null;
       await loadPack();
       router.refresh();
     } catch (err) {
@@ -195,6 +222,23 @@ export function SampleOrganisationPage() {
     try {
       await apiJson(
         `/api/sample-organisations/installations/${installation.id}/open`,
+        { method: "POST", body: JSON.stringify({}) }
+      );
+      window.location.assign("/?view=dashboard");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to open sample organisation.");
+      setBusy(false);
+    }
+  }
+
+  async function openLegacySample() {
+    const legacyInstallation = legacyPack?.installation;
+    if (!legacyInstallation || busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      await apiJson(
+        `/api/sample-organisations/installations/${legacyInstallation.id}/open`,
         { method: "POST", body: JSON.stringify({}) }
       );
       window.location.assign("/?view=dashboard");
@@ -227,6 +271,7 @@ export function SampleOrganisationPage() {
     }
   }
 
+  const packTitle = pack?.title ?? "Averly Services Group";
   const ready = installation?.status === "ready";
   const installing =
     installation?.status === "installing" ||
@@ -235,6 +280,8 @@ export function SampleOrganisationPage() {
   const failed = installation?.status === "failed";
   const showAvailable =
     !installation || installation.status === "removed" || failed;
+  const legacyInstallation = legacyPack?.installation ?? null;
+  const showLegacyCleanup = isActiveInstallation(legacyInstallation);
   // intelligence_pending may store an intelligence-generation note in
   // errorSummary — that is not a failure and must not render as an error banner.
   const statusError =
@@ -243,12 +290,14 @@ export function SampleOrganisationPage() {
         "Sample organisation installation failed."
       : "";
   const displayError = error || statusError;
+  const removeTarget =
+    confirmMode === "remove-legacy" ? legacyInstallation : installation;
 
   return (
     <OrganisationShell
       eyebrow="SAMPLE ORGANISATION"
-      title="Northbridge Healthcare Trust"
-      subtitle="Create a realistic fictional coaching environment for demonstrations, training and evaluation."
+      title={packTitle}
+      subtitle="Manager Development Demonstration — explore how managers prepare for real management challenges, develop their people and build development intelligence over time."
       compactHeader
     >
       <div className="sample-organisation">
@@ -263,6 +312,8 @@ export function SampleOrganisationPage() {
             <h2 id="sample-available-title" className="organisation-section-title">
               Available pack
             </h2>
+            <p className="sample-organisation__lead">{pack.title}</p>
+            <p className="organisation-muted">Manager Development Demonstration</p>
             <p className="organisation-muted sample-organisation__lead">
               {pack.summary}
             </p>
@@ -285,6 +336,48 @@ export function SampleOrganisationPage() {
               </IdentityButton>
             </div>
             <p className="organisation-field-hint">{pack.privacyNote}</p>
+          </section>
+        ) : null}
+
+        {showLegacyCleanup && legacyPack && legacyInstallation ? (
+          <section
+            className="sample-organisation__panel"
+            aria-labelledby="sample-legacy-title"
+          >
+            <h2 id="sample-legacy-title" className="organisation-section-title">
+              Previous sample organisation
+            </h2>
+            <p className="sample-organisation__lead">{legacyPack.title}</p>
+            <p className="organisation-muted sample-organisation__lead">
+              This earlier sample remains installed. Remove it safely before or after
+              installing Averly Services Group. Reset is still available from within
+              that organisation and will restore the original Northbridge pack — it
+              will not convert to Averly.
+            </p>
+            <ul className="sample-organisation__counts">
+              <li>{legacyInstallation.counts.relationships} relationships</li>
+              <li>{legacyInstallation.counts.sessions} conversations</li>
+              <li>{legacyInstallation.counts.actions} actions</li>
+            </ul>
+            <div className="sample-organisation__actions">
+              <IdentityButton
+                variant="secondary"
+                disabled={busy}
+                onClick={openLegacySample}
+              >
+                Open previous sample
+              </IdentityButton>
+              <IdentityButton
+                variant="danger"
+                disabled={busy}
+                onClick={() => {
+                  setRemoveText("");
+                  setConfirmMode("remove-legacy");
+                }}
+              >
+                Remove previous sample
+              </IdentityButton>
+            </div>
           </section>
         ) : null}
 
@@ -339,10 +432,10 @@ export function SampleOrganisationPage() {
         {justCompleted && ready && installation ? (
           <section className="sample-organisation__panel">
             <h2 className="organisation-section-title">Sample organisation ready</h2>
-            <p className="sample-organisation__lead">Northbridge Healthcare Trust</p>
+            <p className="sample-organisation__lead">{packTitle}</p>
             <ul className="sample-organisation__counts">
-              <li>{installation.counts.relationships} relationships</li>
-              <li>{installation.counts.sessions} conversations</li>
+              <li>{installation.counts.relationships} managers</li>
+              <li>{installation.counts.sessions} development conversations</li>
               <li>{installation.counts.actions} actions</li>
               <li>{installation.counts.developmentUpdates} development updates</li>
               <li>{installation.counts.intelligenceItems} intelligence items</li>
@@ -377,8 +470,8 @@ export function SampleOrganisationPage() {
               </div>
             </dl>
             <ul className="sample-organisation__counts">
-              <li>{installation.counts.relationships} relationships</li>
-              <li>{installation.counts.sessions} conversations</li>
+              <li>{installation.counts.relationships} managers</li>
+              <li>{installation.counts.sessions} development conversations</li>
               <li>{installation.counts.actions} actions</li>
               <li>{installation.counts.developmentUpdates} development updates</li>
               <li>{installation.counts.intelligenceItems} intelligence items</li>
@@ -434,8 +527,8 @@ export function SampleOrganisationPage() {
               intelligence module is released.
             </p>
             <ul className="sample-organisation__counts">
-              <li>{installation.counts.relationships} relationships</li>
-              <li>{installation.counts.sessions} conversations</li>
+              <li>{installation.counts.relationships} managers</li>
+              <li>{installation.counts.sessions} development conversations</li>
               <li>{installation.counts.actions} actions</li>
               <li>{installation.counts.developmentUpdates} development updates</li>
               <li>{installation.counts.intelligenceItems} intelligence items</li>
@@ -493,12 +586,13 @@ export function SampleOrganisationPage() {
                     Install sample organisation?
                   </h2>
                   <p>
-                    This will create a complete fictional organisation with coaching
-                    relationships, conversations and development evidence. Existing
-                    organisation data will not be changed.
+                    This will create Averly Services Group — a fictional manager
+                    development demonstration with managers, development conversations
+                    and development evidence. Existing organisation data will not be
+                    changed.
                   </p>
                   <p className="organisation-field-hint">
-                    All names and coaching records in this sample are fictional.
+                    All names and development records in this sample are fictional.
                   </p>
                   <p className="sample-organisation__meta">
                     Estimated setup time
@@ -544,15 +638,18 @@ export function SampleOrganisationPage() {
                 </>
               ) : null}
 
-              {confirmMode === "remove" ? (
+              {confirmMode === "remove" || confirmMode === "remove-legacy" ? (
                 <>
                   <h2 id={dialogTitleId} className="organisation-section-title">
                     Remove sample organisation?
                   </h2>
                   <p>
-                    This will permanently remove Northbridge Healthcare Trust and all
-                    fictional coaching records created by the installer. Other
-                    organisation data will not be affected.
+                    This will permanently remove{" "}
+                    {confirmMode === "remove-legacy"
+                      ? legacyPack?.title ?? "the previous sample organisation"
+                      : packTitle}{" "}
+                    and all fictional development records created by the installer.
+                    Other organisation data will not be affected.
                   </p>
                   <label className="organisation-field" htmlFor={removeInputId}>
                     Type REMOVE to confirm
@@ -575,7 +672,7 @@ export function SampleOrganisationPage() {
                     <IdentityButton
                       variant="danger"
                       disabled={busy || removeText.trim() !== "REMOVE"}
-                      onClick={runRemove}
+                      onClick={() => runRemove(removeTarget)}
                     >
                       Remove
                     </IdentityButton>

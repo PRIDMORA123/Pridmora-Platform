@@ -1,0 +1,47 @@
+{
+  "runId": "oi-pilot-mselkzbs",
+  "projectRef": "jfcxnkmflfzzxqovkuqw",
+  "results": [
+    {
+      "name": "schema.snapshots_available",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "fixtures.created",
+      "ok": true,
+      "detail": "6 relationships"
+    },
+    {
+      "name": "rpc.owner_allowed",
+      "ok": true,
+      "detail": "relationships=6"
+    },
+    {
+      "name": "rpc.practitioner_denied",
+      "ok": true,
+      "detail": "Permission denied"
+    },
+    {
+      "name": "rpc.cross_org_denied_despite_supplied_id",
+      "ok": true,
+      "detail": "Permission denied"
+    },
+    {
+      "name": "rpc.inactive_denied",
+      "ok": true,
+      "detail": "Permission denied"
+    },
+    {
+      "name": "verification.aborted",
+      "ok": false,
+      "detail": "fetch failed"
+    },
+    {
+      "name": "cleanup.no_fixtures_remain",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failed": 1
+}

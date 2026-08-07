@@ -22,6 +22,7 @@ export type ClientWorkspaceTab =
   | "reflect"
   | "summary"
   | "intelligence"
+  | "evidence"
   | "history"
   | "reports"
   | "actions"

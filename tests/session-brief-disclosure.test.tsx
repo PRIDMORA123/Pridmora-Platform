@@ -355,7 +355,7 @@ describe("PremiumPrepareWorkspace / PreparationView canvas", () => {
 
     expect(container.textContent).toContain("Preparation ready");
     expect(container.textContent).toContain("Preparation approach");
-    expect(container.textContent).toContain("Assisted");
+    expect(container.textContent).toContain("Standard");
     expect(container.textContent).toContain("Primary focus");
     expect(container.textContent).toContain("Refine preparation");
     expect(container.textContent).not.toContain("Your conversation draft is ready");

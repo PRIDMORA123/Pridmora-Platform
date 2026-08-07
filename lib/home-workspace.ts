@@ -13,6 +13,8 @@ import {
   hasPreparationContent,
   unresolvedActions,
 } from "@/lib/session-workflow";
+import type { ProfessionalRole } from "@/lib/organisations/types";
+import { resolveProductLanguage } from "@/lib/role-language";
 
 export type HomeWorkspaceViewModel = {
   greeting: string;
@@ -254,19 +256,29 @@ function buildWorkspaceSummary(input: {
   attentionCount: number;
   conversationsInProgress: number;
   awaitingPreparation: number;
+  relationshipSingular: string;
+  relationshipPlural: string;
+  workNoun: string;
 }): string {
-  const { attentionCount, conversationsInProgress, awaitingPreparation } = input;
+  const {
+    attentionCount,
+    conversationsInProgress,
+    awaitingPreparation,
+    relationshipSingular,
+    relationshipPlural,
+    workNoun,
+  } = input;
 
   if (attentionCount === 0 && conversationsInProgress === 0 && awaitingPreparation === 0) {
-    return "Your current coaching work is up to date.";
+    return `Your current ${workNoun} work is up to date.`;
   }
 
   if (attentionCount === 1 && conversationsInProgress === 0) {
-    return "One coaching relationship may benefit from your attention today.";
+    return `One ${relationshipSingular} may benefit from your attention today.`;
   }
 
   if (attentionCount > 1 && conversationsInProgress === 0) {
-    return `${attentionCount} coaching relationships may benefit from your attention today.`;
+    return `${attentionCount} ${relationshipPlural} may benefit from your attention today.`;
   }
 
   if (conversationsInProgress > 0 && attentionCount > 0) {
@@ -288,14 +300,14 @@ function buildWorkspaceSummary(input: {
   }
 
   if (awaitingPreparation === 1) {
-    return "One coaching relationship may benefit from your attention today.";
+    return `One ${relationshipSingular} may benefit from your attention today.`;
   }
 
   if (awaitingPreparation > 1) {
-    return `${awaitingPreparation} coaching relationships may benefit from your attention today.`;
+    return `${awaitingPreparation} ${relationshipPlural} may benefit from your attention today.`;
   }
 
-  return "Your current coaching work is up to date.";
+  return `Your current ${workNoun} work is up to date.`;
 }
 
 /**
@@ -481,7 +493,11 @@ export function resolveHomeWorkspaceViewModel(input: {
     clientId: string;
     clientName: string;
   }>;
+  professionalRole?: ProfessionalRole | null;
 }): HomeWorkspaceViewModel {
+  const language = resolveProductLanguage(input.professionalRole);
+  const workNoun =
+    input.professionalRole === "manager" ? "management" : "coaching";
   const awaitingUpdates = input.awaitingUpdates ?? [];
   const recentlyAppliedUpdates = input.recentlyAppliedUpdates ?? [];
   const active = input.clients.filter(client => !isClientArchived(client));
@@ -492,16 +508,14 @@ export function resolveHomeWorkspaceViewModel(input: {
     return {
       greeting,
       coachName,
-      workspaceSummary:
-        "Add a person, agree the coaching purpose and begin building an evidence-led development journey.",
+      workspaceSummary: language.emptyRelationshipsDescription,
       nextBestAction: {
         relationshipId: "",
         personName: "",
         eyebrow: "Get started",
         status: "No relationships yet",
-        title: "Begin your first coaching relationship",
-        explanation:
-          "Add a person, agree the coaching purpose and begin building an evidence-led development journey.",
+        title: language.emptyRelationshipsTitle,
+        explanation: language.emptyRelationshipsDescription,
         actionLabel: "Add your first person",
         actionHref: "/people/new",
         actionKind: "create_person",
@@ -571,7 +585,7 @@ export function resolveHomeWorkspaceViewModel(input: {
         stateDescription: focus
           ? focus
           : inProgress
-            ? "Continue the coaching work already under way."
+            ? language.continueWorkDescription
             : "Preparation is complete and the conversation is ready to begin.",
         updatedLabel: formatRelativeActivity(session.lastUpdated || session.date),
         actionLabel: inProgress ? "Continue" : "Start conversation",
@@ -597,6 +611,9 @@ export function resolveHomeWorkspaceViewModel(input: {
     attentionCount: nextBestAction ? Math.max(attentionCount, 1) : 0,
     conversationsInProgress: conversationsInProgress.length,
     awaitingPreparation,
+    relationshipSingular: language.relationshipSingular,
+    relationshipPlural: language.relationshipPlural,
+    workNoun,
   });
 
   const recentDevelopment: HomeWorkspaceViewModel["recentDevelopment"] = [];
@@ -671,7 +688,7 @@ export function resolveHomeWorkspaceViewModel(input: {
     workspaceSummary:
       nextBestAction || conversationsInProgress.length > 0 || awaitingPreparation > 0
         ? workspaceSummary
-        : "Your current coaching work is up to date.",
+        : language.workUpToDateTitle + ".",
     nextBestAction,
     overview: {
       activeRelationships: active.length,

@@ -1,3 +1,4 @@
+import { packQualificationAndComprehensive } from "@/lib/summary-insights/comprehensive-pack";
 import { normaliseSummaryContent } from "@/lib/summary-insights/normalise-summary-content";
 import type { SummaryInsightsContent } from "@/lib/summary-insights/types";
 import type { Session } from "@/lib/types";
@@ -46,8 +47,12 @@ export function serialiseSummaryContent(
   content: SummaryInsightsContent
 ): SummarySessionFields {
   const development = serialiseInsightItems(content.developmentEvidence);
-  const qualification = content.evidenceQualification?.trim() || "";
-  const professionalIdentityDevelopment = [development, qualification]
+  const packedQualification = packQualificationAndComprehensive({
+    qualification: content.evidenceQualification,
+    comprehensive:
+      content.depthMode === "comprehensive" ? content.comprehensive : null,
+  });
+  const professionalIdentityDevelopment = [development, packedQualification]
     .filter(Boolean)
     .join("\n\n");
 
@@ -63,7 +68,7 @@ export function serialiseSummaryContent(
     agreedActions,
     suggestedFocus,
     outcomes: suggestedFocus,
-    coachReflection: qualification,
+    coachReflection: packedQualification,
   };
 }
 

@@ -156,7 +156,7 @@ describe("guidance labels", () => {
 
   it("describes whether the effective style uses the coach default", () => {
     expect(effectiveStyleDescription("guided", null)).toBe(
-      "Assisted — using your default"
+      "Standard — using your default"
     );
     expect(effectiveStyleDescription("minimal", "minimal")).toBe(
       "Manual — selected for this client"
@@ -166,10 +166,10 @@ describe("guidance labels", () => {
   it("keeps stored values mapped to coach-facing labels", () => {
     expect(PREPARATION_STYLE_LABELS).toEqual({
       minimal: "Manual",
-      guided: "Assisted",
+      guided: "Standard",
       enhanced: "Comprehensive",
     });
-    expect(PREPARATION_STYLE_SHORT_DESCRIPTIONS.guided).toBe("Light support");
+    expect(PREPARATION_STYLE_SHORT_DESCRIPTIONS.guided).toBe("Everyday insight");
     expect(PREPARATION_STYLE_DESCRIPTIONS.minimal).toContain("No AI preparation");
     expect(
       PREPARATION_STYLE_SELECTOR_OPTIONS.find(option => option.value === "guided")

@@ -11,10 +11,12 @@ export function ConversationsInProgress({
   items,
   totalCount,
   onViewAll,
+  description,
 }: {
   items: ConversationsInProgressItem[];
   totalCount: number;
   onViewAll?: () => void;
+  description?: string;
 }) {
   return (
     <section
@@ -25,7 +27,7 @@ export function ConversationsInProgress({
         <div>
           <p className="home-section-eyebrow">Active work</p>
           <h2 id="conversations-in-progress-title">Conversations in progress</h2>
-          <p>Continue the coaching work already under way.</p>
+          <p>{description ?? "Continue the management work already under way."}</p>
         </div>
       </header>
 

@@ -82,6 +82,7 @@ export type CoachingJourneyLegacyTab =
   | "reflect"
   | "summary"
   | "intelligence"
+  | "evidence"
   | "history"
   | "reports"
   | "actions"
@@ -115,6 +116,7 @@ export function legacyTabToStage(
     case "summary":
       return "summary_insights";
     case "intelligence":
+    case "evidence":
       return "development";
     case "reports":
       return "reports";
@@ -129,6 +131,7 @@ export function appViewToStage(
     | "prepare"
     | "session"
     | "intelligence"
+    | "development-evidence"
     | "reports"
     | "career-journey"
     | "journey"
@@ -144,6 +147,7 @@ export function appViewToStage(
     case "session":
       return "session_notes";
     case "intelligence":
+    case "development-evidence":
       return "development";
     case "reports":
     case "coaching-report":

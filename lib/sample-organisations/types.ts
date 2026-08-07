@@ -2,13 +2,31 @@
  * Sample Organisation installer types and constants.
  *
  * Organisation model:
- * Northbridge Healthcare Trust is created as a separate fictional organisation
- * owned by the installing user. The caller's current organisation is untouched.
- * After install, the user opens the sample via existing organisation switching.
+ * Averly Services Group is the visible Manager Development demonstration pack.
+ * It is created as a separate fictional organisation owned by the installing user.
+ * The caller's current organisation is untouched. After install, the user opens
+ * the sample via existing organisation switching.
+ *
+ * Legacy pack `northbridge-healthcare` remains registered for cleanup/reset of
+ * existing installations only — it is not offered for new installs.
  */
 
-export const SAMPLE_PACK_KEYS = ["northbridge-healthcare"] as const;
+export const SAMPLE_PACK_KEYS = [
+  "averly-services-group",
+  "northbridge-healthcare",
+] as const;
 export type SamplePackKey = (typeof SAMPLE_PACK_KEYS)[number];
+
+/** Pack offered for new Sample Organisation installations. */
+export const DEFAULT_SAMPLE_PACK_KEY: SamplePackKey = "averly-services-group";
+
+/**
+ * Packs retained only so existing installations can still be reset or removed.
+ * Do not offer these for new installs.
+ */
+export const LEGACY_CLEANUP_SAMPLE_PACK_KEYS: readonly SamplePackKey[] = [
+  "northbridge-healthcare",
+];
 
 /** User-facing setup estimate for available, confirmation and progress states. */
 export const SAMPLE_ORGANISATION_SETUP_ESTIMATE = "Around one minute";
@@ -286,4 +304,6 @@ export type SamplePackSummary = {
   installation: SampleInstallationView | null;
   /** True when Retry intelligence generation can succeed. */
   organisationIntelligenceGenerationAvailable: boolean;
+  /** False for legacy cleanup-only packs that must not be newly installed. */
+  installable: boolean;
 };

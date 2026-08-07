@@ -55,6 +55,7 @@ export {
   canAccessPrivateNotes,
   canManageOrganisation,
   canViewSafeOversight,
+  canReadOrganisationIntelligence,
   canInviteMembers,
   canManageMembers,
   canManageAssignments,

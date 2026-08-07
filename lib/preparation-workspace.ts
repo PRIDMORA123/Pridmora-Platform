@@ -21,7 +21,7 @@ export type PreparationWorkspaceViewModel = {
   };
 
   effectiveApproach: "minimal" | "guided" | "enhanced";
-  displayApproach: "Manual" | "Assisted" | "Comprehensive";
+  displayApproach: "Manual" | "Standard" | "Comprehensive";
   isClientOverride: boolean;
 
   briefExists: boolean;
@@ -63,12 +63,12 @@ const SUPPORT_COPY: Record<
     description: `${BRAND.intelligenceName} brings together the latest approved coaching information, commitments and coach notes.`,
   },
   guided: {
-    title: "Assisted Brief",
-    description: `${BRAND.intelligenceName} brings together the latest approved information and proposes themes, coaching questions and one reflection prompt.`,
+    title: "Standard Brief",
+    description: `${BRAND.intelligenceName} brings together the latest approved information and proposes themes, useful questions and one reflection prompt.`,
   },
   enhanced: {
     title: "Comprehensive Brief",
-    description: `${BRAND.intelligenceName} brings together the latest approved information and proposes wider patterns, development direction and additional questions.`,
+    description: `${BRAND.intelligenceName} brings together the wider approved development history and proposes patterns, trajectory, evidence confidence and deeper questions.`,
   },
 };
 
@@ -102,7 +102,7 @@ export function buildPreparationWorkspaceViewModel(
   );
   const displayApproach = PREPARATION_STYLE_LABELS[effectiveApproach] as
     | "Manual"
-    | "Assisted"
+    | "Standard"
     | "Comprehensive";
   const visibility = preparationSectionVisibility(effectiveApproach);
   const brief = input.session.prepAiBrief as PreparationAiBrief | null;

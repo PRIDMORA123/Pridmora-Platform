@@ -1,0 +1,14 @@
+{
+  "name": "Averly Services Group",
+  "slugHint": "averly-services-group-sample",
+  "organisationType": "business",
+  "defaultPreparationStyle": "guided",
+  "aiEnabled": true,
+  "dataRetentionPolicyLabel": "standard",
+  "licence": {
+    "planName": "Sample",
+    "seatsPurchased": 5,
+    "status": "active"
+  },
+  "description": "Fictional 750-person service organisation used to demonstrate manager development, development intelligence and organisational learning across customer, operational and corporate functions."
+}

@@ -193,4 +193,21 @@ describe("home workspace view model", () => {
     expect(vm.emptyKind).toBe("no_relationships");
     expect(vm.nextBestAction?.actionKind).toBe("create_person");
   });
+
+  it("uses role-aware attention summary language", () => {
+    const managerVm = resolveHomeWorkspaceViewModel({
+      clients: [baseClient()],
+      coachName: "Barry",
+      professionalRole: "manager",
+    });
+    expect(managerVm.workspaceSummary).toMatch(/development relationship/i);
+    expect(managerVm.workspaceSummary).not.toMatch(/coaching relationship/i);
+
+    const coachVm = resolveHomeWorkspaceViewModel({
+      clients: [baseClient()],
+      coachName: "Barry",
+      professionalRole: "coach",
+    });
+    expect(coachVm.workspaceSummary).toMatch(/coaching relationship/i);
+  });
 });

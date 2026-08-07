@@ -1,0 +1,198 @@
+{
+  "relationships": [
+    {
+      "key": "sophie-bennett",
+      "identityMode": "standard",
+      "name": "Sophie Bennett",
+      "displayLabel": "Sophie Bennett",
+      "role": "Customer Service Team Manager",
+      "organisationLabel": "Averly Services Group",
+      "email": "sophie.bennett.sample@averly.example",
+      "currentFocus": "Lead former peers with clear expectations, fair feedback and growing team ownership.",
+      "aiNameAllowed": true,
+      "themes": [
+        "confidence",
+        "difficult_conversations",
+        "delegation",
+        "accountability"
+      ]
+    },
+    {
+      "key": "marcus-reed",
+      "identityMode": "standard",
+      "name": "Marcus Reed",
+      "displayLabel": "Marcus Reed",
+      "role": "Operations Manager",
+      "organisationLabel": "Averly Services Group",
+      "email": "marcus.reed.sample@averly.example",
+      "currentFocus": "Move from constant firefighting to developing supervisors and protecting strategic capacity.",
+      "aiNameAllowed": true,
+      "themes": [
+        "delegation",
+        "strategic_leadership",
+        "accountability"
+      ]
+    },
+    {
+      "key": "priya-desai",
+      "identityMode": "standard",
+      "name": "Priya Desai",
+      "displayLabel": "Priya Desai",
+      "role": "Finance Manager",
+      "organisationLabel": "Averly Services Group",
+      "email": "priya.desai.sample@averly.example",
+      "currentFocus": "Translate financial expertise into clear commercial influence with senior operational colleagues.",
+      "aiNameAllowed": true,
+      "themes": [
+        "strategic_leadership",
+        "stakeholder_influence",
+        "confidence"
+      ]
+    },
+    {
+      "key": "daniel-foster",
+      "identityMode": "standard",
+      "name": "Daniel Foster",
+      "displayLabel": "Daniel Foster",
+      "role": "Digital Delivery Manager",
+      "organisationLabel": "Averly Services Group",
+      "email": "daniel.foster.sample@averly.example",
+      "currentFocus": "Influence delivery partners by listening first, surfacing disagreement and making practical shared commitments.",
+      "aiNameAllowed": true,
+      "themes": [
+        "stakeholder_influence",
+        "difficult_conversations",
+        "confidence"
+      ]
+    },
+    {
+      "key": "emma-watson",
+      "identityMode": "standard",
+      "name": "Emma Watson",
+      "displayLabel": "Emma Watson",
+      "role": "People Services Manager",
+      "organisationLabel": "Averly Services Group",
+      "email": "emma.watson.sample@averly.example",
+      "currentFocus": "Combine empathy with clear standards and confident management judgement.",
+      "aiNameAllowed": true,
+      "themes": [
+        "confidence",
+        "accountability",
+        "difficult_conversations"
+      ]
+    },
+    {
+      "key": "jonathan-clarke",
+      "identityMode": "standard",
+      "name": "Jonathan Clarke",
+      "displayLabel": "Jonathan Clarke",
+      "role": "Regional Service Manager",
+      "organisationLabel": "Averly Services Group",
+      "email": "jonathan.clarke.sample@averly.example",
+      "currentFocus": "Operate at regional level by developing managers, using data and influencing across regional boundaries.",
+      "aiNameAllowed": true,
+      "themes": [
+        "strategic_leadership",
+        "delegation",
+        "stakeholder_influence"
+      ]
+    },
+    {
+      "key": "maya-patel",
+      "identityMode": "standard",
+      "name": "Maya Patel",
+      "displayLabel": "Maya Patel",
+      "role": "Transformation Programme Manager",
+      "organisationLabel": "Averly Services Group",
+      "email": "maya.patel.sample@averly.example",
+      "currentFocus": "Build a coalition for change while challenging resistance constructively in an ambiguous programme.",
+      "aiNameAllowed": true,
+      "themes": [
+        "stakeholder_influence",
+        "difficult_conversations",
+        "strategic_leadership"
+      ]
+    },
+    {
+      "key": "tom-harrison",
+      "identityMode": "standard",
+      "name": "Tom Harrison",
+      "displayLabel": "Tom Harrison",
+      "role": "Warehouse Operations Manager",
+      "organisationLabel": "Averly Services Group",
+      "email": "tom.harrison.sample@averly.example",
+      "currentFocus": "Replace directive habits with clear ownership, learning from mistakes and confident operational leadership.",
+      "aiNameAllowed": true,
+      "themes": [
+        "delegation",
+        "accountability",
+        "confidence"
+      ]
+    },
+    {
+      "key": "aisha-rahman",
+      "identityMode": "standard",
+      "name": "Aisha Rahman",
+      "displayLabel": "Aisha Rahman",
+      "role": "Learning & Capability Manager",
+      "organisationLabel": "Averly Services Group",
+      "email": "aisha.rahman.sample@averly.example",
+      "currentFocus": "Use evidence to shape organisational capability decisions rather than only delivering learning programmes.",
+      "aiNameAllowed": true,
+      "themes": [
+        "strategic_leadership",
+        "stakeholder_influence",
+        "confidence"
+      ]
+    },
+    {
+      "key": "ben-carter",
+      "identityMode": "standard",
+      "name": "Ben Carter",
+      "displayLabel": "Ben Carter",
+      "role": "Sales Support Manager",
+      "organisationLabel": "Averly Services Group",
+      "email": "ben.carter.sample@averly.example",
+      "currentFocus": "Address performance concerns promptly, set clear expectations and follow through consistently.",
+      "aiNameAllowed": true,
+      "themes": [
+        "difficult_conversations",
+        "accountability",
+        "confidence"
+      ]
+    },
+    {
+      "key": "senior-leader-a",
+      "identityMode": "confidential",
+      "name": "Senior Leader A",
+      "displayLabel": "Senior Leader A",
+      "role": "Head of Operations",
+      "organisationLabel": "Averly Services Group",
+      "email": "",
+      "currentFocus": "Lead an organisational restructure with clarity, trust, leadership presence and resilient accountability.",
+      "aiNameAllowed": false,
+      "themes": [
+        "strategic_leadership",
+        "difficult_conversations",
+        "accountability",
+        "delegation"
+      ]
+    },
+    {
+      "key": "manager-b",
+      "identityMode": "confidential",
+      "name": "Manager B",
+      "displayLabel": "Manager B",
+      "role": "Customer Operations Manager",
+      "organisationLabel": "Averly Services Group",
+      "email": "",
+      "currentFocus": "Rebuild team confidence and leadership credibility through consistent, calm management action.",
+      "aiNameAllowed": false,
+      "themes": [
+        "confidence",
+        "difficult_conversations",
+        "accountability"
+      ]
+    }
+  ]
+}

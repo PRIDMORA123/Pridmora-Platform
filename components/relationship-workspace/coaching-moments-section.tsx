@@ -5,6 +5,8 @@ import {
   conciseMomentTitle,
   type CoachingMoment,
 } from "@/lib/coaching-moments/coaching-moment";
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { resolveProductLanguage } from "@/lib/role-language";
 
 export type CoachingMomentsSectionProps = {
   moments?: CoachingMoment[];
@@ -30,7 +32,7 @@ function formatDate(value: string | null): string {
 }
 
 /**
- * Quiet utility surface for optional Coaching Moments.
+ * Quiet utility surface for optional Coaching / Development Moments.
  * Must never compete with Current Conversation or the primary CTA.
  */
 export function CoachingMomentsSection({
@@ -42,6 +44,8 @@ export function CoachingMomentsSection({
   onViewAll,
   onRetry,
 }: CoachingMomentsSectionProps) {
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
   const items = moments.slice(0, 3);
 
   if (loadError) {
@@ -50,9 +54,9 @@ export function CoachingMomentsSection({
         className="coaching-moments-section coaching-moments-section--utility"
         aria-labelledby="coaching-moments-title"
       >
-        <h2 id="coaching-moments-title">Coaching Moments</h2>
+        <h2 id="coaching-moments-title">{language.momentsTitle}</h2>
         <div className="relationship-canvas__recoverable" role="alert">
-          <p>Coaching Moments are temporarily unavailable.</p>
+          <p>{language.momentsUnavailable}</p>
           {onRetry ? (
             <button
               type="button"
@@ -72,21 +76,18 @@ export function CoachingMomentsSection({
       className="coaching-moments-section coaching-moments-section--utility"
       aria-labelledby="coaching-moments-title"
     >
-      <h2 id="coaching-moments-title">Coaching Moments</h2>
-      <p className="coaching-moments-section__copy">
-        Capture a significant coaching interaction outside the formal
-        conversation sequence.
-      </p>
+      <h2 id="coaching-moments-title">{language.momentsTitle}</h2>
+      <p className="coaching-moments-section__copy">{language.momentsDescription}</p>
 
       {archived ? (
         <p className="coaching-moments-section__archived muted">
-          This relationship is archived. New Coaching Moments cannot be created.
-          Historical moments remain available below.
+          {language.momentsArchived}
         </p>
       ) : onNewMoment ? (
         <div className="coaching-moments-section__action">
           <CoachingMomentLauncher
             variant="button"
+            label={language.newMomentLabel}
             onLaunch={onNewMoment}
           />
         </div>
@@ -100,33 +101,22 @@ export function CoachingMomentsSection({
           <ul className="coaching-moments-section__list">
             {items.map(moment => (
               <li key={moment.id}>
-                {onOpenMoment ? (
-                  <button
-                    type="button"
-                    className="coaching-moments-section__item"
-                    onClick={() => onOpenMoment(moment)}
-                  >
-                    <span className="coaching-moments-section__item-title">
-                      {conciseMomentTitle(moment)}
-                    </span>
-                    <span className="coaching-moments-section__item-date">
-                      {formatDate(moment.occurredAt || moment.updatedAt)}
-                    </span>
-                  </button>
-                ) : (
-                  <div className="coaching-moments-section__item">
-                    <span className="coaching-moments-section__item-title">
-                      {conciseMomentTitle(moment)}
-                    </span>
-                    <span className="coaching-moments-section__item-date">
-                      {formatDate(moment.occurredAt || moment.updatedAt)}
-                    </span>
-                  </div>
-                )}
+                <button
+                  type="button"
+                  className="coaching-moments-section__item"
+                  onClick={() => onOpenMoment?.(moment)}
+                >
+                  <span className="coaching-moments-section__item-title">
+                    {conciseMomentTitle(moment)}
+                  </span>
+                  <span className="coaching-moments-section__item-meta">
+                    {formatDate(moment.occurredAt)}
+                  </span>
+                </button>
               </li>
             ))}
           </ul>
-          {onViewAll && moments.length > 3 ? (
+          {onViewAll ? (
             <button
               type="button"
               className="identity-text-action"

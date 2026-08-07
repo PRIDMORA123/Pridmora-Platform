@@ -11,10 +11,14 @@ import { resolveProductLanguage } from "@/lib/role-language";
 export function MyDevelopmentView({
   onOpenPeople,
   onSwitchToPersonal,
+  onOpenTeamIntelligence,
+  onOpenPersonalEvidence,
   isPersonalWorkspace,
 }: {
   onOpenPeople: () => void;
   onSwitchToPersonal?: () => void;
+  onOpenTeamIntelligence?: () => void;
+  onOpenPersonalEvidence?: () => void;
   isPersonalWorkspace: boolean;
 }) {
   const organisation = useOrganisation();
@@ -31,26 +35,67 @@ export function MyDevelopmentView({
         </p>
       </div>
 
+      <nav className="person-development-subnav" aria-label="My development sections">
+        <span className="person-development-subnav__item is-active">Overview</span>
+        <button
+          type="button"
+          className="person-development-subnav__item"
+          onClick={onOpenPersonalEvidence}
+        >
+          Development Evidence
+        </button>
+        <button
+          type="button"
+          className="person-development-subnav__item"
+          onClick={onOpenTeamIntelligence}
+        >
+          Team Intelligence
+        </button>
+      </nav>
+
       <div className="two-grid">
         <article className="panel">
           <p className="card-label">Your record</p>
           <h2 className="identity-subheading">Develop yourself</h2>
           <p className="muted">
-            Use your personal workspace for your own development conversations,
-            preparation and evidence. Team member records stay in the organisation
-            workspace.
+            Upload your own 360, leadership assessment, PDP or reflection into
+            Development Evidence. Reviewed evidence contributes only to your personal
+            Development Intelligence — never to people you manage.
           </p>
           {!isPersonalWorkspace && onSwitchToPersonal ? (
             <div className="button-row">
               <button type="button" className="primary" onClick={onSwitchToPersonal}>
                 Open personal workspace
               </button>
+              {onOpenPersonalEvidence ? (
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={onOpenPersonalEvidence}
+                >
+                  Development Evidence
+                </button>
+              ) : null}
             </div>
           ) : (
-            <p className="muted">
-              You are in your personal workspace. Create or open your own development
-              relationships from People when you are receiving support.
-            </p>
+            <>
+              <p className="muted">
+                You are in your personal workspace. Create or open your own development
+                relationship from People when you are receiving support, then add
+                evidence there.
+              </p>
+              {onOpenPersonalEvidence ? (
+                <div className="button-row">
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={onOpenPersonalEvidence}
+                  >
+                    Open Development Evidence
+                  </button>
+                </div>
+              ) : null}
+            </>
           )}
         </article>
 
@@ -66,6 +111,15 @@ export function MyDevelopmentView({
             <button type="button" className="secondary" onClick={onOpenPeople}>
               View {language.myPeopleLabel.toLowerCase()}
             </button>
+            {onOpenTeamIntelligence ? (
+              <button
+                type="button"
+                className="secondary"
+                onClick={onOpenTeamIntelligence}
+              >
+                Team Intelligence
+              </button>
+            ) : null}
           </div>
         </article>
       </div>

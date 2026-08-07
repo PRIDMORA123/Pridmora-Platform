@@ -1,0 +1,255 @@
+{
+  "runId": "soi-pilot-mseqa84y",
+  "projectRef": "jfcxnkmflfzzxqovkuqw",
+  "appUrl": "http://127.0.0.1:3001",
+  "migration": "20260804180000_sample_organisation_installer.sql",
+  "installDurationMs": 53008,
+  "installDurationSeconds": 53.01,
+  "stageTimings": {},
+  "slowestStage": null,
+  "counts": {
+    "relationships": 12,
+    "sessions": 72,
+    "actions": 72,
+    "developmentUpdates": 24,
+    "intelligenceItems": 72,
+    "confidential": 2,
+    "standard": 10
+  },
+  "screenshotDir": "/Users/barrypridmore/Downloads/identity-v1-production-3/design-references/sample-organisation/pilot-screenshots",
+  "results": [
+    {
+      "name": "app.ready",
+      "ok": true,
+      "detail": "http://127.0.0.1:3001"
+    },
+    {
+      "name": "schema.sample_organisation_installations",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "access.practitioner_denied",
+      "ok": true,
+      "detail": "403"
+    },
+    {
+      "name": "access.oversight_denied",
+      "ok": true,
+      "detail": "403"
+    },
+    {
+      "name": "access.outsider_owner_can_see_pack",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "access.owner_allowed",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "access.administrator_allowed",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "access.unauthenticated_denied",
+      "ok": true,
+      "detail": "401"
+    },
+    {
+      "name": "install.completed",
+      "ok": true,
+      "detail": "status=ready durationMs=53008"
+    },
+    {
+      "name": "timeout.within_120s",
+      "ok": true,
+      "detail": "53008ms"
+    },
+    {
+      "name": "timeout.under_90s",
+      "ok": true,
+      "detail": "53008ms"
+    },
+    {
+      "name": "install.duplicate_blocked_or_resumed",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "install.refresh_status",
+      "ok": true,
+      "detail": "ready"
+    },
+    {
+      "name": "access.cross_organisation_denied",
+      "ok": true,
+      "detail": "404"
+    },
+    {
+      "name": "install.one_northbridge_org",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "install.user_is_owner",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "counts.relationships_12",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "counts.sessions_72",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "counts.actions_72",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "counts.development_updates_24",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "counts.intelligence_items_72",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "install.primary_assignments",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "install.organisation_intelligence_snapshot",
+      "ok": true,
+      "detail": "relationships=12 conversations=72"
+    },
+    {
+      "name": "privacy.confidential_public_safe",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "privacy.executive_brief_clean",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "privacy.audit_safe",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "isolation.source_org_unchanged",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "switching.open_sample",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "switching.back_to_source",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "oi.loaded",
+      "ok": true,
+      "detail": "sourceRelationships=12"
+    },
+    {
+      "name": "oi.privacy_threshold_met",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "oi.executive_brief_present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "oi.themes_present",
+      "ok": true,
+      "detail": "db:6 visible:6"
+    },
+    {
+      "name": "oi.metrics_present",
+      "ok": true,
+      "detail": "8"
+    },
+    {
+      "name": "screenshots.captured",
+      "ok": true,
+      "detail": "/Users/barrypridmore/Downloads/identity-v1-production-3/design-references/sample-organisation/pilot-screenshots"
+    },
+    {
+      "name": "reset.completed",
+      "ok": true,
+      "detail": "76712ms"
+    },
+    {
+      "name": "reset.counts_restored",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "reset.source_unchanged",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "remove.typed_confirmation_required",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "remove.completed",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "remove.organisation_deleted",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "remove.no_orphans",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "remove.returned_to_previous_org",
+      "ok": true,
+      "detail": "2faaaf70-68cd-402f-994f-b07734743ec3"
+    },
+    {
+      "name": "remove.source_unchanged",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "cleanup.no_northbridge_left",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "final.no_pilot_northbridge_fixtures",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failed": 0,
+  "passed": 46,
+  "recommendQueuedInstall": false
+}

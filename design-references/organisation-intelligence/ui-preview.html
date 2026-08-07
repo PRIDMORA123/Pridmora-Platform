@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Organisation Intelligence preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy: #13233a;
+      --teal: #4f9d98;
+      --ink: #243247;
+      --muted: #5b6675;
+      --canvas: #f7f4ef;
+      --line: rgba(19, 35, 58, 0.1);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Poppins, Helvetica, Arial, sans-serif;
+      background: var(--canvas);
+      color: var(--ink);
+      line-height: 1.55;
+    }
+    .page {
+      width: min(100% - 48px, 76rem);
+      margin: 0 auto;
+      padding: 40px 0 80px;
+    }
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.75rem;
+      color: var(--teal);
+      font-weight: 600;
+      margin: 0 0 0.4rem;
+    }
+    h1 {
+      margin: 0 0 0.4rem;
+      color: var(--navy);
+      font-size: 2rem;
+      font-weight: 600;
+    }
+    h2 {
+      margin: 0 0 0.75rem;
+      color: var(--navy);
+      font-size: 1.25rem;
+    }
+    .subtitle, .meta, .muted { color: var(--muted); }
+    .section { margin: 2.5rem 0; }
+    .brief p { max-width: 46rem; }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1.25rem;
+      margin-top: 1rem;
+    }
+    .metric strong {
+      display: block;
+      font-size: 1.75rem;
+      color: var(--navy);
+    }
+    .momentum-value {
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--navy);
+      margin: 0;
+    }
+    .bar {
+      height: 0.55rem;
+      border-radius: 999px;
+      background: rgba(19, 35, 58, 0.08);
+      overflow: hidden;
+      max-width: 36rem;
+      margin: 0.75rem 0;
+    }
+    .bar > span {
+      display: block;
+      height: 100%;
+      width: 58%;
+      background: var(--teal);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.85rem 0.5rem;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    th[scope="row"] { color: var(--navy); font-weight: 600; }
+    .theme, .priority {
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .theme strong, .priority strong {
+      display: block;
+      color: var(--navy);
+      margin-bottom: 0.25rem;
+    }
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(420px, 100vw);
+      height: 100vh;
+      background: #fff;
+      border-left: 1px solid var(--line);
+      padding: 28px;
+      box-shadow: none;
+    }
+    .empty {
+      max-width: 40rem;
+      margin: 3rem 0;
+    }
+    .nav {
+      display: flex;
+      gap: 1rem;
+      margin: 1.5rem 0 2rem;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 0.75rem;
+    }
+    .nav span {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .nav .active {
+      color: var(--navy);
+      font-weight: 600;
+      border-bottom: 2px solid var(--teal);
+      padding-bottom: 0.7rem;
+    }
+    @media (max-width: 900px) {
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .page { width: min(100% - 32px, 76rem); }
+    }
+    @media (max-width: 640px) {
+      h1 { font-size: 1.55rem; }
+      .metrics { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page" id="executive">
+    <p class="eyebrow">Organisation intelligence</p>
+    <h1>Development intelligence</h1>
+    <p class="subtitle">An anonymised view of leadership development across the organisation.</p>
+    <div class="nav" aria-label="Organisation">
+      <span>Overview</span>
+      <span class="active">Intelligence</span>
+      <span>Members</span>
+      <span>Assignments</span>
+      <span>Usage</span>
+      <span>Settings</span>
+    </div>
+    <p class="meta"><strong>Pridmora Demo Organisation</strong></p>
+    <p class="meta">Last 90 days · Last generated 04/08/2026, 12:30 · Source relationships: 8 · Moderate confidence</p>
+
+    <section class="section" id="brief">
+      <h2>Executive brief</h2>
+      <div class="brief">
+        <p>Evidence suggests improvement in Listening and Presence across Pridmora Demo Organisation during the last 90 days.</p>
+        <p>Areas requiring attention include Confidence. Confidence remains tied to the volume and consistency of anonymised evidence.</p>
+        <p>Development Momentum is 58 (strengthening against the previous comparable period). Stable or uncertain areas should be read as evidence limits rather than proof of no change.</p>
+        <p>Provide targeted development support and continue gathering evidence before drawing firmer conclusions.</p>
+      </div>
+    </section>
+
+    <section class="section" id="overview">
+      <h2>Organisation overview</h2>
+      <div class="metrics">
+        <div class="metric"><strong>12</strong><span class="muted">Active relationships</span></div>
+        <div class="metric"><strong>4</strong><span class="muted">Active practitioners</span></div>
+        <div class="metric"><strong>28</strong><span class="muted">Conversations</span></div>
+        <div class="metric"><strong>40</strong><span class="muted">Evidence items</span></div>
+      </div>
+    </section>
+
+    <section class="section" id="momentum">
+      <h2>Development Momentum</h2>
+      <p class="muted">A directional measure of sustained coaching activity, action and recorded development.</p>
+      <p class="momentum-value">58</p>
+      <div class="bar" role="meter" aria-valuenow="58" aria-valuemin="0" aria-valuemax="100"><span></span></div>
+      <p class="meta">Compared with previous 90 days · Moderate confidence</p>
+    </section>
+
+    <section class="section" id="capabilities">
+      <h2>Capability trends</h2>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Capability</th>
+            <th scope="col">Direction</th>
+            <th scope="col">Evidence</th>
+            <th scope="col">Relationships</th>
+            <th scope="col">Confidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Listening and Presence</th><td>Strengthening</td><td>5</td><td>5</td><td>Moderate confidence</td></tr>
+          <tr><th scope="row">Psychological Safety</th><td>Insufficient evidence</td><td>—</td><td>—</td><td>Not enough evidence to report safely.</td></tr>
+          <tr><th scope="row">Accountability and Ownership</th><td>Stable</td><td>5</td><td>5</td><td>Moderate confidence</td></tr>
+          <tr><th scope="row">Feedback and Conversations</th><td>Strengthening</td><td>5</td><td>5</td><td>Moderate confidence</td></tr>
+          <tr><th scope="row">Emotional Intelligence and Self-Management</th><td>Requiring attention</td><td>5</td><td>5</td><td>Moderate confidence</td></tr>
+          <tr><th scope="row">Collaboration and Alignment</th><td>Stable</td><td>5</td><td>5</td><td>Low confidence</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section" id="themes">
+      <h2>Emerging themes</h2>
+      <div class="theme"><strong>Confidence</strong><span class="muted">5 relationships · 5 evidence · Requiring attention · Moderate confidence</span></div>
+      <div class="theme"><strong>Feedback</strong><span class="muted">5 relationships · 5 evidence · Strengthening · Moderate confidence</span></div>
+      <div class="theme"><strong>Delegation</strong><span class="muted">5 relationships · 5 evidence · Stable · Moderate confidence</span></div>
+      <div class="theme"><strong>Accountability</strong><span class="muted">5 relationships · 5 evidence · Stable · Moderate confidence</span></div>
+    </section>
+
+    <section class="section" id="priorities">
+      <h2>Priority areas</h2>
+      <div class="priority">
+        <strong>Confidence needs focused attention</strong>
+        <p>Evidence across 5 relationships indicates confidence is requiring attention.</p>
+        <p class="muted">Suggested response: Provide targeted development support and continue gathering evidence before drawing firmer conclusions.</p>
+      </div>
+    </section>
+  </div>
+
+  <div class="page" id="empty" hidden>
+    <p class="eyebrow">Organisation intelligence</p>
+    <div class="empty">
+      <h1>More evidence is needed.</h1>
+      <p>Organisation Intelligence becomes available when enough anonymised coaching evidence has been recorded to report safely.</p>
+      <ul>
+        <li>Relationships contributing: 2</li>
+        <li>Conversations contributing: 3</li>
+        <li>Minimum privacy threshold: 5 relationships</li>
+      </ul>
+    </div>
+  </div>
+
+  <aside class="drawer" id="theme-drawer" hidden>
+    <p class="eyebrow">Theme detail</p>
+    <h2>Confidence</h2>
+    <p>Evidence suggests confidence is appearing across 5 relationships.</p>
+    <p class="meta">Trend: Requiring attention · Evidence: 5 · Relationships: 5 · Moderate confidence</p>
+    <p class="muted">Anonymised evidence summary. Paraphrased from approved coaching evidence. No quotations, names or confidential references.</p>
+  </aside>
+
+  <aside class="drawer" id="evidence-drawer" hidden>
+    <p class="eyebrow">Evidence</p>
+    <h2>Supporting evidence</h2>
+    <p class="meta">Evidence count: 5</p>
+    <p class="meta">Relationship count: 5</p>
+    <p class="meta">Source types: intelligence item, client item theme</p>
+    <p class="meta">Date range: 2026-05-07 to 2026-08-04</p>
+    <p class="muted">Confidence basis: Repeated evidence across several relationships with more than one source type or a broadly consistent direction.</p>
+    <p class="muted">Suppression applied: No suppression applied for this insight.</p>
+  </aside>
+</body>
+</html>

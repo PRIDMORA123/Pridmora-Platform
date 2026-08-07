@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Organisation Intelligence empty state</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;650;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy: #13233a;
+      --teal: #4f9d98;
+      --muted: #687b8a;
+      --canvas: #f7f4ef;
+      --line: rgba(19, 35, 58, 0.1);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Poppins, Helvetica, Arial, sans-serif;
+      background: var(--canvas);
+      color: #243247;
+      line-height: 1.55;
+    }
+    .page {
+      width: min(100% - 48px, 68rem);
+      margin: 0 auto;
+      padding: 36px 0 72px;
+      display: grid;
+      gap: 20px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .header-main { max-width: 40rem; }
+    .eyebrow {
+      margin: 0 0 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--teal);
+    }
+    h1 {
+      margin: 0;
+      color: var(--navy);
+      font-size: clamp(1.7rem, 2.4vw, 2.2rem);
+      font-weight: 650;
+      letter-spacing: -0.035em;
+      line-height: 1.12;
+    }
+    .subtitle {
+      margin: 0.45rem 0 0;
+      max-width: 36rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .back {
+      margin-top: 1.55rem;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.86rem;
+      font-weight: 500;
+    }
+    .nav {
+      display: flex;
+      gap: 0.85rem;
+      border-bottom: 1px solid #e7ecef;
+      padding-bottom: 0.7rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    .nav .active {
+      color: var(--navy);
+      font-weight: 600;
+      border-bottom: 2px solid var(--teal);
+      padding-bottom: 0.65rem;
+      margin-bottom: -0.72rem;
+    }
+    .privacy {
+      display: flex;
+      gap: 0.75rem;
+      max-width: 42rem;
+      padding: 0.85rem 1rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.7);
+      box-shadow: 0 1px 2px rgba(19,35,58,0.04);
+    }
+    .privacy strong {
+      display: block;
+      margin-bottom: 0.2rem;
+      color: var(--navy);
+      font-size: 0.88rem;
+    }
+    .privacy p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+    .lock { color: var(--teal); margin-top: 0.15rem; }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: end;
+      padding: 1.1rem 1.2rem;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(19,35,58,0.05);
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem 1.75rem;
+    }
+    .field span {
+      display: block;
+      margin-bottom: 0.35rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .field strong {
+      color: var(--navy);
+      font-size: 0.98rem;
+      font-weight: 550;
+    }
+    select {
+      min-width: 11rem;
+      border: 1px solid rgba(19,35,58,0.14);
+      border-radius: 10px;
+      padding: 0.65rem 0.8rem;
+      background: #fff;
+      font: inherit;
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+    .btn {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      padding: 0.8rem 1.2rem;
+      background: var(--teal);
+      color: #fff;
+      font: inherit;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .btn.secondary {
+      background: transparent;
+      color: var(--navy);
+      border: 1px solid rgba(19,35,58,0.16);
+    }
+    .empty {
+      padding: 1.75rem 1.6rem 1.6rem;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(19,35,58,0.04);
+      max-width: 48rem;
+    }
+    .empty h2 {
+      margin: 0 0 0.75rem;
+      max-width: 28rem;
+      color: var(--navy);
+      font-size: clamp(1.35rem, 2vw, 1.7rem);
+      line-height: 1.25;
+    }
+    .empty > p.copy {
+      margin: 0 0 1.5rem;
+      max-width: 38rem;
+      color: var(--muted);
+    }
+    .indicators {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      padding-top: 1.15rem;
+      border-top: 1px solid rgba(19,35,58,0.08);
+    }
+    .indicators span {
+      display: block;
+      margin-bottom: 0.35rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .indicators strong {
+      color: var(--navy);
+      font-size: 1.05rem;
+    }
+    .steps {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .steps li {
+      padding: 1.1rem 1rem;
+      border: 1px solid rgba(19,35,58,0.08);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.65);
+    }
+    .steps .n {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.55rem;
+      height: 1.55rem;
+      margin-bottom: 0.7rem;
+      border-radius: 999px;
+      border: 1px solid rgba(79,157,152,0.35);
+      color: var(--teal);
+      font-size: 0.8rem;
+      font-weight: 650;
+    }
+    .steps h3 {
+      margin: 0 0 0.45rem;
+      color: var(--navy);
+      font-size: 0.98rem;
+    }
+    .steps p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    @media (max-width: 980px) {
+      .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .indicators { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .page { width: min(100% - 32px, 68rem); }
+      .header { flex-direction: column; }
+      .back { margin-top: 0; }
+      .controls { flex-direction: column; align-items: stretch; }
+      .actions .btn { width: 100%; text-align: center; }
+      .steps { grid-template-columns: 1fr; }
+      select { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <div class="header-main">
+        <p class="eyebrow">Organisation intelligence</p>
+        <h1>Development intelligence</h1>
+        <p class="subtitle">An anonymised view of leadership development across the organisation.</p>
+      </div>
+      <a class="back" href="#">Back to workspace</a>
+    </header>
+    <nav class="nav" aria-label="Organisation">
+      <span>Overview</span>
+      <span class="active">Intelligence</span>
+      <span>Members</span>
+      <span>Assignments</span>
+      <span>Usage</span>
+      <span>Settings</span>
+    </nav>
+
+    <aside class="privacy" role="note">
+      <span class="lock" aria-hidden="true">🔒</span>
+      <div>
+        <strong>Privacy protected</strong>
+        <p>Organisation Intelligence uses anonymised, aggregated development evidence. Confidential coaching content remains available only to authorised practitioners.</p>
+      </div>
+    </aside>
+
+    <section class="controls" aria-label="Reporting controls">
+      <div class="meta">
+        <label class="field">
+          <span>Reporting period</span>
+          <select aria-label="Reporting period"><option>Last 90 days</option></select>
+        </label>
+        <div class="field">
+          <span>Status</span>
+          <strong>Not yet generated</strong>
+        </div>
+        <div class="field">
+          <span>Privacy threshold</span>
+          <strong>5 relationships</strong>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" type="button">Generate intelligence</button>
+        <a class="btn secondary" href="#">Review coaching activity</a>
+      </div>
+    </section>
+
+    <section class="empty" aria-labelledby="empty-heading">
+      <p class="eyebrow">Building organisation intelligence</p>
+      <h2 id="empty-heading">Your organisation is beginning to build a clearer picture.</h2>
+      <p class="copy">As coaching evidence grows, Pridmora will identify recurring leadership themes, development patterns and areas requiring attention while protecting individual confidentiality.</p>
+      <div class="indicators">
+        <div><span>Relationships contributing</span><strong>Not yet generated</strong></div>
+        <div><span>Conversations contributing</span><strong>Not yet generated</strong></div>
+        <div><span>Minimum privacy threshold</span><strong>5 relationships</strong></div>
+      </div>
+    </section>
+
+    <ol class="steps">
+      <li><span class="n">1</span><h3>Record coaching evidence</h3><p>Approved conversations, actions and development updates form the evidence base.</p></li>
+      <li><span class="n">2</span><h3>Aggregate it safely</h3><p>Pridmora combines anonymised signals without exposing private identity.</p></li>
+      <li><span class="n">3</span><h3>Identify development patterns</h3><p>Recurring themes and capability trends become visible once enough relationships contribute.</p></li>
+      <li><span class="n">4</span><h3>Support informed decisions</h3><p>Leaders can focus organisational attention where the evidence is strongest.</p></li>
+    </ol>
+  </div>
+</body>
+</html>

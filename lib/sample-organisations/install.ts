@@ -2,7 +2,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { writeSampleOrganisationAudit } from "@/lib/sample-organisations/audit";
 import { generateSampleOrganisationIntelligenceSnapshot } from "@/lib/sample-organisations/organisation-intelligence";
 import { buildInstallPlan } from "@/lib/sample-organisations/planner";
-import { requireSamplePack } from "@/lib/sample-organisations/registry";
+import {
+  isInstallableSamplePack,
+  requireSamplePack,
+} from "@/lib/sample-organisations/registry";
 import {
   getActiveInstallationForPack,
   getInstallationById,
@@ -14,6 +17,51 @@ import type {
   ValidatedSamplePack,
 } from "@/lib/sample-organisations/types";
 import { seedExistingSampleOrganisation } from "@/lib/sample-organisations/seed-content";
+
+/**
+ * Averly is a Manager Development demonstration. Membership language must use
+ * manager product language after install. Legacy Northbridge installs retain
+ * their existing membership role.
+ *
+ * After the Averly manager-role migration, professional_role is set at creation.
+ * This helper verifies that and only corrects when a pre-migration begin RPC
+ * still inserted coach.
+ */
+async function applySampleMembershipProfessionalRole(input: {
+  supabase: SupabaseClient;
+  organisationId: string;
+  userId: string;
+  packKey: string;
+}): Promise<void> {
+  if (input.packKey !== "averly-services-group") return;
+
+  const { data: existing, error: selectError } = await input.supabase
+    .from("organisation_memberships")
+    .select("id, professional_role")
+    .eq("organisation_id", input.organisationId)
+    .eq("user_id", input.userId)
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (selectError || !existing?.id) {
+    throw new Error("Unable to configure sample organisation membership role.");
+  }
+
+  if (existing.professional_role === "manager") {
+    return;
+  }
+
+  const { data, error } = await input.supabase
+    .from("organisation_memberships")
+    .update({ professional_role: "manager" })
+    .eq("id", existing.id)
+    .select("id, professional_role")
+    .maybeSingle();
+
+  if (error || data?.professional_role !== "manager") {
+    throw new Error("Unable to configure sample organisation membership role.");
+  }
+}
 
 
 async function mapRecord(input: {
@@ -185,7 +233,7 @@ export async function installSampleOrganisation(input: {
     input.userId,
     pack.manifest.packKey
   );
-  if (existing?.status === "ready") {
+  if (existing?.status === "ready" || existing?.status === "intelligence_pending") {
     return { ok: true, installation: existing, resumed: true };
   }
   if (
@@ -195,6 +243,16 @@ export async function installSampleOrganisation(input: {
       existing.status === "removing")
   ) {
     return { ok: true, installation: existing, resumed: true };
+  }
+
+  // Legacy packs remain loadable for reset/remove, but must not start new installs.
+  if (!isInstallableSamplePack(pack.manifest.packKey)) {
+    return {
+      ok: false,
+      error:
+        "This sample organisation is no longer available for new installations.",
+      code: "PACK_NOT_AVAILABLE",
+    };
   }
 
   const { data: beginData, error: beginError } = await input.supabase.rpc(
@@ -269,6 +327,13 @@ export async function installSampleOrganisation(input: {
   // Fresh install continues seeding in this request.
   if (!begin.resumed) {
     try {
+      await applySampleMembershipProfessionalRole({
+        supabase: input.supabase,
+        organisationId,
+        userId: input.userId,
+        packKey: pack.manifest.packKey,
+      });
+
       const seeded = await seedExistingSampleOrganisation({
         supabase: input.supabase,
         userId: input.userId,

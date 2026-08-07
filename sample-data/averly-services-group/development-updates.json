@@ -1,0 +1,1708 @@
+{
+  "developmentUpdates": [
+    {
+      "key": "sophie-bennett-update-1",
+      "relationshipKey": "sophie-bennett",
+      "sessionKey": "sophie-bennett-session-2",
+      "status": "applied",
+      "conversationSummary": "Sophie followed up with one adviser the same week and, when he explained a complex complaint case, told him not to worry about the cap for now. Setting the expectation at all is new. A month ago she would have raised the issue as a question to the whole team and left it there.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Lead former peers with clear expectations, fair feedback and growing team ownership.",
+          "reason": "Strong mid-programme improvement, with confidence now visible in live operational decisions."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "She acted on her own commitment within a week and put the expectation somewhere visible rather than relying on people remembering a conversation.",
+              "status": "emerging",
+              "reason": "Sophie announced a fifteen-minute cap on routine after-call work at the Monday huddle and wrote it on the team board."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Difficult Conversations: Setting expectations",
+              "status": "emerging",
+              "reason": "Sophie holds a standard with a group and loses it with an individual, which suggests the difficulty is relational rather than a lack of clarity."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "The exception has not been revisited, so the adviser is still working to the old pattern with her implicit permission.",
+              "status": "emerging",
+              "reason": "She used the phrase 'for now' twice when describing the exception and could not say what would bring it to an end."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Responds well to rehearsing the first two sentences of a difficult conversation; abstract discussion of confidence does not land.",
+              "status": "emerging",
+              "reason": "Sophie manages the group well and the individual less well. Prepare her for resistance in the one-to-one rather than for the announcement itself."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Her follow-up came within seven days, which is faster than anything she described last month; the timing is improving before the content does.",
+              "status": "emerging",
+              "reason": "Setting the expectation at all is new. A month ago she would have raised the issue as a question to the whole team and left it there."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "A first experiment rather than established practice: the expectation was set, then softened as soon as a former peer offered a reasonable-sounding case.",
+          "sourceExcerpt": "Sophie announced a fifteen-minute cap on routine after-call work at the Monday huddle and wrote it on the team board."
+        }
+      ],
+      "coachNote": "Watch whether Sophie treats the exception as a mistake to regret or as information about where her authority still feels borrowed. The second reading will serve her better.",
+      "generatedAt": "2026-03-15T16:00:00.000Z",
+      "reviewedAt": "2026-03-15T17:00:00.000Z",
+      "appliedAt": "2026-03-15T18:00:00.000Z"
+    },
+    {
+      "key": "sophie-bennett-update-2",
+      "relationshipKey": "sophie-bennett",
+      "sessionKey": "sophie-bennett-session-5",
+      "status": "applied",
+      "conversationSummary": "Sophie asked the advisers what they would change, wrote the four suggestions on the board, and closed the huddle by naming an owner and a review date for each one. Six months ago she brought solutions to the huddle and asked for agreement. She now brings the problem and holds people to what they propose.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Lead former peers with clear expectations, fair feedback and growing team ownership.",
+          "reason": "Strong mid-programme improvement, with confidence now visible in live operational decisions."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "She resisted supplying the answer in a forum she controls, and converted team suggestions into named accountability before the huddle ended.",
+              "status": "supported",
+              "reason": "A team huddle about the two-to-four abandoned-call dip, run as an open question rather than a briefing."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Confidence: Building team accountability",
+              "status": "supported",
+              "reason": "The advisers' suggestions were more operationally specific than her own, which Sophie noticed aloud and did not treat as a threat."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Two of the four owners are the same experienced advisers, so ownership is spreading across ideas but not yet across people.",
+              "status": "supported",
+              "reason": "Accountability now runs through a mechanism — owner, action, date — rather than depending on whether she feels able to chase someone."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Prefers to review what happened against what she intended; evidence of team behaviour change motivates her more than encouragement.",
+              "status": "supported",
+              "reason": "Sophie is now competent at group accountability. The remaining edge is distribution, because the same two advisers carry most of the ownership."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Her language has moved from 'would you mind' to 'who is taking this', and the team has not reacted badly to it.",
+              "status": "supported",
+              "reason": "Six months ago she brought solutions to the huddle and asked for agreement. She now brings the problem and holds people to what they propose."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Sustained behavioural change across several weeks: expectations are set publicly, followed up individually and closed with named owners.",
+          "sourceExcerpt": "A team huddle about the two-to-four abandoned-call dip, run as an open question rather than a briefing."
+        }
+      ],
+      "coachNote": "Confidence has become procedural for Sophie, which is more durable than feeling confident. The open question is whether the procedure survives a bad week.",
+      "generatedAt": "2026-06-28T16:00:00.000Z",
+      "reviewedAt": "2026-06-28T17:00:00.000Z",
+      "appliedAt": "2026-06-28T18:00:00.000Z"
+    },
+    {
+      "key": "marcus-reed-update-1",
+      "relationshipKey": "marcus-reed",
+      "sessionKey": "marcus-reed-session-2",
+      "status": "applied",
+      "conversationSummary": "Three plans arrived. One was, in his own words, worse than what he would have written, and he ran it anyway to find out what would happen. This is a single experiment rather than a habit. He reverted to direct instruction twice later the same week when a customer escalation arrived.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Move from constant firefighting to developing supervisors and protecting strategic capacity.",
+          "reason": "Uneven: strategic habits are credible, but pressure still triggers firefighting late in the journey."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "He let a suboptimal plan run to completion rather than correcting it, which was the more informative choice available.",
+              "status": "emerging",
+              "reason": "A parts shortage in the western depot left forty jobs unallocated, and Marcus asked each supervisor for a recovery plan by midday instead of issuing one himself."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Strategic Leadership: Asking for the plan",
+              "status": "emerging",
+              "reason": "Asking for plans changed the depot conversation immediately: two supervisors brought parts data he had never seen."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "The fourth supervisor submitted nothing and Marcus let it pass, so the request was optional in practice.",
+              "status": "emerging",
+              "reason": "He tolerates a weaker plan while the stakes stay internal, and takes over the moment a customer name is attached to the problem."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Engages with operational specifics and short experiments he can run inside a week; extended reflection without a test attached loses him.",
+              "status": "emerging",
+              "reason": "Marcus experiments willingly. It is the follow-through on non-compliance where he backs off, particularly with the longest-serving supervisor."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "The missing plan is the more important signal of the week, and it passed without any comment at all.",
+              "status": "emerging",
+              "reason": "This is a single experiment rather than a habit. He reverted to direct instruction twice later the same week when a customer escalation arrived."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "A first deliberate change in practice: recovery planning was requested rather than supplied, and one plan ran unaltered.",
+          "sourceExcerpt": "A parts shortage in the western depot left forty jobs unallocated, and Marcus asked each supervisor for a recovery plan by midday instead of issuing one himself."
+        }
+      ],
+      "coachNote": "The uncomfortable material here is the missing plan, not the weak one. Marcus finds operational quality far easier to discuss than holding someone to a request.",
+      "generatedAt": "2026-03-16T16:00:00.000Z",
+      "reviewedAt": "2026-03-16T17:00:00.000Z",
+      "appliedAt": "2026-03-16T18:00:00.000Z"
+    },
+    {
+      "key": "marcus-reed-update-2",
+      "relationshipKey": "marcus-reed",
+      "sessionKey": "marcus-reed-session-5",
+      "status": "applied",
+      "conversationSummary": "He described that Monday briefing as unsettling and useful in equal measure, and admitted he had checked the job board twice over the weekend without intervening. Ten days later, in the middle of peak week, he took a national account escalation off the supervisor who owned it and ran it himself for four days.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Move from constant firefighting to developing supervisors and protecting strategic capacity.",
+          "reason": "Uneven: strategic habits are credible, but pressure still triggers firefighting late in the journey."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "He allowed a weekend incident to be resolved without him and stayed out of it despite checking on the job board twice.",
+              "status": "supported",
+              "reason": "A depot generator failed over a weekend and two supervisors arranged cover between themselves, telling Marcus about it on the Monday."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Strategic Leadership: Testing what holds without him",
+              "status": "supported",
+              "reason": "The pattern is now legible: Marcus delegates internal operational risk and reclaims anything carrying reputational exposure."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "He describes that takeover as necessary rather than habitual, and has not tested the judgement with the supervisor concerned.",
+              "status": "supported",
+              "reason": "The supervisors waited until Monday to tell him, which reads as confidence rather than concealment, though he first interpreted it the other way."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Prefers evidence to encouragement; changes behaviour when shown what his supervisors achieved rather than what he failed to do.",
+              "status": "supported",
+              "reason": "Marcus needs an escalation rule agreed in calm conditions, because in the moment he will always find a reason why this one is different."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Peak-week pressure stripped out the newer behaviours first and left the older ones intact, which is the usual order of things.",
+              "status": "supported",
+              "reason": "Ten days later, in the middle of peak week, he took a national account escalation off the supervisor who owned it and ran it himself for four days."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Uneven but real: supervisor capability is now demonstrable, while high-exposure work still returns to him under pressure.",
+          "sourceExcerpt": "A depot generator failed over a weekend and two supervisors arranged cover between themselves, telling Marcus about it on the Monday."
+        }
+      ],
+      "coachNote": "The generator weekend is the evidence Marcus needs and the escalation is the evidence he will discount. Both belong in the same conversation.",
+      "generatedAt": "2026-06-29T16:00:00.000Z",
+      "reviewedAt": "2026-06-29T17:00:00.000Z",
+      "appliedAt": "2026-06-29T18:00:00.000Z"
+    },
+    {
+      "key": "priya-desai-update-1",
+      "relationshipKey": "priya-desai",
+      "sessionKey": "priya-desai-session-2",
+      "status": "applied",
+      "conversationSummary": "He disagreed with the utilisation assumption immediately and, rather than defending the model, she asked what he was seeing in the depots and rewrote the assumption twice that week. This is the first occasion she has shown unfinished work to an operational colleague, which she described afterwards as exposing.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Translate financial expertise into clear commercial influence with senior operational colleagues.",
+          "reason": "Slower early progress accelerated once she tested strategic messages before formal forums."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "She changed a core assumption on the strength of operational evidence without treating the challenge as an attack on her competence.",
+              "status": "emerging",
+              "reason": "Priya took her three-sentence opening to the commercial lead a fortnight before the next planning meeting."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Stakeholder Influence: Testing the message",
+              "status": "emerging",
+              "reason": "Priya listens genuinely well when she is not defending a position, and the assumption improved precisely because she stopped defending it."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "She tested the message with a colleague she trusts and has not tried it with the director most likely to challenge it.",
+              "status": "emerging",
+              "reason": "Her instinct is to make a paper unassailable before showing it, and the pre-test works because it does the opposite."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Works best from a real paper in front of her; responds to specific rewording rather than general encouragement to be assertive.",
+              "status": "emerging",
+              "reason": "The pre-meeting is the mechanism that works for Priya. Encourage her to widen who she tests with rather than to prepare more thoroughly."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "The commercial lead offered depot knowledge she had no access to, so the rehearsal improved the analysis as well as the framing.",
+              "status": "emerging",
+              "reason": "This is the first occasion she has shown unfinished work to an operational colleague, which she described afterwards as exposing."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "A first practical experiment: the message was tested before the forum and the assumption revised in response to what she heard.",
+          "sourceExcerpt": "Priya took her three-sentence opening to the commercial lead a fortnight before the next planning meeting."
+        }
+      ],
+      "coachNote": "Priya has found a route that suits her: rehearse the argument privately, then arrive with something already tested. Watch that it does not become another way to delay.",
+      "generatedAt": "2026-03-17T16:00:00.000Z",
+      "reviewedAt": "2026-03-17T17:00:00.000Z",
+      "appliedAt": "2026-03-17T18:00:00.000Z"
+    },
+    {
+      "key": "priya-desai-update-2",
+      "relationshipKey": "priya-desai",
+      "sessionKey": "priya-desai-session-5",
+      "status": "applied",
+      "conversationSummary": "The two functions had been arriving at forums with different denominators, so she brought both sets of numbers, showed where they diverged and asked which he could defend. Six months ago she would have corrected his figures in the meeting; she now settles the disagreement before anyone else sees it.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Translate financial expertise into clear commercial influence with senior operational colleagues.",
+          "reason": "Slower early progress accelerated once she tested strategic messages before formal forums."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "She resolved a long-running data dispute by giving the other function the choice, rather than by proving her own figures right.",
+              "status": "supported",
+              "reason": "Priya held a pre-meeting with the operations director and agreed which utilisation figures both functions would use for the remainder of the programme."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Stakeholder Influence: Aligning before the room",
+              "status": "supported",
+              "reason": "Priya's influence now operates before forums rather than inside them, which suits her and demonstrably works."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "The agreement rests on one relationship and has not been written into the reporting definitions.",
+              "status": "supported",
+              "reason": "Asking which figure he could defend handed the operations director ownership of the answer and ended a dispute that had run for a year."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Prefers to prepare with a colleague and test wording before formal forums; finds live rehearsal more useful than written feedback.",
+              "status": "supported",
+              "reason": "Priya builds alignment well in private. The task now is making that alignment durable in definitions rather than in goodwill."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Her confidence is markedly higher one-to-one, and the board room remains the harder environment for her.",
+              "status": "supported",
+              "reason": "Six months ago she would have corrected his figures in the meeting; she now settles the disagreement before anyone else sees it."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Strategic influence is established: disagreements are surfaced and settled ahead of decision forums, with the evidence agreed in advance.",
+          "sourceExcerpt": "Priya held a pre-meeting with the operations director and agreed which utilisation figures both functions would use for the remainder of the programme."
+        }
+      ],
+      "coachNote": "Priya's development accelerated the moment she started testing messages early. Name that pattern to her explicitly so she keeps using it deliberately.",
+      "generatedAt": "2026-06-30T16:00:00.000Z",
+      "reviewedAt": "2026-06-30T17:00:00.000Z",
+      "appliedAt": "2026-06-30T18:00:00.000Z"
+    },
+    {
+      "key": "daniel-foster-update-1",
+      "relationshipKey": "daniel-foster",
+      "sessionKey": "daniel-foster-session-2",
+      "status": "applied",
+      "conversationSummary": "The operations representative described a duplicate-record problem in the CRM extract that would have surfaced two days after go-live, and which nobody had raised across four previous meetings. The listening round happened once, by design, and he described having to physically hold back a proposal he already had ready.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Influence delivery partners by listening first, surfacing disagreement and making practical shared commitments.",
+          "reason": "Good evidence of more deliberate listening; frustration with a small number of stakeholders remains active."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "He redesigned his own meeting to make room for information he did not want, then captured the result instead of arguing with it.",
+              "status": "emerging",
+              "reason": "Daniel opened the portal release meeting by asking each of the five attendees what worried them, and wrote the answers down before saying anything himself."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Difficult Conversations: Listening before proposing",
+              "status": "emerging",
+              "reason": "Daniel can listen when listening has a structure; without one, his preparation fills the available space."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "He ran the round and then presented his sequencing plan unchanged, so what he heard informed the risk log rather than the decision.",
+              "status": "emerging",
+              "reason": "The operations representative had raised the duplicate-record issue informally twice and had never been asked about it directly until now."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Adopts changes that can be built into a meeting agenda; resists development framed as personal style.",
+              "status": "emerging",
+              "reason": "Structure works for Daniel where intention does not. Keep the changes procedural and he will sustain them."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "He found the round uncomfortable rather than difficult, and that distinction is worth keeping in view.",
+              "status": "emerging",
+              "reason": "The listening round happened once, by design, and he described having to physically hold back a proposal he already had ready."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "A first practical experiment: the listening round is now on the agenda and produced a material risk on its first outing.",
+          "sourceExcerpt": "Daniel opened the portal release meeting by asking each of the five attendees what worried them, and wrote the answers down before saying anything himself."
+        }
+      ],
+      "coachNote": "The listening round worked immediately, which risks Daniel treating it as a technique rather than as a change in how firmly he holds his own view.",
+      "generatedAt": "2026-03-18T16:00:00.000Z",
+      "reviewedAt": "2026-03-18T17:00:00.000Z",
+      "appliedAt": "2026-03-18T18:00:00.000Z"
+    },
+    {
+      "key": "daniel-foster-update-2",
+      "relationshipKey": "daniel-foster",
+      "sessionKey": "daniel-foster-session-5",
+      "status": "applied",
+      "conversationSummary": "He held the disagreement open, summarised both positions accurately enough that each side accepted his version, and asked what evidence would settle the question. When the supplier confirmed a further two-week delay he became visibly short, cut the update off and moved on without asking why.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Influence delivery partners by listening first, surfacing disagreement and making practical shared commitments.",
+          "reason": "Good evidence of more deliberate listening; frustration with a small number of stakeholders remains active."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "He summarised two opposing positions well enough that both sides recognised themselves, and converted the disagreement into an evidence question.",
+              "status": "supported",
+              "reason": "Daniel chaired a ninety-minute release-readiness session in which two functions disagreed openly about the go-live date."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Difficult Conversations: Managing disagreement live",
+              "status": "supported",
+              "reason": "Daniel's listening is reliable where he respects the other party's competence and fragile where he does not."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "His patience has become conditional: it holds with internal colleagues and disappears with the supplier.",
+              "status": "supported",
+              "reason": "Two attendees said afterwards that this was the first time they had felt heard on the date question."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Values direct challenge and concrete examples; disengages from general feedback about interpersonal style.",
+              "status": "supported",
+              "reason": "Daniel's development is uneven by stakeholder rather than by situation. The supplier relationship is where the remaining work sits."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "The visible frustration cost him information again, because the delay had a cause he still does not know.",
+              "status": "supported",
+              "reason": "When the supplier confirmed a further two-week delay he became visibly short, cut the update off and moved on without asking why."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Strong evidence of deliberate listening across most settings, with frustration still active in one specific relationship.",
+          "sourceExcerpt": "Daniel chaired a ninety-minute release-readiness session in which two functions disagreed openly about the go-live date."
+        }
+      ],
+      "coachNote": "Daniel manages disagreement well when he believes it is legitimate. The development question is whether he can extend that to disagreement he considers unjustified.",
+      "generatedAt": "2026-07-01T16:00:00.000Z",
+      "reviewedAt": "2026-07-01T17:00:00.000Z",
+      "appliedAt": "2026-07-01T18:00:00.000Z"
+    },
+    {
+      "key": "emma-watson-update-1",
+      "relationshipKey": "emma-watson",
+      "sessionKey": "emma-watson-session-2",
+      "status": "applied",
+      "conversationSummary": "She had planned to hold the individual conversation in the same week and instead spent that week redesigning the case-tracking spreadsheet. The standard is at least stated aloud, which had not happened in the previous four months.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Combine empathy with clear standards and confident management judgement.",
+          "reason": "Steady development with a clear breakthrough in session four."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "She set out the response-time commitment clearly to the whole team and asked for early warning rather than after-the-event explanation.",
+              "status": "emerging",
+              "reason": "Emma restated the five-day response commitment at the team meeting and asked everyone to flag cases at risk."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Accountability: Clarifying the standard",
+              "status": "emerging",
+              "reason": "Emma does the general version of the difficult thing, which relieves her discomfort without resolving anything."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "The individual conversation is still not booked, and the reason has moved from timing to workload.",
+              "status": "emerging",
+              "reason": "The spreadsheet redesign was competent, unnecessary and completed in precisely the week the conversation was due."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Needs a date and a witness for commitments she finds uncomfortable; open-ended intentions do not survive her week.",
+              "status": "emerging",
+              "reason": "Emma will substitute a system for a conversation if given room. Ask what she is building in the week before a difficult conversation is due."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "The adviser asked a colleague afterwards whether the meeting had been about her, so the indirect route communicated more than intended.",
+              "status": "emerging",
+              "reason": "The standard is at least stated aloud, which had not happened in the previous four months."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Early experimentation: the standard has been made explicit to the group while the individual conversation continues to be deferred.",
+          "sourceExcerpt": "Emma restated the five-day response commitment at the team meeting and asked everyone to flag cases at risk."
+        }
+      ],
+      "coachNote": "Displacement is the pattern to watch with Emma. The work she does instead is always useful, which is what makes it hard for her to see.",
+      "generatedAt": "2026-03-19T16:00:00.000Z",
+      "reviewedAt": "2026-03-19T17:00:00.000Z",
+      "appliedAt": "2026-03-19T18:00:00.000Z"
+    },
+    {
+      "key": "emma-watson-update-2",
+      "relationshipKey": "emma-watson",
+      "sessionKey": "emma-watson-session-5",
+      "status": "applied",
+      "conversationSummary": "Emma agreed a reduced allocation, a recovery plan and a weekly review point in one conversation, then told the team what was changing and for how long. She now designs the support and the accountability together, rather than granting the first and hoping the second recovers by itself.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Combine empathy with clear standards and confident management judgement.",
+          "reason": "Steady development with a clear breakthrough in session four."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "She held wellbeing and service standards in a single conversation and made the arrangement visible to the team with an end date attached.",
+              "status": "supported",
+              "reason": "A second adviser disclosed a health condition affecting her capacity during the busiest fortnight of the casework year."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Accountability: Balancing care and clarity",
+              "status": "supported",
+              "reason": "Emma's empathy has become an asset rather than a substitute, because it now arrives attached to a plan and a date."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "She has not asked the team what the reduced allocation costs them, so the fairness question is being answered by her alone.",
+              "status": "supported",
+              "reason": "Two advisers have started flagging at-risk cases early, which is the behaviour she asked for four months ago."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Responds to concrete evidence of team impact; general reassurance about her judgement reduces rather than builds her confidence.",
+              "status": "supported",
+              "reason": "Emma manages individual cases well now. The remaining edge is consulting the people who carry the redistributed work."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "She made this decision in a week when she would previously have avoided any additional difficulty.",
+              "status": "supported",
+              "reason": "She now designs the support and the accountability together, rather than granting the first and hoping the second recovers by itself."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Consistent behavioural change: support is offered with explicit boundaries, communicated openly and reviewed at agreed points.",
+          "sourceExcerpt": "A second adviser disclosed a health condition affecting her capacity during the busiest fortnight of the casework year."
+        }
+      ],
+      "coachNote": "Emma has stopped choosing between care and clarity. Notice how much less time she now spends deciding whether to act at all.",
+      "generatedAt": "2026-07-02T16:00:00.000Z",
+      "reviewedAt": "2026-07-02T17:00:00.000Z",
+      "appliedAt": "2026-07-02T18:00:00.000Z"
+    },
+    {
+      "key": "jonathan-clarke-update-1",
+      "relationshipKey": "jonathan-clarke",
+      "sessionKey": "jonathan-clarke-session-2",
+      "status": "applied",
+      "conversationSummary": "Jonathan told the five managers he would no longer answer questions that came without a recommendation attached, and then held that line through two uncomfortable calls. This is one structural change rather than a change of habit, and he answered four out-of-hours escalations the same week without applying the rule at all.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Operate at regional level by developing managers, using data and influencing across regional boundaries.",
+          "reason": "Strong strategic shift is well established by the final two conversations."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "He changed the terms of a meeting he chairs and held those terms when two managers tested them.",
+              "status": "emerging",
+              "reason": "The weekly regional call was restructured so that every location manager arrives with data, a diagnosis and a recommendation."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Delegation: Asking for diagnosis",
+              "status": "emerging",
+              "reason": "Jonathan can hold a boundary inside a scheduled forum and has none at all in the spaces between forums."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "The rule applies to the regional call and not to the messages that arrive at seven in the morning.",
+              "status": "emerging",
+              "reason": "The two managers who brought questions rather than recommendations are the two he answers fastest, which supports the learned-behaviour reading."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Persuaded by operational efficiency arguments; responds to time and quality evidence rather than to leadership theory.",
+              "status": "emerging",
+              "reason": "Jonathan's boundaries are currently forum-shaped. Out-of-hours traffic is where his intention and his behaviour separate."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "The call took forty minutes rather than the usual seventy, because the diagnosis had been done before anyone arrived.",
+              "status": "emerging",
+              "reason": "This is one structural change rather than a change of habit, and he answered four out-of-hours escalations the same week without applying the rule at all."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "A first deliberate experiment: escalation terms were reset in one forum while the surrounding channels carried on unchanged.",
+          "sourceExcerpt": "The weekly regional call was restructured so that every location manager arrives with data, a diagnosis and a recommendation."
+        }
+      ],
+      "coachNote": "The forty-minute call is the evidence Jonathan will find persuasive. Use the time saved rather than the principle to make the argument.",
+      "generatedAt": "2026-03-15T16:00:00.000Z",
+      "reviewedAt": "2026-03-15T17:00:00.000Z",
+      "appliedAt": "2026-03-15T18:00:00.000Z"
+    },
+    {
+      "key": "jonathan-clarke-update-2",
+      "relationshipKey": "jonathan-clarke",
+      "sessionKey": "jonathan-clarke-session-5",
+      "status": "applied",
+      "conversationSummary": "Jonathan met the two neighbouring regional leads separately beforehand, went into both conversations without a proposal, and built the arrangement from what each region said it was short of. In February he would have written the proposal first and then tried to sell it, which is precisely what happened in January.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Operate at regional level by developing managers, using data and influencing across regional boundaries.",
+          "reason": "Strong strategic shift is well established by the final two conversations."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "He built cross-regional support by starting from the other regions' problems, and produced an arrangement all three leads could defend.",
+              "status": "supported",
+              "reason": "A shared capacity arrangement for the winter peak was proposed to the operations director and agreed in eleven minutes."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Delegation: Building support across regions",
+              "status": "supported",
+              "reason": "Jonathan's influence works when he arrives without a position, and he now does that deliberately rather than by accident."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "One regional lead agreed in principle and has not confirmed the resource, and that gap has been open for three weeks.",
+              "status": "supported",
+              "reason": "Both regional leads raised constraints he did not know about, which materially improved the arrangement."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Prefers to work through live regional examples and comparative data; disengages from generalised leadership discussion.",
+              "status": "supported",
+              "reason": "Jonathan builds coalitions well. Closing the final commitment is where he loses momentum, and that is a pattern rather than an oversight."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "He remains more comfortable building agreement than closing it, which is why the unconfirmed resource sits unchased.",
+              "status": "supported",
+              "reason": "In February he would have written the proposal first and then tried to sell it, which is precisely what happened in January."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Established strategic behaviour: influence is built before proposals are made, across boundaries where he holds no authority.",
+          "sourceExcerpt": "A shared capacity arrangement for the winter peak was proposed to the operations director and agreed in eleven minutes."
+        }
+      ],
+      "coachNote": "Jonathan's strategic shift is well established. The remaining work is small and specific: finishing what he has started.",
+      "generatedAt": "2026-06-28T16:00:00.000Z",
+      "reviewedAt": "2026-06-28T17:00:00.000Z",
+      "appliedAt": "2026-06-28T18:00:00.000Z"
+    },
+    {
+      "key": "maya-patel-update-1",
+      "relationshipKey": "maya-patel",
+      "sessionKey": "maya-patel-session-2",
+      "status": "applied",
+      "conversationSummary": "She opened with the two customer outcomes both functions are measured on, showed where the wider boundary put those outcomes at risk, and asked the sales director what he would protect first. This is the first stakeholder conversation she has opened with the other function's measures rather than with the programme's constraints.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Build a coalition for change while challenging resistance constructively in an ambiguous programme.",
+          "reason": "Mixed: genuine influence wins sit alongside setbacks that require continued political judgement."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "She converted a scope reduction into a choice the sales director made for himself, using measures he already owned.",
+              "status": "emerging",
+              "reason": "Maya needed sales to accept a narrower pilot boundary than they had been promised at the programme's launch."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Difficult Conversations: Leading with shared outcomes",
+              "status": "emerging",
+              "reason": "Maya's influence improved the moment the conversation started from what the other person is accountable for."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "The agreement covers the pilot boundary and says nothing about full rollout, which is where the same argument will return.",
+              "status": "emerging",
+              "reason": "The sales director chose the narrower boundary himself once the trade-off was explicit, and would not have accepted it as a programme decision."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Prepares intensively and benefits from being pushed to prepare about others rather than about her own position.",
+              "status": "emerging",
+              "reason": "Maya's preparation works best when it is spent on the other party's position rather than on defending the programme's."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "She spent two hours preparing the outcome framing and the conversation itself took twenty minutes.",
+              "status": "emerging",
+              "reason": "This is the first stakeholder conversation she has opened with the other function's measures rather than with the programme's constraints."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "A first practical win: a contested boundary was agreed by leading with shared outcomes rather than with programme logic.",
+          "sourceExcerpt": "Maya needed sales to accept a narrower pilot boundary than they had been promised at the programme's launch."
+        }
+      ],
+      "coachNote": "A twenty-minute conversation followed two hours of preparation about someone else's accountability. That ratio is the learning worth keeping.",
+      "generatedAt": "2026-03-16T16:00:00.000Z",
+      "reviewedAt": "2026-03-16T17:00:00.000Z",
+      "appliedAt": "2026-03-16T18:00:00.000Z"
+    },
+    {
+      "key": "maya-patel-update-2",
+      "relationshipKey": "maya-patel",
+      "sessionKey": "maya-patel-session-5",
+      "status": "applied",
+      "conversationSummary": "Maya's first response was to escalate to the programme board; she then paused, asked for a conversation instead, and heard that his team had been told the pilot would add work rather than remove it. She replaced an escalation with a conversation, which is not what she would have done in the spring, and the pilot remains stopped.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Build a coalition for change while challenging resistance constructively in an ambiguous programme.",
+          "reason": "Mixed: genuine influence wins sit alongside setbacks that require continued political judgement."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "She stopped an escalation she had already drafted and went to find the reason instead, which is a deliberate act of political judgement.",
+              "status": "supported",
+              "reason": "The operations leader withdrew his people from the platform pilot four days before it was due to start, citing peak season."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Difficult Conversations: Losing a sponsor",
+              "status": "supported",
+              "reason": "Maya's influence held with everyone she engaged and failed with the person she did not, which is a clean result even though it is a painful one."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "The misunderstanding about workload originated in her own programme communication, and she has not yet corrected it with his team.",
+              "status": "supported",
+              "reason": "The withdrawal was a workload judgement rather than opposition to the platform, and nobody had told him otherwise."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Values direct challenge about political judgement; finds process-focused support less useful than being asked what she is avoiding.",
+              "status": "supported",
+              "reason": "This is a genuine setback and not a failure of approach. The gap is coverage: one unengaged stakeholder was enough to stop a pilot."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Choosing a conversation over an escalation cost her two weeks and preserved a relationship she will need at rollout.",
+              "status": "supported",
+              "reason": "She replaced an escalation with a conversation, which is not what she would have done in the spring, and the pilot remains stopped."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Mixed evidence: strong stakeholder judgement under pressure alongside a programme setback caused by an engagement gap she had already identified.",
+          "sourceExcerpt": "The operations leader withdrew his people from the platform pilot four days before it was due to start, citing peak season."
+        }
+      ],
+      "coachNote": "Maya identified this risk five months ago and left it open. The useful conversation is about what makes her hesitate with people who outrank her informally.",
+      "generatedAt": "2026-06-29T16:00:00.000Z",
+      "reviewedAt": "2026-06-29T17:00:00.000Z",
+      "appliedAt": "2026-06-29T18:00:00.000Z"
+    },
+    {
+      "key": "tom-harrison-update-1",
+      "relationshipKey": "tom-harrison",
+      "sessionKey": "tom-harrison-session-2",
+      "status": "applied",
+      "conversationSummary": "Tom opened the handover with three questions written on his hand, got two useful answers, then took over entirely when the loading window tightened at ten past six. He asked questions at all, which is new, and abandoned them within eleven minutes under entirely ordinary time pressure.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Replace directive habits with clear ownership, learning from mistakes and confident operational leadership.",
+          "reason": "Slow early change reflects deeply established directive habits; the final sessions show a credible shift."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "He prepared three questions and asked them, which is the first deliberate change he has attempted in this area.",
+              "status": "emerging",
+              "reason": "A tight loading window on the Thursday coincided with two absences and a late inbound delivery."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Accountability: Questions under time pressure",
+              "status": "emerging",
+              "reason": "Tom's questions are real while the shift is calm and disappear completely once the clock is against him."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "Pressure is the normal state of a warehouse handover, so a technique that fails under pressure will not survive here.",
+              "status": "emerging",
+              "reason": "Both useful answers concerned the inbound schedule, which is information he has no other route to."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Needs one concrete behaviour to try per shift; multi-part development plans do not survive his working day.",
+              "status": "emerging",
+              "reason": "Tom needs the new behaviour in the pressured moment rather than the calm one. Practising it when things are fine will not transfer."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Writing the questions on his hand is a fair measure of how unnatural this still feels to him.",
+              "status": "emerging",
+              "reason": "He asked questions at all, which is new, and abandoned them within eleven minutes under entirely ordinary time pressure."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Very early experimentation: questions were attempted and did not survive contact with a tight loading window.",
+          "sourceExcerpt": "A tight loading window on the Thursday coincided with two absences and a late inbound delivery."
+        }
+      ],
+      "coachNote": "The eleven minutes matter more than the three questions. Tom's habit reasserts itself at a predictable trigger, and that trigger can be named.",
+      "generatedAt": "2026-03-17T16:00:00.000Z",
+      "reviewedAt": "2026-03-17T17:00:00.000Z",
+      "appliedAt": "2026-03-17T18:00:00.000Z"
+    },
+    {
+      "key": "tom-harrison-update-2",
+      "relationshipKey": "tom-harrison",
+      "sessionKey": "tom-harrison-session-5",
+      "status": "applied",
+      "conversationSummary": "Tom watched the first week produce worse late-despatch figures than the existing method and said nothing, because he had agreed to review at four weeks rather than at one. He reviewed outcomes without taking control, which he could not do in the spring with this same colleague.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Replace directive habits with clear ownership, learning from mistakes and confident operational leadership.",
+          "reason": "Slow early change reflects deeply established directive habits; the final sessions show a credible shift."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "He held to an agreed review point through a week of worse results, and let a method he had rejected be properly tested.",
+              "status": "supported",
+              "reason": "A four-week handover improvement trial ran under one shift lead, with outcomes reviewed at the end of each week."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Accountability: Letting the trial run",
+              "status": "supported",
+              "reason": "Tom's judgement about what works in this warehouse is good and not infallible, and the trial is his first evidence of the second half."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "He described that first week as the hardest management experience of his year, so the restraint is still effortful rather than settled.",
+              "status": "supported",
+              "reason": "The shift lead running the trial is the one who went quiet in April, and he has started raising problems again."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Changes behaviour when a mechanism removes the decision; responds poorly to being asked to resist an impulse without one.",
+              "status": "supported",
+              "reason": "Tom's restraint is real and costly. Reduce what he has to hold back from rather than expecting the effort to disappear."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Waiting four weeks rather than reacting in one is the specific behaviour that made the whole trial possible.",
+              "status": "supported",
+              "reason": "He reviewed outcomes without taking control, which he could not do in the spring with this same colleague."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Credible shift in practice: ownership of an operational improvement sat with a shift lead from design through to evaluation.",
+          "sourceExcerpt": "A four-week handover improvement trial ran under one shift lead, with outcomes reviewed at the end of each week."
+        }
+      ],
+      "coachNote": "Tom has changed later and more genuinely than most. The four-week review is the mechanism doing the work, and it is worth making that explicit.",
+      "generatedAt": "2026-06-30T16:00:00.000Z",
+      "reviewedAt": "2026-06-30T17:00:00.000Z",
+      "appliedAt": "2026-06-30T18:00:00.000Z"
+    },
+    {
+      "key": "aisha-rahman-update-1",
+      "relationshipKey": "aisha-rahman",
+      "sessionKey": "aisha-rahman-session-2",
+      "status": "applied",
+      "conversationSummary": "The analysis showed that locations with internally promoted supervisors had a third less attrition and eleven per cent better first-time-fix rates, and that half the supervisor population had been promoted with no management preparation at all. She wrote the diagnosis and has sent it to nobody, which is a familiar pause rather than a new one.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Use evidence to shape organisational capability decisions rather than only delivering learning programmes.",
+          "reason": "Strong evidence-based influence and strategic leadership are visible by the end."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "She built a coherent capability diagnosis from three separate data sources and reduced the whole thing to one page.",
+              "status": "emerging",
+              "reason": "Aisha combined two years of attrition, service quality and internal promotion data into a one-page capability diagnosis."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Stakeholder Influence: Building the diagnosis",
+              "status": "emerging",
+              "reason": "Aisha's analytical judgement is strong and her willingness to expose it is not."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "She wants the analysis to be unassailable before it is seen, and the causation question inside it cannot be settled from data alone.",
+              "status": "emerging",
+              "reason": "The link between internal promotion and retention is the strongest single finding anyone in this business has produced this year."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Needs deadlines and named recipients for work she considers unfinished; further analysis is her default response to discomfort.",
+              "status": "emerging",
+              "reason": "Aisha will keep improving work rather than releasing it. A named recipient and a date will do more than any amount of encouragement."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Holding the diagnosis back to strengthen it is the same behaviour as reporting activity, in a more sophisticated form.",
+              "status": "emerging",
+              "reason": "She wrote the diagnosis and has sent it to nobody, which is a familiar pause rather than a new one."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "First substantive experiment: an evidence-based diagnosis now exists and has not yet left her desk.",
+          "sourceExcerpt": "Aisha combined two years of attrition, service quality and internal promotion data into a one-page capability diagnosis."
+        }
+      ],
+      "coachNote": "The diagnosis is good. The development question is entirely about what Aisha does with work she considers unfinished.",
+      "generatedAt": "2026-03-18T16:00:00.000Z",
+      "reviewedAt": "2026-03-18T17:00:00.000Z",
+      "appliedAt": "2026-03-18T18:00:00.000Z"
+    },
+    {
+      "key": "aisha-rahman-update-2",
+      "relationshipKey": "aisha-rahman",
+      "sessionKey": "aisha-rahman-session-5",
+      "status": "applied",
+      "conversationSummary": "Aisha presented the capability gap in terms of service failure cost, gave two options with a recommendation, and named the measures the pilot should be judged by, including the one that would show it had failed. She has moved from asking for a training budget to proposing an organisational investment with a stated hypothesis.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Use evidence to shape organisational capability decisions rather than only delivering learning programmes.",
+          "reason": "Strong evidence-based influence and strategic leadership are visible by the end."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "She secured executive funding by framing capability as a service-cost question and defining in advance what failure would look like.",
+              "status": "supported",
+              "reason": "The executive group agreed to fund a targeted supervisor practice pilot at four locations, with outcome measures attached."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Stakeholder Influence: Influencing the investment",
+              "status": "supported",
+              "reason": "Aisha's influence now rests on the quality of her argument rather than on goodwill towards the learning function."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "She has committed to outcome measures on a nine-month timeline and controls very few of the variables that will move them.",
+              "status": "supported",
+              "reason": "Two executives asked her to bring the same analysis to workforce planning, a forum she has never been invited to before."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Responds to being asked what her evidence would have to show to change her own mind; finds affirmation less useful than testing.",
+              "status": "supported",
+              "reason": "Aisha is operating strategically now. Protect her from the risk of owning outcomes she cannot influence on her own."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Naming the failure condition was the most persuasive thing she did, and it was also the thing she nearly cut.",
+              "status": "supported",
+              "reason": "She has moved from asking for a training budget to proposing an organisational investment with a stated hypothesis."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Strategic influence is established: an organisational investment decision was shaped by capability evidence she produced and defended.",
+          "sourceExcerpt": "The executive group agreed to fund a targeted supervisor practice pilot at four locations, with outcome measures attached."
+        }
+      ],
+      "coachNote": "Aisha has moved from delivering learning to shaping decisions in six months. The immediate risk is that she has accepted accountability for a system she does not control.",
+      "generatedAt": "2026-07-01T16:00:00.000Z",
+      "reviewedAt": "2026-07-01T17:00:00.000Z",
+      "appliedAt": "2026-07-01T18:00:00.000Z"
+    },
+    {
+      "key": "ben-carter-update-1",
+      "relationshipKey": "ben-carter",
+      "sessionKey": "ben-carter-session-2",
+      "status": "applied",
+      "conversationSummary": "Ben booked the meeting for the Tuesday, moved it to the following week, then cancelled it during the quarter-end rush without rebooking. Nothing has changed in the team's error rate, and the quarter's third quotation escalation arrived during the same fortnight.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Address performance concerns promptly, set clear expectations and follow through consistently.",
+          "reason": "A delayed start gave way to practical catch-up; confidence is improving through repetition."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "He named the effect of the delay on the rest of his team without prompting, and made no attempt to defend the postponement.",
+              "status": "emerging",
+              "reason": "A quarter-end fortnight with two absences gave Ben a defensible reason not to hold the conversation, and he took it."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Accountability: Postponing again",
+              "status": "emerging",
+              "reason": "Ben's reasons for delay are always real and always available, because a sales support team is never quiet."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "He is now clear about the cost and has still not found a date that survives contact with a busy week.",
+              "status": "emerging",
+              "reason": "He identified the cost to the wider team himself this month, which he could not do in the first conversation."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Commits reliably to small, time-bound actions; open-ended intentions to have the conversation soon do not hold.",
+              "status": "emerging",
+              "reason": "Ben needs the conversation to be smaller before he will start it. Twenty factual minutes is more achievable than a full performance discussion."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "The two cancellations are more damaging than the original silence, because the executive can see them.",
+              "status": "emerging",
+              "reason": "Nothing has changed in the team's error rate, and the quarter's third quotation escalation arrived during the same fortnight."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "No behavioural change yet: the conversation has been postponed three times, although the cost of postponing it is now understood.",
+          "sourceExcerpt": "A quarter-end fortnight with two absences gave Ben a defensible reason not to hold the conversation, and he took it."
+        }
+      ],
+      "coachNote": "The delay is not about capability. Ben manages difficult customers every week. It is specific to holding a colleague to account, and that specificity matters.",
+      "generatedAt": "2026-03-19T16:00:00.000Z",
+      "reviewedAt": "2026-03-19T17:00:00.000Z",
+      "appliedAt": "2026-03-19T18:00:00.000Z"
+    },
+    {
+      "key": "ben-carter-update-2",
+      "relationshipKey": "ben-carter",
+      "sessionKey": "ben-carter-session-5",
+      "status": "applied",
+      "conversationSummary": "Ben recognised the improvement specifically, using the same figures he had used to raise the problem, and kept the fortnightly review in place rather than dropping it as a reward. He now does the recognition and the accountability with the same evidence, in the same meeting.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Address performance concerns promptly, set clear expectations and follow through consistently.",
+          "reason": "A delayed start gave way to practical catch-up; confidence is improving through repetition."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "He recognised improvement with the same specificity he used to raise the problem, and held the review rhythm in place.",
+              "status": "supported",
+              "reason": "The executive met the error measure for two consecutive four-week periods, with one error in eight weeks."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Accountability: Recognising improvement",
+              "status": "supported",
+              "reason": "Ben's recognition is specific and evidenced, which is unusual enough that it lands."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "A second team member's callback times have slipped and Ben has noticed without raising it, which is the old pattern beginning again.",
+              "status": "supported",
+              "reason": "The executive has since asked to help redesign the quotation template, which is a level of engagement that did not exist in March."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Responds to being held to a short deadline; benefits from naming the specific day an uncomfortable conversation will happen.",
+              "status": "supported",
+              "reason": "Ben's development is real and his default under pressure has not changed. Watch the gap between noticing and acting."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "The new slippage has been visible for two weeks, so the delay is much shorter than eleven weeks and the pattern is recognisable.",
+              "status": "supported",
+              "reason": "He now does the recognition and the accountability with the same evidence, in the same meeting."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Sustained change with a familiar edge: accountability is consistent with one colleague and slower to start with the next.",
+          "sourceExcerpt": "The executive met the error measure for two consecutive four-week periods, with one error in eight weeks."
+        }
+      ],
+      "coachNote": "Ben has proved he can hold a difficult conversation. The development question now is how quickly he starts the second one.",
+      "generatedAt": "2026-07-02T16:00:00.000Z",
+      "reviewedAt": "2026-07-02T17:00:00.000Z",
+      "appliedAt": "2026-07-02T18:00:00.000Z"
+    },
+    {
+      "key": "senior-leader-a-update-1",
+      "relationshipKey": "senior-leader-a",
+      "sessionKey": "senior-leader-a-session-2",
+      "status": "applied",
+      "conversationSummary": "Senior Leader A set out what had been decided, what was still being worked through and which two questions were genuinely open, then invited challenge on the open ones. This is one forum rather than a change of practice, and the same clarity has not reached the wider management population.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Lead an organisational restructure with clarity, trust, leadership presence and resilient accountability.",
+          "reason": "Clearer leadership presence is evident, though the sustained pressure of restructure continues."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "They separated the decided, the undecided and the open, and invited challenge on the parts that were genuinely still movable.",
+              "status": "emerging",
+              "reason": "The leadership forum agenda was rewritten so that the restructure opened the meeting rather than closing it."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Difficult Conversations: Naming what is known and unknown",
+              "status": "emerging",
+              "reason": "Stating uncertainty produced more challenge and less rumour, which is the reverse of what was expected."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "The two questions raised have been neither answered nor scheduled, so the openness currently has no follow-through.",
+              "status": "emerging",
+              "reason": "The forum ran twenty minutes over and nobody left, which is worth noting in a group that usually watches the clock."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Uses these conversations to test judgement rather than to seek reassurance; responds to direct challenge about impact.",
+              "status": "emerging",
+              "reason": "The first attempt worked. The risk now is treating candour as an event rather than as the rhythm this restructure requires."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Openness without a return date becomes another form of silence within a fortnight.",
+              "status": "emerging",
+              "reason": "This is one forum rather than a change of practice, and the same clarity has not reached the wider management population."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "A first deliberate experiment: uncertainty was named in a senior forum and produced challenge rather than instability.",
+          "sourceExcerpt": "The leadership forum agenda was rewritten so that the restructure opened the meeting rather than closing it."
+        }
+      ],
+      "coachNote": "The evidence contradicts the belief that drove six weeks of silence. Return to it whenever the instinct to wait for certainty comes back.",
+      "generatedAt": "2026-03-15T16:00:00.000Z",
+      "reviewedAt": "2026-03-15T17:00:00.000Z",
+      "appliedAt": "2026-03-15T18:00:00.000Z"
+    },
+    {
+      "key": "senior-leader-a-update-2",
+      "relationshipKey": "senior-leader-a",
+      "sessionKey": "senior-leader-a-session-5",
+      "status": "applied",
+      "conversationSummary": "Senior Leader A acknowledged the pace issue publicly rather than explaining the reasons for it, moved two workstream deadlines and shifted the communication cycle from monthly to fortnightly. Moving the deadlines cost the programme three weeks and removed the argument that the restructure was being done to people rather than with them.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Lead an organisational restructure with clarity, trust, leadership presence and resilient accountability.",
+          "reason": "Clearer leadership presence is evident, though the sustained pressure of restructure continues."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "They accepted feedback about impact without defending intent, and changed the plan rather than the explanation.",
+              "status": "supported",
+              "reason": "An engagement pulse showed trust in senior leadership down eleven points, with pace cited as the main theme in the free-text comments."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Strategic Leadership: Pace and trust",
+              "status": "supported",
+              "reason": "The pulse comments named pace rather than direction, which means the logic of the restructure is accepted and its delivery is not."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "The personal cost of holding this pace has not been addressed and the working pattern that produced it is unchanged.",
+              "status": "supported",
+              "reason": "Adjusting the timetable was read as strength rather than as retreat, which had been the fear."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Prefers being challenged on the consequences of decisions; finds supportive framing less useful than direct questions.",
+              "status": "supported",
+              "reason": "The leadership judgement here is sound. The sustainability question is personal and has not yet been discussed properly."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Resilience is now the live risk in this programme, and it sits with one person rather than with the structure.",
+              "status": "supported",
+              "reason": "Moving the deadlines cost the programme three weeks and removed the argument that the restructure was being done to people rather than with them."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Established change: leadership presence is steadier, communication is more frequent, and feedback about impact is acted on rather than explained away.",
+          "sourceExcerpt": "An engagement pulse showed trust in senior leadership down eleven points, with pace cited as the main theme in the free-text comments."
+        }
+      ],
+      "coachNote": "The restructure is being led well. The unexamined question is what it is costing the person leading it, and that question is now overdue.",
+      "generatedAt": "2026-06-28T16:00:00.000Z",
+      "reviewedAt": "2026-06-28T17:00:00.000Z",
+      "appliedAt": "2026-06-28T18:00:00.000Z"
+    },
+    {
+      "key": "manager-b-update-1",
+      "relationshipKey": "manager-b",
+      "sessionKey": "manager-b-session-2",
+      "status": "applied",
+      "conversationSummary": "Manager B listened for most of the half hour, wrote down four specific issues and said clearly which two could not be resolved at their level, rather than reassuring their way out of it. One conversation is not yet a way of working, and the other three team leaders have been offered nothing comparable.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Rebuild team confidence and leadership credibility through consistent, calm management action.",
+          "reason": "Confidence is becoming more behavioural and less dependent on immediate reassurance from others."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "They heard four difficult issues without deflecting, and were explicit about which ones could not be fixed at their level.",
+              "status": "emerging",
+              "reason": "The most experienced team leader asked for a one-to-one in order to raise concerns about direction."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Difficult Conversations: Listening without promising",
+              "status": "emerging",
+              "reason": "Manager B's instinct under pressure is to reassure, and resisting it here produced more trust rather than less."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "The two unresolvable issues were named and have not been escalated to anyone who could act on them.",
+              "status": "emerging",
+              "reason": "The team leader had been carrying those four issues for two months with no route to raise them."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Benefits from rehearsing what will not be promised as well as what will; reassurance is their default under pressure.",
+              "status": "emerging",
+              "reason": "Manager B's credibility is rebuilt by small kept commitments. Anything promised beyond their control undoes several of them at once."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "Listening without promising is harder for them than any of the direct conversations still ahead.",
+              "status": "emerging",
+              "reason": "One conversation is not yet a way of working, and the other three team leaders have been offered nothing comparable."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "First deliberate experiment: concerns were heard and answered honestly, including where the honest answer was that nothing could change.",
+          "sourceExcerpt": "The most experienced team leader asked for a one-to-one in order to raise concerns about direction."
+        }
+      ],
+      "coachNote": "The reassurance reflex is the thing to watch. It is well-intentioned and it is the main source of the inconsistency.",
+      "generatedAt": "2026-03-16T16:00:00.000Z",
+      "reviewedAt": "2026-03-16T17:00:00.000Z",
+      "appliedAt": "2026-03-16T18:00:00.000Z"
+    },
+    {
+      "key": "manager-b-update-2",
+      "relationshipKey": "manager-b",
+      "sessionKey": "manager-b-session-5",
+      "status": "applied",
+      "conversationSummary": "Manager B acknowledged what had been inconsistent, declined to relitigate decisions taken before their appointment, and set out the three standards the team would work to from now on. The team has stopped prefacing questions with references to previous decisions, which had been happening in almost every meeting.",
+      "hasMeaningfulChanges": true,
+      "proposedChanges": {
+        "currentFocus": {
+          "action": "replace",
+          "value": "Rebuild team confidence and leadership credibility through consistent, calm management action.",
+          "reason": "Confidence is becoming more behavioural and less dependent on immediate reassurance from others."
+        },
+        "strengths": {
+          "add": [
+            {
+              "value": "They acknowledged past inconsistency without defensiveness and moved the team onto a small number of clear present standards.",
+              "status": "supported",
+              "reason": "Two team leaders asked for a team discussion about the last eighteen months, wanting the history addressed rather than ignored."
+            }
+          ]
+        },
+        "emergingThemes": {
+          "add": [
+            {
+              "value": "Difficult Conversations: Separating past from present",
+              "status": "supported",
+              "reason": "Manager B can now hold a difficult group conversation without needing it to end in agreement."
+            }
+          ]
+        },
+        "growthAreas": {
+          "add": [
+            {
+              "value": "One long-serving adviser has engaged with none of it, and that has been left alone.",
+              "status": "supported",
+              "reason": "Acknowledging past inconsistency did not reduce their authority, which was the fear going in."
+            }
+          ]
+        },
+        "coachingPreferences": {
+          "add": [
+            {
+              "value": "Prefers to work through what was said word by word; general encouragement about confidence is not useful to them.",
+              "status": "supported",
+              "reason": "The group work is solid now. The individual who has not engaged is the remaining piece and will need a direct approach."
+            }
+          ]
+        },
+        "patterns": {
+          "add": [
+            {
+              "value": "The three standards were stated in fewer than ten words each, which is what has made them repeatable.",
+              "status": "supported",
+              "reason": "The team has stopped prefacing questions with references to previous decisions, which had been happening in almost every meeting."
+            }
+          ]
+        }
+      },
+      "evidenceSummary": [
+        {
+          "changeKey": "strengths",
+          "evidenceText": "Established change: leadership credibility is being rebuilt through consistent language and clear present-tense standards.",
+          "sourceExcerpt": "Two team leaders asked for a team discussion about the last eighteen months, wanting the history addressed rather than ignored."
+        }
+      ],
+      "coachNote": "The confidence here has become behavioural rather than borrowed. It shows in what they are willing to say without needing agreement in return.",
+      "generatedAt": "2026-06-29T16:00:00.000Z",
+      "reviewedAt": "2026-06-29T17:00:00.000Z",
+      "appliedAt": "2026-06-29T18:00:00.000Z"
+    }
+  ]
+}

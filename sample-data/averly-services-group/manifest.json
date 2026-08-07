@@ -1,0 +1,58 @@
+{
+  "packKey": "averly-services-group",
+  "packVersion": "1.0.0",
+  "title": "Averly Services Group",
+  "summary": "Explore how Pridmora helps managers prepare for real management challenges, develop their people and build meaningful development intelligence over time.",
+  "locale": "en-GB",
+  "estimatedSetupSeconds": 60,
+  "period": {
+    "start": "2026-02-07",
+    "end": "2026-08-07",
+    "label": "Approximately six months"
+  },
+  "expectedCounts": {
+    "organisations": 1,
+    "relationships": 12,
+    "standardRelationships": 10,
+    "confidentialRelationships": 2,
+    "sessions": 72,
+    "actions": 72,
+    "developmentUpdates": 24,
+    "intelligenceItems": 72,
+    "organisationIntelligenceSnapshots": 1
+  },
+  "features": [
+    "Manager Development Demonstration",
+    "12 managers",
+    "72 development conversations",
+    "72 actions",
+    "24 development updates",
+    "72 intelligence items",
+    "Reviewed Development Evidence samples",
+    "2 confidential examples",
+    "6 months of management development evidence"
+  ],
+  "recurringThemes": [
+    "confidence",
+    "delegation",
+    "difficult_conversations",
+    "accountability",
+    "stakeholder_influence",
+    "strategic_leadership"
+  ],
+  "privacy": {
+    "minimumThemeRelationships": 5,
+    "confidentialIdentityMode": "confidential",
+    "notes": "All names and development records in this sample are fictional."
+  },
+  "files": {
+    "organisation": "organisation.json",
+    "relationships": "relationships.json",
+    "assignments": "assignments.json",
+    "sessions": "sessions.json",
+    "actions": "actions.json",
+    "developmentUpdates": "development-updates.json",
+    "intelligenceItems": "intelligence-items.json",
+    "developmentEvidence": "development-evidence.json"
+  }
+}

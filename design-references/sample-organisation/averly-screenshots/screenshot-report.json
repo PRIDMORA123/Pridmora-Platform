@@ -1,0 +1,22 @@
+{
+  "shotDir": "/Users/barrypridmore/Downloads/identity-v1-production-3/design-references/sample-organisation/averly-screenshots",
+  "installationId": "a78177dd-6c78-4057-8432-4469c726a1d6",
+  "sampleOrgId": "bc6aa1fc-45bd-4fa5-ae6e-bc4a68321a4d",
+  "signOutVisibleAtLaptop1366x768": true,
+  "files": [
+    "01-install-screen-laptop-1366.png",
+    "01b-install-screen-tablet.png",
+    "01c-install-screen-mobile.png",
+    "01d-installed-ready-laptop-1366.png",
+    "02-manager-home-laptop-1366.png",
+    "03-people-laptop-1366.png",
+    "04-person-overview-laptop-1366.png",
+    "05-prepare-manager-scenarios-laptop-1366.png",
+    "07-summary-insights-laptop-1366.png",
+    "09-my-development-laptop-1366.png",
+    "10-manager-home-tablet.png",
+    "11-manager-home-mobile.png",
+    "12-home-sign-out-visible-laptop-1366.png"
+  ],
+  "capturedAt": "2026-08-07T09:57:00.986Z"
+}

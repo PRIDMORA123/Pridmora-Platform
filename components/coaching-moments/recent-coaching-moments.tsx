@@ -4,6 +4,8 @@ import {
   conciseMomentTitle,
   type CoachingMoment,
 } from "@/lib/coaching-moments/coaching-moment";
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { resolveProductLanguage } from "@/lib/role-language";
 
 export type RecentCoachingMomentsProps = {
   moments: CoachingMoment[];
@@ -17,7 +19,6 @@ function formatDate(value: string | null): string {
     return new Intl.DateTimeFormat("en-GB", {
       day: "numeric",
       month: "short",
-      year: "numeric",
     }).format(new Date(value));
   } catch {
     return "Recently";
@@ -39,6 +40,8 @@ export function RecentCoachingMoments({
   onOpenMoment,
   onViewAll,
 }: RecentCoachingMomentsProps) {
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
   const items = moments.slice(0, 3);
   if (items.length === 0) return null;
 
@@ -48,7 +51,9 @@ export function RecentCoachingMoments({
       aria-labelledby="recent-coaching-moments-heading"
     >
       <div className="coaching-moment-recent__header">
-        <h2 id="recent-coaching-moments-heading">Recent Coaching Moments</h2>
+        <h2 id="recent-coaching-moments-heading">
+          Recent {language.momentsTitle}
+        </h2>
         {onViewAll ? (
           <button
             type="button"

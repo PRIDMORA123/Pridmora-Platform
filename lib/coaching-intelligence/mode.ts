@@ -92,7 +92,7 @@ export function getModeLabel(mode: CoachingIntelligenceMode): string {
     case "manual":
       return "Manual";
     case "assisted":
-      return "Assisted";
+      return "Standard";
     case "comprehensive":
       return "Comprehensive";
   }
@@ -110,7 +110,7 @@ export function getRefreshButtonLabels(mode: CoachingIntelligenceMode) {
       return {
         idle: "Refresh assisted intelligence",
         loading: "Preparing assisted intelligence…",
-        success: "Assisted intelligence ready",
+        success: "Standard intelligence ready",
       };
     case "comprehensive":
       return {

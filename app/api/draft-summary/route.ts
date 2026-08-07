@@ -2,7 +2,8 @@ import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import {
   buildDraftSummaryInput,
-  DRAFT_SUMMARY_INSTRUCTIONS,
+  buildDraftSummaryInstructions,
+  type DraftSummaryDepthMode,
 } from "@/lib/ai/draft-summary-prompt";
 import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
 import { parseDraftSummary } from "@/lib/sessions";
@@ -19,7 +20,15 @@ type DraftSummaryRequest = {
   clientId?: string;
   sessionId?: string;
   organisationId?: string;
+  depthMode?: DraftSummaryDepthMode | "assisted" | "manual" | "comprehensive";
 };
+
+function resolveDepthMode(
+  value: DraftSummaryRequest["depthMode"]
+): DraftSummaryDepthMode {
+  if (value === "comprehensive") return "comprehensive";
+  return "standard";
+}
 
 export async function POST(request: Request) {
   const auth = await requireOrganisationContext();
@@ -31,9 +40,6 @@ export async function POST(request: Request) {
       { status: 403 }
     );
   }
-
-  // Never trust a browser-supplied organisationId.
-  // (clientId/sessionId should be validated by calling workflows that persist.)
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -59,13 +65,14 @@ export async function POST(request: Request) {
     );
   }
 
+  const depthMode = resolveDepthMode(body.depthMode);
   const openai = new OpenAI({ apiKey });
 
   try {
     const response = await openai.responses.create({
       model: "gpt-5.5",
-      instructions: DRAFT_SUMMARY_INSTRUCTIONS,
-      input: buildDraftSummaryInput(notes),
+      instructions: buildDraftSummaryInstructions(depthMode),
+      input: buildDraftSummaryInput(notes, depthMode),
     });
 
     const rawDraft = response.output_text?.trim();
@@ -77,6 +84,13 @@ export async function POST(request: Request) {
     }
 
     const structuredContent = parseSummaryInsightsFromModel(rawDraft);
+    if (structuredContent) {
+      structuredContent.depthMode = depthMode;
+      if (depthMode === "standard") {
+        structuredContent.comprehensive = null;
+      }
+    }
+
     const sections = structuredContent
       ? summaryContentToStructuredSections(structuredContent)
       : parseDraftSummary(rawDraft);
@@ -86,6 +100,7 @@ export async function POST(request: Request) {
       sections,
       structuredContent,
       rawDraft,
+      depthMode,
     });
   } catch (error) {
     console.error("OpenAI draft summary error:", error);

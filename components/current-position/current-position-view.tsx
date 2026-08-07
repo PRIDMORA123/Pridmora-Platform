@@ -27,6 +27,8 @@ import type {
   InitialConversation,
   RelationshipAgreement,
 } from "@/lib/relationship-meta";
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { resolveProductLanguage } from "@/lib/role-language";
 
 export type CurrentPositionViewProps = {
   relationship: Client;
@@ -72,6 +74,8 @@ export function CurrentPositionView({
   onOpenCoachingMoment,
 }: CurrentPositionViewProps) {
   const launcherRef = useRef<HTMLButtonElement>(null);
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
   const primaryAction = getRelationshipPrimaryAction({
     relationship,
     currentSession,
@@ -141,6 +145,7 @@ export function CurrentPositionView({
             <CoachingMomentLauncher
               buttonRef={launcherRef}
               variant="quiet"
+              label={language.newMomentLabel}
               onLaunch={onNewCoachingMoment}
             />
           </div>

@@ -32,6 +32,8 @@ import {
   type CreateSummaryInsightsPhase,
 } from "@/lib/session/create-summary-insights-flow";
 import { parseDraftSummary } from "@/lib/sessions";
+import { serialiseSummaryContent } from "@/lib/summary-insights/serialise-summary-content";
+import type { SummaryInsightsContent } from "@/lib/summary-insights/types";
 import {
   apiJson,
   AuthRequiredError,
@@ -132,7 +134,6 @@ export function SessionWorkspace({
   ) => void;
   onTabChange?: (tab: ClientWorkspaceTab) => void;
 }) {
-  void coachingIntelligenceMode;
   const archived = isClientArchived(client);
   const [session, setSession] = useState(() => cloneSession(initialSession));
   const [savedSnapshot, setSavedSnapshot] = useState(() => cloneSession(initialSession));
@@ -497,17 +498,9 @@ export function SessionWorkspace({
       const data = await apiJson<{
         summary?: string;
         sections?: ReturnType<typeof parseDraftSummary>;
-        structuredContent?: {
-          sessionSummary?: string | null;
-          keyInsights?: Array<{ title: string; description: string }>;
-          strengths?: Array<{ title: string; description: string }>;
-          developmentEvidence?: Array<{ title: string; description: string }>;
-          coachingContext?: string | null;
-          commitments?: string[];
-          possibleNextFocus?: string[];
-          evidenceQualification?: string | null;
-        } | null;
+        structuredContent?: SummaryInsightsContent | null;
         rawDraft?: string;
+        depthMode?: "standard" | "comprehensive";
       }>("/api/draft-summary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -516,21 +509,44 @@ export function SessionWorkspace({
           focus: sourceSession.focus || sourceSession.title,
           preparation: sourceSession.preparation,
           clientName: getRelationshipDisplayName(client),
+          depthMode:
+            coachingIntelligenceMode === "comprehensive"
+              ? "comprehensive"
+              : "standard",
         }),
       });
 
       const sections =
         data.sections ?? parseDraftSummary(data.rawDraft || data.summary || "");
+      const serialised = data.structuredContent
+        ? serialiseSummaryContent({
+            ...data.structuredContent,
+            depthMode: data.depthMode ?? data.structuredContent.depthMode,
+          })
+        : null;
       const fields: SummaryFields = {
-        sessionSummary: sections.aiDraftSummary || data.summary || "",
-        keyThemes: sections.emergingThemes,
-        outcomes: sections.suggestedFocus || sourceSession.outcomes,
-        agreedActions: sections.agreedActions || sourceSession.commitments,
-        strengthsObserved: sections.strengthsObserved,
-        coachingContext: sections.valuesBecomingVisible,
-        developmentEvidence: sections.professionalIdentityDevelopment,
-        suggestedFocus: sections.suggestedFocus,
-        evidenceQualification: sections.coachReflection,
+        sessionSummary:
+          serialised?.summary || sections.aiDraftSummary || data.summary || "",
+        keyThemes: serialised?.emergingThemes || sections.emergingThemes,
+        outcomes:
+          serialised?.suggestedFocus ||
+          sections.suggestedFocus ||
+          sourceSession.outcomes,
+        agreedActions:
+          serialised?.agreedActions ||
+          sections.agreedActions ||
+          sourceSession.commitments,
+        strengthsObserved:
+          serialised?.strengthsObserved || sections.strengthsObserved,
+        coachingContext:
+          serialised?.valuesBecomingVisible || sections.valuesBecomingVisible,
+        developmentEvidence:
+          serialised?.professionalIdentityDevelopment ||
+          sections.professionalIdentityDevelopment,
+        suggestedFocus:
+          serialised?.suggestedFocus || sections.suggestedFocus,
+        evidenceQualification:
+          serialised?.coachReflection || sections.coachReflection,
       };
 
       // Do not overwrite an approved summary without explicit coach confirmation upstream.

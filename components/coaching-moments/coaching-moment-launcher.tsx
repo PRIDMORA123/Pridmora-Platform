@@ -5,6 +5,7 @@ import { MessageCircle } from "lucide-react";
 export type CoachingMomentLauncherProps = {
   disabled?: boolean;
   variant?: "button" | "menu-item" | "quiet";
+  label?: string;
   onLaunch: () => void;
   buttonRef?: React.RefObject<HTMLButtonElement | null>;
 };
@@ -16,6 +17,7 @@ export type CoachingMomentLauncherProps = {
 export function CoachingMomentLauncher({
   disabled = false,
   variant = "button",
+  label = "New Coaching Moment",
   onLaunch,
   buttonRef,
 }: CoachingMomentLauncherProps) {
@@ -29,7 +31,7 @@ export function CoachingMomentLauncher({
         disabled={disabled}
         onClick={onLaunch}
       >
-        <MessageCircle size={15} aria-hidden="true" /> New Coaching Moment
+        <MessageCircle size={15} aria-hidden="true" /> {label}
       </button>
     );
   }
@@ -47,7 +49,7 @@ export function CoachingMomentLauncher({
       disabled={disabled}
       onClick={onLaunch}
     >
-      New Coaching Moment
+      {label}
     </button>
   );
 }

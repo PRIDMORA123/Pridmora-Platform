@@ -35,6 +35,8 @@ export type AppView =
   | "prepare"
   | "session"
   | "intelligence"
+  | "development-evidence"
+  | "team-intelligence"
   | "development-update"
   | "person-actions"
   | "journey"
@@ -63,6 +65,7 @@ const PEOPLE_FLOW_VIEWS: AppView[] = [
   "prepare",
   "session",
   "intelligence",
+  "development-evidence",
   "development-update",
   "person-actions",
   "journey",
@@ -74,6 +77,8 @@ const DEVELOPMENT_FLOW_VIEWS: AppView[] = [
   "global-intelligence",
   "my-development",
   "intelligence",
+  "development-evidence",
+  "team-intelligence",
 ];
 
 export function AppShell({

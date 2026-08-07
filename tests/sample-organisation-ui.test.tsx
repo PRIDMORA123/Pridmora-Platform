@@ -47,34 +47,92 @@ async function renderView(node: ReactNode) {
   return container;
 }
 
-const packPayload = {
-  pack: {
-    packKey: "northbridge-healthcare",
-    packVersion: "1.0.0",
-    title: "Northbridge Healthcare Trust",
-    summary:
-      "Create a realistic fictional coaching environment for demonstrations, training and evaluation.",
-    features: [
-      "12 coaching relationships",
-      "72 development conversations",
-      "Organisation Intelligence included",
-    ],
-    estimatedSetupSeconds: 60,
-    expectedCounts: {
-      organisations: 1,
-      relationships: 12,
-      standardRelationships: 10,
-      confidentialRelationships: 2,
-      sessions: 72,
-      actions: 72,
-      developmentUpdates: 24,
-      intelligenceItems: 72,
-      organisationIntelligenceSnapshots: 1,
-    },
-    privacyNote: "All names and coaching records in this sample are fictional.",
-    installation: null,
-    organisationIntelligenceGenerationAvailable: false,
+const averlyPack = {
+  packKey: "averly-services-group",
+  packVersion: "1.0.0",
+  title: "Averly Services Group",
+  summary:
+    "Explore how Pridmora helps managers prepare for real management challenges, develop their people and build meaningful development intelligence over time.",
+  features: [
+    "Manager Development Demonstration",
+    "12 managers",
+    "72 development conversations",
+    "Organisation Intelligence when released",
+  ],
+  estimatedSetupSeconds: 60,
+  expectedCounts: {
+    organisations: 1,
+    relationships: 12,
+    standardRelationships: 10,
+    confidentialRelationships: 2,
+    sessions: 72,
+    actions: 72,
+    developmentUpdates: 24,
+    intelligenceItems: 72,
+    organisationIntelligenceSnapshots: 1,
   },
+  privacyNote: "All names and development records in this sample are fictional.",
+  installation: null as unknown,
+  organisationIntelligenceGenerationAvailable: false,
+  installable: true,
+};
+
+function packsResponse(overrides?: {
+  averlyInstallation?: unknown;
+  legacyInstallation?: unknown;
+}) {
+  const packs = [
+    {
+      ...averlyPack,
+      installation: overrides?.averlyInstallation ?? null,
+    },
+  ];
+  if (overrides?.legacyInstallation) {
+    packs.push({
+      packKey: "northbridge-healthcare",
+      packVersion: "2.0.0",
+      title: "Northbridge Healthcare Trust",
+      summary: "Legacy cleanup-only sample pack.",
+      features: ["Legacy"],
+      estimatedSetupSeconds: 60,
+      expectedCounts: averlyPack.expectedCounts,
+      privacyNote: "All names and coaching records in this sample are fictional.",
+      installation: overrides.legacyInstallation,
+      organisationIntelligenceGenerationAvailable: false,
+      installable: false,
+    } as typeof packs[number]);
+  }
+  return {
+    packs,
+    defaultPackKey: "averly-services-group",
+    installablePackKeys: ["averly-services-group"],
+  };
+}
+
+const readyInstallation = {
+  id: "11111111-1111-4111-8111-111111111111",
+  organisationId: "22222222-2222-4222-8222-222222222222",
+  sourceOrganisationId: "33333333-3333-4333-8333-333333333333",
+  packKey: "averly-services-group",
+  packVersion: "1.0.0",
+  status: "ready",
+  stage: "ready",
+  stageLabel: "Ready",
+  installedBy: "user",
+  installedByName: "Alex Manager",
+  installedAt: "2026-08-04T10:00:00.000Z",
+  updatedAt: "2026-08-04T10:00:00.000Z",
+  counts: {
+    relationships: 12,
+    sessions: 72,
+    actions: 72,
+    developmentUpdates: 24,
+    intelligenceItems: 72,
+  },
+  errorSummary: null,
+  failureCategory: null,
+  progressPercent: 100,
+  canRetryIntelligence: false,
 };
 
 afterEach(() => {
@@ -89,20 +147,22 @@ afterEach(() => {
 describe("sample organisation UI", () => {
   beforeEach(() => {
     apiJson.mockReset();
-    apiJson.mockResolvedValue(packPayload);
+    apiJson.mockResolvedValue(packsResponse());
   });
 
-  it("renders available pack and opens install confirmation", async () => {
+  it("renders Averly as the available pack and opens install confirmation", async () => {
     const container = await renderView(<SampleOrganisationPage />);
 
     await act(async () => {
       await Promise.resolve();
     });
 
-    expect(container.textContent).toContain("Northbridge Healthcare Trust");
+    expect(container.textContent).toContain("Averly Services Group");
+    expect(container.textContent).toContain("Manager Development Demonstration");
     expect(container.textContent).toContain("Available pack");
     expect(container.textContent).toContain("Around one minute");
     expect(container.textContent).toContain("Install sample organisation");
+    expect(container.textContent).not.toContain("Northbridge Healthcare Trust");
 
     const installButton = Array.from(container.querySelectorAll("button")).find(
       button => button.textContent?.includes("Install sample organisation")
@@ -121,37 +181,34 @@ describe("sample organisation UI", () => {
     expect(container.textContent).toContain("Cancel");
   });
 
-  it("renders installed state and requires REMOVE confirmation", async () => {
-    apiJson.mockResolvedValue({
-      pack: {
-        ...packPayload.pack,
-        installation: {
-          id: "11111111-1111-4111-8111-111111111111",
-          organisationId: "22222222-2222-4222-8222-222222222222",
-          sourceOrganisationId: "33333333-3333-4333-8333-333333333333",
+  it("shows legacy Northbridge cleanup when an older installation exists", async () => {
+    apiJson.mockResolvedValue(
+      packsResponse({
+        legacyInstallation: {
+          ...readyInstallation,
+          id: "44444444-4444-4444-8444-444444444444",
           packKey: "northbridge-healthcare",
-          packVersion: "1.0.0",
-          status: "ready",
-          stage: "ready",
-          stageLabel: "Ready",
-          installedBy: "user",
-          installedByName: "Alex Coach",
-          installedAt: "2026-08-04T10:00:00.000Z",
-          updatedAt: "2026-08-04T10:00:00.000Z",
-          counts: {
-            relationships: 12,
-            sessions: 72,
-            actions: 72,
-            developmentUpdates: 24,
-            intelligenceItems: 72,
-          },
-          errorSummary: null,
-          failureCategory: null,
-          progressPercent: 100,
-          canRetryIntelligence: false,
+          packVersion: "2.0.0",
         },
-      },
+      })
+    );
+
+    const container = await renderView(<SampleOrganisationPage />);
+    await act(async () => {
+      await Promise.resolve();
     });
+
+    expect(container.textContent).toContain("Averly Services Group");
+    expect(container.textContent).toContain("Previous sample organisation");
+    expect(container.textContent).toContain("Northbridge Healthcare Trust");
+    expect(container.textContent).toContain("Remove previous sample");
+    expect(container.textContent).toContain("will not convert to Averly");
+  });
+
+  it("renders installed state and requires REMOVE confirmation", async () => {
+    apiJson.mockResolvedValue(
+      packsResponse({ averlyInstallation: readyInstallation })
+    );
 
     const container = await renderView(<SampleOrganisationPage />);
     await act(async () => {
@@ -159,7 +216,7 @@ describe("sample organisation UI", () => {
     });
 
     expect(container.textContent).toContain("Installed");
-    expect(container.textContent).toContain("Alex Coach");
+    expect(container.textContent).toContain("Alex Manager");
     expect(container.textContent).toContain("Open sample organisation");
     expect(container.textContent).toContain("Reset sample organisation");
     expect(container.textContent).toContain("Remove sample organisation");
@@ -181,38 +238,21 @@ describe("sample organisation UI", () => {
   });
 
   it("renders intelligence_pending as ready without a failing Retry action", async () => {
-    apiJson.mockResolvedValue({
-      pack: {
-        ...packPayload.pack,
-        organisationIntelligenceGenerationAvailable: false,
-        installation: {
-          id: "11111111-1111-4111-8111-111111111111",
-          organisationId: "22222222-2222-4222-8222-222222222222",
-          sourceOrganisationId: "33333333-3333-4333-8333-333333333333",
-          packKey: "northbridge-healthcare",
-          packVersion: "1.0.0",
+    apiJson.mockResolvedValue(
+      packsResponse({
+        averlyInstallation: {
+          ...readyInstallation,
           status: "intelligence_pending",
           stage: "generating_organisation_intelligence",
           stageLabel: "Generating Organisation Intelligence",
-          installedBy: "user",
-          installedByName: "Alex Coach",
-          installedAt: "2026-08-04T10:00:00.000Z",
-          updatedAt: "2026-08-04T10:00:00.000Z",
-          counts: {
-            relationships: 12,
-            sessions: 72,
-            actions: 72,
-            developmentUpdates: 24,
-            intelligenceItems: 72,
-          },
+          progressPercent: 90,
           errorSummary:
             "Sample data was created but Organisation Intelligence could not be generated.",
           failureCategory: "intelligence_generation",
-          progressPercent: 90,
           canRetryIntelligence: false,
         },
-      },
-    });
+      })
+    );
 
     const container = await renderView(<SampleOrganisationPage />);
     await act(async () => {
@@ -243,38 +283,20 @@ describe("sample organisation UI", () => {
       if (String(url).includes("/open")) {
         return { organisationId: "22222222-2222-4222-8222-222222222222" };
       }
-      return {
-        pack: {
-          ...packPayload.pack,
-          organisationIntelligenceGenerationAvailable: false,
-          installation: {
-            id: installationId,
-            organisationId: "22222222-2222-4222-8222-222222222222",
-            sourceOrganisationId: "33333333-3333-4333-8333-333333333333",
-            packKey: "northbridge-healthcare",
-            packVersion: "1.0.0",
-            status: "intelligence_pending",
-            stage: "generating_organisation_intelligence",
-            stageLabel: "Generating Organisation Intelligence",
-            installedBy: "user",
-            installedByName: "Alex Coach",
-            installedAt: "2026-08-04T10:00:00.000Z",
-            updatedAt: "2026-08-04T10:00:00.000Z",
-            counts: {
-              relationships: 12,
-              sessions: 72,
-              actions: 72,
-              developmentUpdates: 24,
-              intelligenceItems: 72,
-            },
-            errorSummary:
-              "Sample data was created but Organisation Intelligence could not be generated.",
-            failureCategory: "intelligence_generation",
-            progressPercent: 90,
-            canRetryIntelligence: false,
-          },
+      return packsResponse({
+        averlyInstallation: {
+          ...readyInstallation,
+          id: installationId,
+          status: "intelligence_pending",
+          stage: "generating_organisation_intelligence",
+          stageLabel: "Generating Organisation Intelligence",
+          progressPercent: 90,
+          errorSummary:
+            "Sample data was created but Organisation Intelligence could not be generated.",
+          failureCategory: "intelligence_generation",
+          canRetryIntelligence: false,
         },
-      };
+      });
     });
 
     const assign = vi.fn();
@@ -309,22 +331,14 @@ describe("sample organisation UI", () => {
   });
 
   it("shows a safe error for failed status and keeps ready free of error banners", async () => {
-    apiJson.mockResolvedValue({
-      pack: {
-        ...packPayload.pack,
-        installation: {
-          id: "11111111-1111-4111-8111-111111111111",
-          organisationId: "22222222-2222-4222-8222-222222222222",
-          sourceOrganisationId: "33333333-3333-4333-8333-333333333333",
-          packKey: "northbridge-healthcare",
-          packVersion: "1.0.0",
+    apiJson.mockResolvedValue(
+      packsResponse({
+        averlyInstallation: {
+          ...readyInstallation,
           status: "failed",
           stage: "failed",
           stageLabel: "Failed",
-          installedBy: "user",
-          installedByName: "Alex Coach",
           installedAt: null,
-          updatedAt: "2026-08-04T10:00:00.000Z",
           counts: {
             relationships: 0,
             sessions: 0,
@@ -336,10 +350,9 @@ describe("sample organisation UI", () => {
             "Sample organisation installation failed. Created records were removed.",
           failureCategory: "install_failed",
           progressPercent: 0,
-          canRetryIntelligence: false,
         },
-      },
-    });
+      })
+    );
 
     const failedContainer = await renderView(<SampleOrganisationPage />);
     await act(async () => {
@@ -359,36 +372,9 @@ describe("sample organisation UI", () => {
       entry.container.remove();
     }
 
-    apiJson.mockResolvedValue({
-      pack: {
-        ...packPayload.pack,
-        installation: {
-          id: "11111111-1111-4111-8111-111111111111",
-          organisationId: "22222222-2222-4222-8222-222222222222",
-          sourceOrganisationId: "33333333-3333-4333-8333-333333333333",
-          packKey: "northbridge-healthcare",
-          packVersion: "1.0.0",
-          status: "ready",
-          stage: "ready",
-          stageLabel: "Ready",
-          installedBy: "user",
-          installedByName: "Alex Coach",
-          installedAt: "2026-08-04T10:00:00.000Z",
-          updatedAt: "2026-08-04T10:00:00.000Z",
-          counts: {
-            relationships: 12,
-            sessions: 72,
-            actions: 72,
-            developmentUpdates: 24,
-            intelligenceItems: 72,
-          },
-          errorSummary: null,
-          failureCategory: null,
-          progressPercent: 100,
-          canRetryIntelligence: false,
-        },
-      },
-    });
+    apiJson.mockResolvedValue(
+      packsResponse({ averlyInstallation: readyInstallation })
+    );
 
     const readyContainer = await renderView(<SampleOrganisationPage />);
     await act(async () => {

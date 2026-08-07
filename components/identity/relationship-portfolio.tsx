@@ -12,10 +12,14 @@ export function RelationshipPortfolio({
   items,
   onOpen,
   onViewAll,
+  title,
+  description,
 }: {
   items: RelationshipPortfolioItem[];
   onOpen: (id: string) => void;
   onViewAll: () => void;
+  title?: string;
+  description?: string;
 }) {
   return (
     <section
@@ -25,8 +29,12 @@ export function RelationshipPortfolio({
       <header className="relationship-portfolio-header">
         <div>
           <p className="home-section-eyebrow">People I support</p>
-          <h2 id="relationship-portfolio-title">Your coaching relationships</h2>
-          <p>A focused view of your active coaching portfolio.</p>
+          <h2 id="relationship-portfolio-title">
+            {title ?? "Your coaching relationships"}
+          </h2>
+          <p>
+            {description ?? "A focused view of your active coaching portfolio."}
+          </p>
         </div>
 
         <button

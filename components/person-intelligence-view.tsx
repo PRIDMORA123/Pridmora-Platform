@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ClientWorkspaceTab } from "@/components/client-workspace-tabs";
 import { DevelopmentProfilePage } from "@/components/development/development-profile-page";
 import { SupportingContextSection } from "@/components/development/supporting-context-section";
+import { DevelopmentIntelligenceEvidencePanel } from "@/components/development-evidence/development-intelligence-evidence-panel";
 import { ProposedContentLabel, IdentityBackLink } from "@/components/identity";
 import { JourneyStagePage } from "@/components/coaching-journey/journey-stage-page";
 import { RelationshipIdentityBar } from "@/components/coaching-journey/relationship-identity-bar";
@@ -29,12 +30,14 @@ export function PersonIntelligenceView({
   onTabChange,
   onReviewUpdate,
   onClientUpdated,
+  onOpenEvidence,
 }: {
   client: Client;
   onBack: () => void;
   onTabChange?: (tab: ClientWorkspaceTab) => void;
   onReviewUpdate?: (updateId: string) => void;
   onClientUpdated?: (client: Client) => void;
+  onOpenEvidence?: () => void;
 }) {
   void onTabChange;
   const [profile, setProfile] = useState<DevelopmentProfile | null>(null);
@@ -260,6 +263,26 @@ export function PersonIntelligenceView({
       }
       nextStepPosition="before"
     >
+      <nav className="person-development-subnav" aria-label="Development sections">
+        <button type="button" className="person-development-subnav__item is-active">
+          Development Intelligence
+        </button>
+        {onOpenEvidence ? (
+          <button
+            type="button"
+            className="person-development-subnav__item"
+            onClick={onOpenEvidence}
+          >
+            Development Evidence
+          </button>
+        ) : null}
+      </nav>
+
+      <DevelopmentIntelligenceEvidencePanel
+        clientId={client.id}
+        onOpenEvidence={onOpenEvidence}
+      />
+
       <DevelopmentProfilePage
         data={viewModel}
         patterns={developmentPatterns}

@@ -255,9 +255,6 @@ export async function loadJourneyViewModel(
   supabase: SupabaseClient,
   { coachId, relationshipId }: RelationshipScope
 ): Promise<JourneyViewModel> {
-  console.log("USING NEW RELATIONSHIP-SCOPED JOURNEY LOADER");
-  console.log("Journey route", { coachId, relationshipId });
-
   const relationship = await getRelationship(supabase, {
     coachId,
     relationshipId,

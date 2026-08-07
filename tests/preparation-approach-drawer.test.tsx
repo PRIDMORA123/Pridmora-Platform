@@ -55,7 +55,7 @@ describe("PreparationApproachDrawer", () => {
     vi.unstubAllGlobals();
   });
 
-  it("renders selectable approach cards with Assisted recommended", () => {
+  it("renders selectable approach cards with Standard recommended", () => {
     act(() => {
       root.render(
         <ToastProvider>

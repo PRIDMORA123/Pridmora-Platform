@@ -5,10 +5,12 @@ import { SummaryCommitmentList } from "@/components/summary-insights/summary-com
 import { SummaryEvidenceNote } from "@/components/summary-insights/summary-evidence-note";
 import { SummaryInsightItem } from "@/components/summary-insights/summary-insight-item";
 import { SummarySection } from "@/components/summary-insights/summary-section";
-import type {
-  SummaryInsightItem as InsightItem,
-  SummaryInsightsContent,
+import {
+  SUMMARY_SECTION_PURPOSE,
+  type SummaryInsightItem as InsightItem,
+  type SummaryInsightsContent,
 } from "@/lib/summary-insights/types";
+import { hasComprehensiveExtras } from "@/lib/summary-insights/comprehensive-pack";
 import type { IntelligenceReviewState } from "@/components/identity-intelligence/types";
 import type { SummaryStatus } from "@/lib/types";
 
@@ -200,13 +202,22 @@ export function SummaryInsightsView({
         h2 / insight h3 headings keep a valid document outline.
       */}
       <p className="summary-insights-panel__title">Conversation Summary & Insights</p>
+      <p className="summary-insights-panel__depth" data-depth={content.depthMode ?? "standard"}>
+        {(content.depthMode ?? "standard") === "comprehensive"
+          ? "Comprehensive — deeper analysis across development history, evidence and behavioural patterns."
+          : "Standard — concise insight for everyday management use."}
+      </p>
       <div
         className={`summary-insights-content${editing ? " is-editing" : ""}`}
         data-mode={editing ? "edit" : "read"}
+        data-depth={content.depthMode ?? "standard"}
       >
         {editing ? (
           <>
-            <SummarySection title="Conversation Summary">
+            <SummarySection
+              title="Conversation Summary"
+              purpose={SUMMARY_SECTION_PURPOSE.sessionSummary}
+            >
               <label htmlFor="summary-session-summary">
                 Conversation summary
                 <textarea
@@ -221,7 +232,10 @@ export function SummaryInsightsView({
               </label>
             </SummarySection>
 
-            <SummarySection title="Key Insights">
+            <SummarySection
+              title="Key Insights"
+              purpose={SUMMARY_SECTION_PURPOSE.keyInsights}
+            >
               <InsightEditorList
                 label="Insight"
                 items={content.keyInsights}
@@ -253,7 +267,10 @@ export function SummaryInsightsView({
               />
             </SummarySection>
 
-            <SummarySection title="Strengths Observed">
+            <SummarySection
+              title="Strengths Observed"
+              purpose={SUMMARY_SECTION_PURPOSE.strengths}
+            >
               <InsightEditorList
                 label="Strength"
                 items={content.strengths}
@@ -285,7 +302,10 @@ export function SummaryInsightsView({
               />
             </SummarySection>
 
-            <SummarySection title="Development Evidence">
+            <SummarySection
+              title="Development Evidence"
+              purpose={SUMMARY_SECTION_PURPOSE.developmentEvidence}
+            >
               <InsightEditorList
                 label="Evidence"
                 items={content.developmentEvidence}
@@ -329,7 +349,10 @@ export function SummaryInsightsView({
               </label>
             </SummarySection>
 
-            <SummarySection title="Management Context">
+            <SummarySection
+              title="Management Context"
+              purpose={SUMMARY_SECTION_PURPOSE.coachingContext}
+            >
               <label htmlFor="summary-coaching-context">
                 What the manager should remember next time
                 <textarea
@@ -344,9 +367,12 @@ export function SummaryInsightsView({
               </label>
             </SummarySection>
 
-            <SummarySection title="Agreed Commitments">
+            <SummarySection
+              title="Agreed Actions"
+              purpose={SUMMARY_SECTION_PURPOSE.commitments}
+            >
               <StringListEditor
-                label="Commitment"
+                label="Action"
                 items={content.commitments}
                 disabled={fieldsDisabled}
                 onChange={(index, value) =>
@@ -399,13 +425,19 @@ export function SummaryInsightsView({
         ) : (
           <>
             {content.sessionSummary ? (
-              <SummarySection title="Conversation Summary">
+              <SummarySection
+                title="Conversation Summary"
+                purpose={SUMMARY_SECTION_PURPOSE.sessionSummary}
+              >
                 <p>{content.sessionSummary}</p>
               </SummarySection>
             ) : null}
 
             {content.keyInsights.length > 0 ? (
-              <SummarySection title="Key Insights">
+              <SummarySection
+                title="Key Insights"
+                purpose={SUMMARY_SECTION_PURPOSE.keyInsights}
+              >
                 <div className="summary-insight-list">
                   {content.keyInsights.map((insight, index) => (
                     <SummaryInsightItem
@@ -419,7 +451,10 @@ export function SummaryInsightsView({
             ) : null}
 
             {content.strengths.length > 0 ? (
-              <SummarySection title="Strengths Observed">
+              <SummarySection
+                title="Strengths Observed"
+                purpose={SUMMARY_SECTION_PURPOSE.strengths}
+              >
                 <div className="summary-insight-list">
                   {content.strengths.map((strength, index) => (
                     <SummaryInsightItem
@@ -434,7 +469,10 @@ export function SummaryInsightsView({
 
             {content.developmentEvidence.length > 0 ||
             content.evidenceQualification ? (
-              <SummarySection title="Development Evidence">
+              <SummarySection
+                title="Development Evidence"
+                purpose={SUMMARY_SECTION_PURPOSE.developmentEvidence}
+              >
                 {content.developmentEvidence.length > 0 ? (
                   <div className="summary-insight-list">
                     {content.developmentEvidence.map((item, index) => (
@@ -455,24 +493,112 @@ export function SummaryInsightsView({
               </SummarySection>
             ) : null}
 
-            {content.coachingContext ? (
-              <SummarySection title="Management Context">
+            {content.depthMode === "comprehensive" &&
+            content.coachingContext ? (
+              <SummarySection
+                title="Management Context"
+                purpose={SUMMARY_SECTION_PURPOSE.coachingContext}
+              >
                 <p>{content.coachingContext}</p>
               </SummarySection>
             ) : null}
 
-            <SummarySection title="Agreed Commitments">
+            <SummarySection
+              title="Agreed Actions"
+              purpose={SUMMARY_SECTION_PURPOSE.commitments}
+            >
               <SummaryCommitmentList commitments={content.commitments} />
             </SummarySection>
 
             {content.possibleNextFocus.length > 0 ? (
-              <SummarySection title="Next Focus">
+              <SummarySection
+                title="Next Focus"
+                purpose={SUMMARY_SECTION_PURPOSE.possibleNextFocus}
+              >
                 <ul className="summary-next-focus-list">
                   {content.possibleNextFocus.map((focus, index) => (
                     <li key={`${index}-${focus}`}>{focus}</li>
                   ))}
                 </ul>
               </SummarySection>
+            ) : null}
+
+            {content.depthMode === "comprehensive" &&
+            hasComprehensiveExtras(content.comprehensive) ? (
+              <div
+                className="summary-insights-comprehensive"
+                data-testid="summary-comprehensive-block"
+              >
+                <p className="summary-insights-comprehensive__eyebrow">
+                  Longitudinal development intelligence
+                </p>
+
+                {content.comprehensive?.developmentTrajectory ? (
+                  <SummarySection title="Development Trajectory">
+                    <p>{content.comprehensive.developmentTrajectory}</p>
+                  </SummarySection>
+                ) : null}
+
+                {(content.comprehensive?.behaviouralPatterns?.length ?? 0) >
+                0 ? (
+                  <SummarySection title="Behavioural / Capability Patterns">
+                    <div className="summary-insight-list">
+                      {content.comprehensive!.behaviouralPatterns!.map(
+                        (item, index) => (
+                          <SummaryInsightItem
+                            key={`${item.title}-${index}`}
+                            title={item.title}
+                            description={item.description}
+                          />
+                        )
+                      )}
+                    </div>
+                  </SummarySection>
+                ) : null}
+
+                {content.comprehensive?.evidenceConfidenceNote ? (
+                  <SummarySection title="Evidence Confidence">
+                    <p>{content.comprehensive.evidenceConfidenceNote}</p>
+                  </SummarySection>
+                ) : null}
+
+                {content.comprehensive?.evidenceCoverageNote ? (
+                  <SummarySection title="Evidence Coverage">
+                    <p>{content.comprehensive.evidenceCoverageNote}</p>
+                  </SummarySection>
+                ) : null}
+
+                {(content.comprehensive?.contradictoryOrLimitedEvidence
+                  ?.length ?? 0) > 0 ? (
+                  <SummarySection title="Contradictory / Limited Evidence">
+                    <ul className="summary-next-focus-list">
+                      {content.comprehensive!.contradictoryOrLimitedEvidence!.map(
+                        (item, index) => (
+                          <li key={`${index}-${item}`}>{item}</li>
+                        )
+                      )}
+                    </ul>
+                  </SummarySection>
+                ) : null}
+
+                {(content.comprehensive?.developmentRisks?.length ?? 0) > 0 ? (
+                  <SummarySection title="Development Risks">
+                    <ul className="summary-next-focus-list">
+                      {content.comprehensive!.developmentRisks!.map(
+                        (item, index) => (
+                          <li key={`${index}-${item}`}>{item}</li>
+                        )
+                      )}
+                    </ul>
+                  </SummarySection>
+                ) : null}
+
+                {content.comprehensive?.recommendedNextConversation ? (
+                  <SummarySection title="Recommended Next Development Conversation">
+                    <p>{content.comprehensive.recommendedNextConversation}</p>
+                  </SummarySection>
+                ) : null}
+              </div>
             ) : null}
           </>
         )}

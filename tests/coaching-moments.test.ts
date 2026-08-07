@@ -267,8 +267,9 @@ describe("Coaching Moment product contracts", () => {
       "utf8"
     );
     expect(canvas).toContain("CoachingMomentsSection");
-    expect(section).toContain("New Coaching Moment");
+    expect(section).toContain("language.newMomentLabel");
     expect(section).toContain("coaching-moments-title");
+    expect(section).toContain("resolveProductLanguage");
     const menuBlock = coachSpace.match(
       /<ClientActionsMenu[\s\S]*?\/>/
     )?.[0];

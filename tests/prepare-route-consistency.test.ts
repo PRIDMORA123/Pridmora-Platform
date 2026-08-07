@@ -130,7 +130,7 @@ describe("canonical Prepare route", () => {
 });
 
 describe("shared preparation workspace view model", () => {
-  it("resolves Assisted support copy and create-brief state when no brief exists", () => {
+  it("resolves Standard support copy and create-brief state when no brief exists", () => {
     const model = buildPreparationWorkspaceViewModel({
       person: person(),
       session: prepSession(),
@@ -138,12 +138,12 @@ describe("shared preparation workspace view model", () => {
     });
 
     expect(model.effectiveApproach).toBe("guided");
-    expect(model.displayApproach).toBe("Assisted");
+    expect(model.displayApproach).toBe("Standard");
     expect(model.aiSupportAvailable).toBe(true);
     expect(model.aiSectionsPresent).toBe(false);
     expect(model.generationStatus).toBe("not_generated");
     expect(model.nextAction).toBe("create_brief");
-    expect(model.supportTitle).toBe("Assisted Brief");
+    expect(model.supportTitle).toBe("Standard Brief");
     expect(model.supportDescription).toContain("proposes themes");
     expect(model.statusHeadline).toBe("Preparation support is ready.");
     expect(preparationPrimaryActionLabel(model.nextAction)).toBe(

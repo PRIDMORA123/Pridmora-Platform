@@ -48,6 +48,7 @@ export const ORGANISATION_PERMISSIONS = [
   "organisation.manage",
   "organisation.view_usage",
   "organisation.view_safe_oversight",
+  "intelligence.organisation.read",
   "members.invite",
   "members.manage",
   "members.deactivate",

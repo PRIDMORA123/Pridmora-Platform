@@ -8,12 +8,18 @@ import {
 import {
   loadSamplePack,
   listRegisteredPackKeys,
+  listInstallablePackKeys,
+  isInstallableSamplePack,
+  isLegacyCleanupSamplePack,
+  getDefaultSamplePackKey,
   validateSamplePack,
   buildInstallPlan,
   SAMPLE_PROGRESS_STAGES,
+  DEFAULT_SAMPLE_PACK_KEY,
   progressPercentForStage,
 } from "@/lib/sample-organisations";
 import { writeSampleOrganisationAudit } from "@/lib/sample-organisations/audit";
+import { resolveProductLanguage } from "@/lib/role-language";
 
 const root = process.cwd();
 
@@ -42,19 +48,29 @@ describe("sample organisation access", () => {
 });
 
 describe("sample organisation pack", () => {
-  it("registers northbridge-healthcare", () => {
+  it("offers only Averly for new installs while retaining Northbridge for cleanup", () => {
+    expect(getDefaultSamplePackKey()).toBe("averly-services-group");
+    expect(DEFAULT_SAMPLE_PACK_KEY).toBe("averly-services-group");
+    expect(listInstallablePackKeys()).toEqual(["averly-services-group"]);
+    expect(isInstallableSamplePack("averly-services-group")).toBe(true);
+    expect(isInstallableSamplePack("northbridge-healthcare")).toBe(false);
+    expect(isLegacyCleanupSamplePack("northbridge-healthcare")).toBe(true);
+    expect(listRegisteredPackKeys()).toContain("averly-services-group");
     expect(listRegisteredPackKeys()).toContain("northbridge-healthcare");
   });
 
-  it("validates the Northbridge pack with expected counts", () => {
-    const result = loadSamplePack("northbridge-healthcare");
+  it("validates the Averly pack with expected counts and manager-development language", () => {
+    const result = loadSamplePack("averly-services-group");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
     const { manifest, relationships, sessions, actions, developmentUpdates, intelligenceItems } =
       result.pack;
 
-    expect(manifest.title).toBe("Northbridge Healthcare Trust");
+    expect(manifest.title).toBe("Averly Services Group");
+    expect(manifest.summary).toContain("managers prepare for real management challenges");
+    expect(manifest.features).toContain("Manager Development Demonstration");
+    expect(manifest.features).toContain("12 managers");
     expect(manifest.expectedCounts.relationships).toBe(12);
     expect(manifest.expectedCounts.sessions).toBe(72);
     expect(manifest.expectedCounts.actions).toBe(72);
@@ -70,6 +86,10 @@ describe("sample organisation pack", () => {
 
     const confidential = relationships.filter(r => r.identityMode === "confidential");
     expect(confidential).toHaveLength(2);
+    expect(confidential.map(r => r.key).sort()).toEqual([
+      "manager-b",
+      "senior-leader-a",
+    ]);
     for (const rel of confidential) {
       expect(rel.email).toBe("");
       expect(rel.aiNameAllowed).toBe(false);
@@ -79,6 +99,30 @@ describe("sample organisation pack", () => {
     for (const theme of manifest.recurringThemes) {
       const count = relationships.filter(r => r.themes.includes(theme)).length;
       expect(count).toBeGreaterThanOrEqual(manifest.privacy.minimumThemeRelationships);
+    }
+
+    const sessionBlob = JSON.stringify(sessions).toLowerCase();
+    expect(sessionBlob).not.toContain("coachee");
+    expect(sessionBlob).not.toContain("becoming a coach");
+    expect(sessionBlob).not.toContain("becoming coaches");
+    expect(sessionBlob).toMatch(/development conversation|management conversation|one-to-one|performance conversation|feedback conversation|development review/);
+
+    for (const session of sessions) {
+      expect(session.aiSummaryApproved).toBe(true);
+      const words = String(session.summary || "")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean).length;
+      expect(words).toBeGreaterThanOrEqual(150);
+      expect(words).toBeLessThanOrEqual(230);
+      expect(String(session.emergingThemes || "").trim().length).toBeGreaterThan(40);
+      expect(String(session.strengthsObserved || "").trim().length).toBeGreaterThan(20);
+      expect(
+        String(session.valuesBecomingVisible || "").trim().length
+      ).toBeGreaterThan(20);
+      expect(
+        String(session.professionalIdentityDevelopment || "").trim().length
+      ).toBeGreaterThan(20);
     }
 
     for (const update of developmentUpdates) {
@@ -101,8 +145,6 @@ describe("sample organisation pack", () => {
       expect(themeCount).toBeGreaterThan(0);
       expect(growthCount).toBeGreaterThan(0);
       expect(strengthCount).toBeGreaterThan(0);
-      // currentFocus is optional in proposedChanges for some early-session updates.
-      // When present, it must carry a usable value (existing pack shape).
       if (changes.currentFocus !== undefined) {
         expect(String(changes.currentFocus.value ?? "").trim().length).toBeGreaterThan(0);
       }
@@ -114,53 +156,39 @@ describe("sample organisation pack", () => {
     );
   });
 
+  it("keeps legacy Northbridge pack loadable for cleanup compatibility", () => {
+    const result = loadSamplePack("northbridge-healthcare");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.pack.manifest.title).toBe("Northbridge Healthcare Trust");
+    expect(result.pack.relationships).toHaveLength(12);
+    expect(result.pack.sessions).toHaveLength(72);
+    expect(existsSync(join(root, "sample-data/northbridge-healthcare/manifest.json"))).toBe(
+      true
+    );
+    expect(
+      existsSync(
+        join(root, "app/api/sample-organisations/northbridge-healthcare/install/route.ts")
+      )
+    ).toBe(true);
+  });
+
+  it("rejects new Northbridge installs while allowing pack load for remove/reset", () => {
+    const install = read("lib/sample-organisations/install.ts");
+    expect(install).toContain("isInstallableSamplePack");
+    expect(install).toContain("PACK_NOT_AVAILABLE");
+    expect(install).toContain(
+      "This sample organisation is no longer available for new installations."
+    );
+    expect(install).toContain('professional_role: "manager"');
+    expect(install).toContain("averly-services-group");
+  });
+
   it("applies development updates into profiles during seed", () => {
     const seed = read("lib/sample-organisations/seed-content.ts");
     expect(seed).toContain('apply_development_update');
     expect(seed).toContain('shouldApply ? "ready_for_review"');
     expect(seed).toContain("Unable to apply sample development update.");
-  });
-
-  it("freezes production-shaped conversation intelligence in the pack", () => {
-    const loaded = loadSamplePack("northbridge-healthcare");
-    expect(loaded.ok).toBe(true);
-    if (!loaded.ok) return;
-
-    const { sessions, developmentUpdates, manifest } = loaded.pack;
-    expect(manifest.packVersion.startsWith("2.")).toBe(true);
-
-    for (const session of sessions) {
-      expect(session.aiSummaryApproved).toBe(true);
-      expect(String(session.summary || "").trim().length).toBeGreaterThan(200);
-      expect(String(session.emergingThemes || "").trim().length).toBeGreaterThan(20);
-      expect(String(session.strengthsObserved || "").trim().length).toBeGreaterThan(10);
-      expect(
-        String(session.valuesBecomingVisible || "").trim().length
-      ).toBeGreaterThan(10);
-      expect(
-        String(session.professionalIdentityDevelopment || "").trim().length
-      ).toBeGreaterThan(10);
-    }
-
-    for (const update of developmentUpdates) {
-      const changes = update.proposedChanges as {
-        strengths?: { add?: unknown[] };
-        emergingThemes?: { add?: unknown[] };
-        growthAreas?: { add?: unknown[] };
-      };
-      expect(
-        (changes.strengths?.add?.length || 0) +
-          (changes.emergingThemes?.add?.length || 0) +
-          (changes.growthAreas?.add?.length || 0)
-      ).toBeGreaterThan(0);
-    }
-
-    const rebuild = read("scripts/rebuild-northbridge-production-pack.mjs");
-    expect(rebuild).toContain("DRAFT_SUMMARY_INSTRUCTIONS");
-    expect(rebuild).toContain("DEVELOPMENT_UPDATE_SYSTEM_PROMPT");
-    expect(rebuild).toContain("serialiseSummaryContent");
-    expect(rebuild).toContain("parseSummaryInsightsFromModel");
-    expect(rebuild).not.toMatch(/seedExistingSampleOrganisation/);
   });
 
   it("does not regenerate conversation intelligence during sample install", () => {
@@ -175,14 +203,14 @@ describe("sample organisation pack", () => {
   });
 
   it("rejects packs with private email on confidential relationships", () => {
-    const loaded = loadSamplePack("northbridge-healthcare");
+    const loaded = loadSamplePack("averly-services-group");
     expect(loaded.ok).toBe(true);
     if (!loaded.ok) return;
 
     const broken = {
       ...loaded.pack,
       relationships: loaded.pack.relationships.map(rel =>
-        rel.key === "clinical-lead-a"
+        rel.key === "senior-leader-a"
           ? { ...rel, email: "secret@example.com" }
           : rel
       ),
@@ -204,13 +232,26 @@ describe("sample organisation pack", () => {
 
   it("does not hard-code the dataset inside API routes", () => {
     const installRoute = read(
-      "app/api/sample-organisations/northbridge-healthcare/install/route.ts"
+      "app/api/sample-organisations/averly-services-group/install/route.ts"
     );
-    expect(installRoute).not.toContain("Sarah Mitchell");
-    expect(installRoute).not.toContain("Ward Manager");
-    expect(existsSync(join(root, "sample-data/northbridge-healthcare/manifest.json"))).toBe(
+    expect(installRoute).not.toContain("Sophie Bennett");
+    expect(installRoute).not.toContain("Customer Service Team Manager");
+    expect(existsSync(join(root, "sample-data/averly-services-group/manifest.json"))).toBe(
       true
     );
+  });
+
+  it("keeps manager and coach product language role-aware", () => {
+    const manager = resolveProductLanguage("manager");
+    const coach = resolveProductLanguage("coach");
+    expect(manager.peopleNavLabel).toBe("People");
+    expect(manager.myPeopleLabel).toBe("My people");
+    expect(manager.conversationSingular).toBe("development conversation");
+    expect(manager.intelligenceTitle.toLowerCase()).toContain("development intelligence");
+    expect(manager.homeTitle).toMatch(/Management/i);
+    expect(coach.peopleISupport).toBe("Clients");
+    expect(coach.overviewTitle).toMatch(/Coaching/i);
+    expect(coach.notesLabel).toBe("Coach notes");
   });
 });
 
@@ -247,12 +288,24 @@ describe("sample organisation migration", () => {
     expect(sql).not.toContain("service_role_key");
 
     const cleanupSoftening = read(
-      "supabase/migrations/20260804190000_sample_organisation_cleanup_optional_intelligence.sql"
+      "supabase/migrations-held-out/20260804190000_sample_organisation_cleanup_optional_intelligence.sql"
     );
     expect(cleanupSoftening).toContain("cleanup_sample_organisation_installation");
     expect(cleanupSoftening).toContain("to_regclass");
     expect(cleanupSoftening).toContain("organisation_intelligence_snapshots");
     expect(cleanupSoftening).not.toMatch(/\bdrop table\b/i);
+  });
+
+  it("ships additive migration for Averly manager membership role", () => {
+    const path =
+      "supabase/migrations/20260807120000_averly_sample_manager_role.sql";
+    expect(existsSync(join(root, path))).toBe(true);
+    const sql = read(path);
+    expect(sql).toContain("begin_sample_organisation_installation");
+    expect(sql).toContain("averly-services-group");
+    expect(sql).toContain("v_professional_role");
+    expect(sql).toContain("'manager'");
+    expect(sql).not.toMatch(/\bdrop table\b/i);
   });
 
   it("extends permission helper without weakening coaching content rules", () => {
@@ -268,10 +321,11 @@ describe("sample organisation migration", () => {
   });
 });
 
+
 describe("sample organisation API access contracts", () => {
   it("gates install routes with sample_organisation.manage", () => {
     const install = read(
-      "app/api/sample-organisations/northbridge-healthcare/install/route.ts"
+      "app/api/sample-organisations/averly-services-group/install/route.ts"
     );
     expect(install).toContain("requireSampleOrganisationManage");
     expect(install).toContain("sourceOrganisationId: auth.context.organisation.organisationId");
@@ -300,22 +354,29 @@ describe("sample organisation audit safety", () => {
 });
 
 describe("sample organisation UI copy", () => {
-  it("uses Sample Organisation language and confirmation copy", () => {
+  it("uses Averly Manager Development language and confirmation copy", () => {
     const page = read(
       "components/sample-organisation/sample-organisation-page.tsx"
     );
     expect(page).toContain("SAMPLE ORGANISATION");
-    expect(page).toContain("Northbridge Healthcare Trust");
+    expect(page).toContain("Averly Services Group");
+    expect(page).toContain("Manager Development Demonstration");
+    expect(page).toContain("DEFAULT_SAMPLE_PACK_KEY");
     expect(page).toContain("SAMPLE_ORGANISATION_SETUP_ESTIMATE");
     expect(page).toContain("Install sample organisation?");
     expect(page).toContain("Reset sample organisation?");
     expect(page).toContain("Remove sample organisation?");
     expect(page).toContain("Type REMOVE to confirm");
+    expect(page).toContain("Previous sample organisation");
+    expect(page).toContain("will not convert to Averly");
     expect(page).not.toMatch(/demo data|fake data|dummy data|seed data/i);
     expect(page).not.toContain("Around 30 seconds");
+    // Northbridge must not be the install title; legacy cleanup may still name it.
+    expect(page).not.toContain('title="Northbridge Healthcare Trust"');
 
     const types = read("lib/sample-organisations/types.ts");
     expect(types).toContain('SAMPLE_ORGANISATION_SETUP_ESTIMATE = "Around one minute"');
+    expect(types).toContain('DEFAULT_SAMPLE_PACK_KEY: SamplePackKey = "averly-services-group"');
   });
 
   it("shows sample nav only for authorised roles", () => {

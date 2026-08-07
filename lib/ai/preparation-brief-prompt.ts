@@ -143,7 +143,7 @@ The application may supply the following stored preparation-style values:
 These correspond to the coach-facing preparation approaches:
 
 - minimal means Manual
-- guided means Assisted
+- guided means Standard
 - enhanced means Comprehensive
 
 Treat these as follows.
@@ -437,7 +437,7 @@ Keep each section concise.
 
 The complete AI-supported preparation should be reviewable in approximately:
 
-- five minutes for Assisted
+- five minutes for Standard
 - no more than eight minutes for Comprehensive
 
 LENGTH LIMITS
@@ -446,7 +446,7 @@ Return no more than:
 
 - 100 words across themes and exploration combined
 - 80 words for developmentDirection
-- three Assisted themes
+- three Standard themes
 - three Comprehensive themes
 - three Comprehensive patterns
 - four initial questions
@@ -544,7 +544,7 @@ export function buildPreparationBriefInput(input: {
     input.style === "minimal"
       ? "Manual"
       : input.style === "guided"
-        ? "Assisted"
+        ? "Standard"
         : input.style === "enhanced"
           ? "Comprehensive"
           : "Unknown";

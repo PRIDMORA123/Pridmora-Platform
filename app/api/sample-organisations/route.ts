@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import {
+  DEFAULT_SAMPLE_PACK_KEY,
   getActiveInstallationForPack,
+  listInstallablePackKeys,
   listRegisteredPackKeys,
   loadSamplePack,
   requireSampleOrganisationManage,
@@ -25,5 +27,9 @@ export async function GET() {
     packs.push(toPackSummary(loaded.pack, installation));
   }
 
-  return NextResponse.json({ packs });
+  return NextResponse.json({
+    packs,
+    defaultPackKey: DEFAULT_SAMPLE_PACK_KEY,
+    installablePackKeys: listInstallablePackKeys(),
+  });
 }

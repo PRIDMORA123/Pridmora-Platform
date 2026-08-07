@@ -102,19 +102,45 @@ describe("parseSummaryInsightsJson", () => {
   });
 
   it("enforces maximum item display limits", () => {
+    const insightBodies = [
+      "She recognised that reclaiming work under pressure limited team ownership.",
+      "Stakeholder influence improved when she named the trade-off before deciding.",
+      "Listening stayed longer before advice, which changed the tone of challenge.",
+      "Accountability became clearer when expectations were stated without rescue.",
+      "She linked standards to sponsorship rather than personal control.",
+      "Feedback was delivered with curiosity instead of corrective certainty.",
+      "Presence held when disagreement appeared in the leadership forum.",
+      "She tested a shorter decision cycle with her operations lead.",
+    ];
+    const strengthBodies = [
+      "Named the exact moment she takes work back and paused instead.",
+      "Used reflective questions that kept ownership with the report.",
+      "Held a calm boundary when a peer asked her to absorb delivery risk.",
+      "Recognised progress without over-claiming sustained change.",
+      "Invited challenge from the team before locking the plan.",
+      "Showed emotional steadiness when the timeline slipped.",
+    ];
+    const evidenceBodies = [
+      "Earlier rescue pattern → left a decision with her report this week → ownership is emerging.",
+      "Previous silence in forums → spoke once with a clear ask → influence is starting.",
+      "Habitual advice-giving → stayed with a question for two minutes → listening is developing.",
+      "Vague expectations → wrote a one-page brief before handover → clarity improved.",
+      "Avoided conflict → named a delivery risk early → constructive challenge appeared.",
+    ];
+
     const parsed = parseSummaryInsightsJson({
       sessionSummary: "Summary",
-      keyInsights: Array.from({ length: 8 }, (_, index) => ({
+      keyInsights: insightBodies.map((description, index) => ({
         title: `Insight ${index + 1}`,
-        description: `Description ${index + 1}`,
+        description,
       })),
-      strengths: Array.from({ length: 6 }, (_, index) => ({
+      strengths: strengthBodies.map((description, index) => ({
         title: `Strength ${index + 1}`,
-        description: `Strength description ${index + 1}`,
+        description,
       })),
-      developmentEvidence: Array.from({ length: 5 }, (_, index) => ({
+      developmentEvidence: evidenceBodies.map((description, index) => ({
         title: `Evidence ${index + 1}`,
-        description: `Evidence description ${index + 1}`,
+        description,
       })),
       commitments: Array.from(
         { length: 7 },
@@ -322,7 +348,7 @@ describe("SummaryInsightsView", () => {
     expect(container.textContent).toContain("Delegation and ownership");
     expect(container.textContent).not.toContain("Strengths Observed");
     expect(container.textContent).not.toContain("Management Context");
-    expect(container.textContent).toContain("Agreed Commitments");
+    expect(container.textContent).toContain("Agreed Actions");
     expect(container.textContent).toContain("No commitment was recorded.");
     expect(container.textContent).toMatch(/Draft/);
   });
@@ -339,7 +365,8 @@ describe("SummaryInsightsView", () => {
       2
     );
     expect(container.textContent).toContain("Approved development record");
-    expect(container.textContent).toContain("Management Context");
+    expect(container.textContent).toContain("Agreed Actions");
+    expect(container.textContent).not.toContain("Management Context");
     expect(container.textContent).toContain("Next Focus");
   });
 
@@ -403,6 +430,50 @@ describe("SummaryInsightsView", () => {
     expect(container.querySelectorAll(".summary-insight-list").length).toBeGreaterThan(
       0
     );
+  });
+
+  it("renders Comprehensive longitudinal block only for comprehensive depth", async () => {
+    const standard = await renderView(
+      <SummaryInsightsView
+        content={{ ...structuredExample, depthMode: "standard" }}
+        status="draft"
+      />
+    );
+    expect(standard.querySelector("[data-testid='summary-comprehensive-block']")).toBeNull();
+    expect(standard.textContent).toMatch(/Standard — concise insight/i);
+
+    const comprehensive = await renderView(
+      <SummaryInsightsView
+        content={{
+          ...structuredExample,
+          depthMode: "comprehensive",
+          coachingContext: "Protect ownership practice next time.",
+          comprehensive: {
+            developmentTrajectory: "She is shifting from rescue to sponsorship.",
+            behaviouralPatterns: [
+              {
+                title: "Delegation under pressure",
+                description: "She pauses before reclaiming work.",
+              },
+            ],
+            evidenceConfidenceNote: "Moderate — repeated conversation evidence.",
+            evidenceCoverageNote: "Conversations represented; assessment not yet included.",
+            contradictoryOrLimitedEvidence: ["Earlier reclaiming under pressure remains visible."],
+            developmentRisks: ["Progress may not yet hold under sustained pressure."],
+            recommendedNextConversation: "Explore ownership when delivery risk rises.",
+          },
+        }}
+        status="draft"
+      />
+    );
+
+    expect(
+      comprehensive.querySelector("[data-testid='summary-comprehensive-block']")
+    ).toBeTruthy();
+    expect(comprehensive.textContent).toMatch(/Development Trajectory/i);
+    expect(comprehensive.textContent).toMatch(/Behavioural \/ Capability Patterns/i);
+    expect(comprehensive.textContent).toMatch(/Management Context/i);
+    expect(comprehensive.textContent).toMatch(/Comprehensive — deeper analysis/i);
   });
 });
 

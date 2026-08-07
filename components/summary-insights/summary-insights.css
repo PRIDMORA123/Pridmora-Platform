@@ -11,6 +11,38 @@
   line-height: 1.3;
 }
 
+.summary-insights-panel__depth {
+  margin: 0 0 var(--identity-space-5, 20px);
+  color: var(--identity-text-muted, #64748b);
+  font-size: 0.95rem;
+  line-height: 1.45;
+  max-width: 42rem;
+}
+
+.summary-insights-section__purpose {
+  margin: 0;
+  color: var(--identity-text-muted, #64748b);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.summary-insights-comprehensive {
+  display: grid;
+  gap: var(--identity-space-7, 28px);
+  margin-top: var(--identity-space-4, 16px);
+  padding-top: var(--identity-space-7, 28px);
+  border-top: 1px solid var(--identity-border-soft, #e7ecef);
+}
+
+.summary-insights-comprehensive__eyebrow {
+  margin: 0;
+  color: var(--identity-text-muted, #64748b);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .summary-insights-content {
   display: grid;
   gap: var(--identity-space-8, 32px);

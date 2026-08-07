@@ -7,6 +7,8 @@ import { CurrentConversationCard } from "@/components/relationship-workspace/cur
 import { CurrentPositionPanel } from "@/components/relationship-workspace/current-position-panel";
 import { PreviousConversationsGallery } from "@/components/relationship-workspace/previous-conversations-gallery";
 import { RelationshipCanvasHeader } from "@/components/relationship-workspace/relationship-canvas-header";
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { resolveProductLanguage } from "@/lib/role-language";
 import { RelationshipDevelopmentPreview } from "@/components/relationship-workspace/relationship-development-preview";
 import {
   buildReportsPreviewModel,
@@ -112,6 +114,8 @@ export function RelationshipCanvas({
   onNewCoachingMoment,
   onOpenCoachingMoment,
 }: RelationshipCanvasProps) {
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
   const activeSession =
     currentSession ?? getFutureOrOpenSession(relationship.sessions) ?? null;
 
@@ -194,6 +198,10 @@ export function RelationshipCanvas({
         organisation={relationship.organisation}
         startedLabel={resolvedStarted}
         status={archived ? "Archived" : relationship.status}
+        relationshipLabel={
+          language.relationshipSingular.charAt(0).toUpperCase() +
+          language.relationshipSingular.slice(1)
+        }
         actions={actions}
       />
 

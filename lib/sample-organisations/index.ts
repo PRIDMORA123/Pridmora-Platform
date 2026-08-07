@@ -12,11 +12,17 @@ export {
   SAMPLE_STAGE_LABELS,
   SAMPLE_PROGRESS_STAGES,
   SAMPLE_PACK_KEYS,
+  DEFAULT_SAMPLE_PACK_KEY,
+  LEGACY_CLEANUP_SAMPLE_PACK_KEYS,
   SAMPLE_ORGANISATION_SETUP_ESTIMATE,
 } from "@/lib/sample-organisations/types";
 
 export {
   listRegisteredPackKeys,
+  listInstallablePackKeys,
+  isInstallableSamplePack,
+  isLegacyCleanupSamplePack,
+  getDefaultSamplePackKey,
   loadSamplePack,
   requireSamplePack,
   toPackSummary,

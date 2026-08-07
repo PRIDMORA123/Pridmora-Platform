@@ -186,8 +186,9 @@ export function IdentityHomePage({
         coachName,
         awaitingUpdates,
         recentlyAppliedUpdates: recentlyApplied,
+        professionalRole: organisation?.professionalRole,
       }),
-    [clients, coachName, awaitingUpdates, recentlyApplied]
+    [clients, coachName, awaitingUpdates, recentlyApplied, organisation?.professionalRole]
   );
 
   const totalConversationsInProgress = useMemo(
@@ -433,6 +434,7 @@ export function IdentityHomePage({
             />
           ) : (
             <NextBestActionUpToDate
+              title={language.workUpToDateTitle}
               onReviewRelationships={() => onViewPeople?.()}
             />
           )}
@@ -485,10 +487,12 @@ export function IdentityHomePage({
             }))}
             totalCount={totalConversationsInProgress}
             onViewAll={() => onViewPeople?.()}
+            description={language.activeWorkDescription}
           />
 
           <RecentDevelopment
             items={viewModel.recentDevelopment}
+            description={language.recentDevelopmentDescription}
             onOpen={id => {
               const item = viewModel.recentDevelopment.find(entry => entry.id === id);
               const client = item ? clientById(item.relationshipId) : undefined;
@@ -513,6 +517,16 @@ export function IdentityHomePage({
         {viewModel.relationships.length > 0 ? (
           <RelationshipPortfolio
             items={viewModel.relationships}
+            title={
+              organisation?.professionalRole === "manager"
+                ? "Your people"
+                : "Your coaching relationships"
+            }
+            description={
+              organisation?.professionalRole === "manager"
+                ? "A focused view of the people you are developing."
+                : "A focused view of your active coaching portfolio."
+            }
             onOpen={id => {
               const client = clientById(id);
               if (client) onOpenClient(client);

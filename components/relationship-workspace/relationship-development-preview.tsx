@@ -2,6 +2,8 @@
 
 import { DevelopmentStatusChip } from "@/components/identity/development-status-chip";
 import type { DevelopmentStatus } from "@/components/identity/development-status-chip";
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { isCoachFacingRole } from "@/lib/role-language";
 import type { Strength } from "@/lib/types";
 
 export type DevelopmentAreaPreview = {
@@ -63,6 +65,7 @@ export function RelationshipDevelopmentPreview({
   onViewDevelopment: () => void;
   onRetry?: () => void;
 }) {
+  const organisation = useOrganisation();
   const areas = buildDevelopmentAreasPreview({ strengths, priorities });
   const direction =
     currentDirection?.trim() ||
@@ -70,7 +73,9 @@ export function RelationshipDevelopmentPreview({
   const focus = currentFocus?.trim() || "";
   const evidenceNote =
     completedSessionCount <= 0
-      ? "Based on approved coaching evidence."
+      ? isCoachFacingRole(organisation?.professionalRole)
+        ? "Based on approved coaching evidence."
+        : "Based on approved development evidence."
       : completedSessionCount === 1
         ? "Based on approved evidence from Session 1."
         : `Based on approved evidence from Sessions 1–${completedSessionCount}.`;

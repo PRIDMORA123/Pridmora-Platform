@@ -1,0 +1,233 @@
+{
+  "evidence": [
+    {
+      "key": "sophie-360",
+      "relationshipKey": "sophie-bennett",
+      "evidenceType": "feedback_360",
+      "title": "Fictional 360 feedback summary — Sophie Bennett",
+      "evidenceDate": "2026-05-12",
+      "sourceLabel": "Sample 360 summary",
+      "purpose": "Support development planning after recent peer and stakeholder feedback.",
+      "sourceSummary": "Reviewed fictional 360 summary highlighting clearer expectations with former peers and remaining unevenness in difficult performance conversations.",
+      "capabilityKeys": ["feedback_difficult_conversations", "delegation", "accountability"],
+      "structuredEvidence": {
+        "observations": [
+          {
+            "title": "Clearer expectations with former peers",
+            "description": "Stakeholders describe more consistent expectation-setting in team huddles over the last quarter.",
+            "behaviouralEvidence": "Peers noted that weekly priorities are now stated explicitly rather than assumed.",
+            "developmentImplication": "Continue reinforcing expectation-setting when standards slip.",
+            "sourceConfidence": "medium",
+            "capabilityKey": "accountability"
+          },
+          {
+            "title": "Uneven confidence in performance conversations",
+            "description": "Feedback suggests progress conversations still feel delayed when the issue is interpersonal rather than operational.",
+            "behaviouralEvidence": "Two reviewers noted delayed follow-up after informal concerns were raised.",
+            "developmentImplication": "Useful next focus: rehearse earlier, shorter performance conversations.",
+            "sourceConfidence": "medium",
+            "capabilityKey": "feedback_difficult_conversations"
+          }
+        ],
+        "strengthSignals": ["Clearer expectation-setting with former peers"],
+        "developmentSignals": ["Earlier performance conversations when concerns emerge"],
+        "capabilitySignals": ["Accountability", "Feedback & Difficult Conversations"],
+        "contradictoryEvidence": [],
+        "limitations": [
+          "This is a fictionalised 360 summary for demonstration. It is not a proprietary assessment report."
+        ]
+      }
+    },
+    {
+      "key": "marcus-disc",
+      "relationshipKey": "marcus-reed",
+      "evidenceType": "disc",
+      "title": "Fictional DISC preference summary — Marcus Reed",
+      "evidenceDate": "2026-03-18",
+      "sourceLabel": "Sample DISC-style summary",
+      "purpose": "Provide contextual preference evidence alongside manager reflection.",
+      "sourceSummary": "The DISC-style summary suggests a preference for direct, fast-paced decision making under operational pressure.",
+      "capabilityKeys": ["decision_making", "delegation", "strategic_thinking"],
+      "structuredEvidence": {
+        "observations": [
+          {
+            "title": "Preference for pace and directness",
+            "description": "The DISC report suggests a preference for direct, fast-paced decision making. Recent development conversations provide some supporting evidence, particularly under operational pressure.",
+            "behaviouralEvidence": "Manager notes describe rapid triage during warehouse disruptions.",
+            "developmentImplication": "Explore how pace supports delivery without crowding out supervisor development time.",
+            "sourceConfidence": "medium",
+            "assessmentContext": "Preference evidence only — not a measure of ability or promotion suitability.",
+            "limitations": "Assessment describes preferences or reported patterns, not proven capability.",
+            "capabilityKey": "decision_making"
+          }
+        ],
+        "strengthSignals": ["Decisive operational triage under pressure"],
+        "developmentSignals": ["Protect strategic and developmental capacity from constant firefighting"],
+        "capabilitySignals": ["Decision Making", "Delegation"],
+        "contradictoryEvidence": [
+          "The assessment suggests a strong preference for rapid action, while recent conversations describe reduced capacity for longer-term planning. The available evidence does not establish why these differ."
+        ],
+        "limitations": [
+          "Fictionalised preference summary for demonstration. Not a proprietary DISC report."
+        ]
+      }
+    },
+    {
+      "key": "marcus-reflection",
+      "relationshipKey": "marcus-reed",
+      "evidenceType": "manager_observation",
+      "title": "Manager reflection — protecting strategic capacity",
+      "evidenceDate": "2026-06-02",
+      "sourceLabel": "Manager reflection",
+      "purpose": "Capture observed behaviour after recent operations pressure.",
+      "sourceSummary": "Manager reflection notes improving supervisor ownership in one area, with strategic capacity still crowded by escalation habits.",
+      "capabilityKeys": ["delegation", "strategic_thinking", "developing_others"],
+      "structuredEvidence": {
+        "observations": [
+          {
+            "title": "Supervisor ownership emerging",
+            "description": "One supervisor now resolves routine escalations before involving Marcus.",
+            "behaviouralEvidence": "Two consecutive weeks without unnecessary evening escalations from that supervisor.",
+            "developmentImplication": "Test the same ownership pattern with a second supervisor.",
+            "sourceConfidence": "high",
+            "capabilityKey": "delegation"
+          }
+        ],
+        "strengthSignals": ["Emerging supervisor ownership"],
+        "developmentSignals": ["Reduce personal involvement in routine escalations"],
+        "limitations": ["Single manager reflection — broaden with further observed examples."]
+      }
+    },
+    {
+      "key": "priya-leadership",
+      "relationshipKey": "priya-desai",
+      "evidenceType": "leadership_assessment",
+      "title": "Fictional leadership assessment summary — Priya Desai",
+      "evidenceDate": "2026-04-08",
+      "sourceLabel": "Sample leadership assessment",
+      "purpose": "Support commercial influence development with senior operational colleagues.",
+      "sourceSummary": "Leadership assessment summary highlights analytical clarity with an opportunity to translate finance insight into earlier stakeholder influence.",
+      "capabilityKeys": ["stakeholder_influence", "strategic_thinking", "communication"],
+      "structuredEvidence": {
+        "observations": [
+          {
+            "title": "Analytical clarity recognised",
+            "description": "The available evidence suggests stakeholders value Priya's clarity when financial trade-offs are explained in operational language.",
+            "behaviouralEvidence": "Assessment narrative cites concise explanations of cost drivers in cross-functional forums.",
+            "developmentImplication": "Build on this by entering influence conversations earlier.",
+            "sourceConfidence": "medium",
+            "capabilityKey": "communication"
+          }
+        ],
+        "strengthSignals": ["Clear translation of financial insight"],
+        "developmentSignals": ["Earlier commercial influence with senior operational colleagues"],
+        "limitations": ["Fictional leadership assessment summary for demonstration only."]
+      }
+    },
+    {
+      "key": "priya-stakeholder",
+      "relationshipKey": "priya-desai",
+      "evidenceType": "stakeholder_feedback",
+      "title": "Stakeholder feedback note — commercial influence",
+      "evidenceDate": "2026-06-20",
+      "sourceLabel": "Stakeholder feedback",
+      "purpose": "Corroborate leadership assessment with recent stakeholder observation.",
+      "sourceSummary": "Stakeholder feedback describes improved clarity, with influence still arriving late in some planning cycles.",
+      "capabilityKeys": ["stakeholder_influence", "communication"],
+      "structuredEvidence": {
+        "observations": [
+          {
+            "title": "Influence timing still late in some cycles",
+            "description": "Across recent evidence sources, clarity is strengthening while timing of influence remains uneven.",
+            "behaviouralEvidence": "One stakeholder noted useful challenge after options were already narrowed.",
+            "developmentImplication": "Discuss how to enter planning conversations one stage earlier.",
+            "sourceConfidence": "medium",
+            "capabilityKey": "stakeholder_influence"
+          }
+        ],
+        "strengthSignals": ["Clearer commercial explanations"],
+        "developmentSignals": ["Earlier involvement in planning cycles"],
+        "contradictoryEvidence": []
+      }
+    },
+    {
+      "key": "jonathan-360",
+      "relationshipKey": "jonathan-clarke",
+      "evidenceType": "feedback_360",
+      "title": "Fictional 360 feedback summary — Jonathan Clarke",
+      "evidenceDate": "2026-05-28",
+      "sourceLabel": "Sample 360 summary",
+      "purpose": "Support regional leadership development.",
+      "sourceSummary": "360 summary points to strengthening regional presence with uneven delegation to local managers.",
+      "capabilityKeys": ["delegation", "stakeholder_influence", "strategic_thinking"],
+      "structuredEvidence": {
+        "observations": [
+          {
+            "title": "Regional presence strengthening",
+            "description": "There is emerging evidence of clearer regional framing in cross-site meetings.",
+            "behaviouralEvidence": "Reviewers noted more consistent use of regional data in monthly reviews.",
+            "developmentImplication": "Continue pairing data with developmental coaching of local managers.",
+            "sourceConfidence": "medium",
+            "capabilityKey": "strategic_thinking"
+          }
+        ],
+        "strengthSignals": ["Clearer regional framing"],
+        "developmentSignals": ["Delegate more local problem-solving to managers"],
+        "limitations": ["Fictionalised summary for demonstration."]
+      }
+    },
+    {
+      "key": "jonathan-pdp",
+      "relationshipKey": "jonathan-clarke",
+      "evidenceType": "pdp",
+      "title": "Personal development plan — regional leadership",
+      "evidenceDate": "2026-06-10",
+      "sourceLabel": "PDP",
+      "purpose": "Capture agreed development focus for the next period.",
+      "sourceSummary": "PDP prioritises developing managers and using regional data to influence across boundaries.",
+      "capabilityKeys": ["developing_others", "delegation", "stakeholder_influence"],
+      "structuredEvidence": {
+        "observations": [
+          {
+            "title": "Agreed focus on developing managers",
+            "description": "The PDP records an explicit intention to coach two local managers through quarterly ownership goals.",
+            "behaviouralEvidence": "Plan lists monthly developmental check-ins with named managers.",
+            "developmentImplication": "Track whether check-ins lead to observable ownership changes.",
+            "sourceConfidence": "medium",
+            "capabilityKey": "developing_others"
+          }
+        ],
+        "developmentSignals": ["Coach local managers through ownership goals"],
+        "limitations": ["A plan is not yet demonstrated behaviour."]
+      }
+    },
+    {
+      "key": "aisha-leadership",
+      "relationshipKey": "aisha-rahman",
+      "evidenceType": "leadership_assessment",
+      "title": "Fictional leadership capability assessment — Aisha Rahman",
+      "evidenceDate": "2026-04-22",
+      "sourceLabel": "Sample leadership capability assessment",
+      "purpose": "Support evidence-led organisational capability decisions.",
+      "sourceSummary": "Capability assessment suggests growing strategic framing of learning decisions, with an opportunity to challenge programme activity that lacks behavioural evidence.",
+      "capabilityKeys": ["strategic_thinking", "stakeholder_influence", "decision_making"],
+      "structuredEvidence": {
+        "observations": [
+          {
+            "title": "Evidence-led capability framing",
+            "description": "The available evidence suggests Aisha is beginning to frame learning proposals around observable management behaviour rather than activity volume alone.",
+            "behaviouralEvidence": "Assessment notes reference questions about behaviour change measures in programme design meetings.",
+            "developmentImplication": "Continue testing which programmes show behavioural evidence before scaling.",
+            "sourceConfidence": "medium",
+            "capabilityKey": "strategic_thinking"
+          }
+        ],
+        "strengthSignals": ["Evidence-led framing of capability decisions"],
+        "developmentSignals": ["Challenge low-evidence programme activity earlier"],
+        "limitations": [
+          "Fictional leadership capability assessment summary. Not a proprietary instrument report."
+        ]
+      }
+    }
+  ]
+}

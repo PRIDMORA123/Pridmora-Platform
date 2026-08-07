@@ -8,6 +8,8 @@ import { CoachSpaceView } from "@/components/coach-space-view";
 import { PrepareSessionView } from "@/components/prepare-session-view";
 import { SessionWorkspace } from "@/components/session-workspace";
 import { PersonIntelligenceView } from "@/components/person-intelligence-view";
+import { DevelopmentEvidenceView } from "@/components/development-evidence/development-evidence-view";
+import { TeamIntelligenceView } from "@/components/development-evidence/team-intelligence-view";
 import { DevelopmentUpdateReviewView } from "@/components/development-update-review";
 import { PersonActionsView } from "@/components/person-actions-view";
 import { GlobalIntelligenceView } from "@/components/global-intelligence-view";
@@ -48,6 +50,7 @@ import {
 } from "@/lib/sessions";
 import { getFutureOrOpenSession } from "@/lib/session-workflow";
 import { getPrepareRoute, PREPARE_VIEW } from "@/lib/prepare-route";
+import { resolveAccountRoleTitle } from "@/lib/role-language";
 import { buildSessionModuleRoute } from "@/lib/session-module-route";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { isClientArchived } from "@/lib/types";
@@ -101,7 +104,11 @@ export function HomeApp() {
 
   const coachId = profile?.id ?? "";
   const coachDisplayName = profile?.fullName || "Coach";
-  const coachTitle = profile?.professionalTitle || "Professional Coach";
+  const organisationRole = organisationState?.professionalRole ?? null;
+  const coachTitle = resolveAccountRoleTitle({
+    professionalRole: organisationRole,
+    profileTitle: profile?.professionalTitle,
+  });
   const coachInitials = profile?.initials || initialsFromFullName(coachDisplayName);
   const coachFirstName = coachDisplayName.trim().split(/\s+/)[0] || "Coach";
 
@@ -346,6 +353,10 @@ export function HomeApp() {
     }
     if (tab === "intelligence") {
       navigate("intelligence");
+      return;
+    }
+    if (tab === "evidence") {
+      navigate("development-evidence");
       return;
     }
     if (tab === "history") {
@@ -1167,6 +1178,14 @@ export function HomeApp() {
                 organisationState?.organisation.organisationType === "personal"
               }
               onOpenPeople={() => navigate("people")}
+              onOpenTeamIntelligence={() => navigate("team-intelligence")}
+              onOpenPersonalEvidence={() => {
+                if (selected) {
+                  navigate("development-evidence");
+                  return;
+                }
+                navigate("people");
+              }}
               onSwitchToPersonal={() => {
                 const personal = organisationState?.organisations.find(
                   entry => entry.organisation.organisationType === "personal"
@@ -1187,6 +1206,11 @@ export function HomeApp() {
                   })();
                 }
               }}
+            />
+          )}
+          {view === "team-intelligence" && (
+            <TeamIntelligenceView
+              onBack={() => navigate("my-development")}
             />
           )}
           {view === "settings" && profile && (
@@ -1490,6 +1514,7 @@ export function HomeApp() {
               client={selected}
               onBack={() => navigate("coach-space")}
               onTabChange={handleWorkspaceTab}
+              onOpenEvidence={() => navigate("development-evidence")}
               onClientUpdated={updated => {
                 setClients(current =>
                   current.map(client =>
@@ -1508,6 +1533,14 @@ export function HomeApp() {
                 setFocusUpdateId(updateId);
                 navigate("development-update");
               }}
+            />
+          )}
+          {view === "development-evidence" && selected && (
+            <DevelopmentEvidenceView
+              key={`evidence-${selected.id}`}
+              client={selected}
+              onBack={() => navigate("coach-space")}
+              onOpenIntelligence={() => navigate("intelligence")}
             />
           )}
           {view === "development-update" && focusUpdateId && (
@@ -1592,6 +1625,7 @@ export function HomeApp() {
             view === PREPARE_VIEW ||
             view === "session" ||
             view === "intelligence" ||
+            view === "development-evidence" ||
             view === "person-actions" ||
             view === "career-journey" ||
             view === "journey" ||

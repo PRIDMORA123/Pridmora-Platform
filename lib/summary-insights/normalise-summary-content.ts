@@ -1,3 +1,5 @@
+import { unpackQualificationAndComprehensive } from "@/lib/summary-insights/comprehensive-pack";
+import { dedupeAcrossSummarySections } from "@/lib/summary-insights/section-dedupe";
 import {
   EMPTY_SUMMARY_INSIGHTS_CONTENT,
   SUMMARY_INSIGHTS_LIMITS,
@@ -419,7 +421,11 @@ function fromSectionMap(
     ? paragraphFallback(sections.sessionSummary)
     : null;
 
-  return {
+  const packed = unpackQualificationAndComprehensive(
+    evidenceQualification || sections.coachReflection || ""
+  );
+
+  return dedupeAcrossSummarySections({
     sessionSummary: sessionSummary || null,
     keyInsights: clampItems(
       parseInsightItems(sections.keyInsights ?? ""),
@@ -444,15 +450,17 @@ function fromSectionMap(
       dedupeStrings(splitListItems(sections.possibleNextFocus ?? "")),
       SUMMARY_INSIGHTS_LIMITS.possibleNextFocus
     ),
-    evidenceQualification: evidenceQualification,
-  };
+    evidenceQualification: packed.qualification,
+    depthMode: packed.comprehensive ? "comprehensive" : "standard",
+    comprehensive: packed.comprehensive,
+  });
 }
 
 function mergeContent(
   base: SummaryInsightsContent,
   overlay: Partial<SummaryInsightsContent>
 ): SummaryInsightsContent {
-  return {
+  return dedupeAcrossSummarySections({
     sessionSummary: overlay.sessionSummary ?? base.sessionSummary,
     keyInsights:
       overlay.keyInsights && overlay.keyInsights.length > 0
@@ -477,7 +485,9 @@ function mergeContent(
         : base.possibleNextFocus,
     evidenceQualification:
       overlay.evidenceQualification ?? base.evidenceQualification,
-  };
+    depthMode: overlay.depthMode ?? base.depthMode ?? "standard",
+    comprehensive: overlay.comprehensive ?? base.comprehensive ?? null,
+  });
 }
 
 /**
@@ -489,7 +499,7 @@ export function normaliseSummaryContent(
   structured?: SummaryInsightsContent | null
 ): SummaryInsightsContent {
   if (structured) {
-    return {
+    const base = {
       sessionSummary: structured.sessionSummary?.trim() || null,
       keyInsights: clampItems(
         dedupeInsightItems(structured.keyInsights),
@@ -513,7 +523,11 @@ export function normaliseSummaryContent(
         SUMMARY_INSIGHTS_LIMITS.possibleNextFocus
       ),
       evidenceQualification: structured.evidenceQualification?.trim() || null,
-    };
+      depthMode: structured.depthMode ?? "standard",
+      comprehensive: structured.comprehensive ?? null,
+    } satisfies SummaryInsightsContent;
+
+    return dedupeAcrossSummarySections(base);
   }
 
   const summaryText = (source.summary ?? "").trim();

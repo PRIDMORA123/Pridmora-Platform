@@ -1,0 +1,12 @@
+{
+  "title": "Sample organisation ready",
+  "organisation": "Northbridge Healthcare Trust",
+  "counts": {
+    "relationships": 12,
+    "sessions": 72,
+    "actions": 72,
+    "developmentUpdates": 24,
+    "intelligenceItems": 72
+  },
+  "status": "ready"
+}

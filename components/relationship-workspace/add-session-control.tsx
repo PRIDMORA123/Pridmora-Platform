@@ -13,6 +13,8 @@ import {
   safeCreateConversationErrorMessage,
 } from "@/lib/organisations/session-organisation";
 import type { Session } from "@/lib/types";
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { resolveProductLanguage } from "@/lib/role-language";
 
 export type { AddSessionFormValues };
 
@@ -58,6 +60,8 @@ export function AddSessionControl({
   const [saving, setSaving] = useState(false);
   const submitLockRef = useRef(false);
   const errorId = useId();
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
 
   const warning = getIncompleteSessionWarning(sessions);
   const triggerLabel = label ?? "Plan next conversation";
@@ -231,7 +235,7 @@ export function AddSessionControl({
           </p>
         ) : (
           <p className="muted">
-            Create the next conversation when the coaching relationship
+            Create the next conversation when the {language.relationshipSingular}{" "}
             continues. Session numbering is assigned automatically.
           </p>
         )}

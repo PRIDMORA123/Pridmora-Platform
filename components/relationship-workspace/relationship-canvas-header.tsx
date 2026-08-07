@@ -9,6 +9,7 @@ export function RelationshipCanvasHeader({
   startedLabel,
   status,
   actions,
+  relationshipLabel = "Coaching relationship",
 }: {
   clientName: string;
   role?: string | null;
@@ -16,6 +17,7 @@ export function RelationshipCanvasHeader({
   startedLabel?: string | null;
   status?: string | null;
   actions?: React.ReactNode;
+  relationshipLabel?: string;
 }) {
   const subtitle = getRelationshipSubtitle({
     role: role ?? undefined,
@@ -31,7 +33,7 @@ export function RelationshipCanvasHeader({
         ) : null}
         <p className="relationship-canvas-header__meta">
           {[
-            "Coaching relationship",
+            relationshipLabel,
             startedLabel ? `Started ${startedLabel}` : null,
           ]
             .filter(Boolean)

@@ -1,4 +1,5 @@
 import { extractJsonObject } from "@/lib/intelligence/schema";
+import { normaliseComprehensiveExtras } from "@/lib/summary-insights/comprehensive-pack";
 import { normaliseSummaryContent } from "@/lib/summary-insights/normalise-summary-content";
 import { serialiseSummaryContent } from "@/lib/summary-insights/serialise-summary-content";
 import {
@@ -54,6 +55,10 @@ export function parseSummaryInsightsJson(
 ): SummaryInsightsContent | null {
   if (!isSummaryInsightsJson(value)) return null;
 
+  const comprehensive = normaliseComprehensiveExtras(
+    (value as { comprehensive?: unknown }).comprehensive
+  );
+
   const content: SummaryInsightsContent = {
     sessionSummary: asString(value.sessionSummary) || null,
     keyInsights: asInsightItems(
@@ -75,6 +80,8 @@ export function parseSummaryInsightsJson(
       SUMMARY_INSIGHTS_LIMITS.possibleNextFocus
     ),
     evidenceQualification: asString(value.evidenceQualification) || null,
+    depthMode: comprehensive ? "comprehensive" : "standard",
+    comprehensive,
   };
 
   return normaliseSummaryContent({}, content);

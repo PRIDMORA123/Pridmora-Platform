@@ -1,0 +1,64 @@
+{
+  "assignments": [
+    {
+      "relationshipKey": "sophie-bennett",
+      "assignmentRole": "primary",
+      "assignee": "installing_user"
+    },
+    {
+      "relationshipKey": "marcus-reed",
+      "assignmentRole": "primary",
+      "assignee": "installing_user"
+    },
+    {
+      "relationshipKey": "priya-desai",
+      "assignmentRole": "primary",
+      "assignee": "installing_user"
+    },
+    {
+      "relationshipKey": "daniel-foster",
+      "assignmentRole": "primary",
+      "assignee": "installing_user"
+    },
+    {
+      "relationshipKey": "emma-watson",
+      "assignmentRole": "primary",
+      "assignee": "installing_user"
+    },
+    {
+      "relationshipKey": "jonathan-clarke",
+      "assignmentRole": "primary",
+      "assignee": "installing_user"
+    },
+    {
+      "relationshipKey": "maya-patel",
+      "assignmentRole": "primary",
+      "assignee": "installing_user"
+    },
+    {
+      "relationshipKey": "tom-harrison",
+      "assignmentRole": "primary",
+      "assignee": "installing_user"
+    },
+    {
+      "relationshipKey": "aisha-rahman",
+      "assignmentRole": "primary",
+      "assignee": "installing_user"
+    },
+    {
+      "relationshipKey": "ben-carter",
+      "assignmentRole": "primary",
+      "assignee": "installing_user"
+    },
+    {
+      "relationshipKey": "senior-leader-a",
+      "assignmentRole": "primary",
+      "assignee": "installing_user"
+    },
+    {
+      "relationshipKey": "manager-b",
+      "assignmentRole": "primary",
+      "assignee": "installing_user"
+    }
+  ]
+}

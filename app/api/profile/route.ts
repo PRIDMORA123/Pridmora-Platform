@@ -65,14 +65,14 @@ export async function PATCH(request: Request) {
 
     if (hasMode && !isCoachingIntelligenceMode(body.coachingIntelligenceMode)) {
       return NextResponse.json(
-        { error: "Choose Manual, Assisted or Comprehensive support." },
+        { error: "Choose Manual, Standard or Comprehensive support." },
         { status: 400 }
       );
     }
 
     if (hasStyle && !isPreparationStyle(body.preparationStyle)) {
       return NextResponse.json(
-        { error: "Choose Manual, Assisted or Comprehensive preparation support." },
+        { error: "Choose Manual, Standard or Comprehensive preparation support." },
         { status: 400 }
       );
     }

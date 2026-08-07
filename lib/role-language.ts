@@ -28,6 +28,16 @@ export type ProductLanguage = {
   emptyRelationshipsDescription: string;
   myDevelopmentLabel: string;
   myPeopleLabel: string;
+  accountRoleTitle: string;
+  activeWorkDescription: string;
+  continueWorkDescription: string;
+  workUpToDateTitle: string;
+  recentDevelopmentDescription: string;
+  momentsTitle: string;
+  momentsDescription: string;
+  newMomentLabel: string;
+  momentsUnavailable: string;
+  momentsArchived: string;
 };
 
 const MANAGER_LANGUAGE: ProductLanguage = {
@@ -54,6 +64,19 @@ const MANAGER_LANGUAGE: ProductLanguage = {
     "Create a development relationship and agree the purpose of the work.",
   myDevelopmentLabel: "My development",
   myPeopleLabel: "My people",
+  accountRoleTitle: "Manager",
+  activeWorkDescription: "Continue the management work already under way.",
+  continueWorkDescription: "Continue the management work already under way.",
+  workUpToDateTitle: "Your management work is up to date",
+  recentDevelopmentDescription:
+    "Recent approved development across the people you support.",
+  momentsTitle: "Development moments",
+  momentsDescription:
+    "Capture a significant management interaction outside the formal conversation sequence.",
+  newMomentLabel: "New development moment",
+  momentsUnavailable: "Development moments are temporarily unavailable.",
+  momentsArchived:
+    "This relationship is archived. New development moments cannot be created. Historical moments remain available below.",
 };
 
 const COACH_LANGUAGE: ProductLanguage = {
@@ -80,6 +103,19 @@ const COACH_LANGUAGE: ProductLanguage = {
     "Add the person you will be coaching and establish the purpose of the work.",
   myDevelopmentLabel: "My development",
   myPeopleLabel: "My clients",
+  accountRoleTitle: "Professional Coach",
+  activeWorkDescription: "Continue the coaching work already under way.",
+  continueWorkDescription: "Continue the coaching work already under way.",
+  workUpToDateTitle: "Your coaching work is up to date",
+  recentDevelopmentDescription:
+    "Recent approved development across your coaching relationships.",
+  momentsTitle: "Coaching Moments",
+  momentsDescription:
+    "Capture a significant coaching interaction outside the formal conversation sequence.",
+  newMomentLabel: "New Coaching Moment",
+  momentsUnavailable: "Coaching Moments are temporarily unavailable.",
+  momentsArchived:
+    "This relationship is archived. New Coaching Moments cannot be created. Historical moments remain available below.",
 };
 
 const DEFAULT_LANGUAGE: ProductLanguage = {
@@ -94,6 +130,19 @@ const DEFAULT_LANGUAGE: ProductLanguage = {
   overviewDescription: "A concise view of your current development work.",
   notesLabel: "Conversation notes",
   myPeopleLabel: "People I support",
+  accountRoleTitle: "Practitioner",
+  activeWorkDescription: "Continue the development work already under way.",
+  continueWorkDescription: "Continue the development work already under way.",
+  workUpToDateTitle: "Your development work is up to date",
+  recentDevelopmentDescription:
+    "Recent approved development across the people you support.",
+  momentsTitle: "Development moments",
+  momentsDescription:
+    "Capture a significant development interaction outside the formal conversation sequence.",
+  newMomentLabel: "New development moment",
+  momentsUnavailable: "Development moments are temporarily unavailable.",
+  momentsArchived:
+    "This relationship is archived. New development moments cannot be created. Historical moments remain available below.",
 };
 
 export function resolveProductLanguage(
@@ -120,4 +169,24 @@ export function isCoachFacingRole(
   professionalRole?: ProfessionalRole | null
 ): boolean {
   return professionalRole === "coach";
+}
+
+/**
+ * Sidebar/account role label.
+ * Managers always show Manager. Coaches keep an explicit profile title when set.
+ */
+export function resolveAccountRoleTitle(input: {
+  professionalRole?: ProfessionalRole | null;
+  profileTitle?: string | null;
+}): string {
+  const language = resolveProductLanguage(input.professionalRole);
+  if (input.professionalRole === "manager") {
+    return language.accountRoleTitle;
+  }
+  if (input.professionalRole === "coach") {
+    const profileTitle = input.profileTitle?.trim();
+    return profileTitle || language.accountRoleTitle;
+  }
+  const profileTitle = input.profileTitle?.trim();
+  return profileTitle || language.accountRoleTitle;
 }

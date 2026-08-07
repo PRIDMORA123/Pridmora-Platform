@@ -12,6 +12,65 @@ import {
 } from "@/lib/relationship-meta";
 import type { Client, Session } from "@/lib/types";
 import type { CoachingMoment } from "@/lib/coaching-moments/coaching-moment";
+import { OrganisationProvider } from "@/lib/organisations/organisation-context";
+import type { OrganisationWorkspaceState } from "@/lib/organisations/organisation-context";
+import type { ProfessionalRole } from "@/lib/organisations/types";
+
+function makeOrgState(
+  professionalRole: ProfessionalRole | null
+): OrganisationWorkspaceState {
+  return {
+    organisation: {
+      id: "org-1",
+      name: "Test Org",
+      slug: "test-org",
+      organisationType: "business",
+      status: "active",
+      createdBy: "user-1",
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+      archivedAt: null,
+      defaultPreparationStyle: "guided",
+      aiEnabled: true,
+      dataRetentionPolicyLabel: "standard",
+      brandingStatus: "none",
+      logoUrl: null,
+      licence: {
+        planName: "Sample",
+        seatsPurchased: 5,
+        status: "active",
+        startsAt: null,
+        endsAt: null,
+      },
+    },
+    membership: {
+      id: "mem-1",
+      organisationId: "org-1",
+      userId: "user-1",
+      role: "owner",
+      professionalRole,
+      status: "active",
+      invitedBy: null,
+      invitedAt: null,
+      joinedAt: "2026-01-01T00:00:00.000Z",
+      deactivatedAt: null,
+      lastActiveAt: "2026-01-01T00:00:00.000Z",
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    },
+    role: "owner",
+    professionalRole,
+    organisations: [],
+  };
+}
+
+function withRole(professionalRole: ProfessionalRole, node: ReactNode) {
+  return (
+    <OrganisationProvider initial={makeOrgState(professionalRole)}>
+      {node}
+    </OrganisationProvider>
+  );
+}
 
 function makeSession(
   overrides: Partial<Session> & { sessionNumber?: number } = {}
@@ -401,20 +460,23 @@ describe("RelationshipCanvas", () => {
   it("shows a single New Coaching Moment action", async () => {
     const session = makeSession({ status: "planned" });
     const { container, root } = await renderNode(
-      <RelationshipCanvas
-        relationship={makeClient([session])}
-        currentSession={session}
-        relationshipDetails={details}
-        onPrimaryAction={() => undefined}
-        onModuleAction={() => undefined}
-        onOpenSession={() => undefined}
-        onViewDevelopment={() => undefined}
-        onViewReports={() => undefined}
-        onCreateSession={async () => undefined}
-        onSaveAgreement={async () => undefined}
-        onSaveInitialConversation={async () => undefined}
-        onNewCoachingMoment={() => undefined}
-      />
+      withRole(
+        "coach",
+        <RelationshipCanvas
+          relationship={makeClient([session])}
+          currentSession={session}
+          relationshipDetails={details}
+          onPrimaryAction={() => undefined}
+          onModuleAction={() => undefined}
+          onOpenSession={() => undefined}
+          onViewDevelopment={() => undefined}
+          onViewReports={() => undefined}
+          onCreateSession={async () => undefined}
+          onSaveAgreement={async () => undefined}
+          onSaveInitialConversation={async () => undefined}
+          onNewCoachingMoment={() => undefined}
+        />
+      )
     );
 
     const momentButtons = Array.from(
@@ -432,23 +494,26 @@ describe("RelationshipCanvas", () => {
       status: "Archived" as const,
     };
     const { container, root } = await renderNode(
-      <RelationshipCanvas
-        relationship={archived}
-        archived
-        relationshipDetails={details}
-        recentCoachingMoments={[
-          makeMoment({ situation: "Delegation decision" }),
-        ]}
-        onPrimaryAction={() => undefined}
-        onModuleAction={() => undefined}
-        onOpenSession={() => undefined}
-        onViewDevelopment={() => undefined}
-        onViewReports={() => undefined}
-        onCreateSession={async () => undefined}
-        onSaveAgreement={async () => undefined}
-        onSaveInitialConversation={async () => undefined}
-        onNewCoachingMoment={() => undefined}
-      />
+      withRole(
+        "coach",
+        <RelationshipCanvas
+          relationship={archived}
+          archived
+          relationshipDetails={details}
+          recentCoachingMoments={[
+            makeMoment({ situation: "Delegation decision" }),
+          ]}
+          onPrimaryAction={() => undefined}
+          onModuleAction={() => undefined}
+          onOpenSession={() => undefined}
+          onViewDevelopment={() => undefined}
+          onViewReports={() => undefined}
+          onCreateSession={async () => undefined}
+          onSaveAgreement={async () => undefined}
+          onSaveInitialConversation={async () => undefined}
+          onNewCoachingMoment={() => undefined}
+        />
+      )
     );
 
     expect(container.textContent).toContain("Archived");
@@ -460,6 +525,36 @@ describe("RelationshipCanvas", () => {
       container.querySelectorAll("button")
     ).filter(button => button.textContent === "New Coaching Moment");
     expect(momentButtons).toHaveLength(0);
+    root.unmount();
+    container.remove();
+  });
+
+  it("uses development moments copy for manager workspaces", async () => {
+    const { container, root } = await renderNode(
+      withRole(
+        "manager",
+        <RelationshipCanvas
+          relationship={makeClient([makeSession({ status: "planned" })])}
+          relationshipDetails={details}
+          coachingMomentsLoadError
+          onPrimaryAction={() => undefined}
+          onModuleAction={() => undefined}
+          onOpenSession={() => undefined}
+          onViewDevelopment={() => undefined}
+          onViewReports={() => undefined}
+          onCreateSession={async () => undefined}
+          onSaveAgreement={async () => undefined}
+          onSaveInitialConversation={async () => undefined}
+          onNewCoachingMoment={() => undefined}
+        />
+      )
+    );
+
+    expect(container.textContent).toContain("Development moments");
+    expect(container.textContent).toContain(
+      "Development moments are temporarily unavailable."
+    );
+    expect(container.textContent).not.toContain("Coaching Moments");
     root.unmount();
     container.remove();
   });
@@ -662,22 +757,25 @@ describe("RelationshipCanvas", () => {
   it("contains section-level failures independently", async () => {
     const session = makeSession({ status: "planned" });
     const { container, root } = await renderNode(
-      <RelationshipCanvas
-        relationship={makeClient([session])}
-        currentSession={session}
-        relationshipDetails={details}
-        developmentLoadError
-        reportsLoadError
-        coachingMomentsLoadError
-        onPrimaryAction={() => undefined}
-        onModuleAction={() => undefined}
-        onOpenSession={() => undefined}
-        onViewDevelopment={() => undefined}
-        onViewReports={() => undefined}
-        onCreateSession={async () => undefined}
-        onSaveAgreement={async () => undefined}
-        onSaveInitialConversation={async () => undefined}
-      />
+      withRole(
+        "coach",
+        <RelationshipCanvas
+          relationship={makeClient([session])}
+          currentSession={session}
+          relationshipDetails={details}
+          developmentLoadError
+          reportsLoadError
+          coachingMomentsLoadError
+          onPrimaryAction={() => undefined}
+          onModuleAction={() => undefined}
+          onOpenSession={() => undefined}
+          onViewDevelopment={() => undefined}
+          onViewReports={() => undefined}
+          onCreateSession={async () => undefined}
+          onSaveAgreement={async () => undefined}
+          onSaveInitialConversation={async () => undefined}
+        />
+      )
     );
 
     expect(container.textContent).toContain("Development could not be loaded");

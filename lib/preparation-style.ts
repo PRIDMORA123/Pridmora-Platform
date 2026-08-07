@@ -17,7 +17,7 @@ export const DEFAULT_PREPARATION_STYLE: PreparationStyle = "guided";
 /** User-facing labels. Stored values remain minimal | guided | enhanced. */
 export const PREPARATION_STYLE_LABELS: Record<PreparationStyle, string> = {
   minimal: "Manual",
-  guided: "Assisted",
+  guided: "Standard",
   enhanced: "Comprehensive",
 };
 
@@ -26,10 +26,9 @@ export const PREPARATION_STYLE_DESCRIPTIONS: Record<PreparationStyle, string> =
   {
     minimal:
       "No AI preparation. Use your own notes and professional judgement.",
-    guided:
-      "A concise briefing based on the latest approved coaching evidence.",
+    guided: "Concise insight for everyday management use.",
     enhanced:
-      "A deeper briefing based on the wider approved coaching journey, including relevant themes and patterns.",
+      "Deeper analysis across development history, evidence and behavioural patterns.",
   };
 
 /** Compact level labels shown beside the selected approach name. */
@@ -38,8 +37,8 @@ export const PREPARATION_STYLE_SHORT_DESCRIPTIONS: Record<
   string
 > = {
   minimal: "No AI",
-  guided: "Light support",
-  enhanced: "Full context",
+  guided: "Everyday insight",
+  enhanced: "Longitudinal depth",
 };
 
 export type PreparationStyleSelectorCopy = {
@@ -66,8 +65,8 @@ export const PREPARATION_STYLE_SELECTOR_OPTIONS: PreparationStyleSelectorCopy[] 
       label: PREPARATION_STYLE_LABELS.guided,
       shortDescription: PREPARATION_STYLE_SHORT_DESCRIPTIONS.guided,
       summary:
-        "Uses the latest approved evidence to suggest a focus and coaching questions.",
-      bestFor: "A concise preparation before most conversations.",
+        "Uses the latest approved evidence to suggest a focus and useful questions.",
+      bestFor: "Everyday preparation before most development conversations.",
       recommended: true,
     },
     {
@@ -75,8 +74,8 @@ export const PREPARATION_STYLE_SELECTOR_OPTIONS: PreparationStyleSelectorCopy[] 
       label: PREPARATION_STYLE_LABELS.enhanced,
       shortDescription: PREPARATION_STYLE_SHORT_DESCRIPTIONS.enhanced,
       summary:
-        "Uses the wider approved coaching journey to identify relevant themes, patterns, commitments and deeper questions.",
-      bestFor: "Complex or continuing coaching relationships.",
+        "Uses the wider approved development journey to identify themes, patterns, evidence confidence and deeper questions.",
+      bestFor: "Complex or continuing development relationships.",
     },
   ];
 

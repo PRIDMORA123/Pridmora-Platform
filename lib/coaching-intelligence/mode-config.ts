@@ -27,10 +27,9 @@ export const COACHING_INTELLIGENCE_MODES: Record<
   },
 
   assisted: {
-    label: "Assisted",
-    shortDescription:
-      "Light support using the latest reviewed coaching information.",
-    fullDescription: `${BRAND.intelligenceName} reviews the previous conversation, approved summary and open commitments to suggest a concise focus and useful questions.`,
+    label: "Standard",
+    shortDescription: "Concise insight for everyday management use.",
+    fullDescription: `${BRAND.intelligenceName} reviews the previous conversation, approved summary and open commitments to suggest a concise focus and useful questions for everyday management use.`,
     sources: [
       "previous_conversations",
       "approved_summaries",
@@ -38,8 +37,8 @@ export const COACHING_INTELLIGENCE_MODES: Record<
     ],
     outputs: [
       "Previous-conversation reminder",
-      "Possible coaching focus",
-      "Suggested coaching questions",
+      "Possible development focus",
+      "Suggested questions",
     ],
     aiEnabled: true,
   },
@@ -47,8 +46,8 @@ export const COACHING_INTELLIGENCE_MODES: Record<
   comprehensive: {
     label: "Comprehensive",
     shortDescription:
-      "Deeper preparation using the wider reviewed coaching journey.",
-    fullDescription: `${BRAND.intelligenceName} reviews the wider coaching record to identify relevant themes, evidence, commitments and questions for the next conversation.`,
+      "Deeper analysis across development history, evidence and behavioural patterns.",
+    fullDescription: `${BRAND.intelligenceName} reviews the wider development record to identify themes, evidence, behavioural patterns, confidence and questions for the next conversation.`,
     sources: [
       "previous_conversations",
       "approved_summaries",
@@ -60,11 +59,12 @@ export const COACHING_INTELLIGENCE_MODES: Record<
     ],
     outputs: [
       "Comprehensive preparation brief",
-      "Suggested coaching focus",
-      "Contextual coaching questions",
-      "Relevant strengths and patterns",
+      "Development trajectory context",
+      "Behavioural and capability patterns",
+      "Evidence confidence and coverage",
+      "Suggested development focus",
+      "Contextual questions",
       "Evidence gaps requiring exploration",
-      "Useful coaching frameworks",
     ],
     aiEnabled: true,
   },

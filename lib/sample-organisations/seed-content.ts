@@ -1,7 +1,11 @@
+import { readFileSync, existsSync } from "node:fs";
+import { join } from "node:path";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createRelationshipAtomicInDb } from "@/lib/supabase/repository";
 import { updateInstallationStage } from "@/lib/sample-organisations/status";
 import type { ValidatedSamplePack } from "@/lib/sample-organisations/types";
+import type { DevelopmentEvidenceType } from "@/lib/development-evidence/constants";
+import type { StructuredEvidence } from "@/lib/development-evidence/types";
 
 async function mapRecord(input: {
   supabase: SupabaseClient;
@@ -375,6 +379,15 @@ export async function seedExistingSampleOrganisation(input: {
     });
   }
 
+  await seedAverlyDevelopmentEvidence({
+    supabase: input.supabase,
+    userId: input.userId,
+    organisationId: input.organisationId,
+    installationId: input.installationId,
+    packKey: input.pack.manifest.packKey,
+    relationshipIdByKey,
+  });
+
   return {
     relationshipIdByKey,
     sessionIdByKey,
@@ -386,5 +399,118 @@ export async function seedExistingSampleOrganisation(input: {
       intelligenceItems: intelligenceCount,
     },
   };
+}
+
+type SampleDevelopmentEvidenceSpec = {
+  key: string;
+  relationshipKey: string;
+  evidenceType: DevelopmentEvidenceType;
+  title: string;
+  evidenceDate: string;
+  sourceLabel: string;
+  purpose: string;
+  sourceSummary: string;
+  capabilityKeys: string[];
+  structuredEvidence: StructuredEvidence;
+};
+
+async function seedAverlyDevelopmentEvidence(input: {
+  supabase: SupabaseClient;
+  userId: string;
+  organisationId: string;
+  installationId: string;
+  packKey: string;
+  relationshipIdByKey: Map<string, string>;
+}): Promise<void> {
+  if (input.packKey !== "averly-services-group") return;
+
+  const filePath = join(
+    process.cwd(),
+    "sample-data/averly-services-group/development-evidence.json"
+  );
+  if (!existsSync(filePath)) return;
+
+  let specs: SampleDevelopmentEvidenceSpec[] = [];
+  try {
+    const parsed = JSON.parse(readFileSync(filePath, "utf8")) as {
+      evidence?: SampleDevelopmentEvidenceSpec[];
+    };
+    specs = parsed.evidence ?? [];
+  } catch {
+    return;
+  }
+
+  for (const item of specs) {
+    const clientId = input.relationshipIdByKey.get(item.relationshipKey);
+    if (!clientId) continue;
+
+    const evidenceId = crypto.randomUUID();
+    const { error } = await input.supabase.from("development_evidence").insert({
+      id: evidenceId,
+      organisation_id: input.organisationId,
+      client_id: clientId,
+      evidence_type: item.evidenceType,
+      source_type: "sample_seed",
+      title: item.title,
+      evidence_date: item.evidenceDate,
+      captured_by: input.userId,
+      processing_status: "ready",
+      review_status: "approved",
+      include_in_intelligence: true,
+      structured_evidence: item.structuredEvidence,
+      source_summary: item.sourceSummary,
+      freshness_class: "current",
+      restricted: false,
+      purpose: item.purpose,
+      source_label: item.sourceLabel,
+      capability_keys: item.capabilityKeys,
+    });
+
+    // Table may not exist until the additive migration is applied.
+    if (error) {
+      console.warn(
+        "Sample development evidence skipped:",
+        error.message
+      );
+      return;
+    }
+
+    const observations = item.structuredEvidence.observations ?? [];
+    if (observations.length > 0) {
+      await input.supabase.from("development_evidence_observations").insert(
+        observations.map((observation, index) => ({
+          evidence_id: evidenceId,
+          organisation_id: input.organisationId,
+          client_id: clientId,
+          title: observation.title,
+          description: observation.description,
+          category: observation.category ?? null,
+          behavioural_evidence: observation.behaviouralEvidence ?? null,
+          development_implication: observation.developmentImplication ?? null,
+          source_confidence: observation.sourceConfidence ?? "medium",
+          assessment_context: observation.assessmentContext ?? null,
+          limitations: observation.limitations ?? null,
+          capability_key: observation.capabilityKey ?? null,
+          include_in_intelligence: true,
+          review_status: "approved",
+          sort_order: index,
+        }))
+      );
+    }
+
+    if (item.capabilityKeys.length > 0) {
+      await input.supabase.from("development_evidence_links").insert(
+        item.capabilityKeys.map(capabilityKey => ({
+          organisation_id: input.organisationId,
+          client_id: clientId,
+          from_evidence_id: evidenceId,
+          capability_key: capabilityKey,
+          link_type: "supports",
+          label: item.title,
+        }))
+      );
+    }
+
+  }
 }
 

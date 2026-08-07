@@ -73,7 +73,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       return NextResponse.json(
         {
           error:
-            "Choose Manual, Assisted or Comprehensive support for this development relationship.",
+            "Choose Manual, Standard or Comprehensive support for this development relationship.",
         },
         { status: 400 }
       );

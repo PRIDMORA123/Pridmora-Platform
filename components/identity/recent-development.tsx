@@ -8,9 +8,11 @@ export type RecentDevelopmentItem = {
 export function RecentDevelopment({
   items,
   onOpen,
+  description,
 }: {
   items: RecentDevelopmentItem[];
   onOpen: (id: string) => void;
+  description?: string;
 }) {
   return (
     <section
@@ -20,7 +22,10 @@ export function RecentDevelopment({
       <header>
         <p className="home-section-eyebrow">Recent movement</p>
         <h2 id="recent-development-title">What has changed</h2>
-        <p>Recent approved development across your coaching relationships.</p>
+        <p>
+          {description ??
+            "Recent approved development across your coaching relationships."}
+        </p>
       </header>
 
       {items.length > 0 ? (

@@ -18,6 +18,7 @@ const ROLE_PERMISSIONS: Record<MembershipRole, readonly OrganisationPermission[]
     "organisation.manage",
     "organisation.view_usage",
     "organisation.view_safe_oversight",
+    "intelligence.organisation.read",
     "members.invite",
     "members.manage",
     "members.deactivate",
@@ -35,6 +36,7 @@ const ROLE_PERMISSIONS: Record<MembershipRole, readonly OrganisationPermission[]
     "organisation.manage",
     "organisation.view_usage",
     "organisation.view_safe_oversight",
+    "intelligence.organisation.read",
     "members.invite",
     "members.manage",
     "members.deactivate",
@@ -47,6 +49,7 @@ const ROLE_PERMISSIONS: Record<MembershipRole, readonly OrganisationPermission[]
   oversight: [
     "organisation.view_usage",
     "organisation.view_safe_oversight",
+    "intelligence.organisation.read",
     "relationships.view_assigned",
   ],
   practitioner: [
@@ -95,6 +98,11 @@ export function canViewSafeOversight(role: MembershipRole): boolean {
   return hasPermission(role, "organisation.view_safe_oversight");
 }
 
+export function canReadOrganisationIntelligence(
+  role: MembershipRole
+): boolean {
+  return hasPermission(role, "intelligence.organisation.read");
+}
 
 export function canInviteMembers(role: MembershipRole): boolean {
   return hasPermission(role, "members.invite");
