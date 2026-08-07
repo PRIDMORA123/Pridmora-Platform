@@ -130,10 +130,12 @@ describe("navigation sign-out accessibility", () => {
   it("exposes primary manager navigation", () => {
     const shell = read("components/app-shell.tsx");
     expect(shell).toContain('label: "Home"');
-    expect(shell).toContain('label: "Conversations"');
-    expect(shell).toContain('label: "Development"');
+    expect(shell).toContain("language.peopleNavLabel");
+    expect(shell).toContain("language.myDevelopmentLabel");
     expect(shell).toContain('label: "Reports"');
     expect(shell).toContain('label: "Settings"');
+    // Managers reach conversations via People; Conversations remains for coaches.
+    expect(shell).toContain("isManager");
   });
 });
 

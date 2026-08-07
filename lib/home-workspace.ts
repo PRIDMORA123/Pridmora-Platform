@@ -16,10 +16,25 @@ import {
 import type { ProfessionalRole } from "@/lib/organisations/types";
 import { resolveProductLanguage } from "@/lib/role-language";
 
+export type HomeAttentionItem = {
+  id: string;
+  relationshipId: string;
+  personName: string;
+  title: string;
+  explanation: string;
+  actionLabel: string;
+  actionKind: NonNullable<HomeWorkspaceViewModel["nextBestAction"]>["actionKind"];
+  sessionId?: string;
+  updateId?: string;
+};
+
 export type HomeWorkspaceViewModel = {
   greeting: string;
   coachName: string;
   workspaceSummary: string;
+
+  /** Up to three high-value attention items for the manager command centre. */
+  todayAttention: HomeAttentionItem[];
 
   nextBestAction: {
     relationshipId: string;
@@ -509,6 +524,7 @@ export function resolveHomeWorkspaceViewModel(input: {
       greeting,
       coachName,
       workspaceSummary: language.emptyRelationshipsDescription,
+      todayAttention: [],
       nextBestAction: {
         relationshipId: "",
         personName: "",
@@ -682,13 +698,36 @@ export function resolveHomeWorkspaceViewModel(input: {
     };
   });
 
+  const todayAttention: HomeAttentionItem[] = candidates.slice(0, 3).map(candidate => ({
+    id: `${candidate.relationshipId}-${candidate.actionKind}-${candidate.sessionId ?? candidate.updateId ?? "item"}`,
+    relationshipId: candidate.relationshipId,
+    personName: candidate.personName,
+    title:
+      candidate.actionKind === "review_development_update"
+        ? `${candidate.personName} has a development update waiting for review.`
+        : candidate.actionKind === "continue_conversation"
+          ? `${candidate.personName} has a conversation in progress.`
+          : candidate.actionKind === "complete_reflection"
+            ? `${candidate.personName} needs the conversation outcome captured.`
+            : candidate.actionKind === "prepare" ||
+                candidate.actionKind === "start_conversation"
+              ? `${candidate.personName} is ready for the next development conversation.`
+              : candidate.title,
+    explanation: candidate.explanation,
+    actionLabel: candidate.actionLabel,
+    actionKind: candidate.actionKind,
+    sessionId: candidate.sessionId,
+    updateId: candidate.updateId,
+  }));
+
   return {
     greeting,
     coachName,
     workspaceSummary:
       nextBestAction || conversationsInProgress.length > 0 || awaitingPreparation > 0
         ? workspaceSummary
-        : language.workUpToDateTitle + ".",
+        : "What needs your attention today?",
+    todayAttention,
     nextBestAction,
     overview: {
       activeRelationships: active.length,

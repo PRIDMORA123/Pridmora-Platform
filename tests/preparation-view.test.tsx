@@ -87,7 +87,7 @@ describe("PreparationView", () => {
     expect(container.textContent).toContain("Questions to consider");
     expect(
       Array.from(container.querySelectorAll("button")).filter(
-        button => button.textContent === "Start conversation"
+        button => button.textContent === "Start / Record Conversation" || button.textContent === "Start conversation"
       )
     ).toHaveLength(1);
     expect(container.textContent).not.toContain(

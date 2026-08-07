@@ -62,8 +62,8 @@ describe("sample organisation clean-build dependency contracts", () => {
       }
     }
 
-    // Untracked Organisation Intelligence must remain outside the committed graph.
-    expect(committed.has("lib/organisation-intelligence/generate.ts")).toBe(false);
+    // Organisation Intelligence is part of the V1 product graph.
+    expect(committed.has("lib/organisation-intelligence/generate.ts")).toBe(true);
   });
 
   it("keeps the installer intelligence bridge self-contained", () => {

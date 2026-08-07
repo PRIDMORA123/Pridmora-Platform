@@ -11,6 +11,7 @@ import {
   CoachingPracticeOverview,
 } from "@/components/identity/coaching-practice-overview";
 import { ConversationsInProgress } from "@/components/identity/conversations-in-progress";
+import { ManagerCommandCentre } from "@/components/identity/manager-command-centre";
 import {
   NextBestAction,
   NextBestActionUpToDate,
@@ -19,6 +20,7 @@ import { OnboardingPrompt } from "@/components/identity/onboarding-prompt";
 import { PremiumWorkspaceHeader } from "@/components/identity/premium-workspace-header";
 import { RecentDevelopment } from "@/components/identity/recent-development";
 import { RelationshipPortfolio } from "@/components/identity/relationship-portfolio";
+import type { HomeAttentionItem } from "@/lib/home-workspace";
 import {
   FirstUserOnboarding,
   type FirstUserOnboardingResult,
@@ -240,13 +242,12 @@ export function IdentityHomePage({
     setForceOnboarding(true);
   }
 
-  function handleNextAction() {
-    const action = viewModel.nextBestAction;
-    if (!action) {
-      onViewPeople?.();
-      return;
-    }
-
+  function runAttentionAction(action: {
+    actionKind: HomeAttentionItem["actionKind"] | NonNullable<typeof viewModel.nextBestAction>["actionKind"];
+    relationshipId: string;
+    sessionId?: string;
+    updateId?: string;
+  }) {
     if (action.actionKind === "create_person") {
       if (showPremiumEmptyHome) {
         handleStartRelationshipFromEmpty();
@@ -295,6 +296,19 @@ export function IdentityHomePage({
     }
 
     onOpenClient(client);
+  }
+
+  function handleNextAction() {
+    const action = viewModel.nextBestAction;
+    if (!action) {
+      onViewPeople?.();
+      return;
+    }
+    runAttentionAction(action);
+  }
+
+  function handleAttentionItem(item: HomeAttentionItem) {
+    runAttentionAction(item);
   }
 
   function handleOnboardingContinue(
@@ -379,6 +393,53 @@ export function IdentityHomePage({
             viewModel.nextBestAction.actionKind === "open_relationship"))
       )
   );
+
+  const isManager = organisation?.professionalRole === "manager";
+
+  if (isManager) {
+    return (
+      <section className="identity-home identity-reveal">
+        {showOnboardingPrompt && continueStage ? (
+          <OnboardingPrompt
+            stage={continueStage}
+            personName={continuePerson?.name}
+            onContinue={() => handleOnboardingContinue(continueStage)}
+          />
+        ) : null}
+        <ManagerCommandCentre
+          greeting={viewModel.greeting}
+          coachName={viewModel.coachName}
+          todayAttention={viewModel.todayAttention}
+          recentDevelopment={viewModel.recentDevelopment}
+          overview={viewModel.overview}
+          canOpenOrganisation={Boolean(organisation?.showOrganisationNav)}
+          onAttentionAction={handleAttentionItem}
+          onOpenPerson={relationshipId => {
+            const client = clientById(relationshipId);
+            if (client) onOpenClient(client);
+          }}
+          onOpenPeople={() => onViewPeople?.()}
+          onOpenMyDevelopment={() => onOpenIntelligence?.()}
+          onOpenOrganisation={() => {
+            window.location.href = "/organisation/intelligence";
+          }}
+          onOpenEvidence={
+            awaitingUpdates.length > 0
+              ? () => {
+                  const first = awaitingUpdates[0];
+                  const client = first ? clientById(first.clientId) : undefined;
+                  if (client && first && onReviewDevelopmentUpdate) {
+                    onReviewDevelopmentUpdate(client, first.update.id);
+                  } else {
+                    onViewPeople?.();
+                  }
+                }
+              : () => onViewPeople?.()
+          }
+        />
+      </section>
+    );
+  }
 
   return (
     <section className="identity-home identity-reveal">
@@ -517,16 +578,8 @@ export function IdentityHomePage({
         {viewModel.relationships.length > 0 ? (
           <RelationshipPortfolio
             items={viewModel.relationships}
-            title={
-              organisation?.professionalRole === "manager"
-                ? "Your people"
-                : "Your coaching relationships"
-            }
-            description={
-              organisation?.professionalRole === "manager"
-                ? "A focused view of the people you are developing."
-                : "A focused view of your active coaching portfolio."
-            }
+            title="Your coaching relationships"
+            description="A focused view of your active coaching portfolio."
             onOpen={id => {
               const client = clientById(id);
               if (client) onOpenClient(client);

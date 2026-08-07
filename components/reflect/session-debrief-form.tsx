@@ -252,23 +252,25 @@ export function SessionDebriefForm({
       ) : null}
 
       <div className="session-debrief-form__workspace">
+        <p className="session-debrief-form__lead">
+          What changed or mattered?
+        </p>
         <label className="session-debrief-form__field">
-          <span className="session-debrief-form__label">What stood out</span>
+          <span className="session-debrief-form__label">What changed or mattered</span>
           <textarea
             className="session-debrief-form__textarea session-debrief-form__textarea--stood-out"
             rows={5}
             disabled={busy}
             value={values.narrative}
             onChange={event => updateField("narrative", event.target.value)}
-            placeholder="What mattered in the conversation…"
+            placeholder="Add only what matters. Existing notes remain available."
           />
         </label>
 
         <label className="session-debrief-form__field session-debrief-form__field--commitment">
-          <span className="session-debrief-form__label">What was agreed</span>
+          <span className="session-debrief-form__label">Actions / commitments</span>
           <span className="session-debrief-form__hint">
-            Record the specific action, commitment or decision the client agreed
-            to carry forward.
+            Record any specific action or commitment agreed to carry forward.
           </span>
           <textarea
             className="session-debrief-form__textarea session-debrief-form__textarea--agreed"
@@ -330,16 +332,16 @@ export function SessionDebriefForm({
       </div>
 
       <JourneyNextStep
-        now={`Reviewing Session ${session.sessionNumber} notes`}
-        next="Create Summary & Insights · Optional"
+        now="Capture complete"
+        next="Generate Development Update"
       />
 
       <StagePrimaryAction>
         <ActionButton
           status={toActionButtonStatus(feedback.status)}
-          idleLabel="Create Summary & Insights"
+          idleLabel="Generate Development Update"
           loadingLabel={createLoadingLabel}
-          successLabel="Created"
+          successLabel="Ready to review"
           errorLabel="Try again"
           disabled={busy}
           onClick={() => {

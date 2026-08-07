@@ -180,9 +180,11 @@ async function renderNode(node: ReactNode) {
 
 function sectionOrder(container: HTMLElement): string[] {
   const ids = [
+    "who-is-person-title",
+    "current-development-position-title",
     "current-position-title",
-    "current-conversation-title",
     "development-snapshot-title",
+    "current-conversation-title",
     "previous-conversations-title",
     "reports-title",
     "coaching-moments-title",
@@ -298,17 +300,20 @@ describe("RelationshipCanvas", () => {
       "Operations Manager · Northbridge NHS Trust"
     );
     expect(sectionOrder(container)).toEqual([
+      "who-is-person-title",
+      "current-development-position-title",
       "current-position-title",
-      "current-conversation-title",
       "development-snapshot-title",
+      "current-conversation-title",
       "previous-conversations-title",
       "reports-title",
       "coaching-moments-title",
       "relationship-details-title",
     ]);
+    expect(container.textContent).toContain("Who is Sarah?");
     expect(container.textContent).toContain("Building leadership confidence");
     expect(container.textContent).toContain("Session 3");
-    expect(container.textContent).toContain("Prepare");
+    expect(container.textContent).toContain("Prepare with Aurelia");
     expect(container.textContent).toContain("Summary & Insights");
     expect(container.querySelector(".current-conversation-card")).toBeTruthy();
     root.unmount();
@@ -408,7 +413,8 @@ describe("RelationshipCanvas", () => {
       />
     );
 
-    expect(container.textContent).toContain("Prepare conversation");
+    expect(container.textContent).toContain("Prepare with Aurelia");
+    expect(container.textContent).toMatch(/Prepare conversation|Prepare/);
     expect(
       container.querySelectorAll(".relationship-workspace__primary-action .identity-button.is-primary")
         .length

@@ -414,6 +414,19 @@ export function CoachSpaceView({
             onModuleAction={handleModuleAction}
             onOpenSession={onOpenSession}
             onViewDevelopment={() => onTabChange?.("intelligence")}
+            onAddEvidence={() => onTabChange?.("evidence")}
+            onPrepareConversation={() => {
+              const session = currentSession ?? getFutureOrOpenSession(client.sessions);
+              onPrepare(session?.id);
+            }}
+            onRecordConversation={() => {
+              const session = currentSession ?? getFutureOrOpenSession(client.sessions);
+              if (session) {
+                onOpenSession(session.id);
+                return;
+              }
+              onPrepare();
+            }}
             onViewReports={() => onTabChange?.("reports")}
             onCreateSession={handleCreateSession}
             busy={scheduling}

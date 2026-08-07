@@ -5,6 +5,10 @@ import { EvidenceConfidencePanel } from "@/components/development-evidence/evide
 import { EvidenceGraphPanel } from "@/components/development-evidence/evidence-graph-panel";
 import { EvidenceWhyDrawer } from "@/components/development-evidence/evidence-why-drawer";
 import { apiJson, errorMessage } from "@/lib/api-client";
+import {
+  limitSentences,
+  limitToOneSentence,
+} from "@/lib/development-evidence/display-copy";
 import type {
   DevelopmentIntelligenceEvidenceView,
   EvidenceWhyThisPayload,
@@ -23,6 +27,7 @@ export function DevelopmentIntelligenceEvidencePanel({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [whyThis, setWhyThis] = useState<EvidenceWhyThisPayload | null>(null);
+  const [supportingOpen, setSupportingOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -61,7 +66,7 @@ export function DevelopmentIntelligenceEvidencePanel({
   }
 
   if (loading) {
-    return <p className="muted">Loading evidence intelligence…</p>;
+    return <p className="muted">Loading development intelligence…</p>;
   }
 
   if (error) {
@@ -76,10 +81,14 @@ export function DevelopmentIntelligenceEvidencePanel({
 
   return (
     <div className="development-intelligence-evidence">
-      <section className="development-section">
+      <p className="development-intelligence-evidence__question">
+        What do we now understand about this person?
+      </p>
+
+      <section className="development-section development-section--story">
         <h2>Current Position</h2>
         <p className="development-section__purpose">Where is this person now?</p>
-        <p>{view.currentPosition}</p>
+        <p>{limitSentences(view.currentPosition, 3)}</p>
         <button
           type="button"
           className="identity-text-action"
@@ -94,15 +103,31 @@ export function DevelopmentIntelligenceEvidencePanel({
         </button>
       </section>
 
-      <section className="development-section">
+      <section className="development-section development-section--story">
         <h2>Development Trajectory</h2>
         <p className="development-section__purpose">
           How have they changed over time?
         </p>
-        <p>{view.developmentTrajectory}</p>
+        <p>{limitSentences(view.developmentTrajectory, 3)}</p>
       </section>
 
-      <section className="development-section">
+      <section className="development-section development-section--story">
+        <h2>Current Priorities</h2>
+        <p className="development-section__purpose">
+          Where would further development help?
+        </p>
+        {view.developmentPriorities.length === 0 ? (
+          <p className="muted">No reviewed development priorities yet.</p>
+        ) : (
+          <ul className="development-evidence-list">
+            {view.developmentPriorities.slice(0, 3).map(item => (
+              <li key={item}>{limitToOneSentence(item)}</li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="development-section development-section--story">
         <h2>Capabilities &amp; Behavioural Patterns</h2>
         <p className="development-section__purpose">
           What management behaviours are emerging or strengthening?
@@ -117,20 +142,21 @@ export function DevelopmentIntelligenceEvidencePanel({
               <li key={capability.capabilityKey} className="capability-insight-card">
                 <div className="capability-insight-card__header">
                   <h3>{capability.capabilityLabel}</h3>
-                  <span className="muted">
-                    {capability.confidence.label} · {capability.trend.replaceAll("_", " ")}
-                  </span>
                 </div>
-                <p>{capability.currentEvidence}</p>
-                {capability.organisationFrameworkLabels.length > 0 ? (
-                  <p className="muted">
-                    Organisation framework alignment:{" "}
-                    {capability.organisationFrameworkLabels.join(", ")}
-                  </p>
-                ) : null}
+                <dl className="capability-insight-card__labels">
+                  <div>
+                    <dt>Evidence Confidence</dt>
+                    <dd>{capability.confidence.label}</dd>
+                  </div>
+                  <div>
+                    <dt>Direction</dt>
+                    <dd>{capability.trend.replaceAll("_", " ")}</dd>
+                  </div>
+                </dl>
+                <p>{limitSentences(capability.currentEvidence, 2)}</p>
                 {capability.developmentOpportunity ? (
                   <p className="muted">
-                    Development opportunity: {capability.developmentOpportunity}
+                    {limitToOneSentence(capability.developmentOpportunity)}
                   </p>
                 ) : null}
                 <button
@@ -151,98 +177,94 @@ export function DevelopmentIntelligenceEvidencePanel({
         )}
       </section>
 
-      <section className="development-section">
+      <section className="development-section development-section--story">
         <h2>Strengths Being Demonstrated</h2>
         <p className="development-section__purpose">
-          What evidence supports them?
+          What positive behaviours are evidenced?
         </p>
         {view.strengthsBeingDemonstrated.length === 0 ? (
           <p className="muted">No reviewed strength signals yet.</p>
         ) : (
           <ul className="development-evidence-list">
             {view.strengthsBeingDemonstrated.map(item => (
-              <li key={item}>{item}</li>
+              <li key={item}>{limitToOneSentence(item)}</li>
             ))}
           </ul>
         )}
       </section>
 
-      <section className="development-section">
-        <h2>Development Priorities</h2>
-        <p className="development-section__purpose">
-          Where would further development help?
-        </p>
-        {view.developmentPriorities.length === 0 ? (
-          <p className="muted">No reviewed development priorities yet.</p>
-        ) : (
-          <ul className="development-evidence-list">
-            {view.developmentPriorities.map(item => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <EvidenceConfidencePanel
-        confidence={view.evidenceConfidence}
-        coverage={view.evidenceCoverage}
-      />
-
-      <section className="development-section">
-        <h2>Recent Development Evidence</h2>
-        <p className="development-section__purpose">
-          What has contributed recently?
-        </p>
-        {view.recentEvidence.length === 0 ? (
-          <p className="muted">Not enough evidence yet.</p>
-        ) : (
-          <ul className="development-evidence-list">
-            {view.recentEvidence.map(item => (
-              <li key={item.id}>
-                <strong>{item.title}</strong>
-                <span className="muted">
-                  {" "}
-                  — {item.evidenceTypeLabel} · {item.freshnessLabel}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="development-section">
-        <h2>Contradictory / Limited Evidence</h2>
-        <p className="development-section__purpose">
-          What should not yet be over-interpreted?
-        </p>
-        {view.missingOrConflicting.length === 0 ? (
-          <p className="muted">No major gaps or conflicts identified.</p>
-        ) : (
-          <ul className="development-evidence-list">
-            {view.missingOrConflicting.map(item => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="development-section">
+      <section className="development-section development-section--story">
         <h2>Next Development Focus</h2>
         <p className="development-section__purpose">
           What would be valuable to explore next?
         </p>
-        <p>{view.nextDevelopmentFocus}</p>
+        <p>{limitSentences(view.nextDevelopmentFocus, 2)}</p>
       </section>
 
-      <EvidenceGraphPanel nodes={view.graph} />
+      <details
+        className="supporting-evidence-disclosure"
+        open={supportingOpen}
+        onToggle={event =>
+          setSupportingOpen((event.target as HTMLDetailsElement).open)
+        }
+      >
+        <summary className="supporting-evidence-disclosure__summary">
+          <span aria-hidden="true">{supportingOpen ? "▼" : "▶"}</span>
+          Supporting Evidence
+        </summary>
+        <div className="supporting-evidence-disclosure__body">
+          <EvidenceConfidencePanel
+            confidence={view.evidenceConfidence}
+            coverage={view.evidenceCoverage}
+          />
 
-      {onOpenEvidence ? (
-        <div className="button-row">
-          <button type="button" className="secondary" onClick={onOpenEvidence}>
-            Open Development Evidence
-          </button>
+          <section className="development-section">
+            <h3>Recent Development Evidence</h3>
+            {view.recentEvidence.length === 0 ? (
+              <p className="muted">Not enough evidence yet.</p>
+            ) : (
+              <ul className="development-evidence-list">
+                {view.recentEvidence.map(item => (
+                  <li key={item.id}>
+                    <strong>{item.title}</strong>
+                    <span className="muted">
+                      {" "}
+                      — {item.evidenceTypeLabel} · {item.freshnessLabel}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <section className="development-section">
+            <h3>Contradictory / Limited Evidence</h3>
+            {view.missingOrConflicting.length === 0 ? (
+              <p className="muted">No major gaps or conflicts identified.</p>
+            ) : (
+              <ul className="development-evidence-list">
+                {view.missingOrConflicting.map(item => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <EvidenceGraphPanel nodes={view.graph} />
+
+          {onOpenEvidence ? (
+            <div className="button-row">
+              <button
+                type="button"
+                className="secondary"
+                onClick={onOpenEvidence}
+              >
+                + Add Development Evidence
+              </button>
+            </div>
+          ) : null}
         </div>
-      ) : null}
+      </details>
 
       <EvidenceWhyDrawer
         open={Boolean(whyThis)}

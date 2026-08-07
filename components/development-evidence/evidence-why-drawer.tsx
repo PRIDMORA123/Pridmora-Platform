@@ -17,6 +17,7 @@ export function EvidenceWhyDrawer({
 }) {
   const titleId = useId();
   const panelRef = useRef<HTMLElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
@@ -52,6 +53,12 @@ export function EvidenceWhyDrawer({
 
   return (
     <div className="evidence-drawer-backdrop" role="presentation">
+      <button
+        type="button"
+        className="evidence-drawer-backdrop__dismiss"
+        aria-label="Close evidence drawer"
+        onClick={onClose}
+      />
       <aside
         ref={panelRef}
         className="evidence-drawer"
@@ -67,7 +74,7 @@ export function EvidenceWhyDrawer({
           </div>
           <button
             type="button"
-            className="icon-button"
+            className="icon-button evidence-drawer__close"
             aria-label="Close evidence drawer"
             onClick={onClose}
           >
@@ -75,7 +82,7 @@ export function EvidenceWhyDrawer({
           </button>
         </header>
 
-        <div className="evidence-drawer__body">
+        <div ref={bodyRef} className="evidence-drawer__body">
           <EvidenceConfidencePanel
             confidence={payload.confidence}
             coverage={payload.coverage}
@@ -142,6 +149,7 @@ export function EvidenceWhyDrawer({
             </section>
           ) : null}
         </div>
+        <div className="evidence-drawer__fade" aria-hidden="true" />
       </aside>
     </div>
   );

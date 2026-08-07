@@ -12,6 +12,7 @@ export * from "@/lib/development-evidence/graph";
 export * from "@/lib/development-evidence/intelligence-view-model";
 export * from "@/lib/development-evidence/team-intelligence";
 export * from "@/lib/development-evidence/executive-brief";
+export * from "@/lib/development-evidence/display-copy";
 export * from "@/lib/development-evidence/analyse";
 export {
   listEvidenceForClient,

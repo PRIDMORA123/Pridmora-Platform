@@ -273,7 +273,7 @@ export function PersonIntelligenceView({
             className="person-development-subnav__item"
             onClick={onOpenEvidence}
           >
-            Development Evidence
+            + Add Development Evidence
           </button>
         ) : null}
       </nav>

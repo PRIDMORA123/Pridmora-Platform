@@ -62,12 +62,12 @@ const MANAGER_LANGUAGE: ProductLanguage = {
   emptyRelationshipsTitle: "Add the first person you support.",
   emptyRelationshipsDescription:
     "Create a development relationship and agree the purpose of the work.",
-  myDevelopmentLabel: "My development",
-  myPeopleLabel: "My people",
+  myDevelopmentLabel: "My Development",
+  myPeopleLabel: "My People",
   accountRoleTitle: "Manager",
   activeWorkDescription: "Continue the management work already under way.",
   continueWorkDescription: "Continue the management work already under way.",
-  workUpToDateTitle: "Your management work is up to date",
+  workUpToDateTitle: "You’re up to date",
   recentDevelopmentDescription:
     "Recent approved development across the people you support.",
   momentsTitle: "Development moments",

@@ -155,7 +155,8 @@ describe("home workspace view model", () => {
 
     expect(vm.nextBestAction).toBeNull();
     expect(vm.emptyKind).toBe("up_to_date");
-    expect(vm.workspaceSummary).toMatch(/up to date/i);
+    expect(vm.workspaceSummary).toMatch(/attention today|up to date/i);
+    expect(vm.todayAttention).toEqual([]);
     expect(vm.recentDevelopment[0]?.change).toMatch(/Growing confidence/i);
   });
 

@@ -150,7 +150,7 @@ describe("SessionBriefCard", () => {
 
     const buttons = Array.from(container.querySelectorAll("button"));
     expect(
-      buttons.some(button => button.textContent === "Start conversation")
+      buttons.some(button => button.textContent === "Start / Record Conversation" || button.textContent === "Start conversation")
     ).toBe(true);
     expect(
       buttons.some(button => button.textContent === "Review session brief")
@@ -159,7 +159,7 @@ describe("SessionBriefCard", () => {
     const primary = container.querySelector(
       ".prepare-ready__actions .identity-button--primary, .prepare-ready__actions .is-primary"
     );
-    expect(primary?.textContent).toMatch(/Start conversation/);
+    expect(primary?.textContent).toMatch(/Start (\/ Record )?Conversation|Start conversation/);
 
     expect(container.textContent).toContain("Observable team behaviours");
     expect(container.textContent).not.toContain("Hidden fourth topic");
@@ -171,7 +171,7 @@ describe("SessionBriefCard", () => {
     ).toBe(false);
 
     const start = buttons.find(
-      button => button.textContent === "Start conversation"
+      button => button.textContent === "Start / Record Conversation" || button.textContent === "Start conversation"
     );
     act(() => {
       start?.click();
@@ -364,7 +364,7 @@ describe("PremiumPrepareWorkspace / PreparationView canvas", () => {
     expect(container.textContent).not.toContain("Close session brief");
 
     const startButtons = Array.from(container.querySelectorAll("button")).filter(
-      button => button.textContent === "Start conversation"
+      button => button.textContent === "Start / Record Conversation" || button.textContent === "Start conversation"
     );
     expect(startButtons).toHaveLength(1);
 

@@ -97,13 +97,24 @@ export function AppShell({
   const organisation = useOrganisation();
   const showSampleOrganisation = useCanManageSampleOrganisation();
   const language = resolveProductLanguage(organisation?.professionalRole);
+  const isManager = organisation?.professionalRole === "manager";
+  const isCoach = organisation?.professionalRole === "coach";
   const items = [
     { key: "dashboard" as const, label: "Home", icon: Home },
     { key: "people" as const, label: language.peopleNavLabel, icon: Users },
-    { key: "sessions" as const, label: "Conversations", icon: MessageSquare },
+    // Conversations stay for professional coaches; managers reach them via People.
+    ...(isManager
+      ? []
+      : [
+          {
+            key: "sessions" as const,
+            label: isCoach ? "Conversations" : "Conversations",
+            icon: MessageSquare,
+          },
+        ]),
     {
       key: "global-intelligence" as const,
-      label: "Development",
+      label: isManager ? language.myDevelopmentLabel : "Development",
       icon: Sparkles,
     },
     { key: "reports" as const, label: "Reports", icon: FileText },

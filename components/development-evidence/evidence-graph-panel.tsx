@@ -18,8 +18,8 @@ export function EvidenceGraphPanel({
   if (nodes.length === 0) {
     return (
       <section className="panel evidence-graph-panel">
-        <p className="card-label">Evidence Graph</p>
-        <h2 className="identity-subheading">Capability evidence</h2>
+        <p className="card-label">How this conclusion was reached</p>
+        <h2 className="identity-subheading">Supporting sources</h2>
         <p className="muted">
           As reviewed evidence is included, related capabilities and supporting
           sources will appear here.
@@ -30,8 +30,8 @@ export function EvidenceGraphPanel({
 
   return (
     <section className="panel evidence-graph-panel">
-      <p className="card-label">Evidence Graph</p>
-      <h2 className="identity-subheading">Capability evidence</h2>
+      <p className="card-label">How this conclusion was reached</p>
+      <h2 className="identity-subheading">Supporting sources</h2>
       <p className="muted">
         Expand a capability to inspect the reviewed sources that support it.
       </p>

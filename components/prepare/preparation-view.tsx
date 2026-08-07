@@ -284,34 +284,15 @@ export function PreparationView({
   const needsRefresh = refreshState === "update_available";
 
   return (
-    <div className="identity-prepare-workspace preparation-view">
-      <ManagerScenarioPicker
-        compact
-        selectedId={selectedScenarioId}
-        onSelect={handleScenarioSelect}
-      />
-
-      {scenarioNotice ? (
-        <p className="aurelia-scenario-nudge" role="status">
-          {scenarioNotice}
+    <div className="identity-prepare-workspace preparation-view preparation-view--simple">
+      <header className="preparation-view__aurelia-intro">
+        <p className="eyebrow">Prepare with {BRAND.intelligenceName}</p>
+        <h2>Optional conversation preparation</h2>
+        <p>
+          {BRAND.intelligenceName} uses who this person is, recent evidence and
+          open commitments. Review the brief, then start when ready.
         </p>
-      ) : null}
-
-      <PreparationApproachControl
-        value={preparationStyle}
-        defaultValue={defaultPreparationStyle}
-        scope="relationship"
-        needsRefresh={needsRefresh}
-        isRefreshing={isRefreshing}
-        refreshState={refreshState}
-        updatedLabel={refreshUpdatedLabel}
-        disabled={disabled}
-        changeButtonRef={changeApproachButtonRef}
-        onChangeApproach={onChangeApproach}
-        onRefresh={
-          showAiPreparation && onRefreshBrief ? onRefreshBrief : undefined
-        }
-      />
+      </header>
 
       {error}
 
@@ -330,6 +311,37 @@ export function PreparationView({
           refreshState === "failed" ? onContinueWithExisting : undefined
         }
       />
+
+      <details className="preparation-view__optional">
+        <summary>Refine preparation (optional)</summary>
+        <ManagerScenarioPicker
+          compact
+          selectedId={selectedScenarioId}
+          onSelect={handleScenarioSelect}
+        />
+
+        {scenarioNotice ? (
+          <p className="aurelia-scenario-nudge" role="status">
+            {scenarioNotice}
+          </p>
+        ) : null}
+
+        <PreparationApproachControl
+          value={preparationStyle}
+          defaultValue={defaultPreparationStyle}
+          scope="relationship"
+          needsRefresh={needsRefresh}
+          isRefreshing={isRefreshing}
+          refreshState={refreshState}
+          updatedLabel={refreshUpdatedLabel}
+          disabled={disabled}
+          changeButtonRef={changeApproachButtonRef}
+          onChangeApproach={onChangeApproach}
+          onRefresh={
+            showAiPreparation && onRefreshBrief ? onRefreshBrief : undefined
+          }
+        />
+      </details>
 
       <div ref={refinementSectionRef}>
         <PreparationRefinement
@@ -365,7 +377,7 @@ export function PreparationView({
           disabled={disabled || startBusy}
           onClick={onStartSession}
         >
-          {startBusy ? "Starting…" : "Start conversation"}
+          {startBusy ? "Starting…" : "Start / Record Conversation"}
         </button>
         {secondaryActionLabel && onSecondaryAction ? (
           <button

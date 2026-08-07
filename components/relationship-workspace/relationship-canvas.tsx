@@ -31,9 +31,11 @@ import type {
   InitialConversation,
   RelationshipAgreement,
 } from "@/lib/relationship-meta";
+import { buildPersonSummary } from "@/lib/development-evidence/display-copy";
 import { getFutureOrOpenSession } from "@/lib/session-workflow";
 import { isSessionCompleted } from "@/lib/client-journey";
 import type { Client, Session } from "@/lib/types";
+import { BRAND } from "@/lib/brand";
 
 export type RelationshipCanvasProps = {
   relationship: Client;
@@ -60,6 +62,9 @@ export type RelationshipCanvasProps = {
   onModuleAction: (sessionId: string, moduleId: SessionModuleId) => void;
   onOpenSession: (sessionId: string) => void;
   onViewDevelopment: () => void;
+  onAddEvidence?: () => void;
+  onPrepareConversation?: () => void;
+  onRecordConversation?: () => void;
   onViewReports: () => void;
   onViewSupportingContext?: () => void;
   onCreateSession: (values: AddSessionFormValues) => Promise<void>;
@@ -106,6 +111,9 @@ export function RelationshipCanvas({
   onModuleAction,
   onOpenSession,
   onViewDevelopment,
+  onAddEvidence,
+  onPrepareConversation,
+  onRecordConversation,
   onViewReports,
   onCreateSession,
   busy = false,
@@ -189,6 +197,31 @@ export function RelationshipCanvas({
     }
   }
 
+  const personSummary = buildPersonSummary({
+    name: relationship.name,
+    currentPosition: narrative || relationship.identitySummary,
+    strengths: strengthModels.map(item => item.name),
+    priorities:
+      developmentPriorities.length > 0
+        ? developmentPriorities
+        : relationship.themes.slice(0, 3),
+    direction: developmentDirection,
+  });
+
+  const recentProgress = completed
+    .slice()
+    .sort((a, b) => b.sessionNumber - a.sessionNumber)
+    .slice(0, 3)
+    .map(session => {
+      const text =
+        session.summary?.trim() ||
+        session.emergingThemes?.trim() ||
+        session.focus?.trim() ||
+        "Conversation completed";
+      return text.split(/[.!?]/)[0]?.trim() || text;
+    })
+    .filter(Boolean);
+
   return (
     <div className="relationship-workspace relationship-canvas">
       {/* A. Relationship identity */}
@@ -205,18 +238,142 @@ export function RelationshipCanvas({
         actions={actions}
       />
 
-      {/* B. Current position */}
-      <CurrentPositionPanel
-        narrative={narrative}
-        identitySummary={relationship.identitySummary}
-        developmentDirection={developmentDirection}
+      {!archived ? (
+        <div className="person-overview-actions" role="group" aria-label="Primary actions">
+          <button
+            type="button"
+            className="identity-button is-primary"
+            onClick={() => {
+              if (onPrepareConversation) {
+                onPrepareConversation();
+                return;
+              }
+              handleSpinePrimary();
+            }}
+          >
+            Prepare with {BRAND.intelligenceName}
+          </button>
+          <button
+            type="button"
+            className="secondary"
+            onClick={() => {
+              if (onRecordConversation) {
+                onRecordConversation();
+                return;
+              }
+              if (activeSession) {
+                onOpenSession(activeSession.id);
+                return;
+              }
+              handleSpinePrimary();
+            }}
+          >
+            Record Conversation
+          </button>
+          {onAddEvidence ? (
+            <button type="button" className="secondary" onClick={onAddEvidence}>
+              + Add Development Evidence
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {/* B. Who is this person? — person first, not latest event */}
+      <section
+        className="person-overview-summary"
+        aria-labelledby="who-is-person-title"
+      >
+        <h2 id="who-is-person-title">Who is {clientFirstName}?</h2>
+        <p>{personSummary}</p>
+      </section>
+
+      <section
+        className="person-overview-position"
+        aria-labelledby="current-development-position-title"
+      >
+        <h2 id="current-development-position-title">
+          Current Development Position
+        </h2>
+        <CurrentPositionPanel
+          narrative={narrative}
+          identitySummary={relationship.identitySummary}
+          developmentDirection={developmentDirection}
+          currentFocus={relationship.currentFocus}
+          clientName={relationship.name}
+          outstandingCommitment={outstandingCommitment}
+          sessions={relationship.sessions}
+        />
+      </section>
+
+      <section
+        className="person-overview-priorities"
+        aria-labelledby="current-priorities-title"
+      >
+        <h2 id="current-priorities-title">Current Priorities</h2>
+        {(developmentPriorities.length > 0
+          ? developmentPriorities
+          : relationship.themes
+        ).slice(0, 3).length === 0 ? (
+          <p className="muted">Priorities will appear as evidence develops.</p>
+        ) : (
+          <ul className="development-evidence-list">
+            {(developmentPriorities.length > 0
+              ? developmentPriorities
+              : relationship.themes
+            )
+              .slice(0, 3)
+              .map(item => (
+                <li key={item}>{item}</li>
+              ))}
+          </ul>
+        )}
+      </section>
+
+      {recentProgress.length > 0 ? (
+        <section
+          className="person-overview-progress"
+          aria-labelledby="recent-progress-title"
+        >
+          <h2 id="recent-progress-title">Recent Progress</h2>
+          <ul className="development-evidence-list">
+            {recentProgress.map(item => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {/* Development snapshot — highly rated in UAT */}
+      <RelationshipDevelopmentPreview
+        currentDirection={
+          developmentDirection ||
+          relationship.identitySummary ||
+          relationship.currentFocus
+        }
+        strengths={strengthModels}
+        priorities={
+          developmentPriorities.length > 0
+            ? developmentPriorities
+            : relationship.themes.slice(0, 4)
+        }
         currentFocus={relationship.currentFocus}
-        clientName={relationship.name}
-        outstandingCommitment={outstandingCommitment}
-        sessions={relationship.sessions}
+        completedSessionCount={completed.length}
+        loadError={developmentLoadError}
+        onViewDevelopment={onViewDevelopment}
+        onRetry={onRetryDevelopment}
       />
 
-      {/* C. One primary next action */}
+      <div className="person-overview-intelligence-link">
+        <button
+          type="button"
+          className="identity-text-action"
+          onClick={onViewDevelopment}
+        >
+          Open Development Intelligence
+        </button>
+      </div>
+
+      {/* Current conversation — after understanding the person */}
       {showSpinePrimary ? (
         <div className="relationship-workspace__primary-action">
           <button
@@ -229,7 +386,6 @@ export function RelationshipCanvas({
         </div>
       ) : null}
 
-      {/* D. Current conversation */}
       {activeSession ? (
         <CurrentConversationCard
           session={activeSession}
@@ -244,7 +400,7 @@ export function RelationshipCanvas({
           aria-labelledby="current-conversation-title"
         >
           <p className="current-conversation-card__eyebrow">
-            Current conversation
+            Recent conversations
           </p>
           <h2
             id="current-conversation-title"
@@ -278,27 +434,7 @@ export function RelationshipCanvas({
         </section>
       )}
 
-      {/* E. Development snapshot */}
-      <RelationshipDevelopmentPreview
-        currentDirection={
-          developmentDirection ||
-          relationship.identitySummary ||
-          relationship.currentFocus
-        }
-        strengths={strengthModels}
-        priorities={
-          developmentPriorities.length > 0
-            ? developmentPriorities
-            : relationship.themes.slice(0, 4)
-        }
-        currentFocus={relationship.currentFocus}
-        completedSessionCount={completed.length}
-        loadError={developmentLoadError}
-        onViewDevelopment={onViewDevelopment}
-        onRetry={onRetryDevelopment}
-      />
-
-      {/* F. Previous conversations */}
+      {/* Conversation history after person understanding */}
       <PreviousConversationsGallery
         sessions={relationship.sessions}
         currentSessionId={activeSession?.id}

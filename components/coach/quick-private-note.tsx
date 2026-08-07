@@ -28,22 +28,22 @@ export function QuickPrivateNote({
     >
       <div className="quick-private-note__header">
         <div>
-          <h2 id="quick-private-note-label">Quick private note</h2>
-          <p>Optional · Visible only to you</p>
+          <h2 id="quick-private-note-label">Conversation notes</h2>
+          <p>Capture only what matters. You do not need a transcript.</p>
         </div>
         <SessionSaveStatus state={saveState} />
       </div>
 
       <label className="sr-only" htmlFor="quick-private-note-field">
-        Quick private note
+        Conversation notes
       </label>
       <textarea
         id="quick-private-note-field"
-        className="quick-private-note__field"
+        className="quick-private-note__field quick-private-note__field--meeting"
         value={value}
         disabled={disabled}
-        rows={5}
-        placeholder="Private to you — not shared with the client"
+        rows={12}
+        placeholder="Capture only what matters. You do not need a transcript."
         onChange={event => onChange(event.target.value)}
         onBlur={() => {
           if (onSave) onSave();

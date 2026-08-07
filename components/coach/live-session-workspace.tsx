@@ -16,6 +16,7 @@ import { getConciseSessionFocus, getClientFirstName } from "@/lib/session/sessio
 import { serialiseError } from "@/lib/api-client";
 import type { Session } from "@/lib/types";
 import type { CoachWorkspaceViewModel } from "@/types/coach-workspace";
+// JourneyNextStep retained for ended state only.
 
 export type LiveSessionWorkspaceProps = {
   initialData: CoachWorkspaceViewModel;
@@ -56,7 +57,6 @@ export function LiveSessionWorkspace({
   const [saveState, setSaveState] = useState<
     "idle" | "saving" | "saved" | "unsaved" | "error"
   >("idle");
-  const [advancedOpen, setAdvancedOpen] = useState(false);
   const [ending, setEnding] = useState(false);
   const [starting, setStarting] = useState(false);
 
@@ -210,7 +210,7 @@ export function LiveSessionWorkspace({
     if (endLockRef.current || ending || isEnded) return;
 
     const confirmed = window.confirm(
-      "End this conversation and capture the outcome?"
+      "Finish this conversation and capture what changed or mattered?"
     );
     if (!confirmed) return;
 
@@ -305,20 +305,22 @@ export function LiveSessionWorkspace({
   }
 
   return (
-    <div className="live-session-workspace">
-      <div className="stage-context-row">
-        <p className="stage-context-row__label">Session focus</p>
-        <p className="stage-context-row__value">{focus}</p>
+    <div className="live-session-workspace live-session-workspace--minimal">
+      <header className="live-session-workspace__person">
+        <p className="eyebrow">In conversation</p>
+        <h2>{clientName}</h2>
         {commitment ? (
           <p className="live-session-workspace__commitment-line">
-            Previous commitment · {commitment}
+            Previous commitment to revisit · {commitment}
           </p>
+        ) : focus ? (
+          <p className="muted">{focus}</p>
         ) : null}
-      </div>
+      </header>
 
       <div className="live-session-workspace__save" aria-live="polite">
         {starting ? (
-          <p className="live-session-workspace__starting">Starting session…</p>
+          <p className="live-session-workspace__starting">Starting…</p>
         ) : null}
         <SessionSaveStatus feedback={actionFeedback.feedback} />
       </div>
@@ -333,37 +335,14 @@ export function LiveSessionWorkspace({
         }}
       />
 
-      <div className="live-session-workspace__advanced">
-        <button
-          type="button"
-          className="identity-text-action"
-          aria-expanded={advancedOpen}
-          aria-controls={advancedNotesId}
-          onClick={() => setAdvancedOpen(current => !current)}
-        >
-          {advancedOpen
-            ? "Hide additional live tools"
-            : "Additional live tools"}
-        </button>
-        {advancedOpen ? (
-          <div id={advancedNotesId} className="live-session-workspace__legacy">
-            <p>
-              Pause, coaching support, and structured note tools remain available
-              for compatibility. Prefer the quiet live view during the
-              conversation.
-            </p>
-          </div>
-        ) : null}
-      </div>
-
-      <JourneyNextStep
-        now={`Session ${session.sessionNumber} is in progress`}
-        next="Capture the outcome when the conversation ends"
-      />
-
-      <p className="live-session-workspace__after">
-        After the conversation, capture what stood out and what was agreed.
-      </p>
+      <details className="live-session-workspace__advanced">
+        <summary>Optional prompts</summary>
+        <div id={advancedNotesId} className="live-session-workspace__legacy">
+          <p className="muted">
+            Keep attention on the person. Use prompts only if helpful.
+          </p>
+        </div>
+      </details>
 
       <StagePrimaryAction>
         <button
@@ -374,7 +353,7 @@ export function LiveSessionWorkspace({
             void handleEndSession();
           }}
         >
-          {ending ? "Ending…" : "End conversation"}
+          {ending ? "Finishing…" : "Finish Conversation"}
         </button>
       </StagePrimaryAction>
     </div>

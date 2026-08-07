@@ -245,7 +245,7 @@ describe("sample organisation pack", () => {
     const manager = resolveProductLanguage("manager");
     const coach = resolveProductLanguage("coach");
     expect(manager.peopleNavLabel).toBe("People");
-    expect(manager.myPeopleLabel).toBe("My people");
+    expect(manager.myPeopleLabel).toBe("My People");
     expect(manager.conversationSingular).toBe("development conversation");
     expect(manager.intelligenceTitle.toLowerCase()).toContain("development intelligence");
     expect(manager.homeTitle).toMatch(/Management/i);

@@ -55,13 +55,14 @@ describe("SessionDebriefForm capture outcome polish", () => {
       />
     );
 
-    expect(container.textContent).toContain("What stood out");
-    expect(container.textContent).toContain("What was agreed");
+    expect(container.textContent).toContain("What changed or mattered");
+    expect(container.textContent).toContain("Actions / commitments");
     expect(container.textContent).toContain("Private reflection");
     expect(container.textContent).toContain("Follow-up, optional");
     expect(container.textContent).toContain(
-      "Record the specific action, commitment or decision the client agreed to carry forward."
+      "Record any specific action or commitment agreed to carry forward."
     );
+    expect(container.textContent).toContain("Generate Development Update");
     expect(
       container.querySelector(".session-debrief-form__field--commitment")
     ).toBeTruthy();
@@ -170,11 +171,13 @@ describe("LiveSessionWorkspace session notes polish", () => {
       </ToastProvider>
     );
 
-    expect(container.textContent).toContain("Session focus");
-    expect(container.textContent).toContain("Quick private note");
-    expect(container.textContent).toContain("Visible only to you");
-    expect(container.textContent).toContain("Additional live tools");
-    expect(container.textContent).toContain("End conversation");
+    expect(container.textContent).toContain("In conversation");
+    expect(container.textContent).toContain("Conversation notes");
+    expect(container.textContent).toContain(
+      "Capture only what matters. You do not need a transcript."
+    );
+    expect(container.textContent).toContain("Optional prompts");
+    expect(container.textContent).toContain("Finish Conversation");
     expect(container.querySelector(".quick-private-note__field")).toBeTruthy();
 
     root.unmount();
