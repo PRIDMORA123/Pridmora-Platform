@@ -28,6 +28,10 @@ const supabaseAuth = vi.hoisted(() => ({
   onAuthStateChange: vi.fn(),
 }));
 
+const platformOwner = vi.hoisted(() => ({
+  isPlatformOwner: vi.fn(),
+}));
+
 vi.mock("next/link", () => ({
   default: ({
     children,
@@ -56,6 +60,10 @@ vi.mock("@/lib/supabase/browser", () => ({
   createBrowserSupabaseClient: () => ({
     auth: supabaseAuth,
   }),
+}));
+
+vi.mock("@/lib/owner/platform-owner", () => ({
+  isPlatformOwner: platformOwner.isPlatformOwner,
 }));
 
 const mounted: Array<{ root: Root; container: HTMLDivElement }> = [];
@@ -90,6 +98,8 @@ beforeEach(() => {
   supabaseAuth.onAuthStateChange.mockReturnValue({
     data: { subscription: { unsubscribe: vi.fn() } },
   });
+  platformOwner.isPlatformOwner.mockReset();
+  platformOwner.isPlatformOwner.mockResolvedValue(false);
   window.localStorage.clear();
 });
 
@@ -199,7 +209,9 @@ describe("auth layout replacement", () => {
   });
 
   it("sign-in prevents duplicate submission while pending", async () => {
-    let resolveSignIn: ((value: { error: null }) => void) | undefined;
+    let resolveSignIn:
+      | ((value: { data: { user: { id: string } }; error: null }) => void)
+      | undefined;
     supabaseAuth.signInWithPassword.mockImplementation(
       () =>
         new Promise(resolve => {
@@ -228,8 +240,33 @@ describe("auth layout replacement", () => {
 
     expect(supabaseAuth.signInWithPassword).toHaveBeenCalledTimes(1);
     await act(async () => {
-      resolveSignIn?.({ error: null });
+      resolveSignIn?.({ data: { user: { id: "coach-1" } }, error: null });
+      await Promise.resolve();
     });
+    expect(navigation.replace).toHaveBeenCalledWith("/");
+  });
+
+  it("sign-in sends platform owners to /owner after successful authentication", async () => {
+    supabaseAuth.signInWithPassword.mockResolvedValue({
+      data: { user: { id: "owner-1" } },
+      error: null,
+    });
+    platformOwner.isPlatformOwner.mockResolvedValue(true);
+    const { SignInForm } = await import("@/components/auth/sign-in-form");
+    const container = await renderView(<SignInForm />);
+    const email = container.querySelector('input[name="email"]') as HTMLInputElement;
+    const password = container.querySelector('input[name="password"]') as HTMLInputElement;
+    const form = container.querySelector("form") as HTMLFormElement;
+
+    await act(async () => {
+      email.value = "owner@pridmora.com";
+      password.value = "password123";
+      form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+      await Promise.resolve();
+    });
+
+    expect(platformOwner.isPlatformOwner).toHaveBeenCalled();
+    expect(navigation.replace).toHaveBeenCalledWith("/owner");
   });
 
   it("auth and marketing navigation links use the correct routes", async () => {

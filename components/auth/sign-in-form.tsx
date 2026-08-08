@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { AuthPasswordField, AuthTextField } from "@/components/auth/auth-fields";
+import { isPlatformOwner } from "@/lib/owner/platform-owner";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
 const REMEMBER_EMAIL_KEY = "pridmora.auth.rememberEmail";
@@ -53,7 +54,10 @@ export function SignInForm() {
       }
 
       const supabase = createBrowserSupabaseClient();
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
       if (signInError) {
         setError(
@@ -64,7 +68,18 @@ export function SignInForm() {
         return;
       }
 
-      router.replace(nextPath.startsWith("/") ? nextPath : "/");
+      const requested = nextPath.startsWith("/") ? nextPath : "/";
+      let destination = requested;
+      // Default home → Owner Console for platform owners (same check as /owner layout).
+      if (
+        data.user?.id &&
+        (requested === "/" || requested.startsWith("/?")) &&
+        (await isPlatformOwner(supabase, data.user.id))
+      ) {
+        destination = "/owner";
+      }
+
+      router.replace(destination);
       router.refresh();
     } catch {
       setError("Network error. Please check your connection and try again.");

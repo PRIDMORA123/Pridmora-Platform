@@ -55,13 +55,24 @@ describe("owner console routing contracts", () => {
     expect(sanitizeNextPath("/owner/organisations")).toBe("/owner/organisations");
     const signIn = read("components/auth/sign-in-form.tsx");
     expect(signIn).toContain('searchParams.get("next") || "/"');
-    expect(signIn).toContain("router.replace(nextPath.startsWith(\"/\") ? nextPath : \"/\")");
+    expect(signIn).toContain('destination = "/owner"');
+    expect(signIn).toContain("isPlatformOwner");
+  });
+
+  it("sign-in routes platform owners to /owner using the shared owner check", () => {
+    const signIn = read("components/auth/sign-in-form.tsx");
+    expect(signIn).toContain('from "@/lib/owner/platform-owner"');
+    expect(signIn).toContain("isPlatformOwner(supabase, data.user.id)");
+    expect(signIn).toContain('destination = "/owner"');
+    // Reuse — do not inline a second owner query in the form.
+    expect(signIn).not.toContain('from("platform_owners")');
+    expect(signIn).not.toContain('rpc("is_platform_owner"');
   });
 });
 
 describe("platform_owner with simultaneous Manager membership", () => {
   it("isPlatformOwner does not inspect organisation membership or professionalRole", () => {
-    const auth = read("lib/owner/auth.ts");
+    const auth = read("lib/owner/platform-owner.ts");
     expect(auth).toContain("Organisation Manager membership is never consulted");
     expect(auth).toContain("is_platform_owner");
     expect(auth).toContain("platform_owners");
@@ -69,6 +80,10 @@ describe("platform_owner with simultaneous Manager membership", () => {
     expect(auth).not.toContain("professionalRole");
     expect(auth).not.toContain("requireOrganisationContext");
     expect(auth).not.toContain("hasPermission");
+    // Server auth module reuses the shared helper — no duplicated query logic.
+    expect(read("lib/owner/auth.ts")).toContain(
+      'from "@/lib/owner/platform-owner"'
+    );
   });
 
   function mockSupabase(input: {
