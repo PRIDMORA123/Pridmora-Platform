@@ -4,6 +4,10 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { AuthTextField } from "@/components/auth/auth-fields";
+import {
+  buildPasswordRecoveryRedirectTo,
+  resolveAuthSiteOrigin,
+} from "@/lib/auth/recovery";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
 export function ForgotPasswordForm() {
@@ -23,10 +27,11 @@ export function ForgotPasswordForm() {
 
     try {
       const supabase = createBrowserSupabaseClient();
-      const origin = window.location.origin;
+      const siteOrigin = resolveAuthSiteOrigin(window.location.origin);
       // Always show the same success copy — do not reveal whether the email exists.
+      // redirectTo must keep next=/auth/reset-password so callback does not fall to `/`.
       await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${origin}/auth/callback?next=/auth/reset-password`,
+        redirectTo: buildPasswordRecoveryRedirectTo(siteOrigin),
       });
 
       setStatus("sent");

@@ -6,6 +6,11 @@ import {
   sanitizeNextPath,
   userFacingAuthErrorMessage,
 } from "@/lib/auth/email-link";
+import {
+  buildPasswordRecoveryRedirectTo,
+  resolveAuthCallbackNext,
+  resolveAuthSiteOrigin,
+} from "@/lib/auth/recovery";
 
 describe("sanitizeNextPath", () => {
   it("allows safe relative paths", () => {
@@ -103,5 +108,55 @@ describe("auth error categorization and logging", () => {
     expect(userFacingAuthErrorMessage("expired_or_invalid")).toContain("expired");
     expect(userFacingAuthErrorMessage("missing_token_hash")).toContain("incomplete");
     expect(userFacingAuthErrorMessage("disallowed_type")).toContain("not valid");
+  });
+});
+
+describe("password recovery redirect helpers", () => {
+  const originalSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+
+  afterEach(() => {
+    if (originalSiteUrl === undefined) {
+      delete process.env.NEXT_PUBLIC_SITE_URL;
+    } else {
+      process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
+    }
+  });
+
+  it("builds a callback redirectTo that preserves reset-password next", () => {
+    expect(buildPasswordRecoveryRedirectTo("https://platform.pridmora.com")).toBe(
+      "https://platform.pridmora.com/auth/callback?next=%2Fauth%2Freset-password"
+    );
+    expect(buildPasswordRecoveryRedirectTo("https://platform.pridmora.com/")).toBe(
+      "https://platform.pridmora.com/auth/callback?next=%2Fauth%2Freset-password"
+    );
+  });
+
+  it("prefers NEXT_PUBLIC_SITE_URL for recovery email redirects", () => {
+    process.env.NEXT_PUBLIC_SITE_URL = "https://platform.pridmora.com/";
+    expect(resolveAuthSiteOrigin("http://localhost:3000")).toBe(
+      "https://platform.pridmora.com"
+    );
+  });
+
+  it("resolves recovery callback next away from the marketing homepage", () => {
+    expect(
+      resolveAuthCallbackNext({ next: null, type: "recovery" })
+    ).toBe("/auth/reset-password");
+    expect(
+      resolveAuthCallbackNext({ next: "/", type: "recovery" })
+    ).toBe("/auth/reset-password");
+    expect(
+      resolveAuthCallbackNext({ next: "/?view=dashboard", type: "recovery" })
+    ).toBe("/auth/reset-password");
+    expect(
+      resolveAuthCallbackNext({
+        next: "/auth/reset-password",
+        type: "recovery",
+      })
+    ).toBe("/auth/reset-password");
+    expect(resolveAuthCallbackNext({ next: null, type: null })).toBe("/");
+    expect(
+      resolveAuthCallbackNext({ next: "https://evil.example", type: "recovery" })
+    ).toBe("/auth/reset-password");
   });
 });

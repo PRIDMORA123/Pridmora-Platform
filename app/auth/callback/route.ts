@@ -1,9 +1,9 @@
 import {
   categorizeAuthError,
   logAuthRouteEvent,
-  sanitizeNextPath,
   userFacingAuthErrorMessage,
 } from "@/lib/auth/email-link";
+import { resolveAuthCallbackNext } from "@/lib/auth/recovery";
 import {
   authErrorRedirect,
   authSuccessRedirect,
@@ -15,7 +15,11 @@ export const runtime = "nodejs";
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const next = sanitizeNextPath(requestUrl.searchParams.get("next"), "/");
+  const type = requestUrl.searchParams.get("type");
+  const next = resolveAuthCallbackNext({
+    next: requestUrl.searchParams.get("next"),
+    type,
+  });
   const errorDescription = requestUrl.searchParams.get("error_description");
   const errorCode = requestUrl.searchParams.get("error");
 

@@ -25,6 +25,7 @@ const supabaseAuth = vi.hoisted(() => ({
   getSession: vi.fn(),
   getUser: vi.fn(),
   signOut: vi.fn(),
+  onAuthStateChange: vi.fn(),
 }));
 
 vi.mock("next/link", () => ({
@@ -85,6 +86,10 @@ beforeEach(() => {
   supabaseAuth.getSession.mockResolvedValue({ data: { session: null }, error: null });
   supabaseAuth.getUser.mockResolvedValue({ data: { user: null }, error: null });
   supabaseAuth.signOut.mockResolvedValue({ error: null });
+  supabaseAuth.onAuthStateChange.mockReset();
+  supabaseAuth.onAuthStateChange.mockReturnValue({
+    data: { subscription: { unsubscribe: vi.fn() } },
+  });
   window.localStorage.clear();
 });
 
@@ -271,6 +276,29 @@ describe("auth layout replacement", () => {
     expect(container.textContent).toContain("secure reset link");
     expect(container.querySelector('button[type="submit"]')?.textContent).toContain(
       "Send reset link"
+    );
+  });
+
+  it("forgot password sends recovery redirectTo through auth callback to reset-password", async () => {
+    supabaseAuth.resetPasswordForEmail.mockResolvedValue({ data: {}, error: null });
+    const { ForgotPasswordForm } = await import(
+      "@/components/auth/forgot-password-form"
+    );
+    const container = await renderView(<ForgotPasswordForm />);
+    const form = container.querySelector("form") as HTMLFormElement;
+    const email = container.querySelector('input[name="email"]') as HTMLInputElement;
+
+    await act(async () => {
+      email.value = "coach@example.com";
+      form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+      await Promise.resolve();
+    });
+
+    expect(supabaseAuth.resetPasswordForEmail).toHaveBeenCalledWith(
+      "coach@example.com",
+      {
+        redirectTo: `${window.location.origin}/auth/callback?next=%2Fauth%2Freset-password`,
+      }
     );
   });
 

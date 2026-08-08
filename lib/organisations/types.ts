@@ -71,6 +71,7 @@ export const LICENCE_STATUSES = [
   "trial",
   "expired",
   "suspended",
+  "cancelled",
 ] as const;
 
 export type LicenceStatus = (typeof LICENCE_STATUSES)[number];
@@ -219,4 +220,5 @@ export const LICENCE_STATUS_LABELS: Record<LicenceStatus, string> = {
   trial: "Trial",
   expired: "Expired",
   suspended: "Suspended",
+  cancelled: "Cancelled",
 };

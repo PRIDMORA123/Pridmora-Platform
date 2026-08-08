@@ -222,6 +222,36 @@ describe("auth callback route (PKCE)", () => {
     });
   });
 
+  it("routes recovery callbacks to reset-password when next is missing", async () => {
+    authMocks.exchangeCodeForSession.mockResolvedValue({ data: { session: {} }, error: null });
+    const GET = await getCallback();
+
+    const response = await GET(
+      new Request(
+        "https://platform.pridmora.com/auth/callback?code=pkce-code&type=recovery"
+      )
+    );
+
+    expect(response.headers.get("location")).toBe(
+      "https://platform.pridmora.com/auth/reset-password"
+    );
+  });
+
+  it("does not send recovery callbacks to the marketing homepage", async () => {
+    authMocks.exchangeCodeForSession.mockResolvedValue({ data: { session: {} }, error: null });
+    const GET = await getCallback();
+
+    const response = await GET(
+      new Request(
+        "https://platform.pridmora.com/auth/callback?code=pkce-code&type=recovery&next=/"
+      )
+    );
+
+    expect(response.headers.get("location")).toBe(
+      "https://platform.pridmora.com/auth/reset-password"
+    );
+  });
+
   it("logs PKCE verifier failures without leaking secrets", async () => {
     authMocks.exchangeCodeForSession.mockResolvedValue({
       data: { session: null },

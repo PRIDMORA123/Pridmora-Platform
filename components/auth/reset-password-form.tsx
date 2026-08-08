@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { AuthPasswordField } from "@/components/auth/auth-fields";
+import { PASSWORD_RESET_PATH } from "@/lib/auth/recovery";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
 export function ResetPasswordForm() {
@@ -17,10 +18,49 @@ export function ResetPasswordForm() {
 
   useEffect(() => {
     let cancelled = false;
+    let unsubscribe: (() => void) | undefined;
 
     async function verifySession() {
       try {
+        const search = new URLSearchParams(window.location.search);
+        const code = search.get("code");
+        const type = search.get("type");
+        const tokenHash = search.get("token_hash");
+
+        // If the recovery email redirected straight here with a PKCE code,
+        // complete exchange via the server callback (sets cookies correctly).
+        if (code) {
+          const callback = new URL("/auth/callback", window.location.origin);
+          callback.searchParams.set("code", code);
+          callback.searchParams.set("next", PASSWORD_RESET_PATH);
+          if (type) callback.searchParams.set("type", type);
+          else callback.searchParams.set("type", "recovery");
+          window.location.replace(callback.toString());
+          return;
+        }
+
+        // Token-hash recovery links should complete via /auth/confirm.
+        if (tokenHash && type === "recovery") {
+          const confirm = new URL("/auth/confirm", window.location.origin);
+          confirm.searchParams.set("token_hash", tokenHash);
+          confirm.searchParams.set("type", "recovery");
+          confirm.searchParams.set("next", PASSWORD_RESET_PATH);
+          window.location.replace(confirm.toString());
+          return;
+        }
+
         const supabase = createBrowserSupabaseClient();
+        const {
+          data: { subscription },
+        } = supabase.auth.onAuthStateChange(event => {
+          if (cancelled) return;
+          if (event === "PASSWORD_RECOVERY") {
+            setExpired(false);
+            setReady(true);
+          }
+        });
+        unsubscribe = () => subscription.unsubscribe();
+
         const { data, error: userError } = await supabase.auth.getUser();
         if (cancelled) return;
 
@@ -42,6 +82,7 @@ export function ResetPasswordForm() {
     void verifySession();
     return () => {
       cancelled = true;
+      unsubscribe?.();
     };
   }, []);
 

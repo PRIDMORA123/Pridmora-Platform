@@ -13,8 +13,16 @@ const PUBLIC_PATHS = [
   "/auth/error",
 ];
 
+/**
+ * Public marketing/auth paths only.
+ * /owner and /organisation are intentionally NOT public and must not be
+ * rewritten into the Manager workspace (`/`).
+ */
 function isPublicPath(pathname: string): boolean {
-  return PUBLIC_PATHS.some(path => pathname === path || pathname.startsWith(`${path}/`));
+  if (pathname === "/") return true;
+  return PUBLIC_PATHS.filter(path => path !== "/").some(
+    path => pathname === path || pathname.startsWith(`${path}/`)
+  );
 }
 
 function isAuthFlowPath(pathname: string): boolean {
