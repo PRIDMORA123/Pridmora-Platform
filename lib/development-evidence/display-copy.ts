@@ -19,21 +19,42 @@ export function limitToOneSentence(text: string): string {
   return limitSentences(text, 1);
 }
 
-/** Build a person-first overview summary from approved development signals. */
+/**
+ * Person-centred overview: who this person is as a manager/professional,
+ * not a paraphrase of the latest conversation event.
+ */
 export function buildPersonSummary(input: {
   name: string;
   currentPosition?: string | null;
   strengths?: string[];
   priorities?: string[];
   direction?: string | null;
+  completedConversationCount?: number;
 }): string {
   const firstName = input.name.trim().split(/\s+/)[0] || "This person";
+  const count = input.completedConversationCount ?? 0;
+  const opener =
+    count >= 4
+      ? `Across the development history, a consistent picture of ${firstName} is emerging.`
+      : count >= 2
+        ? `Evidence from recent conversations indicates how ${firstName} is developing as a manager.`
+        : `Current evidence suggests how ${firstName} is approaching their management role.`;
+
   const position = limitSentences(
     input.currentPosition?.trim() ||
       input.direction?.trim() ||
-      `${firstName} is in an active development relationship.`,
+      `${firstName} is building capability through an active development relationship.`,
     2
   );
+
+  // Avoid simply restating the opener if the position already starts similarly.
+  const positionLine =
+    position.toLowerCase().includes(firstName.toLowerCase()) ||
+    position.toLowerCase().startsWith("current evidence") ||
+    position.toLowerCase().startsWith("evidence from")
+      ? position
+      : position;
+
   const strengths = (input.strengths ?? [])
     .map(item => item.trim())
     .filter(Boolean)
@@ -45,21 +66,23 @@ export function buildPersonSummary(input: {
 
   const strengthLine =
     strengths.length > 0
-      ? `Strengths currently evidenced include ${joinUk(strengths)}.`
+      ? `Notable strengths include ${joinUk(strengths)}.`
       : "";
   const priorityLine =
     priorities.length > 0
-      ? `Current development priorities include ${joinUk(priorities)}.`
+      ? `Development attention is currently useful around ${joinUk(priorities)}.`
       : "";
-  const directionLine = input.direction?.trim()
-    ? limitSentences(input.direction.trim(), 1)
-    : "";
 
-  return [position, strengthLine, priorityLine, directionLine]
+  const text = [opener, positionLine, strengthLine, priorityLine]
     .filter(Boolean)
     .join(" ")
-    .trim()
-    .slice(0, 900);
+    .replace(/\s+/g, " ")
+    .trim();
+
+  // Soft word budget ~100–120 words.
+  const words = text.split(/\s+/);
+  if (words.length <= 120) return text;
+  return `${words.slice(0, 120).join(" ").replace(/[,:;]?$/, "")}.`;
 }
 
 function joinUk(parts: string[]): string {

@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { ActionsWorkspace } from "@/components/actions/actions-workspace";
 import type { CoachingAction, Session } from "@/lib/types";
 import { formatSessionDateLabel } from "@/lib/session/session-display";
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import type { ProfessionalRole } from "@/lib/organisations/types";
 
 export type SessionNextStepsProps = {
   clientName: string;
@@ -14,6 +16,7 @@ export type SessionNextStepsProps = {
   readOnly?: boolean;
   /** When true, stage orientation is rendered by the page chrome. */
   hideStageHeader?: boolean;
+  productRole?: ProfessionalRole | null;
   onSaveAction: (action: CoachingAction & { clientId: string }) => Promise<CoachingAction>;
   onCompleteSession?: () => void;
   onScheduleNext?: () => void;
@@ -22,14 +25,31 @@ export type SessionNextStepsProps = {
 
 type CommitmentSource = "coach recorded" | "AI suggested" | "coach confirmed";
 
-function commitmentMetadataLabel(source: CommitmentSource): string {
+function commitmentSectionTitle(input: {
+  allCoachConfirmed: boolean;
+  isManager: boolean;
+}): string {
+  if (input.isManager) {
+    return input.allCoachConfirmed
+      ? "Manager-confirmed commitments"
+      : "Agreed commitments";
+  }
+  return input.allCoachConfirmed
+    ? "Coach-confirmed commitments"
+    : "Agreed client commitments";
+}
+
+function commitmentMetadataLabel(
+  source: CommitmentSource,
+  isManager: boolean
+): string {
   switch (source) {
     case "coach confirmed":
-      return "Confirmed by coach";
+      return isManager ? "Confirmed by manager" : "Confirmed by coach";
     case "AI suggested":
       return "AI suggested";
     case "coach recorded":
-      return "Recorded by coach";
+      return isManager ? "Recorded by manager" : "Recorded by coach";
   }
 }
 
@@ -66,12 +86,16 @@ export function SessionNextSteps({
   nextSessionDate,
   readOnly = false,
   hideStageHeader = false,
+  productRole,
   onSaveAction,
   onCompleteSession,
   onScheduleNext,
   onReturnToJourney,
 }: SessionNextStepsProps) {
   const [noNextSteps, setNoNextSteps] = useState(false);
+  const organisation = useOrganisation();
+  const resolvedRole = productRole ?? organisation?.professionalRole ?? null;
+  const isManager = resolvedRole === "manager";
 
   const suggestedFocus = session.suggestedFocus.trim();
   const suggestedFocusItems = useMemo(
@@ -112,6 +136,15 @@ export function SessionNextSteps({
     commitmentLines.length > 0 &&
     commitmentLines.every(item => item.source === "coach confirmed");
 
+  const openActions = actions.filter(action => action.status !== "Complete");
+  const sessionOnlyCommitments =
+    openActions.length === 0 && commitmentLines.length > 0;
+
+  const commitmentsHeading = commitmentSectionTitle({
+    allCoachConfirmed,
+    isManager,
+  });
+
   const nextDateLabel = nextSessionDate?.trim()
     ? formatSessionDateLabel(nextSessionDate)
     : "Not scheduled";
@@ -133,11 +166,7 @@ export function SessionNextSteps({
 
       <div className="identity-page-flow">
         <section className="identity-session-surface session-next-steps__card">
-          <h3>
-            {allCoachConfirmed
-              ? "Coach-confirmed commitments"
-              : "Agreed client commitments"}
-          </h3>
+          <h3>{commitmentsHeading}</h3>
           {commitmentLines.length === 0 ? (
             <p className="session-next-steps__empty">
               {noNextSteps
@@ -145,18 +174,26 @@ export function SessionNextSteps({
                 : "No open commitments yet."}
             </p>
           ) : (
-            <ul className="session-next-steps__list">
-              {commitmentLines.map(item => (
-                <li key={item.id}>
-                  <span>{item.text}</span>
-                  {!allCoachConfirmed ? (
-                    <small className="session-next-steps__meta">
-                      {commitmentMetadataLabel(item.source)}
-                    </small>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul className="session-next-steps__list">
+                {commitmentLines.map(item => (
+                  <li key={item.id}>
+                    <span>{item.text}</span>
+                    {!allCoachConfirmed ? (
+                      <small className="session-next-steps__meta">
+                        {commitmentMetadataLabel(item.source, isManager)}
+                      </small>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+              {sessionOnlyCommitments ? (
+                <p className="session-next-steps__sync-note organisation-muted">
+                  These commitments are agreed and will be tracked. They will
+                  appear in Open Commitments once recorded as actions.
+                </p>
+              ) : null}
+            </>
           )}
 
           <label className="session-next-steps__check">
@@ -208,6 +245,7 @@ export function SessionNextSteps({
             readOnly={readOnly}
             onSaveAction={onSaveAction}
             embedded
+            suppressOpenEmptyState={sessionOnlyCommitments}
           />
         </div>
 

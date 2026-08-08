@@ -37,6 +37,10 @@ export { PriorityRelationshipRow } from "@/components/identity/priority-relation
 export { ConversationWorkspaceRow } from "@/components/identity/conversation-workspace-row";
 export { WorkspaceIntroduction } from "@/components/identity/workspace-introduction";
 export { IdentityBackLink } from "@/components/identity/back-link";
+export {
+  PersonFlowBreadcrumb,
+  PersonFlowBackLink,
+} from "@/components/identity/person-flow-nav";
 export { PremiumWorkspaceHeader } from "@/components/identity/premium-workspace-header";
 export { NextBestAction, NextBestActionUpToDate } from "@/components/identity/next-best-action";
 export { CoachingPracticeOverview } from "@/components/identity/coaching-practice-overview";

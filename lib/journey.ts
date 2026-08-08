@@ -1,6 +1,7 @@
 import type { Client, CoachingAction, Session } from "@/lib/types";
 import { recurringThemesFromSessions, type ThemeFrequency } from "@/lib/prepare-session";
 import { sessionsChronological } from "@/lib/sessions";
+import { prepareVisibleText } from "@/lib/visible-text";
 
 export type JourneyEvidenceItem = {
   label: string;
@@ -270,23 +271,22 @@ function openCommitmentsFromSessions(
  * Always prefixed with "Possible observation:" — never presented as facts.
  */
 function coachInsightsFromSessions(sessions: Session[]): JourneyInsight[] {
-  return [...sessions]
-    .reverse()
-    .filter(session => session.coachReflection.trim())
-    .slice(0, 3)
-    .map(session => {
-      const raw = session.coachReflection.trim();
-      const text = raw.startsWith(POSSIBLE_OBSERVATION_PREFIX)
-        ? raw
-        : `${POSSIBLE_OBSERVATION_PREFIX}\n${raw}`;
-
-      return {
-        id: `${session.id}-insight`,
-        text,
-        sessionNumber: session.sessionNumber,
-        date: session.date.trim() || undefined,
-      };
+  const insights: JourneyInsight[] = [];
+  for (const session of [...sessions].reverse()) {
+    const raw = prepareVisibleText(session.coachReflection);
+    if (!raw) continue;
+    const text = raw.startsWith(POSSIBLE_OBSERVATION_PREFIX)
+      ? raw
+      : `${POSSIBLE_OBSERVATION_PREFIX}\n${raw}`;
+    insights.push({
+      id: `${session.id}-insight`,
+      text,
+      sessionNumber: session.sessionNumber,
+      date: session.date.trim() || undefined,
     });
+    if (insights.length >= 3) break;
+  }
+  return insights;
 }
 
 /**

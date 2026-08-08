@@ -255,80 +255,88 @@ export function SessionDebriefForm({
         <p className="session-debrief-form__lead">
           What changed or mattered?
         </p>
+        <p className="session-debrief-form__hint session-debrief-form__hint--lead">
+          Capture only what matters. You do not need a transcript.
+        </p>
         <label className="session-debrief-form__field">
           <span className="session-debrief-form__label">What changed or mattered</span>
           <textarea
             className="session-debrief-form__textarea session-debrief-form__textarea--stood-out"
-            rows={5}
+            rows={6}
             disabled={busy}
             value={values.narrative}
             onChange={event => updateField("narrative", event.target.value)}
-            placeholder="Add only what matters. Existing notes remain available."
+            placeholder="What shifted, surprised you, or is worth carrying forward…"
           />
         </label>
 
-        <label className="session-debrief-form__field session-debrief-form__field--commitment">
-          <span className="session-debrief-form__label">Actions / commitments</span>
-          <span className="session-debrief-form__hint">
-            Record any specific action or commitment agreed to carry forward.
-          </span>
-          <textarea
-            className="session-debrief-form__textarea session-debrief-form__textarea--agreed"
-            rows={4}
-            disabled={busy || values.noCommitmentAgreed}
-            value={values.commitment}
-            onChange={event => updateField("commitment", event.target.value)}
-            placeholder="What the client agreed to do…"
-          />
-        </label>
+        <details className="session-debrief-form__optional">
+          <summary>Optional notes</summary>
+          <div className="session-debrief-form__optional-body">
+            <label className="session-debrief-form__field session-debrief-form__field--commitment">
+              <span className="session-debrief-form__label">Actions / commitments</span>
+              <span className="session-debrief-form__hint">
+                Record any specific action or commitment agreed to carry forward.
+              </span>
+              <textarea
+                className="session-debrief-form__textarea session-debrief-form__textarea--agreed"
+                rows={4}
+                disabled={busy || values.noCommitmentAgreed}
+                value={values.commitment}
+                onChange={event => updateField("commitment", event.target.value)}
+                placeholder="What the client agreed to do…"
+              />
+            </label>
 
-        <label className="session-debrief-form__check">
-          <input
-            type="checkbox"
-            checked={values.noCommitmentAgreed}
-            disabled={busy}
-            onChange={event => {
-              const checked = event.target.checked;
-              if (checked && values.commitment.trim()) {
-                const confirmed = window.confirm(
-                  "Clear the commitment text? No commitment record will be created."
-                );
-                if (!confirmed) return;
-                updateField("commitment", "");
-              }
-              updateField("noCommitmentAgreed", checked);
-            }}
-          />
-          <span>No commitment was agreed</span>
-        </label>
+            <label className="session-debrief-form__check">
+              <input
+                type="checkbox"
+                checked={values.noCommitmentAgreed}
+                disabled={busy}
+                onChange={event => {
+                  const checked = event.target.checked;
+                  if (checked && values.commitment.trim()) {
+                    const confirmed = window.confirm(
+                      "Clear the commitment text? No commitment record will be created."
+                    );
+                    if (!confirmed) return;
+                    updateField("commitment", "");
+                  }
+                  updateField("noCommitmentAgreed", checked);
+                }}
+              />
+              <span>No commitment was agreed</span>
+            </label>
 
-        <label className="session-debrief-form__field is-private">
-          <span className="session-debrief-form__label">Private reflection</span>
-          <textarea
-            className="session-debrief-form__textarea session-debrief-form__textarea--private"
-            rows={4}
-            disabled={busy}
-            value={values.privateReminder}
-            onChange={event =>
-              updateField("privateReminder", event.target.value)
-            }
-            placeholder="Visible only to you…"
-          />
-        </label>
+            <label className="session-debrief-form__field is-private">
+              <span className="session-debrief-form__label">Private reflection</span>
+              <textarea
+                className="session-debrief-form__textarea session-debrief-form__textarea--private"
+                rows={4}
+                disabled={busy}
+                value={values.privateReminder}
+                onChange={event =>
+                  updateField("privateReminder", event.target.value)
+                }
+                placeholder="Visible only to you…"
+              />
+            </label>
 
-        <label className="session-debrief-form__field">
-          <span className="session-debrief-form__label">
-            Follow-up, optional
-          </span>
-          <textarea
-            className="session-debrief-form__textarea session-debrief-form__textarea--follow-up"
-            rows={3}
-            disabled={busy}
-            value={values.followUp}
-            onChange={event => updateField("followUp", event.target.value)}
-            placeholder="Anything to carry into the next conversation…"
-          />
-        </label>
+            <label className="session-debrief-form__field">
+              <span className="session-debrief-form__label">
+                Follow-up, optional
+              </span>
+              <textarea
+                className="session-debrief-form__textarea session-debrief-form__textarea--follow-up"
+                rows={3}
+                disabled={busy}
+                value={values.followUp}
+                onChange={event => updateField("followUp", event.target.value)}
+                placeholder="Anything to carry into the next conversation…"
+              />
+            </label>
+          </div>
+        </details>
       </div>
 
       <JourneyNextStep

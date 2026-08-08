@@ -58,6 +58,19 @@ function joinQuestions(questions: string[]): string {
   return questions.map(item => item.trim()).filter(Boolean).join("\n\n");
 }
 
+function preparationValuesEqual(
+  a: PreparationFormValues,
+  b: PreparationFormValues
+): boolean {
+  return (
+    a.purpose === b.purpose &&
+    a.topics === b.topics &&
+    a.questions === b.questions &&
+    a.desiredOutcome === b.desiredOutcome &&
+    a.privateNotes === b.privateNotes
+  );
+}
+
 function looksLikeQuestion(value: string): boolean {
   const cleaned = value.trim();
   return (
@@ -316,6 +329,8 @@ export function PreparationForm({
   const [values, setValues] = useState<PreparationFormValues>(() =>
     sanitisePreparationFormValues(normalisePreparation(initialPreparation))
   );
+  const [saveError, setSaveError] = useState("");
+  const [statusNotice, setStatusNotice] = useState("");
   const { feedback, isLoading, runAction, markUnsaved, reset } =
     useActionFeedback();
   const { showToast } = useToast();
@@ -329,11 +344,19 @@ export function PreparationForm({
     initialPreparation.focus,
   ].join("\u0001");
 
+  const initialValues = useMemo(
+    () =>
+      sanitisePreparationFormValues(normalisePreparation(initialPreparation)),
+    [preparationSeedKey, initialPreparation]
+  );
+
   useEffect(() => {
     setValues(
       sanitisePreparationFormValues(normalisePreparation(initialPreparation))
     );
     reset();
+    setSaveError("");
+    setStatusNotice("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preparationSeedKey]);
 
@@ -365,16 +388,34 @@ export function PreparationForm({
     setValues(next);
     onValuesChange?.(next);
     markUnsaved();
+    setSaveError("");
+    setStatusNotice("");
   }
 
   async function savePreparation() {
     if (isLoading) return;
+
+    if (preparationValuesEqual(values, initialValues)) {
+      reset();
+      setSaveError("");
+      setStatusNotice("No preparation changes to save.");
+      window.setTimeout(() => {
+        setStatusNotice(current =>
+          current === "No preparation changes to save." ? "" : current
+        );
+      }, 4000);
+      return;
+    }
+
+    setStatusNotice("");
+    setSaveError("");
 
     await runAction(() => onSave(values), {
       loadingMessage: "Saving preparation…",
       successMessage: "All changes saved",
       errorMessage: "Unable to save preparation",
       onSuccess: () => {
+        setSaveError("");
         showToast({
           type: "success",
           title: "Preparation saved",
@@ -382,11 +423,16 @@ export function PreparationForm({
       },
       onError: error => {
         console.error("Save preparation failed", error);
+        const message =
+          error instanceof Error && error.message.trim()
+            ? error.message
+            : "Preparation could not be saved. Your changes remain on screen. Please try again.";
+        setSaveError(message);
         showToast({
           type: "error",
           title: "Preparation could not be saved",
-          description: "Your changes remain on screen. Please try again.",
-          durationMs: 5000,
+          description: message,
+          durationMs: 8000,
         });
       },
     });
@@ -421,6 +467,12 @@ export function PreparationForm({
 
           <div className="prepare-coach-card__save">
             <SaveStatus feedback={feedback} />
+            {statusNotice ? (
+              <span className="identity-save-status is-success" role="status">
+                <span className="identity-save-status-mark" aria-hidden="true" />
+                <span>{statusNotice}</span>
+              </span>
+            ) : null}
             <ActionButton
               variant="primary"
               status={toActionButtonStatus(feedback.status)}
@@ -440,6 +492,19 @@ export function PreparationForm({
           <p className="prepare-insert-notice" role="status" aria-live="polite">
             {insertedNotice}
           </p>
+        ) : null}
+
+        {saveError ? (
+          <div className="session-debrief-form__error-block" role="alert">
+            <p className="report-inline-error">{saveError}</p>
+            <button
+              type="button"
+              className="identity-text-action"
+              onClick={() => setSaveError("")}
+            >
+              Dismiss
+            </button>
+          </div>
         ) : null}
 
         <PrepareFormSection

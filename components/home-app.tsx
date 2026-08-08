@@ -1347,6 +1347,7 @@ export function HomeApp() {
                   setFocusSessionStage(null);
                   navigate("coach-space");
                 }}
+                onBackToPeople={() => navigate("people")}
                 onSaveSession={async session => saveSession(session)}
                 onStartSession={async session => {
                   const now = new Date().toISOString();
@@ -1452,6 +1453,7 @@ export function HomeApp() {
                   setFocusSessionStage(null);
                   navigate("coach-space");
                 }}
+                onBackToPeople={() => navigate("people")}
                 onReturnOverview={() => {
                   setSessionFlash("");
                   setFocusSessionStage(null);
@@ -1549,6 +1551,18 @@ export function HomeApp() {
               onBack={() => {
                 setFocusUpdateId(null);
                 navigate(selected ? "intelligence" : "global-intelligence");
+              }}
+              onBackToPerson={
+                selected
+                  ? () => {
+                      setFocusUpdateId(null);
+                      navigate("coach-space");
+                    }
+                  : undefined
+              }
+              onBackToPeople={() => {
+                setFocusUpdateId(null);
+                navigate("people");
               }}
               onApplied={() => {
                 void refreshClients();

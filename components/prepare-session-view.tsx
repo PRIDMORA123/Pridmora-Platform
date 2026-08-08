@@ -8,7 +8,7 @@ import { apiJson, AuthRequiredError, serialiseError } from "@/lib/api-client";
 import { buildPreparationText } from "@/lib/session-workflow";
 import type { ClientWorkspaceTab } from "@/components/client-workspace-tabs";
 import { PreparationApproachDrawer } from "@/components/preparation-approach-drawer";
-import { IdentityBackLink } from "@/components/identity";
+import { PersonFlowBackLink, PersonFlowBreadcrumb } from "@/components/identity";
 import { coachingStatusLabel } from "@/lib/identity-journey-path";
 import { JourneyStagePage } from "@/components/coaching-journey/journey-stage-page";
 import { RelationshipIdentityBar } from "@/components/coaching-journey/relationship-identity-bar";
@@ -115,6 +115,7 @@ export function PrepareSessionView({
   coachPreparationStyle = "guided",
   coachIntelligenceMode,
   onBack,
+  onBackToPeople,
   onSaveSession,
   onStartSession,
   onClientUpdated,
@@ -126,6 +127,7 @@ export function PrepareSessionView({
   coachPreparationStyle?: PreparationStyle;
   coachIntelligenceMode?: CoachingIntelligenceMode;
   onBack: () => void;
+  onBackToPeople?: () => void;
   onSaveSession: (session: Session) => Promise<Session | void>;
   onStartSession: (session: Session) => Promise<void>;
   onClientUpdated?: (client: Client) => void;
@@ -581,6 +583,13 @@ export function PrepareSessionView({
       setGeneratedAt(saved.prepAiBriefGeneratedAt);
       setSourceFingerprint(saved.prepAiBriefSourceFingerprint);
       setConfirmedAt(saved.prepAiBriefConfirmedAt);
+    } catch (err) {
+      const message =
+        err instanceof Error && err.message.trim()
+          ? err.message
+          : "Preparation could not be saved. Your changes remain on screen.";
+      setError(message);
+      throw err;
     } finally {
       setIsSaving(false);
     }
@@ -756,19 +765,28 @@ export function PrepareSessionView({
     sessionNumber: draft.sessionNumber,
   });
 
+  const personName = getRelationshipDisplayName(client);
+
+  const handleBackToPerson = () => {
+    if (confirmLeave()) onBack();
+  };
+
   return (
     <JourneyStagePage
       className="prepare-page"
       back={
-        <IdentityBackLink
-          onClick={() => {
-            if (confirmLeave()) onBack();
-          }}
-        >
-          {`Back to Session ${draft.sessionNumber}`}
-        </IdentityBackLink>
+        <PersonFlowBackLink personName={personName} onBack={handleBackToPerson} />
       }
-      navigation={null}
+      navigation={
+        <PersonFlowBreadcrumb
+          personName={personName}
+          stageLabel="Prepare"
+          onBackToPeople={() => {
+            if (confirmLeave()) (onBackToPeople ?? onBack)();
+          }}
+          onBackToPerson={handleBackToPerson}
+        />
+      }
       banners={
         archived ? (
           <div className="banner warning" role="status">
@@ -861,7 +879,7 @@ export function PrepareSessionView({
           insertedNotice={insertedNotice}
           changeApproachButtonRef={changeApproachButtonRef}
           startBusy={startBusy || isSaving}
-          secondaryActionLabel={`Return to relationship`}
+          secondaryActionLabel={`Return to ${personName}`}
           onSecondaryAction={() => {
             if (confirmLeave()) onBack();
           }}

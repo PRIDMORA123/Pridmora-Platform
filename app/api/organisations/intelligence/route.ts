@@ -10,6 +10,8 @@ import {
   parsePeriodPreset,
   PRIVACY_NOTE,
   resolveOrganisationIntelligencePeriod,
+  fetchOrganisationIntelligenceSources,
+  hasEnoughEvidenceForOrganisationView,
 } from "@/lib/organisation-intelligence";
 
 export const runtime = "nodejs";
@@ -29,6 +31,13 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const snapshotId = url.searchParams.get("snapshotId");
   const preset = parsePeriodPreset(url.searchParams.get("period"));
+  const periodStart = url.searchParams.get("periodStart") ?? undefined;
+  const periodEnd = url.searchParams.get("periodEnd") ?? undefined;
+  const resolvedPeriod = resolveOrganisationIntelligencePeriod({
+    preset: preset ?? "last_90_days",
+    periodStart,
+    periodEnd,
+  });
 
   try {
     const [snapshot, history] = await Promise.all([
@@ -43,6 +52,29 @@ export async function GET(request: Request) {
         organisationId,
       }),
     ]);
+
+    let evidenceIndicators: {
+      contributingRelationships: number;
+      conversations: number;
+      readyToGenerate: boolean;
+    } | null = null;
+
+    if (!snapshot) {
+      try {
+        const aggregates = await fetchOrganisationIntelligenceSources(
+          auth.context.supabase,
+          organisationId,
+          resolvedPeriod
+        );
+        evidenceIndicators = {
+          contributingRelationships: aggregates.contributingRelationships,
+          conversations: aggregates.conversations,
+          readyToGenerate: hasEnoughEvidenceForOrganisationView(aggregates),
+        };
+      } catch {
+        evidenceIndicators = null;
+      }
+    }
 
     await writeOrganisationAudit({
       supabase: auth.context.supabase,
@@ -60,8 +92,11 @@ export async function GET(request: Request) {
     return NextResponse.json({
       snapshot,
       history,
+      evidenceIndicators,
       defaultPeriod: resolveOrganisationIntelligencePeriod({
         preset: preset ?? "last_90_days",
+        periodStart,
+        periodEnd,
       }),
       privacyNote: PRIVACY_NOTE,
       confidentialityNote:

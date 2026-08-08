@@ -56,6 +56,10 @@ describe("SessionDebriefForm capture outcome polish", () => {
     );
 
     expect(container.textContent).toContain("What changed or mattered");
+    expect(container.textContent).toContain(
+      "Capture only what matters. You do not need a transcript."
+    );
+    expect(container.textContent).toContain("Optional notes");
     expect(container.textContent).toContain("Actions / commitments");
     expect(container.textContent).toContain("Private reflection");
     expect(container.textContent).toContain("Follow-up, optional");
@@ -67,6 +71,7 @@ describe("SessionDebriefForm capture outcome polish", () => {
       container.querySelector(".session-debrief-form__field--commitment")
     ).toBeTruthy();
     expect(container.textContent).toContain("No commitment was agreed");
+    expect(container.querySelector(".session-debrief-form__optional")).toBeTruthy();
 
     root.unmount();
     container.remove();

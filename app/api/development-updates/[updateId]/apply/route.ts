@@ -6,6 +6,8 @@ import {
   getDevelopmentProfileForClient,
   getDevelopmentUpdateById,
 } from "@/lib/development-updates/repository";
+import { syncCommitmentActionsAfterApply } from "@/lib/development-updates/sync-commitment-actions";
+import { effectiveChanges } from "@/lib/development-updates/types";
 
 type Params = { params: Promise<{ updateId: string }> };
 
@@ -25,7 +27,19 @@ export async function POST(_request: Request, { params }: Params) {
       return NextResponse.json({ error: "Development update not found." }, { status: 404 });
     }
 
+    const changesToApply = effectiveChanges(existing);
     const result = await applyDevelopmentUpdateRpc(auth.context.supabase, updateId);
+
+    if (!result.alreadyApplied) {
+      await syncCommitmentActionsAfterApply(
+        auth.context.supabase,
+        auth.context.coachId,
+        existing.clientId,
+        existing.sessionId,
+        changesToApply
+      );
+    }
+
     const update = await getDevelopmentUpdateById(
       auth.context.supabase,
       auth.context.user.id,

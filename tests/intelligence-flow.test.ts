@@ -285,7 +285,7 @@ describe("product naming and homepage routes", () => {
       "utf8"
     );
     expect(homepage).toContain('href="/auth/sign-up"');
-    expect(homepage).toContain("Start free");
+    expect(homepage).toContain("Start your free trial");
     expect(homepage).toContain("See how it works");
   });
 });

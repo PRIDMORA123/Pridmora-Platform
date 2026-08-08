@@ -850,9 +850,16 @@ p{line-height:1.65;font-weight:400}
 .marketing-lead{color:var(--muted);font-size:1.12rem;max-width:52ch}
 .marketing-hero-visual{min-height:320px}
 .product-mock{background:white;border:1px solid var(--line);border-radius:18px;padding:28px;box-shadow:var(--shadow)}
-.product-mock-bar{display:flex;gap:8px;margin-bottom:22px}
+.product-mock--snapshot{display:flex;flex-direction:column;gap:18px}
+.product-mock-bar{display:flex;gap:8px;margin-bottom:4px}
 .product-mock-bar span{width:10px;height:10px;border-radius:50%;background:var(--line)}
 .product-mock-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.product-mock-block{display:flex;flex-direction:column;gap:6px}
+.product-mock-block p{margin:0;line-height:1.45}
+.product-mock-label{font-size:.78rem;font-weight:650;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.product-mock-list{margin:0;padding-left:1.1rem;display:flex;flex-direction:column;gap:4px}
+.product-mock-list li{line-height:1.4}
+.marketing-trial-note{margin-top:12px;font-size:.95rem}
 .marketing-section{max-width:900px;margin:0 auto;padding:36px 48px}
 .marketing-section h2{max-width:18ch}
 .marketing-three{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:28px}

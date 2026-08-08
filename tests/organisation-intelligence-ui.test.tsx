@@ -98,6 +98,10 @@ describe("organisation intelligence empty-state UI", () => {
     expect(container.textContent).toContain("Reporting period");
     expect(container.textContent).toContain("Not yet generated");
     expect(container.textContent).toContain("5 relationships");
+    expect(container.textContent).toContain("Organisation Intelligence");
+    expect(container.textContent).toContain(
+      "An anonymised view of management development across the organisation."
+    );
     expect(container.textContent).toContain(
       "Your organisation is beginning to build a clearer picture."
     );
@@ -110,7 +114,7 @@ describe("organisation intelligence empty-state UI", () => {
     const generateButtons = Array.from(
       container.querySelectorAll("button")
     ).filter(button =>
-      /Generate intelligence/i.test(button.textContent || "")
+      /Generate Executive Brief/i.test(button.textContent || "")
     );
     expect(generateButtons).toHaveLength(1);
 
@@ -183,7 +187,7 @@ describe("organisation intelligence empty-state UI", () => {
     });
 
     const generate = Array.from(container.querySelectorAll("button")).find(
-      button => /Generate intelligence/i.test(button.textContent || "")
+      button => /Generate Executive Brief/i.test(button.textContent || "")
     );
     expect(generate).toBeTruthy();
 
@@ -230,7 +234,7 @@ describe("organisation intelligence empty-state UI", () => {
     });
 
     const generate = Array.from(container.querySelectorAll("button")).find(
-      button => /Generate intelligence/i.test(button.textContent || "")
+      button => /Generate Executive Brief/i.test(button.textContent || "")
     );
     expect(generate).toBeTruthy();
 

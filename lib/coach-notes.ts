@@ -3,6 +3,8 @@
  * Workflow envelopes must never be shown or re-saved into coach-facing fields.
  */
 
+import { COMPREHENSIVE_MARKER } from "@/lib/summary-insights/types";
+
 export const WORKFLOW_MARKER = "---IDENTITY_WORKFLOW_V1---";
 
 export type LegacyWorkflowPayload = {
@@ -35,13 +37,18 @@ export function extractVisibleCoachNotes(
 ): string {
   if (!storedValue) return "";
 
-  const markerIndex = storedValue.indexOf(WORKFLOW_MARKER);
-
-  if (markerIndex === -1) {
-    return storedValue.trim();
+  let text = storedValue;
+  const workflowIndex = text.indexOf(WORKFLOW_MARKER);
+  if (workflowIndex !== -1) {
+    text = text.slice(0, workflowIndex);
   }
-
-  return storedValue.slice(0, markerIndex).trim();
+  const comprehensiveIndex = text.indexOf(COMPREHENSIVE_MARKER);
+  if (comprehensiveIndex !== -1) {
+    text = text.slice(0, comprehensiveIndex);
+  }
+  // Never show residual internal tokens.
+  text = text.replace(/\[\[[^\]]*\]\]/g, "");
+  return text.trim();
 }
 
 export function parseLegacyWorkflowPayload(

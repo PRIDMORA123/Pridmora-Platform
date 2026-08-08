@@ -101,7 +101,16 @@ describe("Pridmora Development Platform branding", () => {
     );
     const container = await renderView(<MarketingHomepage />);
     expect(container.textContent).toContain(BRAND.productName);
-    expect(container.textContent).toContain(BRAND.productDescriptor);
+    expect(container.textContent).toContain(
+      "Understand how your managers are developing."
+    );
+    expect(container.textContent).toContain("Start your free trial");
+    expect(container.textContent).toContain(
+      "14-day free trial. No credit card required."
+    );
+    expect(container.textContent).toContain("Development snapshot");
+    expect(container.textContent).not.toContain("Coach-approved");
+    expect(container.textContent).not.toContain("Start free");
     expect(container.textContent).not.toContain("Identity by Pridmora");
   });
 

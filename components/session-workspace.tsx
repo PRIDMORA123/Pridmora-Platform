@@ -1,6 +1,5 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Client, CoachingAction, Session } from "@/lib/types";
 import { isClientArchived } from "@/lib/types";
@@ -56,6 +55,10 @@ import { SaveStatus } from "@/components/feedback/save-status";
 import { useToast } from "@/components/feedback/toast-provider";
 import { IdentityProcessingState } from "@/components/identity/identity-processing-state";
 import {
+  PersonFlowBackLink,
+  PersonFlowBreadcrumb,
+} from "@/components/identity/person-flow-nav";
+import {
   SessionDebriefForm,
   applyDebriefValuesToSession,
   type SessionDebriefValues,
@@ -83,6 +86,21 @@ import "@/components/coach/coach-workspace.css";
 
 const JOURNEY_STAGE: SessionWorkspaceStage = "overview";
 
+function workspaceStageLabel(stage: SessionWorkspaceStage): string {
+  switch (stage) {
+    case "coach":
+      return "Session Notes";
+    case "reflect":
+      return "Capture outcome";
+    case "summary":
+      return "Summary & Insights";
+    case "actions":
+      return "Next steps";
+    default:
+      return "Current Position";
+  }
+}
+
 function cloneSession(session: Session): Session {
   return { ...session, coachingQuestions: [...session.coachingQuestions] };
 }
@@ -106,6 +124,7 @@ export function SessionWorkspace({
   flashMessage = "",
   coachingIntelligenceMode,
   onBack,
+  onBackToPeople,
   onSave,
   onSaveAction,
   onScheduleNext,
@@ -121,6 +140,7 @@ export function SessionWorkspace({
   flashMessage?: string;
   coachingIntelligenceMode?: CoachingIntelligenceMode;
   onBack: () => void;
+  onBackToPeople?: () => void;
   onSave: (session: Session) => Promise<Session | void>;
   onSaveAction: (action: CoachingAction & { clientId: string }) => Promise<CoachingAction>;
   onScheduleNext: (values: ScheduleSessionValues) => Promise<void>;
@@ -897,29 +917,42 @@ export function SessionWorkspace({
     return fallback;
   })();
 
+  const personName = getRelationshipDisplayName(client);
+
+  const handleBackToPerson = () => {
+    if (dirty) {
+      const leave = window.confirm(
+        "You have unsaved changes. Leave this session?"
+      );
+      if (!leave) return;
+    }
+    if (onReturnOverview) {
+      onReturnOverview();
+      return;
+    }
+    onBack();
+  };
+
   const backControl = (
-    <button
-      type="button"
-      className="back"
-      onClick={() => {
+    <PersonFlowBackLink personName={personName} onBack={handleBackToPerson} />
+  );
+
+  const journeyNav = (
+    <PersonFlowBreadcrumb
+      personName={personName}
+      stageLabel={workspaceStageLabel(stage)}
+      onBackToPeople={() => {
         if (dirty) {
           const leave = window.confirm(
             "You have unsaved changes. Leave this session?"
           );
           if (!leave) return;
         }
-        if (onReturnOverview) {
-          onReturnOverview();
-          return;
-        }
-        onBack();
+        (onBackToPeople ?? onBack)();
       }}
-    >
-      <ArrowLeft size={16} /> {`Back to Session ${session.sessionNumber}`}
-    </button>
+      onBackToPerson={handleBackToPerson}
+    />
   );
-
-  const journeyNav = null;
 
   const banners = (
     <>
@@ -1114,12 +1147,9 @@ export function SessionWorkspace({
             <button
               type="button"
               className="secondary"
-              onClick={() => {
-                if (onReturnOverview) onReturnOverview();
-                else onBack();
-              }}
+              onClick={handleBackToPerson}
             >
-              Return to Current Position
+              {`Return to ${personName}`}
             </button>
           </div>
         </article>

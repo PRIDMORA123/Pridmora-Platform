@@ -13,13 +13,16 @@ import {
   OrganisationIntelligenceThemeDrawer,
 } from "@/components/organisation/intelligence/evidence-drawers";
 import { apiJson } from "@/lib/api-client";
+import { buildExecutiveBriefScanSummary } from "@/lib/development-evidence/executive-brief";
 import {
   GENERATION_STAGE_LABELS,
   MOMENTUM_METHODOLOGY,
+  MOMENTUM_WEIGHTS,
   ORGANISATION_INTELLIGENCE_PRIVACY_THRESHOLD,
   confidenceDisplayLabel,
   directionLabel,
   directionScreenReaderLabel,
+  type TrendDirection,
   type EvidenceTrace,
   type GenerationStage,
   type OrganisationIntelligencePeriod,
@@ -38,6 +41,12 @@ type HistoryItem = {
   sourceRelationshipCount: number;
 };
 
+type EvidenceIndicators = {
+  contributingRelationships: number;
+  conversations: number;
+  readyToGenerate: boolean;
+};
+
 type LoadPayload = {
   snapshot: OrganisationIntelligenceSnapshotView | null;
   history: HistoryItem[];
@@ -45,6 +54,7 @@ type LoadPayload = {
   privacyNote: string;
   confidentialityNote: string;
   migrationRequired?: boolean;
+  evidenceIndicators?: EvidenceIndicators | null;
 };
 
 const PERIOD_OPTIONS = [
@@ -111,6 +121,61 @@ function asOptionalSnapshotId(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
+const MOMENTUM_COMPONENT_LABELS: Record<keyof typeof MOMENTUM_WEIGHTS, string> = {
+  conversations: "Completed conversations",
+  actions: "Completed actions",
+  reflections: "Completed reflections",
+  developmentUpdates: "Development updates",
+  evidence: "Evidence progression",
+};
+
+function formatMomentumWeight(key: keyof typeof MOMENTUM_WEIGHTS): string {
+  return `${Math.round(MOMENTUM_WEIGHTS[key] * 100)}%`;
+}
+
+function momentumDriverSummary(input: {
+  components: Record<string, number>;
+  previousComponents: Record<string, number> | null;
+}): { positive: string | null; limiting: string | null } {
+  if (!input.previousComponents) {
+    return { positive: null, limiting: null };
+  }
+
+  let bestKey: string | null = null;
+  let bestDelta = Number.NEGATIVE_INFINITY;
+  let worstKey: string | null = null;
+  let worstDelta = Number.POSITIVE_INFINITY;
+
+  for (const key of Object.keys(MOMENTUM_COMPONENT_LABELS)) {
+    const current = Number(input.components[key] ?? 0);
+    const previous = Number(input.previousComponents[key] ?? 0);
+    const delta = current - previous;
+    if (delta > bestDelta) {
+      bestDelta = delta;
+      bestKey = key;
+    }
+    if (delta < worstDelta) {
+      worstDelta = delta;
+      worstKey = key;
+    }
+  }
+
+  const positive =
+    bestKey && bestDelta > 0
+      ? `${
+          MOMENTUM_COMPONENT_LABELS[bestKey as keyof typeof MOMENTUM_WEIGHTS]
+        } (+${Math.round(bestDelta)} points)`
+      : null;
+  const limiting =
+    worstKey && worstDelta < 0
+      ? `${
+          MOMENTUM_COMPONENT_LABELS[worstKey as keyof typeof MOMENTUM_WEIGHTS]
+        } (${Math.round(worstDelta)} points)`
+      : null;
+
+  return { positive, limiting };
+}
+
 function asPeriodPresetValue(value: unknown): string {
   return typeof value === "string" ? value : "last_90_days";
 }
@@ -170,9 +235,17 @@ export default function OrganisationIntelligencePage() {
     setLoading(true);
     setError("");
     try {
-      const query = safeSnapshotId
-        ? `?snapshotId=${encodeURIComponent(safeSnapshotId)}`
-        : "";
+      const params = new URLSearchParams();
+      if (safeSnapshotId) {
+        params.set("snapshotId", safeSnapshotId);
+      } else {
+        params.set("period", asPeriodPresetValue(period));
+        if (period === "custom") {
+          if (customStart) params.set("periodStart", customStart);
+          if (customEnd) params.set("periodEnd", customEnd);
+        }
+      }
+      const query = params.toString() ? `?${params.toString()}` : "";
       const data = await apiJson<LoadPayload>(
         `/api/organisations/intelligence${query}`
       );
@@ -188,7 +261,7 @@ export default function OrganisationIntelligencePage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [customEnd, customStart, period]);
 
   useEffect(() => {
     void load();
@@ -254,12 +327,66 @@ export default function OrganisationIntelligencePage() {
       ? "Insufficient evidence"
       : snapshot
         ? "Ready"
-        : "Not yet generated";
+        : payload?.evidenceIndicators?.readyToGenerate
+          ? "Ready to generate"
+          : "Not yet generated";
 
-  const showEmptyJourney =
+  const evidenceIndicators = payload?.evidenceIndicators;
+  const relationshipCountDisplay =
+    snapshot?.sourceRelationshipCount ??
+    evidenceIndicators?.contributingRelationships;
+  const conversationCountDisplay =
+    snapshot?.sourceConversationCount ?? evidenceIndicators?.conversations;
+
+  const readyToGeneratePanel =
     !loading &&
     !payload?.migrationRequired &&
-    (!snapshot || snapshot.emptyState);
+    !snapshot &&
+    evidenceIndicators?.readyToGenerate;
+
+  const showInsufficientJourney =
+    !loading &&
+    !payload?.migrationRequired &&
+    ((snapshot && snapshot.emptyState) ||
+      (!snapshot &&
+        !readyToGeneratePanel &&
+        (!evidenceIndicators || !evidenceIndicators.readyToGenerate)));
+
+  const showPreGenerationJourney =
+    !loading &&
+    !payload?.migrationRequired &&
+    !snapshot &&
+    !readyToGeneratePanel;
+
+  const briefScanSummary = useMemo(() => {
+    if (!snapshot || snapshot.emptyState) return null;
+    return buildExecutiveBriefScanSummary({
+      executiveBrief: snapshot.executiveBrief,
+      themes: snapshot.themes,
+      capabilities: snapshot.capabilities,
+      attentionAreas: snapshot.attentionAreas,
+      momentum: overviewMetrics?.momentum ?? null,
+      organisationName: snapshot.organisationName,
+      periodLabel: snapshot.period.label,
+    });
+  }, [overviewMetrics?.momentum, snapshot]);
+
+  const momentumDrivers = useMemo(() => {
+    const momentum = overviewMetrics?.momentum;
+    if (!momentum?.metadata) return { positive: null, limiting: null };
+    const components = momentum.metadata.components;
+    const previousComponents = momentum.metadata.previousComponents;
+    if (!components || typeof components !== "object") {
+      return { positive: null, limiting: null };
+    }
+    return momentumDriverSummary({
+      components: components as Record<string, number>,
+      previousComponents:
+        previousComponents && typeof previousComponents === "object"
+          ? (previousComponents as Record<string, number>)
+          : null,
+    });
+  }, [overviewMetrics?.momentum]);
 
   const openEvidenceFor = (insightKey: string, label: string) => {
     const trace =
@@ -292,8 +419,8 @@ export default function OrganisationIntelligencePage() {
     <OrganisationShell
       compactHeader
       eyebrow="Organisation intelligence"
-      title="Development intelligence"
-      subtitle="An anonymised view of leadership development across the organisation."
+      title="Organisation Intelligence"
+      subtitle="An anonymised view of management development across the organisation."
     >
       <div className="org-intelligence-layout">
         {loading ? (
@@ -401,14 +528,14 @@ export default function OrganisationIntelligencePage() {
               onClick={() => void generateIntelligence()}
               disabled={generating || payload?.migrationRequired}
               aria-label={
-                snapshot ? "Refresh intelligence" : "Generate intelligence"
+                snapshot ? "Refresh Intelligence" : "Generate Executive Brief"
               }
             >
               {generating
                 ? "Generating…"
                 : snapshot
-                  ? "Refresh intelligence"
-                  : "Generate intelligence"}
+                  ? "Refresh Intelligence"
+                  : "Generate Executive Brief"}
             </button>
             {snapshot && !snapshot.emptyState ? (
               <a
@@ -437,7 +564,50 @@ export default function OrganisationIntelligencePage() {
           </p>
         ) : null}
 
-        {showEmptyJourney ? (
+        {readyToGeneratePanel ? (
+          <section
+            className="org-intelligence-empty-panel org-intelligence-ready-panel"
+            aria-labelledby="org-intel-ready-heading"
+            role="status"
+          >
+            <p className="org-intelligence-empty-panel__eyebrow">Ready to generate</p>
+            <h2 id="org-intel-ready-heading">Ready to generate</h2>
+            <p className="org-intelligence-empty-panel__copy">
+              Pridmora has enough anonymised evidence to create an
+              organisation-level Executive Brief.
+            </p>
+
+            <div className="org-intelligence-evidence-indicators">
+              <div>
+                <p className="org-intelligence-evidence-indicators__label">
+                  Relationships contributing
+                </p>
+                <p className="org-intelligence-evidence-indicators__value">
+                  {relationshipCountDisplay ?? "—"}
+                </p>
+              </div>
+              <div>
+                <p className="org-intelligence-evidence-indicators__label">
+                  Conversations contributing
+                </p>
+                <p className="org-intelligence-evidence-indicators__value">
+                  {conversationCountDisplay ?? "—"}
+                </p>
+              </div>
+              <div>
+                <p className="org-intelligence-evidence-indicators__label">
+                  Minimum privacy threshold
+                  <PrivacyThresholdHint />
+                </p>
+                <p className="org-intelligence-evidence-indicators__value">
+                  {ORGANISATION_INTELLIGENCE_PRIVACY_THRESHOLD} relationships
+                </p>
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {showInsufficientJourney ? (
           <>
             <section
               className="org-intelligence-empty-panel"
@@ -456,7 +626,7 @@ export default function OrganisationIntelligencePage() {
                 {snapshot?.emptyState
                   ? snapshot.insufficientEvidenceMessage ||
                     "Organisation Intelligence becomes available when enough anonymised coaching evidence has been recorded to report safely."
-                  : "As coaching evidence grows, Pridmora will identify recurring leadership themes, development patterns and areas requiring attention while protecting individual confidentiality."}
+                  : "As coaching evidence grows, Pridmora will identify recurring development themes, patterns and areas requiring attention while protecting individual confidentiality."}
               </p>
 
               <div className="org-intelligence-evidence-indicators">
@@ -465,9 +635,7 @@ export default function OrganisationIntelligencePage() {
                     Relationships contributing
                   </p>
                   <p className="org-intelligence-evidence-indicators__value">
-                    {snapshot
-                      ? snapshot.sourceRelationshipCount
-                      : "Not yet generated"}
+                    {relationshipCountDisplay ?? "Not yet generated"}
                   </p>
                 </div>
                 <div>
@@ -475,9 +643,7 @@ export default function OrganisationIntelligencePage() {
                     Conversations contributing
                   </p>
                   <p className="org-intelligence-evidence-indicators__value">
-                    {snapshot
-                      ? snapshot.sourceConversationCount
-                      : "Not yet generated"}
+                    {conversationCountDisplay ?? "Not yet generated"}
                   </p>
                 </div>
                 <div>
@@ -493,27 +659,29 @@ export default function OrganisationIntelligencePage() {
                 </div>
               </div>
             </section>
-
-            <section
-              className="org-intelligence-value"
-              aria-labelledby="org-intel-value-heading"
-            >
-              <h2 id="org-intel-value-heading" className="org-intelligence-sr-only">
-                How organisation intelligence develops
-              </h2>
-              <ol className="org-intelligence-value__steps">
-                {VALUE_STEPS.map((step, index) => (
-                  <li key={step.title}>
-                    <span className="org-intelligence-value__index" aria-hidden="true">
-                      {index + 1}
-                    </span>
-                    <h3>{step.title}</h3>
-                    <p>{step.copy}</p>
-                  </li>
-                ))}
-              </ol>
-            </section>
           </>
+        ) : null}
+
+        {showPreGenerationJourney || readyToGeneratePanel ? (
+          <section
+            className="org-intelligence-value"
+            aria-labelledby="org-intel-value-heading"
+          >
+            <h2 id="org-intel-value-heading" className="org-intelligence-sr-only">
+              How organisation intelligence develops
+            </h2>
+            <ol className="org-intelligence-value__steps">
+              {VALUE_STEPS.map((step, index) => (
+                <li key={step.title}>
+                  <span className="org-intelligence-value__index" aria-hidden="true">
+                    {index + 1}
+                  </span>
+                  <h3>{step.title}</h3>
+                  <p>{step.copy}</p>
+                </li>
+              ))}
+            </ol>
+          </section>
         ) : null}
 
         {snapshot && !snapshot.emptyState ? (
@@ -554,6 +722,61 @@ export default function OrganisationIntelligencePage() {
                 </button>
               </div>
               <div className="org-intelligence-brief org-intelligence-brief--sections">
+                {briefScanSummary ? (
+                  <article className="org-intelligence-brief__scan">
+                    <h3 className="org-intelligence-sr-only">Brief summary</h3>
+                    <dl className="org-intelligence-brief__scan-list">
+                      <div>
+                        <dt>Overall position</dt>
+                        <dd>{briefScanSummary.overallPosition}</dd>
+                      </div>
+                      <div>
+                        <dt>What is strengthening</dt>
+                        <dd>
+                          {briefScanSummary.strengthening.length > 0 ? (
+                            <ul>
+                              {briefScanSummary.strengthening.map(item => (
+                                <li key={item}>{item}</li>
+                              ))}
+                            </ul>
+                          ) : (
+                            "No clear strengthening signal yet."
+                          )}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>What needs attention</dt>
+                        <dd>
+                          {briefScanSummary.needsAttention.length > 0 ? (
+                            <ul>
+                              {briefScanSummary.needsAttention.map(item => (
+                                <li key={item}>{item}</li>
+                              ))}
+                            </ul>
+                          ) : (
+                            "No strong attention signal yet."
+                          )}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Development health / momentum</dt>
+                        <dd>
+                          {briefScanSummary.momentumValue ?? "Not available"} ·{" "}
+                          <span className="org-intelligence-sr-only">
+                            {directionScreenReaderLabel(
+                              (briefScanSummary.momentumDirection ??
+                                "insufficient_evidence") as TrendDirection
+                            )}
+                          </span>
+                          {directionLabel(
+                            (briefScanSummary.momentumDirection ??
+                              "insufficient_evidence") as TrendDirection
+                          )}
+                        </dd>
+                      </div>
+                    </dl>
+                  </article>
+                ) : null}
                 {(snapshot.executiveBrief || "")
                   .split(/\n\s*\n/)
                   .filter(Boolean)
@@ -657,6 +880,24 @@ export default function OrganisationIntelligencePage() {
                       )}
                     </p>
                   </div>
+                  {overviewMetrics.momentum.comparisonAvailable &&
+                  overviewMetrics.momentum.previousValue != null ? (
+                    <p className="organisation-meta">
+                      Previous period: {overviewMetrics.momentum.previousValue}
+                      {typeof overviewMetrics.momentum.metricValue === "number"
+                        ? ` · Change: ${
+                            overviewMetrics.momentum.metricValue -
+                            overviewMetrics.momentum.previousValue
+                          } points`
+                        : null}
+                    </p>
+                  ) : (
+                    <p className="organisation-meta">
+                      {overviewMetrics.momentum.comparisonAvailable
+                        ? snapshot.period.comparisonLabel
+                        : "No earlier comparison is available."}
+                    </p>
+                  )}
                   <div
                     className="org-intelligence-momentum__bar"
                     role="meter"
@@ -681,11 +922,67 @@ export default function OrganisationIntelligencePage() {
                       }}
                     />
                   </div>
+                  {overviewMetrics.momentum.metadata?.components &&
+                  typeof overviewMetrics.momentum.metadata.components ===
+                    "object" ? (
+                    <ul className="org-intelligence-momentum__components">
+                      {(
+                        Object.keys(MOMENTUM_COMPONENT_LABELS) as Array<
+                          keyof typeof MOMENTUM_WEIGHTS
+                        >
+                      ).map(key => {
+                        const components = overviewMetrics.momentum!
+                          .metadata.components as Record<string, number>;
+                        const previousComponents =
+                          overviewMetrics.momentum!.metadata
+                            .previousComponents;
+                        const currentScore = Number(components[key] ?? 0);
+                        const previousScore =
+                          previousComponents &&
+                          typeof previousComponents === "object"
+                            ? Number(
+                                (previousComponents as Record<string, number>)[
+                                  key
+                                ] ?? 0
+                              )
+                            : null;
+                        const delta =
+                          previousScore != null
+                            ? currentScore - previousScore
+                            : null;
+                        return (
+                          <li key={key}>
+                            <strong>{MOMENTUM_COMPONENT_LABELS[key]}</strong>
+                            <span>
+                              {" "}
+                              {Math.round(currentScore)} points · Weight{" "}
+                              {formatMomentumWeight(key)}
+                              {delta != null
+                                ? ` · Change ${delta >= 0 ? "+" : ""}${Math.round(delta)}`
+                                : null}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : null}
+                  {momentumDrivers.positive || momentumDrivers.limiting ? (
+                    <div className="org-intelligence-momentum__drivers">
+                      {momentumDrivers.positive ? (
+                        <p>
+                          <strong>Biggest positive driver:</strong>{" "}
+                          {momentumDrivers.positive}
+                        </p>
+                      ) : null}
+                      {momentumDrivers.limiting ? (
+                        <p>
+                          <strong>Area limiting progress:</strong>{" "}
+                          {momentumDrivers.limiting}
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
                   <p className="organisation-meta">
-                    {overviewMetrics.momentum.comparisonAvailable
-                      ? snapshot.period.comparisonLabel
-                      : "No earlier comparison is available."}{" "}
-                    ·{" "}
                     {confidenceDisplayLabel(
                       overviewMetrics.momentum.confidenceLevel
                     )}
@@ -693,9 +990,17 @@ export default function OrganisationIntelligencePage() {
                 </div>
               ) : null}
               {showMethodology ? (
-                <p className="org-intelligence-methodology" role="note">
-                  {MOMENTUM_METHODOLOGY}
-                </p>
+                <div className="org-intelligence-methodology" role="note">
+                  <p>{MOMENTUM_METHODOLOGY}</p>
+                  <p>
+                    Component weights: completed conversations{" "}
+                    {formatMomentumWeight("conversations")}, completed actions{" "}
+                    {formatMomentumWeight("actions")}, completed reflections{" "}
+                    {formatMomentumWeight("reflections")}, development updates{" "}
+                    {formatMomentumWeight("developmentUpdates")}, evidence
+                    progression {formatMomentumWeight("evidence")}.
+                  </p>
+                </div>
               ) : null}
             </section>
 

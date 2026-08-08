@@ -51,6 +51,7 @@ export function ActionsWorkspace({
   onSaveAction,
   completionSlot,
   embedded = false,
+  suppressOpenEmptyState = false,
 }: {
   clientName: string;
   clientId: string;
@@ -61,6 +62,8 @@ export function ActionsWorkspace({
   completionSlot?: React.ReactNode;
   /** When true, share the parent workspace spine (no separate page width). */
   embedded?: boolean;
+  /** Hide the open-commitments empty state when commitments are listed elsewhere. */
+  suppressOpenEmptyState?: boolean;
 }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -211,10 +214,12 @@ export function ActionsWorkspace({
         </div>
 
         {openActions.length === 0 ? (
-          <EmergingEvidenceState
-            title={IDENTITY_EMPTY_STATES.noCommitments.title}
-            description={IDENTITY_EMPTY_STATES.noCommitments.description}
-          />
+          suppressOpenEmptyState ? null : (
+            <EmergingEvidenceState
+              title={IDENTITY_EMPTY_STATES.noCommitments.title}
+              description={IDENTITY_EMPTY_STATES.noCommitments.description}
+            />
+          )
         ) : (
           <div className="actions-workspace-list">
             {openActions.map(action => (

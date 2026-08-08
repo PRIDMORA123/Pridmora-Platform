@@ -102,7 +102,7 @@ export function EvidenceWhyDrawer({
                 {payload.supportingSources.map(source => (
                   <li key={source.id}>
                     <strong>{source.title}</strong>
-                    <span className="muted"> — {source.evidenceTypeLabel}</span>
+                    <span className="muted"> ({source.evidenceTypeLabel})</span>
                   </li>
                 ))}
               </ul>

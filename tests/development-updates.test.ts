@@ -146,7 +146,9 @@ describe("development update editing helpers", () => {
 
   it("does not show unchanged profile sections in the review display", () => {
     const items = buildChangeDisplayItems(base);
-    expect(items.some(item => item.categoryLabel === "Current development focus")).toBe(true);
+    expect(
+      items.some(item => item.categoryLabel === "Recommended development position")
+    ).toBe(true);
     expect(items.some(item => item.categoryLabel === "Value")).toBe(false);
     expect(items).toHaveLength(3);
   });

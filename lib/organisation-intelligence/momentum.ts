@@ -29,13 +29,15 @@ export type MomentumInputs = {
  * Each component is scaled relative to a soft activity ceiling so the
  * score sits roughly 0–100 for typical organisational volumes.
  */
-const WEIGHTS = {
+export const MOMENTUM_WEIGHTS = {
   conversations: 0.25,
   actions: 0.25,
   reflections: 0.15,
   developmentUpdates: 0.2,
   evidence: 0.15,
 } as const;
+
+const WEIGHTS = MOMENTUM_WEIGHTS;
 
 const SOFT_CEILINGS = {
   conversations: 40,
@@ -62,6 +64,7 @@ export function calculateDevelopmentMomentum(input: MomentumInputs): {
   comparisonAvailable: boolean;
   methodology: string;
   components: Record<string, number>;
+  previousComponents: Record<string, number> | null;
 } {
   const components = {
     conversations: componentScore(
@@ -91,9 +94,10 @@ export function calculateDevelopmentMomentum(input: MomentumInputs): {
   const comparisonAvailable = input.hasEarlierPeriodActivity;
   let previousValue: number | null = null;
   let direction: TrendDirection = "unavailable";
+  let previousComponents: Record<string, number> | null = null;
 
   if (comparisonAvailable) {
-    const previousComponents = {
+    previousComponents = {
       conversations: componentScore(
         input.previousCompletedConversations,
         SOFT_CEILINGS.conversations
@@ -136,6 +140,7 @@ export function calculateDevelopmentMomentum(input: MomentumInputs): {
     comparisonAvailable,
     methodology: MOMENTUM_METHODOLOGY,
     components,
+    previousComponents,
   };
 }
 

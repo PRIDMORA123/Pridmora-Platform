@@ -217,14 +217,15 @@ export function AppShell({
             ) : null}
           </nav>
 
-          <a
-            href="/professional-principles"
-            className="identity-sidebar-principle"
-          >
-            <strong>Evidence before certainty</strong>
-            <span>Insights remain proposed until reviewed.</span>
-            <small>Professional principles</small>
-          </a>
+          <div className="identity-sidebar-footer-links">
+            <a
+              href="/professional-principles"
+              className="identity-sidebar-footer-link"
+              onClick={() => setMobileOpen(false)}
+            >
+              Professional principles
+            </a>
+          </div>
         </div>
 
         <div className="sidebar-footer identity-sidebar-account">

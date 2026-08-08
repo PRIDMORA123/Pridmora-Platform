@@ -534,6 +534,33 @@
   max-width: 42rem;
 }
 
+.session-debrief-form__hint--lead {
+  margin: -0.75rem 0 0;
+}
+
+.session-debrief-form__optional {
+  border-top: 1px solid var(--identity-border-subtle, #e2e8f0);
+  padding-top: 0.75rem;
+}
+
+.session-debrief-form__optional > summary {
+  color: var(--identity-teal-700, #0f6e74);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.session-debrief-form__optional > summary::-webkit-details-marker {
+  display: none;
+}
+
+.session-debrief-form__optional-body {
+  display: grid;
+  gap: 1.4rem;
+  margin-top: 1.2rem;
+}
+
 .session-debrief-form__workspace .session-debrief-form__label {
   color: var(--identity-navy-950, var(--identity-text-primary));
   font-size: 1rem;

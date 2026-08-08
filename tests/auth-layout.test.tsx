@@ -244,7 +244,7 @@ describe("auth layout replacement", () => {
     expect(homepage).toContain('href="/auth/sign-in"');
     expect(homepage).toContain("Sign in");
     expect(homepage).toContain('href="/auth/sign-up"');
-    expect(homepage).toContain("Start free");
+    expect(homepage).toContain("Start your free trial");
   });
 
   it("sign-up uses approved copy and Create account CTA", async () => {

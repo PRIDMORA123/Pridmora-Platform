@@ -237,6 +237,23 @@ export function buildOrganisationMetrics(
       methodology: MOMENTUM_METHODOLOGY,
       metadata: {
         components: momentum.components,
+        previousComponents: momentum.previousComponents,
+        rawCounts: {
+          conversations: aggregates.completedConversations,
+          actions: aggregates.actionsCompleted,
+          reflections: aggregates.reflectionsCompleted,
+          developmentUpdates: aggregates.developmentUpdatesCompleted,
+          evidence: aggregates.evidenceItems,
+        },
+        previousRawCounts: momentum.comparisonAvailable
+          ? {
+              conversations: aggregates.previousCompletedConversations,
+              actions: aggregates.previousActionsCompleted,
+              reflections: aggregates.previousReflectionsCompleted,
+              developmentUpdates: aggregates.previousDevelopmentUpdatesCompleted,
+              evidence: aggregates.previousEvidenceItems,
+            }
+          : null,
         supportingCopy:
           "A directional measure of sustained coaching activity, action and recorded development.",
         noComparisonCopy: momentum.comparisonAvailable

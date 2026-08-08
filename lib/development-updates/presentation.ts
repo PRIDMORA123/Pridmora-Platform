@@ -23,8 +23,8 @@ const CATEGORY_LABELS: Array<{
   { key: "strengths", label: "Strength" },
   { key: "values", label: "Value" },
   { key: "motivators", label: "Motivator" },
-  { key: "emergingThemes", label: "Emerging theme" },
-  { key: "growthAreas", label: "Growth area" },
+  { key: "emergingThemes", label: "Development theme" },
+  { key: "growthAreas", label: "Recommended development focus" },
   { key: "coachingPreferences", label: "Coaching preference" },
   { key: "beliefs", label: "Belief" },
   { key: "patterns", label: "Pattern" },
@@ -92,8 +92,8 @@ export function buildChangeDisplayItems(
     items.push({
       key: "currentFocus",
       categoryKey: "currentFocus",
-      categoryLabel: "Current development focus",
-      title: "Current development focus",
+      categoryLabel: "Recommended development position",
+      title: "Recommended development position",
       body: changes.currentFocus.value.trim(),
       kind: "focus",
     });

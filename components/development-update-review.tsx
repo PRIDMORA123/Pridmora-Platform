@@ -17,6 +17,10 @@ import { ActionButton } from "@/components/feedback/action-button";
 import { useToast } from "@/components/feedback/toast-provider";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
 import { toActionButtonStatus } from "@/types/action-feedback";
+import {
+  PersonFlowBackLink,
+  PersonFlowBreadcrumb,
+} from "@/components/identity/person-flow-nav";
 
 function formatDate(value: string | null | undefined): string {
   if (!value) return "—";
@@ -32,11 +36,15 @@ function formatDate(value: string | null | undefined): string {
 export function DevelopmentUpdateReviewView({
   updateId,
   onBack,
+  onBackToPerson,
+  onBackToPeople,
   onApplied,
   onDiscarded,
 }: {
   updateId: string;
   onBack: () => void;
+  onBackToPerson?: () => void;
+  onBackToPeople?: () => void;
   onApplied?: () => void;
   onDiscarded?: () => void;
 }) {
@@ -56,6 +64,9 @@ export function DevelopmentUpdateReviewView({
   const applyFeedback = useActionFeedback();
   const saveFeedback = useActionFeedback();
   const { showToast } = useToast();
+
+  const returnToPerson = onBackToPerson ?? onBack;
+  const returnToPeople = onBackToPeople ?? onBack;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -135,7 +146,7 @@ export function DevelopmentUpdateReviewView({
             type: "error",
             title: "Edits could not be saved",
             description: "Your changes remain on screen. Please try again.",
-            durationMs: 5000,
+            durationMs: 8000,
           });
         },
       }
@@ -204,7 +215,7 @@ export function DevelopmentUpdateReviewView({
             type: "error",
             title: "Development evidence could not be updated",
             description: "No changes have been applied. Please try again.",
-            durationMs: 5000,
+            durationMs: 8000,
           });
         },
       }
@@ -259,12 +270,17 @@ export function DevelopmentUpdateReviewView({
   if (!update) {
     return (
       <section className="page">
-        <button type="button" className="back" onClick={onBack}>
-          Back
-        </button>
+        <PersonFlowBackLink personName={clientName} onBack={returnToPerson} />
         <article className="panel empty-panel">
           <h1>Development Update</h1>
           <p className="muted">{error || "This development update could not be found."}</p>
+          {onBackToPeople ? (
+            <div className="button-row">
+              <button type="button" className="secondary" onClick={returnToPeople}>
+                Back to People
+              </button>
+            </div>
+          ) : null}
         </article>
       </section>
     );
@@ -276,17 +292,35 @@ export function DevelopmentUpdateReviewView({
 
   return (
     <section className="page">
-      <button type="button" className="back" onClick={onBack}>
-        Back
-      </button>
+      <PersonFlowBackLink personName={clientName} onBack={returnToPerson} />
+      <PersonFlowBreadcrumb
+        personName={clientName}
+        stageLabel="Development Update"
+        onBackToPeople={returnToPeople}
+        onBackToPerson={returnToPerson}
+      />
 
       <div className="page-heading">
         <p className="eyebrow">Development update</p>
         <h1>Development Update</h1>
         <p>
-          Review the meaningful changes suggested from this conversation before updating the
-          person’s development profile.
+          Review the meaningful changes suggested from this conversation before updating{" "}
+          {clientName === "Person" ? "this person’s" : `${clientName}’s`} development
+          profile.
         </p>
+      </div>
+
+      <div className="button-row" style={{ marginBottom: 16 }}>
+        {onBackToPerson ? (
+          <button type="button" className="secondary" onClick={returnToPerson}>
+            Return to {clientName}
+          </button>
+        ) : null}
+        {onBackToPeople ? (
+          <button type="button" className="secondary" onClick={returnToPeople}>
+            Back to People
+          </button>
+        ) : null}
       </div>
 
       {statusMessage ? (
@@ -328,15 +362,16 @@ export function DevelopmentUpdateReviewView({
             />
           </label>
         ) : (
-          <p>{update.conversationSummary || "No summary available."}</p>
+          <p>{update.conversationSummary || "No summary is available for this conversation."}</p>
         )}
       </article>
 
       <article className="panel">
-        <h2>Suggested profile changes</h2>
+        <h2>Recommended updates</h2>
         {!meaningful ? (
           <p className="muted">
-            No meaningful profile changes were identified from this conversation.
+            No meaningful profile changes were identified from this conversation. The
+            existing development profile remains current.
           </p>
         ) : (
           <div className="development-change-list">
@@ -486,8 +521,8 @@ export function DevelopmentUpdateReviewView({
         </div>
       ) : (
         <div className="button-row" style={{ marginTop: 28 }}>
-          <button type="button" className="primary" onClick={onBack}>
-            Return to person
+          <button type="button" className="primary" onClick={returnToPerson}>
+            Return to {clientName}
           </button>
         </div>
       )}

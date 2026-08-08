@@ -31,7 +31,10 @@ import type {
   InitialConversation,
   RelationshipAgreement,
 } from "@/lib/relationship-meta";
-import { buildPersonSummary } from "@/lib/development-evidence/display-copy";
+import {
+  buildPersonSummary,
+  limitToOneSentence,
+} from "@/lib/development-evidence/display-copy";
 import { getFutureOrOpenSession } from "@/lib/session-workflow";
 import { isSessionCompleted } from "@/lib/client-journey";
 import type { Client, Session } from "@/lib/types";
@@ -199,14 +202,23 @@ export function RelationshipCanvas({
 
   const personSummary = buildPersonSummary({
     name: relationship.name,
-    currentPosition: narrative || relationship.identitySummary,
+    // Prefer longitudinal identity summary over latest session narrative.
+    currentPosition:
+      relationship.identitySummary || developmentDirection || narrative,
     strengths: strengthModels.map(item => item.name),
     priorities:
       developmentPriorities.length > 0
         ? developmentPriorities
         : relationship.themes.slice(0, 3),
     direction: developmentDirection,
+    completedConversationCount: completed.length,
   });
+
+  const priorityItems = (
+    developmentPriorities.length > 0
+      ? developmentPriorities
+      : relationship.themes
+  ).slice(0, 3);
 
   const recentProgress = completed
     .slice()
@@ -214,13 +226,21 @@ export function RelationshipCanvas({
     .slice(0, 3)
     .map(session => {
       const text =
-        session.summary?.trim() ||
         session.emergingThemes?.trim() ||
         session.focus?.trim() ||
-        "Conversation completed";
+        session.summary?.trim() ||
+        "";
       return text.split(/[.!?]/)[0]?.trim() || text;
     })
     .filter(Boolean);
+
+  const currentPositionStatement = limitToOneSentence(
+    developmentDirection ||
+      relationship.identitySummary ||
+      relationship.currentFocus ||
+      narrative ||
+      ""
+  );
 
   return (
     <div className="relationship-workspace relationship-canvas">
@@ -278,7 +298,7 @@ export function RelationshipCanvas({
         </div>
       ) : null}
 
-      {/* B. Who is this person? — person first, not latest event */}
+      {/* B. Who is this person? — longitudinal, not latest event */}
       <section
         className="person-overview-summary"
         aria-labelledby="who-is-person-title"
@@ -287,61 +307,71 @@ export function RelationshipCanvas({
         <p>{personSummary}</p>
       </section>
 
+      {/* C. Current Development — one section, concise subsections */}
       <section
-        className="person-overview-position"
-        aria-labelledby="current-development-position-title"
+        className="person-overview-current-development"
+        aria-labelledby="current-development-title"
       >
-        <h2 id="current-development-position-title">
-          Current Development Position
-        </h2>
-        <CurrentPositionPanel
-          narrative={narrative}
-          identitySummary={relationship.identitySummary}
-          developmentDirection={developmentDirection}
-          currentFocus={relationship.currentFocus}
-          clientName={relationship.name}
-          outstandingCommitment={outstandingCommitment}
-          sessions={relationship.sessions}
-        />
-      </section>
+        <h2 id="current-development-title">Current Development</h2>
+        {currentPositionStatement ? (
+          <div className="person-overview-current-development__block">
+            <h3>Current position</h3>
+            <p>{currentPositionStatement}</p>
+          </div>
+        ) : null}
 
-      <section
-        className="person-overview-priorities"
-        aria-labelledby="current-priorities-title"
-      >
-        <h2 id="current-priorities-title">Current Priorities</h2>
-        {(developmentPriorities.length > 0
-          ? developmentPriorities
-          : relationship.themes
-        ).slice(0, 3).length === 0 ? (
-          <p className="muted">Priorities will appear as evidence develops.</p>
-        ) : (
-          <ul className="development-evidence-list">
-            {(developmentPriorities.length > 0
-              ? developmentPriorities
-              : relationship.themes
-            )
-              .slice(0, 3)
-              .map(item => (
+        {priorityItems.length > 0 ? (
+          <div className="person-overview-current-development__block">
+            <h3>Current priorities</h3>
+            <ul className="development-evidence-list">
+              {priorityItems.map(item => (
                 <li key={item}>{item}</li>
               ))}
-          </ul>
-        )}
-      </section>
+            </ul>
+          </div>
+        ) : null}
 
-      {recentProgress.length > 0 ? (
-        <section
-          className="person-overview-progress"
-          aria-labelledby="recent-progress-title"
-        >
-          <h2 id="recent-progress-title">Recent Progress</h2>
-          <ul className="development-evidence-list">
-            {recentProgress.map(item => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+        {recentProgress.length > 0 ? (
+          <div className="person-overview-current-development__block">
+            <h3>Recent progress</h3>
+            <ul className="development-evidence-list">
+              {recentProgress.map(item => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {outstandingCommitment?.trim() ? (
+          <div className="person-overview-current-development__block">
+            <h3>Outstanding commitment</h3>
+            <p>{outstandingCommitment.trim()}</p>
+          </div>
+        ) : null}
+
+        {!currentPositionStatement &&
+        priorityItems.length === 0 &&
+        recentProgress.length === 0 &&
+        !outstandingCommitment?.trim() ? (
+          <p className="muted">
+            No current development position identified yet.
+          </p>
+        ) : null}
+
+        {/* Keep detailed panel available but visually secondary */}
+        <details className="person-overview-current-development__detail">
+          <summary>View supporting detail</summary>
+          <CurrentPositionPanel
+            narrative={narrative}
+            identitySummary={relationship.identitySummary}
+            developmentDirection={developmentDirection}
+            currentFocus={relationship.currentFocus}
+            clientName={relationship.name}
+            outstandingCommitment={outstandingCommitment}
+            sessions={relationship.sessions}
+          />
+        </details>
+      </section>
 
       {/* Development snapshot — highly rated in UAT */}
       <RelationshipDevelopmentPreview
@@ -366,10 +396,10 @@ export function RelationshipCanvas({
       <div className="person-overview-intelligence-link">
         <button
           type="button"
-          className="identity-text-action"
+          className="identity-button is-secondary"
           onClick={onViewDevelopment}
         >
-          Open Development Intelligence
+          Development Intelligence
         </button>
       </div>
 

@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createRoot } from "react-dom/client";
 import { act, type ReactNode } from "react";
 import { RelationshipCanvas } from "@/components/relationship-workspace";
@@ -168,20 +168,24 @@ function makeMoment(overrides: Partial<CoachingMoment> = {}): CoachingMoment {
   };
 }
 
+const mountedCanvases: Array<{ root: ReturnType<typeof createRoot>; container: HTMLDivElement }> =
+  [];
+
 async function renderNode(node: ReactNode) {
   const container = document.createElement("div");
   document.body.appendChild(container);
   const root = createRoot(container);
   await act(async () => {
-    root.render(node);
+    root.render(withRole("manager", node));
   });
+  mountedCanvases.push({ root, container });
   return { container, root };
 }
 
 function sectionOrder(container: HTMLElement): string[] {
   const ids = [
     "who-is-person-title",
-    "current-development-position-title",
+    "current-development-title",
     "current-position-title",
     "development-snapshot-title",
     "current-conversation-title",
@@ -198,6 +202,19 @@ function sectionOrder(container: HTMLElement): string[] {
     )
     .map(node => node.id);
 }
+
+afterEach(async () => {
+  for (const entry of mountedCanvases.splice(0)) {
+    try {
+      await act(async () => {
+        entry.root.unmount();
+      });
+    } catch {
+      // Already unmounted by the test body.
+    }
+    entry.container.remove();
+  }
+});
 
 describe("SessionModuleTile", () => {
   it("is fully clickable as a button", async () => {
@@ -301,7 +318,7 @@ describe("RelationshipCanvas", () => {
     );
     expect(sectionOrder(container)).toEqual([
       "who-is-person-title",
-      "current-development-position-title",
+      "current-development-title",
       "current-position-title",
       "development-snapshot-title",
       "current-conversation-title",
@@ -311,13 +328,12 @@ describe("RelationshipCanvas", () => {
       "relationship-details-title",
     ]);
     expect(container.textContent).toContain("Who is Sarah?");
+    expect(container.textContent).toContain("Current Development");
     expect(container.textContent).toContain("Building leadership confidence");
     expect(container.textContent).toContain("Session 3");
     expect(container.textContent).toContain("Prepare with Aurelia");
     expect(container.textContent).toContain("Summary & Insights");
     expect(container.querySelector(".current-conversation-card")).toBeTruthy();
-    root.unmount();
-    container.remove();
   });
 
   it("places Coaching Moments after Reports and before Relationship Details", async () => {

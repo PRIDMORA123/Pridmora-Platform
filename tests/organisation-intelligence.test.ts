@@ -476,6 +476,10 @@ describe("organisation intelligence UI and navigation", () => {
     expect(page).toContain(
       "A minimum of five contributing relationships helps reduce the risk of identifying individuals."
     );
+    expect(page).toContain("Organisation Intelligence");
+    expect(page).toContain(
+      "An anonymised view of management development across the organisation."
+    );
     expect(page).toContain("Building organisation intelligence");
     expect(page).toContain(
       "Your organisation is beginning to build a clearer picture."
@@ -488,7 +492,7 @@ describe("organisation intelligence UI and navigation", () => {
     expect(page).toContain('aria-label="About the privacy threshold"');
 
     const generateLabelCount = (
-      page.match(/Generate intelligence/g) || []
+      page.match(/Generate Executive Brief/g) || []
     ).length;
     // Button label + accessible name for the ungenerated primary action.
     expect(generateLabelCount).toBe(2);
@@ -496,7 +500,7 @@ describe("organisation intelligence UI and navigation", () => {
     expect(page).not.toContain("OrganisationInfoBanner");
     // No second dedicated generate control in the empty panel.
     expect(page).not.toMatch(
-      /org-intelligence-empty-panel[\s\S]{0,800}Generate intelligence/
+      /org-intelligence-empty-panel[\s\S]{0,800}Generate Executive Brief/
     );
 
     expect(css).toContain(".org-intelligence-controls");

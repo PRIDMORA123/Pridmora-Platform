@@ -6,6 +6,7 @@ import {
   saveEditedDevelopmentUpdate,
 } from "@/lib/development-updates/repository";
 import { proposedProfileChangesSchema } from "@/lib/development-updates/schema";
+import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 import { ZodError } from "zod";
 
 type Params = { params: Promise<{ updateId: string }> };
@@ -27,7 +28,9 @@ export async function GET(_request: Request, { params }: Params) {
 
     const { data: client } = await auth.context.supabase
       .from("clients")
-      .select("id, name")
+      .select(
+        "id, name, identity_mode, display_label, confidential_reference, ai_name_allowed, role, organisation"
+      )
       .eq("id", update.clientId)
       .eq("coach_id", auth.context.user.id)
       .maybeSingle();
@@ -39,9 +42,21 @@ export async function GET(_request: Request, { params }: Params) {
       .eq("coach_id", auth.context.user.id)
       .maybeSingle();
 
+    const clientName = client
+      ? getRelationshipDisplayName({
+          name: client.name ?? "",
+          identityMode: client.identity_mode,
+          displayLabel: client.display_label,
+          confidentialReference: client.confidential_reference,
+          aiNameAllowed: client.ai_name_allowed,
+          role: client.role,
+          organisation: client.organisation,
+        })
+      : "Person";
+
     return NextResponse.json({
       update,
-      clientName: client?.name ?? "Person",
+      clientName: clientName.trim() || "Person",
       sessionDate: session?.display_date || session?.session_date || "",
       sessionTitle: session?.title ?? "",
     });

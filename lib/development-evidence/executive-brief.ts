@@ -136,3 +136,108 @@ export function buildPremiumExecutiveBrief(
     plainText: sections.map(section => `${section.title}\n\n${section.body}`).join("\n\n"),
   };
 }
+
+export type ExecutiveBriefScanSummary = {
+  overallPosition: string;
+  strengthening: string[];
+  needsAttention: string[];
+  momentumValue: string | null;
+  momentumDirection: string | null;
+};
+
+function firstBriefParagraph(executiveBrief: string | null | undefined): string {
+  if (!executiveBrief?.trim()) return "";
+  const firstBlock = executiveBrief
+    .split(/\n\s*\n/)
+    .map(block => block.trim())
+    .find(Boolean);
+  if (!firstBlock) return "";
+
+  const lines = firstBlock.split("\n").filter(Boolean);
+  const knownTitles = [
+    "What is changing",
+    "What needs attention",
+    "Where evidence is strong",
+    "Where evidence is limited",
+    "Recommended questions / actions",
+    "Evidence base",
+  ];
+  if (lines.length >= 2 && knownTitles.includes(lines[0] ?? "")) {
+    return lines.slice(1).join(" ").trim();
+  }
+  return firstBlock.replace(/\n/g, " ").trim();
+}
+
+/**
+ * Scannable executive brief summary from snapshot fields.
+ */
+export function buildExecutiveBriefScanSummary(input: {
+  executiveBrief: string | null;
+  themes: Array<{ themeLabel: string; direction?: string | null; suppressed?: boolean }>;
+  capabilities: Array<{ label: string; direction: string; suppressed?: boolean }>;
+  attentionAreas: Array<{ label: string }>;
+  momentum?: {
+    displayValue: string;
+    direction?: string | null;
+    suppressed?: boolean;
+  } | null;
+  organisationName: string;
+  periodLabel: string;
+}): ExecutiveBriefScanSummary {
+  const fromBrief = firstBriefParagraph(input.executiveBrief);
+
+  const strengthening = Array.from(
+    new Set([
+      ...input.capabilities
+        .filter(
+          capability =>
+            !capability.suppressed && capability.direction === "strengthening"
+        )
+        .map(capability => capability.label),
+      ...input.themes
+        .filter(
+          theme =>
+            !theme.suppressed &&
+            (theme.direction === "up" || theme.direction === "strengthening")
+        )
+        .map(theme => theme.themeLabel),
+    ])
+  ).slice(0, 3);
+
+  const needsAttention = Array.from(
+    new Set([
+      ...input.attentionAreas.map(area => area.label),
+      ...input.capabilities
+        .filter(
+          capability =>
+            !capability.suppressed &&
+            capability.direction === "requiring_attention"
+        )
+        .map(capability => capability.label),
+      ...input.themes
+        .filter(
+          theme =>
+            !theme.suppressed && theme.direction === "requiring_attention"
+        )
+        .map(theme => theme.themeLabel),
+    ])
+  ).slice(0, 3);
+
+  const momentumMetric = input.momentum;
+  const overallPosition =
+    fromBrief ||
+    (strengthening.length > 0 || needsAttention.length > 0
+      ? `Across ${input.organisationName} in ${input.periodLabel.toLowerCase()}, anonymised development evidence shows a mixed but readable picture.`
+      : `Across ${input.organisationName} in ${input.periodLabel.toLowerCase()}, organisation intelligence is still forming from approved development evidence.`);
+
+  return {
+    overallPosition,
+    strengthening,
+    needsAttention,
+    momentumValue:
+      momentumMetric && !momentumMetric.suppressed
+        ? momentumMetric.displayValue
+        : null,
+    momentumDirection: momentumMetric?.direction ?? null,
+  };
+}

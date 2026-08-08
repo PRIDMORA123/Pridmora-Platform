@@ -3210,6 +3210,67 @@
   color: var(--identity-navy-900);
 }
 
+.identity-person-flow-nav {
+  margin-bottom: 12px;
+}
+
+.identity-person-flow-nav__trail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--identity-text-muted);
+  font-size: 0.84rem;
+}
+
+.identity-person-flow-nav__link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--identity-teal-700);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.identity-person-flow-nav__link:hover {
+  color: var(--identity-navy-900);
+  text-decoration: underline;
+}
+
+.identity-person-flow-nav__sep {
+  color: var(--identity-text-muted);
+  user-select: none;
+}
+
+.identity-person-flow-nav__current {
+  color: var(--identity-navy-900);
+  font-weight: 600;
+}
+
+.identity-sidebar-footer-links {
+  margin-top: auto;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--identity-border-subtle);
+}
+
+.identity-sidebar-footer-link {
+  display: inline-block;
+  color: var(--identity-text-muted);
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.identity-sidebar-footer-link:hover {
+  color: var(--identity-teal-700);
+  text-decoration: underline;
+}
+
 .identity-interactive-panel {
   transition:
     border-color var(--identity-transition-fast),
@@ -9984,6 +10045,15 @@ button.coaching-moments-section__item:focus-visible {
   max-width: 48rem;
 }
 
+.org-intelligence-ready-panel {
+  border-color: rgba(79, 157, 152, 0.35);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.org-intelligence-ready-panel h2 {
+  color: var(--identity-teal, #4f9d98);
+}
+
 .org-intelligence-empty-panel__eyebrow {
   margin: 0 0 0.55rem;
   font-family: var(--font-poppins), Poppins, sans-serif;
@@ -10126,6 +10196,37 @@ button.coaching-moments-section__item:focus-visible {
   max-width: 46rem;
 }
 
+.org-intelligence-brief__scan {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(19, 35, 58, 0.08);
+}
+
+.org-intelligence-brief__scan-list {
+  margin: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.org-intelligence-brief__scan-list dt {
+  margin: 0 0 0.2rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--identity-teal, #4f9d98);
+}
+
+.org-intelligence-brief__scan-list dd {
+  margin: 0;
+  color: var(--identity-ink, #243247);
+}
+
+.org-intelligence-brief__scan-list ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
 .org-intelligence-brief p {
   margin: 0 0 1rem;
   color: var(--identity-ink, #243247);
@@ -10167,10 +10268,41 @@ button.coaching-moments-section__item:focus-visible {
   background: var(--identity-teal, #4f9d98);
 }
 
+.org-intelligence-momentum__components {
+  margin: 0.85rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.org-intelligence-momentum__components li {
+  color: var(--identity-ink-muted, #5b6675);
+  font-size: 0.92rem;
+}
+
+.org-intelligence-momentum__drivers {
+  margin-top: 0.85rem;
+}
+
+.org-intelligence-momentum__drivers p {
+  margin: 0 0 0.35rem;
+  color: var(--identity-ink, #243247);
+  font-size: 0.92rem;
+}
+
 .org-intelligence-methodology {
   margin-top: var(--identity-space-4, 16px);
   max-width: 42rem;
   color: var(--identity-ink-muted, #5b6675);
+}
+
+.org-intelligence-methodology p {
+  margin: 0 0 0.65rem;
+}
+
+.org-intelligence-methodology p:last-child {
+  margin-bottom: 0;
 }
 
 .org-intelligence-table-wrap {
@@ -10899,6 +11031,41 @@ button.coaching-moments-section__item:focus-visible {
   display: flex;
   flex-wrap: wrap;
   gap: 0.65rem;
+}
+
+.person-overview-current-development {
+  margin: 1.5rem 0 1.75rem;
+}
+
+.person-overview-current-development > h2 {
+  font-size: var(--identity-type-h2, 1.25rem);
+  font-weight: 600;
+  margin: 0 0 0.85rem;
+}
+
+.person-overview-current-development__block {
+  margin: 0 0 1rem;
+}
+
+.person-overview-current-development__block h3 {
+  font-size: var(--identity-type-h3, 0.95rem);
+  font-weight: 600;
+  margin: 0 0 0.35rem;
+}
+
+.person-overview-current-development__block p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.person-overview-current-development__detail {
+  margin-top: 0.75rem;
+}
+
+.person-overview-current-development__detail > summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--identity-muted, #5c6570);
 }
 
 .person-overview-actions {

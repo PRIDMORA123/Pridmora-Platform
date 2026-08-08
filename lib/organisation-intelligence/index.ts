@@ -50,6 +50,7 @@ export {
 
 export {
   calculateDevelopmentMomentum,
+  MOMENTUM_WEIGHTS,
   rateFromCounts,
   compareNumericDirection,
 } from "@/lib/organisation-intelligence/momentum";
