@@ -290,7 +290,7 @@ describe("auth layout replacement", () => {
 
     await act(async () => {
       email.value = "coach@example.com";
-      form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+      form.requestSubmit();
       await Promise.resolve();
     });
 
@@ -299,6 +299,104 @@ describe("auth layout replacement", () => {
       {
         redirectTo: `${window.location.origin}/auth/callback?next=%2Fauth%2Freset-password`,
       }
+    );
+    expect(container.textContent).toContain(
+      "If an account exists for that email, you will receive a password reset link shortly."
+    );
+  });
+
+  it("forgot password does not native-submit to sign-in and calls resetPasswordForEmail", async () => {
+    supabaseAuth.resetPasswordForEmail.mockResolvedValue({ data: {}, error: null });
+    const { ForgotPasswordForm } = await import(
+      "@/components/auth/forgot-password-form"
+    );
+    const container = await renderView(<ForgotPasswordForm />);
+    const form = container.querySelector("form") as HTMLFormElement;
+    const email = container.querySelector('input[name="email"]') as HTMLInputElement;
+    const submitButton = container.querySelector(
+      'button[type="submit"]'
+    ) as HTMLButtonElement;
+
+    // Native attributes must never target /auth/sign-in (405 source in production).
+    expect(form.getAttribute("action") ?? "").not.toContain("/auth/sign-in");
+    expect(submitButton.getAttribute("formAction") ?? "").not.toContain(
+      "/auth/sign-in"
+    );
+
+    await act(async () => {
+      email.value = "coach@example.com";
+      form.requestSubmit();
+      await Promise.resolve();
+    });
+
+    expect(supabaseAuth.resetPasswordForEmail).toHaveBeenCalledTimes(1);
+    expect(supabaseAuth.resetPasswordForEmail).toHaveBeenCalledWith(
+      "coach@example.com",
+      expect.objectContaining({
+        redirectTo: expect.stringContaining("/auth/callback?next="),
+      })
+    );
+  });
+
+  it("forgot password surfaces rate-limit failures without success confirmation", async () => {
+    supabaseAuth.resetPasswordForEmail.mockResolvedValue({
+      data: {},
+      error: {
+        name: "AuthApiError",
+        message: "email rate limit exceeded",
+        code: "over_email_send_rate_limit",
+      },
+    });
+    const { ForgotPasswordForm } = await import(
+      "@/components/auth/forgot-password-form"
+    );
+    const container = await renderView(<ForgotPasswordForm />);
+    const form = container.querySelector("form") as HTMLFormElement;
+    const email = container.querySelector('input[name="email"]') as HTMLInputElement;
+
+    await act(async () => {
+      email.value = "coach@example.com";
+      form.requestSubmit();
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toContain(
+      "Too many reset requests. Please wait a moment and try again."
+    );
+    expect(container.textContent).not.toContain(
+      "If an account exists for that email, you will receive a password reset link shortly."
+    );
+    expect(container.textContent).not.toContain("email rate limit exceeded");
+  });
+
+  it("forgot password surfaces other auth failures without leaking provider details", async () => {
+    supabaseAuth.resetPasswordForEmail.mockResolvedValue({
+      data: {},
+      error: {
+        name: "AuthApiError",
+        message: "Redirect URL is not allowed",
+        code: "validation_failed",
+      },
+    });
+    const { ForgotPasswordForm } = await import(
+      "@/components/auth/forgot-password-form"
+    );
+    const container = await renderView(<ForgotPasswordForm />);
+    const form = container.querySelector("form") as HTMLFormElement;
+    const email = container.querySelector('input[name="email"]') as HTMLInputElement;
+
+    await act(async () => {
+      email.value = "coach@example.com";
+      form.requestSubmit();
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toContain(
+      "Unable to send a reset link right now. Please try again shortly."
+    );
+    expect(container.textContent).not.toContain("Redirect URL is not allowed");
+    expect(container.textContent).not.toContain(
+      "If an account exists for that email, you will receive a password reset link shortly."
     );
   });
 
