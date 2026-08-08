@@ -177,6 +177,22 @@ describe("auth confirm route (token hash recovery)", () => {
       "https://app.pridmora.com/auth/reset-password"
     );
   });
+
+  it("does not send recovery confirms to the marketing homepage when next=/", async () => {
+    authMocks.verifyOtp.mockResolvedValue({ data: { session: {} }, error: null });
+    const GET = await getConfirm();
+
+    const response = await GET(
+      new Request(
+        "https://platform.pridmora.com/auth/confirm?token_hash=valid-hash&type=recovery&next=/"
+      )
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://platform.pridmora.com/auth/reset-password"
+    );
+  });
 });
 
 describe("auth callback route (PKCE)", () => {

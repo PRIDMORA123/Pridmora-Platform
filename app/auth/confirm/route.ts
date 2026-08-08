@@ -3,9 +3,9 @@ import {
   isAllowedEmailOtpType,
   categorizeAuthError,
   logAuthRouteEvent,
-  sanitizeNextPath,
   userFacingAuthErrorMessage,
 } from "@/lib/auth/email-link";
+import { resolveAuthCallbackNext } from "@/lib/auth/recovery";
 import {
   authErrorRedirect,
   authSuccessRedirect,
@@ -26,8 +26,11 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const tokenHash = requestUrl.searchParams.get("token_hash");
   const typeParam = requestUrl.searchParams.get("type");
-  const defaultNext = typeParam === "recovery" ? "/auth/reset-password" : "/";
-  const next = sanitizeNextPath(requestUrl.searchParams.get("next"), defaultNext);
+  // Must match callback: recovery + next=/ (or missing next) must not land on marketing `/`.
+  const next = resolveAuthCallbackNext({
+    next: requestUrl.searchParams.get("next"),
+    type: typeParam,
+  });
 
   if (!tokenHash) {
     logAuthRouteEvent("confirm", {
