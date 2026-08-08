@@ -199,3 +199,44 @@ describe("permanentlyDeleteClientInDb dependent cleanup", () => {
     }
   });
 });
+
+describe("logPermanentClientDeleteFailure", () => {
+  it("logs structured PostgREST fields without secrets or payloads", async () => {
+    const { logPermanentClientDeleteFailure } = await import(
+      "@/lib/supabase/repository"
+    );
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    logPermanentClientDeleteFailure({
+      operation: "deleteOwnedClientDependents",
+      table: "sessions",
+      clientId: "9e15a4b5-c94c-4827-a848-f6eb8a7c8d39",
+      error: {
+        message:
+          'update or delete on table "sessions" violates foreign key constraint "development_updates_session_id_fkey"',
+        code: "23503",
+        details: "Key (id)=(0bf1b380-1173-478b-bf1b-1563f995b5fe) is still referenced from table \"development_updates\".",
+        hint: null,
+      },
+    });
+
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy.mock.calls[0]?.[0]).toBe("[permanent-client-delete]");
+    expect(spy.mock.calls[0]?.[1]).toEqual({
+      operation: "deleteOwnedClientDependents",
+      table: "sessions",
+      clientId: "9e15a4b5-c94c-4827-a848-f6eb8a7c8d39",
+      message:
+        'update or delete on table "sessions" violates foreign key constraint "development_updates_session_id_fkey"',
+      code: "23503",
+      details:
+        'Key (id)=(0bf1b380-1173-478b-bf1b-1563f995b5fe) is still referenced from table "development_updates".',
+      hint: null,
+    });
+
+    const logged = JSON.stringify(spy.mock.calls[0]);
+    expect(logged).not.toMatch(/service_role|eyJ|cookie|authorization/i);
+
+    spy.mockRestore();
+  });
+});

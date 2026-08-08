@@ -55,6 +55,44 @@ function isMissingRelationError(message: string): boolean {
   );
 }
 
+type PermanentDeletePostgrestError = {
+  message?: string | null;
+  code?: string | null;
+  details?: string | null;
+  hint?: string | null;
+};
+
+/**
+ * Temporary diagnostic logging for permanent-client-delete failures.
+ * Logs only safe PostgREST fields — never secrets or row payloads.
+ */
+export function logPermanentClientDeleteFailure(input: {
+  operation: string;
+  table: string;
+  clientId: string;
+  error: PermanentDeletePostgrestError;
+}): void {
+  console.error("[permanent-client-delete]", {
+    operation: input.operation,
+    table: input.table,
+    clientId: input.clientId,
+    message: input.error.message ?? null,
+    code: input.error.code ?? null,
+    details: input.error.details ?? null,
+    hint: input.error.hint ?? null,
+  });
+}
+
+function throwPermanentDeleteDbError(
+  operation: string,
+  table: string,
+  clientId: string,
+  error: PermanentDeletePostgrestError & { message: string }
+): never {
+  logPermanentClientDeleteFailure({ operation, table, clientId, error });
+  throw new Error(error.message);
+}
+
 /**
  * Delete coach-owned dependent rows. Missing tables (not yet migrated) are ignored.
  */
@@ -79,7 +117,12 @@ async function deleteOwnedClientDependents(
       .eq("user_id", coachId);
 
     if (error && !isMissingRelationError(error.message)) {
-      throw new Error(error.message);
+      throwPermanentDeleteDbError(
+        "deleteOwnedClientDependents",
+        table,
+        clientId,
+        error
+      );
     }
   }
 
@@ -96,7 +139,12 @@ async function deleteOwnedClientDependents(
       .eq("coach_id", coachId);
 
     if (error && !isMissingRelationError(error.message)) {
-      throw new Error(error.message);
+      throwPermanentDeleteDbError(
+        "deleteOwnedClientDependents",
+        table,
+        clientId,
+        error
+      );
     }
   }
 
@@ -108,7 +156,12 @@ async function deleteOwnedClientDependents(
       .eq("client_id", clientId);
 
     if (error && !isMissingRelationError(error.message)) {
-      throw new Error(error.message);
+      throwPermanentDeleteDbError(
+        "deleteOwnedClientDependents",
+        "relationship_assignments",
+        clientId,
+        error
+      );
     }
   }
 
@@ -126,7 +179,12 @@ async function deleteOwnedClientDependents(
       .eq("coach_id", coachId);
 
     if (error && !isMissingRelationError(error.message)) {
-      throw new Error(error.message);
+      throwPermanentDeleteDbError(
+        "deleteOwnedClientDependents",
+        table,
+        clientId,
+        error
+      );
     }
   }
 }
@@ -1182,7 +1240,14 @@ export async function permanentlyDeleteClientInDb(
         .eq("coach_id", coachId)
         .select("id")
         .maybeSingle();
-      if (error) throw new Error(error.message);
+      if (error) {
+        throwPermanentDeleteDbError(
+          "permanentlyDeleteClientInDb",
+          "clients",
+          clientId,
+          error
+        );
+      }
       return Boolean(data);
     }
 
@@ -1208,7 +1273,14 @@ export async function permanentlyDeleteClientInDb(
       .select("id")
       .maybeSingle();
 
-    if (error) throw new Error(error.message);
+    if (error) {
+      throwPermanentDeleteDbError(
+        "permanentlyDeleteClientInDb",
+        "clients",
+        clientId,
+        error
+      );
+    }
     return Boolean(data);
   } catch (error) {
     wrapDbError(error, "Unable to delete the client in Supabase.");
