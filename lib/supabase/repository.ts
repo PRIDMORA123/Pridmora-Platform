@@ -83,6 +83,35 @@ async function deleteOwnedClientDependents(
     }
   }
 
+  // Must run before sessions: development_updates.session_id references sessions.
+  const preSessionTables = [
+    "development_updates",
+    "development_profiles",
+  ] as const;
+  for (const table of preSessionTables) {
+    const { error } = await admin
+      .from(table)
+      .delete()
+      .eq("client_id", clientId)
+      .eq("coach_id", coachId);
+
+    if (error && !isMissingRelationError(error.message)) {
+      throw new Error(error.message);
+    }
+  }
+
+  // Assignments are scoped by client_id only (no coach_id column).
+  {
+    const { error } = await admin
+      .from("relationship_assignments")
+      .delete()
+      .eq("client_id", clientId);
+
+    if (error && !isMissingRelationError(error.message)) {
+      throw new Error(error.message);
+    }
+  }
+
   const legacyTables = [
     "development_reports",
     "coaching_reports",
