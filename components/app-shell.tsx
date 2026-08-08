@@ -16,6 +16,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 import { IdentityButton } from "@/components/identity/button";
 import { IdentityProductMark } from "@/components/identity/product-mark";
+import { OwnerConsoleNavLink } from "@/components/owner/owner-console-nav-link";
 import { WorkspaceSelector } from "@/components/organisation/workspace-selector";
 import { BRAND } from "@/lib/brand";
 import { useOrganisation } from "@/lib/organisations/organisation-context";
@@ -236,6 +237,7 @@ export function AppShell({
               <small className="identity-sidebar-account-role">{coachTitle}</small>
             </div>
           </div>
+          <OwnerConsoleNavLink onNavigate={() => setMobileOpen(false)} />
           <button
             type="button"
             className="identity-nav-link identity-sidebar-sign-out"
