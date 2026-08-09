@@ -8,10 +8,39 @@ import { AuthPasswordField } from "@/components/auth/auth-fields";
 import { PASSWORD_RESET_PATH } from "@/lib/auth/recovery";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
+type Phase =
+  | "loading"
+  | "awaiting_continue"
+  | "verifying"
+  | "ready"
+  | "expired"
+  | "missing";
+
+function readRecoveryParams(): {
+  code: string | null;
+  type: string | null;
+  tokenHash: string | null;
+} {
+  const search = new URLSearchParams(window.location.search);
+  return {
+    code: search.get("code"),
+    type: search.get("type"),
+    tokenHash: search.get("token_hash"),
+  };
+}
+
+function clearRecoveryParamsFromUrl() {
+  const url = new URL(window.location.href);
+  url.searchParams.delete("token_hash");
+  url.searchParams.delete("type");
+  url.searchParams.delete("code");
+  window.history.replaceState({}, "", url.pathname + (url.search || ""));
+}
+
 export function ResetPasswordForm() {
   const router = useRouter();
-  const [ready, setReady] = useState(false);
-  const [expired, setExpired] = useState(false);
+  const [phase, setPhase] = useState<Phase>("loading");
+  const [tokenHash, setTokenHash] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -20,15 +49,11 @@ export function ResetPasswordForm() {
     let cancelled = false;
     let unsubscribe: (() => void) | undefined;
 
-    async function verifySession() {
+    async function bootstrap() {
       try {
-        const search = new URLSearchParams(window.location.search);
-        const code = search.get("code");
-        const type = search.get("type");
-        const tokenHash = search.get("token_hash");
+        const { code, type, tokenHash: hash } = readRecoveryParams();
 
-        // If the recovery email redirected straight here with a PKCE code,
-        // complete exchange via the server callback (sets cookies correctly).
+        // Legacy PKCE recovery still completes via server callback.
         if (code) {
           const callback = new URL("/auth/callback", window.location.origin);
           callback.searchParams.set("code", code);
@@ -39,13 +64,12 @@ export function ResetPasswordForm() {
           return;
         }
 
-        // Token-hash recovery links should complete via /auth/confirm.
-        if (tokenHash && type === "recovery") {
-          const confirm = new URL("/auth/confirm", window.location.origin);
-          confirm.searchParams.set("token_hash", tokenHash);
-          confirm.searchParams.set("type", "recovery");
-          confirm.searchParams.set("next", PASSWORD_RESET_PATH);
-          window.location.replace(confirm.toString());
+        // Scanner-safe path: keep token_hash on this page and do NOT verify on GET.
+        if (hash && (type === "recovery" || !type)) {
+          if (!cancelled) {
+            setTokenHash(hash);
+            setPhase("awaiting_continue");
+          }
           return;
         }
 
@@ -55,8 +79,8 @@ export function ResetPasswordForm() {
         } = supabase.auth.onAuthStateChange(event => {
           if (cancelled) return;
           if (event === "PASSWORD_RECOVERY") {
-            setExpired(false);
-            setReady(true);
+            setError("");
+            setPhase("ready");
           }
         });
         unsubscribe = () => subscription.unsubscribe();
@@ -65,30 +89,67 @@ export function ResetPasswordForm() {
         if (cancelled) return;
 
         if (userError || !data.user) {
-          setExpired(true);
-          setReady(true);
+          setPhase("missing");
           return;
         }
 
-        setReady(true);
+        setPhase("ready");
       } catch {
-        if (!cancelled) {
-          setExpired(true);
-          setReady(true);
-        }
+        if (!cancelled) setPhase("expired");
       }
     }
 
-    void verifySession();
+    void bootstrap();
     return () => {
       cancelled = true;
       unsubscribe?.();
     };
   }, []);
 
+  async function continueWithToken() {
+    if (!tokenHash || phase === "verifying") return;
+    setError("");
+    setPhase("verifying");
+
+    try {
+      const supabase = createBrowserSupabaseClient();
+      // Explicit user action only — never verify on page load / GET.
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        token_hash: tokenHash,
+        type: "recovery",
+      });
+
+      if (verifyError) {
+        const message = String(verifyError.message ?? "").toLowerCase();
+        const code = String(verifyError.code ?? "").toLowerCase();
+        if (
+          code.includes("expired") ||
+          code.includes("invalid") ||
+          message.includes("expired") ||
+          message.includes("invalid")
+        ) {
+          setError(
+            "This reset link has expired or is no longer valid. Request a new password reset email."
+          );
+        } else {
+          setError("Unable to verify this reset link. Request a new password reset email.");
+        }
+        setPhase("expired");
+        return;
+      }
+
+      clearRecoveryParamsFromUrl();
+      setTokenHash(null);
+      setPhase("ready");
+    } catch {
+      setError("Network error. Please check your connection and try again.");
+      setPhase("expired");
+    }
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (saving || expired) return;
+    if (saving || phase !== "ready") return;
     setError("");
     setSaving(true);
 
@@ -115,7 +176,7 @@ export function ResetPasswordForm() {
       if (updateError) {
         const message = updateError.message.toLowerCase();
         if (message.includes("expired") || message.includes("session")) {
-          setExpired(true);
+          setPhase("expired");
           setError("This reset link has expired. Request a new password reset email.");
         } else {
           setError("Unable to update your password. Please try again.");
@@ -136,20 +197,60 @@ export function ResetPasswordForm() {
     }
   }
 
-  if (!ready) {
+  if (phase === "loading" || phase === "verifying") {
     return (
       <AuthShell eyebrow="CREATE A NEW PASSWORD" title="Preparing secure reset…">
-        <p className="auth-form__description">Checking your reset link…</p>
+        <p className="auth-form__description">
+          {phase === "verifying" ? "Confirming your reset link…" : "Checking your reset link…"}
+        </p>
       </AuthShell>
     );
   }
 
-  if (expired) {
+  if (phase === "awaiting_continue") {
+    return (
+      <AuthShell
+        eyebrow="CREATE A NEW PASSWORD"
+        title="Confirm password reset"
+        description="For security, confirm that you want to reset your password. This step must be completed by you — not by an automatic email scan."
+        footer={
+          <p className="auth-account-prompt">
+            <Link href="/auth/forgot-password">Request a new reset link</Link>
+            {" · "}
+            <Link href="/auth/sign-in">Sign in</Link>
+          </p>
+        }
+      >
+        <div className="auth-form-fields">
+          <button
+            className="auth-submit"
+            type="button"
+            onClick={() => {
+              void continueWithToken();
+            }}
+          >
+            Continue to reset password
+          </button>
+          {error ? (
+            <p className="inline-notice error" role="alert">
+              {error}
+            </p>
+          ) : null}
+        </div>
+      </AuthShell>
+    );
+  }
+
+  if (phase === "expired" || phase === "missing") {
     return (
       <AuthShell
         eyebrow="CREATE A NEW PASSWORD"
         title="This link is no longer valid"
-        description="Password reset links expire for security. Request a new link to continue."
+        description={
+          phase === "missing"
+            ? "This reset page is missing a valid reset token. Request a new password reset email to continue."
+            : "Password reset links expire for security, or may already have been used. Request a new link to continue."
+        }
         footer={
           <p className="auth-account-prompt">
             <Link href="/auth/forgot-password">Request a new reset link</Link>

@@ -40,9 +40,10 @@ In the Supabase dashboard Auth settings, add redirect URLs:
 - `http://localhost:3000/auth/callback`
 - your production `/auth/callback`
 
-Password reset emails must use the token-hash confirm route (see
-`supabase/email-templates/recovery.html`). Apply that template manually in the
-Supabase dashboard — it is not deployed automatically.
+Password reset emails must use the scanner-safe reset-password link (see
+`supabase/email-templates/recovery.html`: `token_hash` on `/auth/reset-password`,
+verified only after the user clicks Continue). Apply that template manually in
+the Supabase dashboard — it is not deployed automatically.
 
 ## Auth notes
 
