@@ -23,6 +23,7 @@ export type AuthErrorCategory =
   | "otp_verification_failed"
   | "exchange_failed"
   | "provider_error"
+  | "recovery_deferred_to_reset_password"
   | "unknown";
 
 export type AuthRouteName = "callback" | "confirm";

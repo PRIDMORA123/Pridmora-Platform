@@ -9,7 +9,8 @@
   - The user must click "Continue to reset password" before verification.
   - Corporate Safe Links / prefetch can open the page without consuming the token.
 
-  Do NOT point Reset Password emails at /auth/confirm (that verifies on GET).
+  Prefer this Reset Password URL. If an email still hits /auth/confirm with
+  type=recovery, that route now redirects here WITHOUT verifying on GET.
 -->
 <h2>Reset your password</h2>
 <p>Follow this link to set a new password for your Pridmora account:</p>

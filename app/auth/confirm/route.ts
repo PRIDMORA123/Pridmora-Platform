@@ -1,4 +1,5 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
 import {
   isAllowedEmailOtpType,
   categorizeAuthError,
@@ -15,12 +16,17 @@ import {
 export const runtime = "nodejs";
 
 /**
- * Token-hash email confirmation / recovery.
- * Used by password-reset emails so recovery works across browsers
- * without a PKCE code-verifier cookie.
+ * Token-hash email confirmation.
  *
- * Example:
- *   /auth/confirm?token_hash=...&type=recovery&next=/auth/reset-password
+ * Invite / signup / email change: verifies on GET (unchanged).
+ *
+ * Recovery: NEVER verifies on GET. Prefetch/scanner-safe — redirect to
+ * /auth/reset-password with token_hash + type preserved so the user must
+ * explicitly Continue before verifyOtp runs.
+ *
+ * Example recovery redirect:
+ *   /auth/confirm?token_hash=...&type=recovery
+ *   → /auth/reset-password?token_hash=...&type=recovery
  */
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -55,6 +61,18 @@ export async function GET(request: Request) {
       requestUrl.origin,
       userFacingAuthErrorMessage("disallowed_type")
     );
+  }
+
+  // Recovery must not consume the OTP on GET (email scanners / prefetch).
+  if (typeParam === "recovery") {
+    const resetUrl = new URL("/auth/reset-password", requestUrl.origin);
+    resetUrl.searchParams.set("token_hash", tokenHash);
+    resetUrl.searchParams.set("type", "recovery");
+    logAuthRouteEvent("confirm", {
+      outcome: "success",
+      category: "recovery_deferred_to_reset_password",
+    });
+    return NextResponse.redirect(resetUrl);
   }
 
   const { supabase, configured, applyCookies } = createAuthRouteClient(request);

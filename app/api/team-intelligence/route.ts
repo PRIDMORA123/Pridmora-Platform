@@ -3,6 +3,7 @@ import {
   buildTeamIntelligenceView,
   listEvidenceForClient,
 } from "@/lib/development-evidence";
+import { isSelfDevelopmentClientRow } from "@/lib/my-development/self-development-identity";
 import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
 import { listAssignedClientIds } from "@/lib/organisations/repository";
 import { parseIdentityMode } from "@/lib/relationship-identity";
@@ -30,21 +31,36 @@ export async function GET() {
 
     // Mirror listClientsFromDb: assignment rows when present; otherwise
     // coach-owned rows still inside the active organisation (solo/legacy).
-    let query = supabase
-      .from("clients")
-      .select(
-        "id, name, identity_mode, display_label, confidential_reference, ai_name_allowed, role, organisation, organisation_id, coach_id"
-      )
-      .eq("organisation_id", organisationId)
-      .is("archived_at", null);
+    // Prefer is_self_development when the column exists; fall back if absent.
+    const selectWithFlag =
+      "id, name, identity_mode, display_label, confidential_reference, ai_name_allowed, role, organisation, organisation_id, coach_id, is_self_development";
+    const selectFallback =
+      "id, name, identity_mode, display_label, confidential_reference, ai_name_allowed, role, organisation, organisation_id, coach_id";
 
-    if (assignedIds.length > 0) {
-      query = query.in("id", assignedIds);
-    } else {
-      query = query.eq("coach_id", userId);
+    async function loadClients(select: string) {
+      let query = supabase
+        .from("clients")
+        .select(select)
+        .eq("organisation_id", organisationId)
+        .is("archived_at", null);
+
+      if (assignedIds.length > 0) {
+        query = query.in("id", assignedIds);
+      } else {
+        query = query.eq("coach_id", userId);
+      }
+
+      return query;
     }
 
-    const { data: clients, error } = await query;
+    let { data: clients, error } = await loadClients(selectWithFlag);
+
+    if (
+      error &&
+      /is_self_development|schema cache|could not find/i.test(error.message)
+    ) {
+      ({ data: clients, error } = await loadClients(selectFallback));
+    }
 
     if (error) {
       return NextResponse.json(
@@ -53,17 +69,30 @@ export async function GET() {
       );
     }
 
+    type TeamClientRow = {
+      id: string;
+      name: string | null;
+      identity_mode: string | null;
+      display_label: string | null;
+      confidential_reference: string | null;
+      ai_name_allowed: boolean | null;
+      role: string | null;
+      organisation: string | null;
+      organisation_id: string | null;
+      is_self_development?: boolean | null;
+    };
+
     // Defence in depth: never return rows from another organisation.
-    // Exclude Manager My Development self-records from team aggregation.
-    const scopedClients = (clients ?? []).filter(client => {
-      const orgOk =
-        typeof client.organisation_id === "string" &&
-        client.organisation_id === organisationId;
-      if (!orgOk) return false;
-      const isSelf =
-        String(client.role ?? "").toLowerCase() === "self development";
-      return !isSelf;
-    });
+    // Same self-development exclusion as People (flag OR role sentinel).
+    const scopedClients = ((clients ?? []) as unknown as TeamClientRow[]).filter(
+      row => {
+        const orgOk =
+          typeof row.organisation_id === "string" &&
+          row.organisation_id === organisationId;
+        if (!orgOk) return false;
+        return !isSelfDevelopmentClientRow(row);
+      }
+    );
 
     const members = [];
     for (const client of scopedClients) {

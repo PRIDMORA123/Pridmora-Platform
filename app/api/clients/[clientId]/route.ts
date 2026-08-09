@@ -136,6 +136,15 @@ export async function DELETE(_request: Request, context: RouteContext) {
   const auth = await requireOrganisationContext();
   if (!auth.ok) return auth.response;
 
+  // Manager pilot: permanent delete is UI-hidden and API-denied.
+  // Archive/restore remain available. Owner/admin/coach roles unchanged.
+  if (auth.context.organisation.professionalRole === "manager") {
+    return NextResponse.json(
+      { error: "Managers cannot permanently delete people. Archive instead." },
+      { status: 403 }
+    );
+  }
+
   try {
     const { clientId } = await context.params;
     if (!clientId || !isUuid(clientId)) {

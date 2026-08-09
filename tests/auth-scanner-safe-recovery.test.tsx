@@ -207,6 +207,13 @@ describe("scanner-safe recovery wiring", () => {
     const confirm = readFileSync(join(root, "app/auth/confirm/route.ts"), "utf8");
     expect(confirm).toContain("verifyOtp");
     expect(confirm).toContain("token_hash");
+    expect(confirm).toContain('typeParam === "recovery"');
+    expect(confirm).toContain("recovery_deferred_to_reset_password");
+    expect(confirm).toContain("/auth/reset-password");
+    // Recovery branch must appear before the actual verifyOtp call.
+    expect(confirm.indexOf('typeParam === "recovery"')).toBeLessThan(
+      confirm.indexOf("supabase.auth.verifyOtp")
+    );
     const inviteTest = readFileSync(
       join(root, "tests/manager-invite-auth.test.ts"),
       "utf8"

@@ -45,8 +45,7 @@ describe("auth confirm route (token hash recovery)", () => {
     return mod.GET;
   }
 
-  it("verifies a valid recovery token hash and redirects to reset-password", async () => {
-    authMocks.verifyOtp.mockResolvedValue({ data: { session: { access_token: "x" } }, error: null });
+  it("does not verify recovery on GET — redirects to scanner-safe reset-password with token preserved", async () => {
     const GET = await getConfirm();
 
     const response = await GET(
@@ -55,18 +54,15 @@ describe("auth confirm route (token hash recovery)", () => {
       )
     );
 
-    expect(authMocks.verifyOtp).toHaveBeenCalledWith({
-      token_hash: "valid-hash",
-      type: "recovery",
-    });
+    expect(authMocks.verifyOtp).not.toHaveBeenCalled();
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe(
-      "https://app.pridmora.com/auth/reset-password"
+      "https://app.pridmora.com/auth/reset-password?token_hash=valid-hash&type=recovery"
     );
     expect(JSON.parse(String(infoSpy.mock.calls.at(-1)?.[0]))).toMatchObject({
       route: "confirm",
       outcome: "success",
-      category: "ok",
+      category: "recovery_deferred_to_reset_password",
     });
   });
 
@@ -103,7 +99,7 @@ describe("auth confirm route (token hash recovery)", () => {
     );
   });
 
-  it("maps expired token errors to a safe message", async () => {
+  it("maps expired invite token errors to a safe message", async () => {
     authMocks.verifyOtp.mockResolvedValue({
       data: { session: null },
       error: {
@@ -115,10 +111,14 @@ describe("auth confirm route (token hash recovery)", () => {
     const GET = await getConfirm();
     const response = await GET(
       new Request(
-        "https://app.pridmora.com/auth/confirm?token_hash=stale&type=recovery"
+        "https://app.pridmora.com/auth/confirm?token_hash=stale&type=invite"
       )
     );
 
+    expect(authMocks.verifyOtp).toHaveBeenCalledWith({
+      token_hash: "stale",
+      type: "invite",
+    });
     expect(decodeURIComponent(response.headers.get("location") || "")).toContain(
       "expired or is no longer valid"
     );
@@ -133,7 +133,7 @@ describe("auth confirm route (token hash recovery)", () => {
     expect(JSON.stringify(log)).not.toMatch(/stale|token_hash=|cookie/i);
   });
 
-  it("maps invalid token hash failures safely", async () => {
+  it("maps invalid invite token hash failures safely", async () => {
     authMocks.verifyOtp.mockResolvedValue({
       data: { session: null },
       error: {
@@ -145,18 +145,21 @@ describe("auth confirm route (token hash recovery)", () => {
     const GET = await getConfirm();
     const response = await GET(
       new Request(
-        "https://app.pridmora.com/auth/confirm?token_hash=bad&type=recovery"
+        "https://app.pridmora.com/auth/confirm?token_hash=bad&type=invite"
       )
     );
 
+    expect(authMocks.verifyOtp).toHaveBeenCalledWith({
+      token_hash: "bad",
+      type: "invite",
+    });
     expect(response.headers.get("location")).toContain("/auth/error?");
     expect(decodeURIComponent(response.headers.get("location") || "")).toContain(
       "expired or is no longer valid"
     );
   });
 
-  it("defaults recovery next path and blocks open redirects", async () => {
-    authMocks.verifyOtp.mockResolvedValue({ data: { session: {} }, error: null });
+  it("recovery confirm preserves token and ignores open-redirect next without verifying", async () => {
     const GET = await getConfirm();
 
     const defaultNext = await GET(
@@ -164,8 +167,9 @@ describe("auth confirm route (token hash recovery)", () => {
         "https://app.pridmora.com/auth/confirm?token_hash=valid-hash&type=recovery"
       )
     );
+    expect(authMocks.verifyOtp).not.toHaveBeenCalled();
     expect(defaultNext.headers.get("location")).toBe(
-      "https://app.pridmora.com/auth/reset-password"
+      "https://app.pridmora.com/auth/reset-password?token_hash=valid-hash&type=recovery"
     );
 
     const openRedirect = await GET(
@@ -173,13 +177,13 @@ describe("auth confirm route (token hash recovery)", () => {
         "https://app.pridmora.com/auth/confirm?token_hash=valid-hash&type=recovery&next=https://evil.example"
       )
     );
+    expect(authMocks.verifyOtp).not.toHaveBeenCalled();
     expect(openRedirect.headers.get("location")).toBe(
-      "https://app.pridmora.com/auth/reset-password"
+      "https://app.pridmora.com/auth/reset-password?token_hash=valid-hash&type=recovery"
     );
   });
 
   it("does not send recovery confirms to the marketing homepage when next=/", async () => {
-    authMocks.verifyOtp.mockResolvedValue({ data: { session: {} }, error: null });
     const GET = await getConfirm();
 
     const response = await GET(
@@ -188,9 +192,10 @@ describe("auth confirm route (token hash recovery)", () => {
       )
     );
 
+    expect(authMocks.verifyOtp).not.toHaveBeenCalled();
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe(
-      "https://platform.pridmora.com/auth/reset-password"
+      "https://platform.pridmora.com/auth/reset-password?token_hash=valid-hash&type=recovery"
     );
   });
 });

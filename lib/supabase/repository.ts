@@ -19,6 +19,7 @@ import {
   getSupabaseUrl,
   isSupabaseServiceRoleConfigured,
 } from "@/lib/supabase/env";
+import { isSelfDevelopmentClientRow } from "@/lib/my-development/self-development-identity";
 import {
   assembleClient,
   clientItemsToRows,
@@ -398,11 +399,7 @@ export async function listClientsFromDb(
     }
 
     // My Development self-records must not appear in People / managed lists.
-    rows = rows.filter(
-      row =>
-        !Boolean(row.is_self_development) &&
-        String(row.role ?? "").trim().toLowerCase() !== "self development"
-    );
+    rows = rows.filter(row => !isSelfDevelopmentClientRow(row));
 
     if (rows.length === 0) return [];
 

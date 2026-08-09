@@ -5,6 +5,7 @@ import {
   buildReflectionPatternInsights,
   patternsSafeForIntelligence,
 } from "@/lib/my-development/reflection-patterns";
+import { isSelfDevelopmentClientRow } from "@/lib/my-development/self-development-identity";
 import {
   buildMyDevelopmentFocusItemRows,
   buildMyDevelopmentMaturity,
@@ -250,10 +251,51 @@ describe("Manager My Development journey", () => {
   it("keeps self-development hidden from People and team intelligence", () => {
     const repo = read("lib/supabase/repository.ts");
     const team = read("app/api/team-intelligence/route.ts");
+    const identity = read("lib/my-development/self-development-identity.ts");
     expect(repo).toContain("must not appear in People");
-    expect(repo).toContain("is_self_development");
-    expect(team).toContain("self development");
-    expect(team).toContain("Exclude Manager My Development self-records");
+    expect(repo).toContain("isSelfDevelopmentClientRow");
+    expect(team).toContain("isSelfDevelopmentClientRow");
+    expect(team).toContain("is_self_development");
+    expect(identity).toContain('=== "self development"');
+    expect(isSelfDevelopmentClientRow({ is_self_development: true })).toBe(true);
+    expect(
+      isSelfDevelopmentClientRow({ role: "Self development" })
+    ).toBe(true);
+    expect(
+      isSelfDevelopmentClientRow({ role: "Team leader", is_self_development: false })
+    ).toBe(false);
+  });
+
+  it("write schema contract: focus and actions require server organisation_id", () => {
+    const orgA = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    const orgB = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+    const rows = buildMyDevelopmentFocusItemRows({
+      clientId: "self-a",
+      coachId: "user-a",
+      organisationId: orgA,
+      priorities: ["Delegation", "Confidence"],
+    });
+    expect(rows).toHaveLength(2);
+    for (const row of rows) {
+      expect(row.organisation_id).toBe(orgA);
+      expect(row.organisation_id).not.toBe(orgB);
+      expect(row.item_type).toBe("theme");
+    }
+
+    const workspace = read("lib/my-development/workspace.ts");
+    expect(workspace).toContain("assertSelfClientOrganisation");
+    expect(workspace).toContain(
+      "does not belong to the current organisation"
+    );
+
+    const repo = read("lib/supabase/repository.ts");
+    expect(repo).toContain("resolveClientOrganisationId");
+    expect(repo).toContain("never from browser-supplied action payload");
+    expect(repo).toContain("Never strip organisation_id");
+
+    const actions = read("app/api/actions/route.ts");
+    expect(actions).toContain("requireAssignedPersonInOrganisation");
+    expect(actions).not.toMatch(/organisation_id:\s*body/);
   });
 
   it("keeps managed-person intelligence and evidence routes separate", () => {

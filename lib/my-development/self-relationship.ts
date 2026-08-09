@@ -1,11 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Client } from "@/lib/types";
+import { isSelfDevelopmentClientRow } from "@/lib/my-development/self-development-identity";
 import { createRelationshipAtomicInDb } from "@/lib/supabase/repository";
 import {
   assembleClient,
   initialsFromName,
   type ClientRow,
 } from "@/lib/supabase/map";
+
+export { isSelfDevelopmentClientRow };
 
 /**
  * Ensure the authenticated practitioner has a self-development client row

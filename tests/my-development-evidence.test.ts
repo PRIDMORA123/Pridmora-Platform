@@ -30,18 +30,20 @@ describe("My Development self evidence wiring", () => {
 
   it("excludes self-development clients from People listing", () => {
     const repo = read("lib/supabase/repository.ts");
-    expect(repo).toContain("is_self_development");
+    const identity = read("lib/my-development/self-development-identity.ts");
+    expect(repo).toContain("isSelfDevelopmentClientRow");
     expect(repo).toContain("must not appear in People");
-    expect(repo).toContain("self development");
+    expect(identity).toContain("is_self_development");
+    expect(identity).toContain("self development");
   });
 
   it("supports pre-migration role sentinel fallback when column is absent", () => {
     const lib = read("lib/my-development/self-relationship.ts");
-    const repo = read("lib/supabase/repository.ts");
+    const identity = read("lib/my-development/self-development-identity.ts");
     expect(lib).toContain('role: "Self development"');
     expect(lib).toContain('.eq("role", "Self development")');
     expect(lib).toMatch(/is_self_development\|schema cache\|could not find/);
-    expect(repo).toContain("self development");
+    expect(identity).toContain('=== "self development"');
   });
 
   it("self-relationship route ensures own record without browser clientId", () => {
