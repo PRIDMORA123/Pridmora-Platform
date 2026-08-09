@@ -41,6 +41,7 @@ type FirstUserOnboardingProps = {
     identityMode?: "standard" | "confidential";
     displayLabel?: string;
     aiNameAllowed?: boolean;
+    privateRealName?: string;
   }) => Promise<{ id: string; name: string }>;
   onCreateSession: (input: {
     clientId: string;
@@ -88,6 +89,7 @@ export function FirstUserOnboarding({
           identityMode: "standard",
           name: "Jordan Lee",
           displayLabel: "",
+          privateRealName: "",
           role: "",
           organisation: "",
           coachingFocus: "",
@@ -156,6 +158,12 @@ export function FirstUserOnboarding({
 
   function handleContinueFromRelationship() {
     if (draft.relationship.identityMode === "confidential") {
+      if (!draft.relationship.privateRealName.trim()) {
+        setNameError(
+          "Enter the person’s real name for the Identity Vault. It stays private from the workspace."
+        );
+        return;
+      }
       if (
         !draft.relationship.displayLabel.trim() &&
         !draft.relationship.role.trim()
@@ -178,6 +186,13 @@ export function FirstUserOnboarding({
     }
 
     if (draft.relationship.identityMode === "confidential") {
+      if (!draft.relationship.privateRealName.trim()) {
+        setNameError(
+          "Enter the person’s real name for the Identity Vault. It stays private from the workspace."
+        );
+        goTo("relationship");
+        return;
+      }
       if (
         !draft.relationship.displayLabel.trim() &&
         !draft.relationship.role.trim()
@@ -318,7 +333,10 @@ export function FirstUserOnboarding({
                   name="onboarding-identity-mode"
                   checked={draft.relationship.identityMode === "confidential"}
                   onChange={() =>
-                    updateRelationship({ identityMode: "confidential", name: "" })
+                    updateRelationship({
+                      identityMode: "confidential",
+                      name: "",
+                    })
                   }
                 />
                 <span>
@@ -347,16 +365,37 @@ export function FirstUserOnboarding({
                 autoFocus
               />
             ) : (
-              <PremiumInput
-                label="Display label"
-                name="displayLabel"
-                value={draft.relationship.displayLabel}
-                onChange={event =>
-                  updateRelationship({ displayLabel: event.target.value })
-                }
-                error={nameError}
-                autoFocus
-              />
+              <>
+                <PremiumInput
+                  label="Real name — stored privately in Identity Vault"
+                  name="privateRealName"
+                  autoComplete="off"
+                  value={draft.relationship.privateRealName}
+                  onChange={event =>
+                    updateRelationship({ privateRealName: event.target.value })
+                  }
+                  error={
+                    nameError && /Identity Vault|real name/i.test(nameError)
+                      ? nameError
+                      : undefined
+                  }
+                  required
+                  autoFocus
+                />
+                <PremiumInput
+                  label="Safe display label / alias"
+                  name="displayLabel"
+                  value={draft.relationship.displayLabel}
+                  onChange={event =>
+                    updateRelationship({ displayLabel: event.target.value })
+                  }
+                  error={
+                    nameError && !/Identity Vault|real name/i.test(nameError)
+                      ? nameError
+                      : undefined
+                  }
+                />
+              </>
             )}
             <PremiumInput
               label="Role"

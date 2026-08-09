@@ -3,7 +3,10 @@
 import { act, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { NewClientDialog } from "@/components/new-client-dialog";
+import {
+  NewClientDialog,
+  type NewClientFormValues,
+} from "@/components/new-client-dialog";
 import { ClientIdentityHeader } from "@/components/identity/client-header";
 import { ClientActionsMenu } from "@/components/client-actions-menu";
 import { PrivateIdentityAccess } from "@/components/private-identity/private-identity-access";
@@ -83,6 +86,15 @@ function noopLifecycle() {
   };
 }
 
+function setInputValue(input: HTMLInputElement, value: string) {
+  const descriptor = Object.getOwnPropertyDescriptor(
+    window.HTMLInputElement.prototype,
+    "value"
+  );
+  descriptor?.set?.call(input, value);
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
 describe("confidential coaching UI", () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -142,8 +154,9 @@ describe("confidential coaching UI", () => {
     expect(container.textContent).toMatch(/Confidential mode/i);
   });
 
-  it("switches to confidential fields and requires Identity Vault real name", () => {
-    const onCreate = vi.fn(async () => undefined);
+  it("Manager People NewClientDialog shows vault real name immediately on Confidential", async () => {
+    // Live path: home-app People / topbar "New person" → NewClientDialog (not a separate Manager form).
+    const onCreate = vi.fn(async (_fields: NewClientFormValues) => undefined);
     render(
       <NewClientDialog open onClose={() => undefined} onCreate={onCreate} />
     );
@@ -156,12 +169,26 @@ describe("confidential coaching UI", () => {
       confidentialRadio.click();
     });
 
-    expect(container.querySelector("#new-client-display-label")).toBeTruthy();
-    expect(container.querySelector("#new-client-role-confidential")).toBeTruthy();
+    const privateName = container.querySelector(
+      "#new-client-private-name"
+    ) as HTMLInputElement | null;
+    const displayLabel = container.querySelector(
+      "#new-client-display-label"
+    ) as HTMLInputElement | null;
+    expect(privateName).toBeTruthy();
+    expect(displayLabel).toBeTruthy();
     expect(container.querySelector("#new-client-name")).toBeNull();
-    expect(container.querySelector("#new-client-private-name")).toBeTruthy();
-    expect(container.textContent).toMatch(/Identity Vault/);
-    expect(container.textContent).toMatch(/Add optional private contact details/);
+    expect(container.textContent).toMatch(
+      /Real name — stored privately in Identity Vault/
+    );
+    expect(container.textContent).toMatch(/Safe display label \/ alias/);
+
+    // Vault field must appear before the safe alias in the DOM (immediately visible).
+    const body = container.querySelector(".identity-modal__body");
+    const html = body?.innerHTML || "";
+    expect(html.indexOf("new-client-private-name")).toBeLessThan(
+      html.indexOf("new-client-display-label")
+    );
 
     const createButton = Array.from(
       container.querySelectorAll("button")
@@ -169,9 +196,31 @@ describe("confidential coaching UI", () => {
       /Create relationship/i.test(button.textContent || "")
     ) as HTMLButtonElement | undefined;
     expect(createButton).toBeTruthy();
-    // Alias alone is not enough — vault real name is required for formValid.
+
+    // Alias alone — submit blocked.
+    act(() => {
+      setInputValue(displayLabel!, "Programme lead");
+    });
     expect(createButton?.disabled).toBe(true);
     expect(onCreate).not.toHaveBeenCalled();
+
+    // With vault real name — submit succeeds; payload keeps public alias separate.
+    act(() => {
+      setInputValue(privateName!, "Jordan Vault");
+    });
+    expect(createButton?.disabled).toBe(false);
+
+    await act(async () => {
+      createButton!.click();
+    });
+
+    expect(onCreate).toHaveBeenCalledTimes(1);
+    const payload = onCreate.mock.calls[0][0];
+    expect(payload.identityMode).toBe("confidential");
+    expect(payload.privateRealName).toBe("Jordan Vault");
+    expect(payload.displayLabel).toBe("Programme lead");
+    expect(payload.name).toBe("");
+    expect(payload.displayLabel).not.toBe(payload.privateRealName);
   });
 
   it("keeps confidential workspace header anonymous without private identity entry", () => {

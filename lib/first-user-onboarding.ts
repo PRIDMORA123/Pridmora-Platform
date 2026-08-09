@@ -12,6 +12,8 @@ export type FirstUserRelationshipDraft = {
   identityMode: "standard" | "confidential";
   name: string;
   displayLabel: string;
+  /** Identity Vault real name — required in confidential mode; never public. */
+  privateRealName: string;
   role: string;
   organisation: string;
   coachingFocus: string;
@@ -36,6 +38,7 @@ export const EMPTY_RELATIONSHIP_DRAFT: FirstUserRelationshipDraft = {
   identityMode: "standard",
   name: "",
   displayLabel: "",
+  privateRealName: "",
   role: "",
   organisation: "",
   coachingFocus: "",
@@ -156,6 +159,7 @@ export function loadFirstUserOnboardingDraft(
             : "standard",
         name: String(parsed.relationship?.name ?? ""),
         displayLabel: String(parsed.relationship?.displayLabel ?? ""),
+        privateRealName: String(parsed.relationship?.privateRealName ?? ""),
         role: String(parsed.relationship?.role ?? ""),
         organisation: String(parsed.relationship?.organisation ?? ""),
         coachingFocus: String(parsed.relationship?.coachingFocus ?? ""),
@@ -214,6 +218,7 @@ export function buildFirstUserClientPayload(draft: FirstUserRelationshipDraft) {
       currentFocus: draft.coachingFocus.trim(),
       email: "",
       aiNameAllowed: false,
+      privateRealName: draft.privateRealName.trim(),
     };
   }
   return {

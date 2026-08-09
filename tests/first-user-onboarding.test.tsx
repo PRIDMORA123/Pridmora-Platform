@@ -127,6 +127,7 @@ describe("explore dismisses correctly", () => {
       relationship: {
         identityMode: "standard",
         displayLabel: "",
+        privateRealName: "",
         name: "Alex",
         role: "",
         organisation: "",
@@ -182,6 +183,61 @@ describe("FirstUserOnboarding UI", () => {
       explore?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
     expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it("confidential relationship requires Identity Vault real name before continue", async () => {
+    const onCreateClient = vi.fn();
+    const container = await renderView(
+      <FirstUserOnboarding
+        userId="user-conf"
+        coachId="coach-conf"
+        initialStep="relationship"
+        onDismiss={vi.fn()}
+        onCreateClient={onCreateClient}
+        onCreateSession={vi.fn()}
+        onPrepare={vi.fn()}
+        onViewRelationship={vi.fn()}
+      />
+    );
+
+    const confidentialRadio = Array.from(
+      container.querySelectorAll('input[type="radio"]')
+    ).find(input =>
+      /Confidential/i.test(input.closest("label")?.textContent || "")
+    ) as HTMLInputElement;
+    await act(async () => {
+      confidentialRadio.click();
+    });
+
+    expect(container.textContent).toMatch(
+      /Real name — stored privately in Identity Vault/
+    );
+    expect(container.querySelector('input[name="privateRealName"]')).toBeTruthy();
+    expect(container.querySelector('input[name="displayLabel"]')).toBeTruthy();
+
+    const continueBtn = Array.from(container.querySelectorAll("button")).find(
+      button => button.textContent === "Continue"
+    );
+    await act(async () => {
+      continueBtn?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    expect(container.textContent).toMatch(/Identity Vault|real name/i);
+    expect(onCreateClient).not.toHaveBeenCalled();
+
+    const privateName = container.querySelector(
+      'input[name="privateRealName"]'
+    ) as HTMLInputElement;
+    const displayLabel = container.querySelector(
+      'input[name="displayLabel"]'
+    ) as HTMLInputElement;
+    await act(async () => {
+      setInputValue(privateName, "Jordan Vault");
+      setInputValue(displayLabel, "Programme lead");
+    });
+    await act(async () => {
+      continueBtn?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    expect(container.textContent).toContain("Schedule the first conversation.");
   });
 
   it("creates relationship via existing APIs without organisation_id from the browser", async () => {
@@ -367,6 +423,7 @@ describe("FirstUserOnboarding UI", () => {
       relationship: {
         identityMode: "standard",
         displayLabel: "",
+        privateRealName: "",
         name: "Casey",
         role: "Director",
         organisation: "Acme",
@@ -404,6 +461,7 @@ describe("payload helpers", () => {
     const payload = buildFirstUserClientPayload({
       identityMode: "standard",
       displayLabel: "",
+      privateRealName: "",
       name: "Alex",
       role: "VP",
       organisation: "Northwind",
@@ -423,10 +481,11 @@ describe("payload helpers", () => {
     expect(payload).not.toHaveProperty("organisation_id");
   });
 
-  it("builds confidential onboarding payload without a real name", () => {
+  it("builds confidential onboarding payload with vault real name only in private field", () => {
     const payload = buildFirstUserClientPayload({
       identityMode: "confidential",
       displayLabel: "Programme lead",
+      privateRealName: "Jordan Vault",
       name: "",
       role: "Head of Finance",
       organisation: "Northwind",
@@ -437,7 +496,10 @@ describe("payload helpers", () => {
       displayLabel: "Programme lead",
       name: "",
       aiNameAllowed: false,
+      privateRealName: "Jordan Vault",
     });
+    expect(payload.name).toBe("");
+    expect(payload.displayLabel).not.toBe("Jordan Vault");
   });
 
   it("strips organisation_id from browser session bodies", () => {
@@ -580,6 +642,7 @@ describe("draft cleanup helper", () => {
       relationship: {
         identityMode: "standard",
         displayLabel: "",
+        privateRealName: "",
         name: "",
         role: "",
         organisation: "",

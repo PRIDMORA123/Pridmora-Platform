@@ -56,7 +56,7 @@ export function NewClientDialog({
     if (open) {
       requestAnimationFrame(() => {
         if (formData.identityMode === "confidential") {
-          labelInputRef.current?.focus();
+          document.getElementById("new-client-private-name")?.focus();
         } else {
           nameInputRef.current?.focus();
         }
@@ -244,8 +244,7 @@ export function NewClientDialog({
 
       <p className="identity-mode-intro">
         Confidential mode keeps personal identity separate from development information. AI works
-        with development evidence, not unnecessary personal details. You decide whether names are
-        stored.
+        with development evidence, not unnecessary personal details.
       </p>
 
       {formData.identityMode === "standard" ? (
@@ -322,8 +321,31 @@ export function NewClientDialog({
         </>
       ) : (
         <>
+          {/* Vault name first — must be immediately visible after selecting Confidential. */}
+          <div className="identity-private-panel identity-private-panel--required">
+            <label className="dialog-field-label" htmlFor="new-client-private-name">
+              Real name — stored privately in Identity Vault{" "}
+              <span className="dialog-required">*</span>
+            </label>
+            <input
+              id="new-client-private-name"
+              name="privateRealName"
+              className="dialog-confirm-input"
+              value={formData.privateRealName}
+              disabled={locked}
+              autoComplete="off"
+              autoFocus
+              placeholder="Full legal or preferred identifying name"
+              onChange={handleChange}
+            />
+            <p className="identity-private-note">
+              Never shown in People, intelligence, AI prompts or reports. The workspace uses
+              the safe display label and confidential reference only.
+            </p>
+          </div>
+
           <label className="dialog-field-label" htmlFor="new-client-display-label">
-            Display label
+            Safe display label / alias
           </label>
           <input
             ref={labelInputRef}
@@ -361,27 +383,6 @@ export function NewClientDialog({
             autoComplete="organization"
             onChange={handleChange}
           />
-
-          <div className="identity-private-panel identity-private-panel--required">
-            <p className="identity-private-note">
-              Identity Vault — the real name is stored privately and is never shown in the
-              People list, intelligence, AI prompts or reports. The workspace uses the
-              display label and confidential reference only.
-            </p>
-            <label className="dialog-field-label" htmlFor="new-client-private-name">
-              Real name <span className="dialog-required">*</span>
-            </label>
-            <input
-              id="new-client-private-name"
-              name="privateRealName"
-              className="dialog-confirm-input"
-              value={formData.privateRealName}
-              disabled={locked}
-              autoComplete="off"
-              placeholder="Full legal or preferred identifying name"
-              onChange={handleChange}
-            />
-          </div>
 
           <button
             type="button"
