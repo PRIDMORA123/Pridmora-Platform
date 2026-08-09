@@ -1,5 +1,8 @@
 "use client";
 
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { resolveProductLanguage } from "@/lib/role-language";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CoachNotesEditor } from "@/components/coach/coach-notes-editor";
 import { CoachingContextPanel } from "@/components/coach/coaching-context-panel";
@@ -45,6 +48,8 @@ export function CoachWorkspacePage({
   onSessionUpdated,
   onContinueToReflection,
 }: CoachWorkspacePageProps) {
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
   const resolvedMode =
     intelligenceMode ??
     (session.intelligenceMode
@@ -130,7 +135,7 @@ export function CoachWorkspacePage({
         if (!silent) {
           showToast({
             type: "success",
-            title: "Coach notes saved",
+            title: `${language.notesLabel} saved`,
           });
         }
 
@@ -147,7 +152,7 @@ export function CoachWorkspacePage({
         if (!silent) {
           showToast({
             type: "error",
-            title: "Coach notes could not be saved",
+            title: `${language.notesLabel} could not be saved`,
             description: "Your notes remain on screen. Please try again.",
             durationMs: 5000,
           });
@@ -302,7 +307,7 @@ export function CoachWorkspacePage({
     }
 
     const confirmed = window.confirm(
-      "Complete this coaching conversation? You will still be able to review the notes afterwards."
+      `Complete this ${language.conversationSingular}? You will still be able to review the notes afterwards.`
     );
 
     if (!confirmed) return;
@@ -402,6 +407,7 @@ export function CoachWorkspacePage({
           sessionStatus={sessionStatus}
           notes={notes}
           clientName={initialData.client.name}
+          clientId={initialData.relationshipId}
           preparation={preparation}
           isOpen={isContextOpen}
           onClose={() => setIsContextOpen(false)}

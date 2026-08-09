@@ -1,5 +1,7 @@
 "use client";
 
+import { resolveProductLanguage } from "@/lib/role-language";
+import { useOrganisation } from "@/lib/organisations/organisation-context";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Modal } from "@/components/ui/modal";
 import "@/components/edit-client-dialog.css";
@@ -34,6 +36,8 @@ export function EditClientDialog({
   const [saving, setSaving] = useState(false);
   const firstInputRef = useRef<HTMLInputElement>(null);
 
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
   const busy = isSaving || saving;
 
   useEffect(() => {
@@ -73,7 +77,7 @@ export function EditClientDialog({
     }
 
     if (!values.name.trim()) {
-      setErrorMessage("Enter the client’s name before saving.");
+      setErrorMessage(`Enter the ${language.personSingular}’s name before saving.`);
       firstInputRef.current?.focus();
       return;
     }
@@ -93,7 +97,7 @@ export function EditClientDialog({
     } catch (error) {
       console.error("Unable to update client", error);
       setErrorMessage(
-        "The client could not be updated. Your changes remain on screen."
+        `The ${language.personSingular} could not be updated. Your changes remain on screen.`
       );
     } finally {
       setSaving(false);
@@ -103,8 +107,8 @@ export function EditClientDialog({
   return (
     <Modal
       isOpen={isOpen}
-      title="Edit client"
-      eyebrow="Client details"
+      title={language.editPersonLabel}
+      eyebrow={language.personDetailsLabel}
       descriptionId="edit-client-description"
       onClose={onClose}
       closeDisabled={busy}
@@ -132,8 +136,8 @@ export function EditClientDialog({
       }
     >
       <p id="edit-client-description" className="identity-modal-intro">
-        Update the core details for this coaching relationship. Changes are
-        saved to the client record only.
+        Update the core details for this {language.relationshipSingular}. Changes are
+        saved to the {language.personSingular} record only.
       </p>
 
       {errorMessage ? (
@@ -190,7 +194,7 @@ export function EditClientDialog({
         </label>
 
         <label className="edit-client-field edit-client-field--full">
-          <span>Coaching purpose</span>
+          <span>{language.developmentPurposeLabel}</span>
           <textarea
             value={values.coachingPurpose}
             onChange={event =>

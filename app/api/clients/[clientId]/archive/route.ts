@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { notFoundOrForbidden, requireAuthenticatedUser } from "@/lib/auth/session";
+import { notFoundOrForbidden } from "@/lib/auth/session";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import { archiveClientInDb } from "@/lib/supabase/repository";
 import { toUserFriendlySupabaseError } from "@/lib/supabase/errors";
 import { isUuid } from "@/lib/uuid";
@@ -11,19 +12,19 @@ type RouteContext = {
 };
 
 export async function POST(_request: Request, context: RouteContext) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
+  const { clientId } = await context.params;
+  if (!clientId || !isUuid(clientId)) {
+    return notFoundOrForbidden();
+  }
+
+  const access = await requireAssignedPersonInOrganisation({ clientId });
+  if (!access.ok) return access.response;
 
   try {
-    const { clientId } = await context.params;
-    if (!clientId || !isUuid(clientId)) {
-      return notFoundOrForbidden();
-    }
-
     const client = await archiveClientInDb(
-      auth.context.supabase,
-      auth.context.coachId,
-      clientId
+      access.context.supabase,
+      access.context.coachId,
+      access.clientId
     );
 
     if (!client) {

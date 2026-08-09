@@ -2,7 +2,8 @@ import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import { IDENTITY_SYSTEM_PROMPT } from "@/lib/ai/identity-system-prompt";
 import { COACHING_REPORT_TASK_PROMPT } from "@/lib/ai/coaching-report-prompt";
-import { requireAuthenticatedUser } from "@/lib/auth/session";
+import { notFoundOrForbidden } from "@/lib/auth/session";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import {
   NEXT_FOCUS_PREFIX,
   type CoachingReportAiEvidence,
@@ -74,8 +75,18 @@ function parseCoachingReportAiOutput(
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
+  let body: CoachingReportRequest;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+  }
+
+  const access = await requireAssignedPersonInOrganisation({
+    clientId: body.clientId,
+    requireAiEnabled: true,
+  });
+  if (!access.ok) return access.response;
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -83,13 +94,6 @@ export async function POST(request: Request) {
       { error: "OpenAI API key is not configured." },
       { status: 500 }
     );
-  }
-
-  let body: CoachingReportRequest;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
   const evidence = body.evidence ?? [];
@@ -124,32 +128,28 @@ export async function POST(request: Request) {
   const reportTypeLabel =
     body.reportType === "final" ? "Final Coaching Report" : "Progress Report";
 
-  let safeClientLabel = "";
-  if (body.clientId?.trim()) {
-    const { data: clientRow } = await auth.context.supabase
-      .from("clients")
-      .select(
-        "name, identity_mode, display_label, confidential_reference, ai_name_allowed, organisation, role"
-      )
-      .eq("id", body.clientId.trim())
-      .eq("coach_id", auth.context.user.id)
-      .maybeSingle();
+  const { data: clientRow } = await access.context.supabase
+    .from("clients")
+    .select(
+      "name, identity_mode, display_label, confidential_reference, ai_name_allowed, organisation, role"
+    )
+    .eq("id", access.clientId)
+    .eq("coach_id", access.context.coachId)
+    .maybeSingle();
 
-    if (clientRow) {
-      safeClientLabel = buildRelationshipAiContext({
-        name: String(clientRow.name ?? ""),
-        organisation: clientRow.organisation ? String(clientRow.organisation) : "",
-        role: clientRow.role ? String(clientRow.role) : "",
-        identityMode: clientRow.identity_mode,
-        displayLabel: clientRow.display_label,
-        confidentialReference: clientRow.confidential_reference,
-        aiNameAllowed: clientRow.ai_name_allowed,
-      }).aiDisplayName;
-    }
-  } else if (body.clientName?.trim()) {
-    // Legacy callers: treat supplied name as a display label only — never enrich with private identity.
-    safeClientLabel = body.clientName.trim();
+  if (!clientRow) {
+    return notFoundOrForbidden();
   }
+
+  const safeClientLabel = buildRelationshipAiContext({
+    name: String(clientRow.name ?? ""),
+    organisation: clientRow.organisation ? String(clientRow.organisation) : "",
+    role: clientRow.role ? String(clientRow.role) : "",
+    identityMode: clientRow.identity_mode,
+    displayLabel: clientRow.display_label,
+    confidentialReference: clientRow.confidential_reference,
+    aiNameAllowed: clientRow.ai_name_allowed,
+  }).aiDisplayName;
 
   const openai = new OpenAI({ apiKey });
 

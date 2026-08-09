@@ -1,5 +1,8 @@
 "use client";
 
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { resolveProductLanguage } from "@/lib/role-language";
+
 export type PreparationUpdateNoticeProps = {
   lastUpdated: string;
   needsUpdate: boolean;
@@ -17,10 +20,12 @@ export function PreparationUpdateNotice({
   disabled = false,
   updateReason = "stale",
 }: PreparationUpdateNoticeProps) {
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
   const title =
     updateReason === "style-changed"
       ? "Your preparation approach has changed."
-      : "Your client’s development information has changed since this brief was created.";
+      : `Your ${language.personSingular}’s development information has changed since this brief was created.`;
 
   const supporting =
     updateReason === "style-changed"

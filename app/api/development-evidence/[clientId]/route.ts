@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { requireAuthenticatedUser } from "@/lib/auth/session";
+import { notFoundOrForbidden } from "@/lib/auth/session";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import {
   EVIDENCE_TYPE_LABELS,
   listEvidenceForClient,
@@ -11,28 +12,28 @@ import { calculateEvidenceCoverage } from "@/lib/development-evidence/coverage";
 type Params = { params: Promise<{ clientId: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
-
   const { clientId } = await params;
+  const access = await requireAssignedPersonInOrganisation({ clientId });
+  if (!access.ok) return access.response;
+
   if (!clientId) {
     return NextResponse.json({ error: "clientId is required." }, { status: 400 });
   }
 
   try {
-    const { data: client, error } = await auth.context.supabase
+    const { data: client, error } = await access.context.supabase
       .from("clients")
       .select("id")
       .eq("id", clientId)
       .maybeSingle();
 
     if (error || !client) {
-      return NextResponse.json({ error: "Person not found." }, { status: 404 });
+      return notFoundOrForbidden();
     }
 
     const records = await listEvidenceForClient(
-      auth.context.supabase,
-      auth.context.user.id,
+      access.context.supabase,
+      access.context.user.id,
       clientId
     );
 

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { requireAuthenticatedUser } from "@/lib/auth/session";
+import { notFoundOrForbidden } from "@/lib/auth/session";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import {
   UPLOADABLE_EVIDENCE_TYPES,
   createUploadedEvidence,
@@ -12,23 +13,23 @@ import {
 type Params = { params: Promise<{ clientId: string }> };
 
 export async function POST(request: Request, { params }: Params) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
-
   const { clientId } = await params;
+  const access = await requireAssignedPersonInOrganisation({ clientId });
+  if (!access.ok) return access.response;
+
   if (!clientId) {
     return NextResponse.json({ error: "clientId is required." }, { status: 400 });
   }
 
   try {
-    const { data: client, error } = await auth.context.supabase
+    const { data: client, error } = await access.context.supabase
       .from("clients")
       .select("id, organisation_id")
       .eq("id", clientId)
       .maybeSingle();
 
     if (error || !client) {
-      return NextResponse.json({ error: "Person not found." }, { status: 404 });
+      return notFoundOrForbidden();
     }
 
     const form = await request.formData();
@@ -74,7 +75,7 @@ export async function POST(request: Request, { params }: Params) {
 
     // Best-effort private storage upload; DB remains source of extracted text.
     try {
-      await auth.context.supabase.storage
+      await access.context.supabase.storage
         .from("development-evidence")
         .upload(storagePath, bytes, {
           contentType: file.type || "application/octet-stream",
@@ -85,8 +86,8 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     const created = await createUploadedEvidence({
-      supabase: auth.context.supabase,
-      userId: auth.context.user.id,
+      supabase: access.context.supabase,
+      userId: access.context.user.id,
       clientId,
       evidenceType: evidenceType as DevelopmentEvidenceType,
       title: title || file.name,

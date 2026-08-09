@@ -35,7 +35,7 @@ function PreparationContextContent({
           <section className="preparation-brief-state">
             <h3>This is the first conversation in this relationship</h3>
             <p>
-              Preparation guidance will use the agreed coaching purpose and any
+              Preparation guidance will use the agreed development purpose and any
               existing development evidence.
             </p>
           </section>
@@ -79,7 +79,7 @@ function PreparationContextContent({
         <div className="preparation-brief-state">
           <h3>This is the first conversation in this relationship</h3>
           <p>
-            Preparation guidance will use the agreed coaching purpose and any
+            Preparation guidance will use the agreed development purpose and any
             existing development evidence.
           </p>
         </div>
@@ -189,7 +189,7 @@ function PreparationContextContent({
         questions: intelligence.suggestedQuestions,
         approachSummary:
           intelligence.approachSummary ||
-          "Reconnect with the coaching purpose and choose one useful area to explore.",
+          "Reconnect with the development purpose and choose one useful area to explore.",
         framework: intelligence.suggestedFramework,
       }}
       onInsertQuestion={question => onInsertQuestion?.(question)}
@@ -276,7 +276,7 @@ export function PreparationContextDrawer({
         type="button"
         className="context-drawer-overlay"
         onClick={onClose}
-        aria-label="Close coaching context"
+        aria-label="Close preparation context"
       />
 
       <aside
@@ -288,7 +288,7 @@ export function PreparationContextDrawer({
       >
         <header className="context-drawer-header">
           <div>
-            <p className="prepare-eyebrow">Coaching intelligence</p>
+            <p className="prepare-eyebrow">Development intelligence</p>
             <h2 id={titleId}>{getContextTitle(section)}</h2>
           </div>
 

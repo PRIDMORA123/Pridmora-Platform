@@ -1,33 +1,40 @@
 import { NextResponse } from "next/server";
-import { requireAuthenticatedUser } from "@/lib/auth/session";
+import { notFoundOrForbidden } from "@/lib/auth/session";
 import { developmentUpdateErrorResponse } from "@/lib/development-updates/api-response";
 import {
   discardDevelopmentUpdateRpc,
   getDevelopmentUpdateById,
 } from "@/lib/development-updates/repository";
+import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 
 type Params = { params: Promise<{ updateId: string }> };
 
 export async function POST(_request: Request, { params }: Params) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
+  const org = await requireOrganisationContext();
+  if (!org.ok) return org.response;
 
   const { updateId } = await params;
 
   try {
     const existing = await getDevelopmentUpdateById(
-      auth.context.supabase,
-      auth.context.user.id,
+      org.context.supabase,
+      org.context.user.id,
       updateId
     );
     if (!existing) {
-      return NextResponse.json({ error: "Development update not found." }, { status: 404 });
+      return notFoundOrForbidden();
     }
 
-    await discardDevelopmentUpdateRpc(auth.context.supabase, updateId);
+    const access = await requireAssignedPersonInOrganisation({
+      clientId: existing.clientId,
+    });
+    if (!access.ok) return access.response;
+
+    await discardDevelopmentUpdateRpc(access.context.supabase, updateId);
     const update = await getDevelopmentUpdateById(
-      auth.context.supabase,
-      auth.context.user.id,
+      access.context.supabase,
+      access.context.user.id,
       updateId
     );
 

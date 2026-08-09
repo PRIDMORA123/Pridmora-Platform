@@ -17,7 +17,7 @@ export type CoachingMomentLauncherProps = {
 export function CoachingMomentLauncher({
   disabled = false,
   variant = "button",
-  label = "New Coaching Moment",
+  label = "New development moment",
   onLaunch,
   buttonRef,
 }: CoachingMomentLauncherProps) {

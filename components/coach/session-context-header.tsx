@@ -1,3 +1,5 @@
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { resolveProductLanguage } from "@/lib/role-language";
 import type { ReactNode } from "react";
 import type {
   CoachWorkspaceViewModel,
@@ -33,10 +35,12 @@ export function SessionContextHeader({
   onOpenContext,
   intelligenceIndicator,
 }: Props) {
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
   return (
     <header className="coach-context-header">
       <div className="coach-context-header__main">
-        <p className="coach-context-header__eyebrow">Coaching workspace</p>
+        <p className="coach-context-header__eyebrow">{language.workspaceTitle}</p>
 
         <h1>{client.name}</h1>
 

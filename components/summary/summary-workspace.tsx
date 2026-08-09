@@ -13,6 +13,8 @@ import {
 } from "@/components/identity-intelligence";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
 import { IDENTITY_EMPTY_STATES } from "@/lib/identity-empty-states";
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { resolveProductLanguage } from "@/lib/role-language";
 import { SUMMARY_STATUS_LABELS } from "@/lib/session-workflow";
 import { toActionButtonStatus } from "@/types/action-feedback";
 import type {
@@ -26,11 +28,17 @@ import type {
 import { SessionPatternInsightBanner } from "@/components/patterns/pattern-panels";
 import "@/app/workspace-refinement.css";
 
-function SummaryStatusBanner({ status }: { status: SummaryStatus }) {
+function SummaryStatusBanner({
+  status,
+  reviewedLabel,
+}: {
+  status: SummaryStatus;
+  reviewedLabel: string;
+}) {
   if (status === "approved") {
     return (
       <IdentityApprovedRecord title="Session summary">
-        <p>This summary has been coach-reviewed and approved.</p>
+        <p>This summary has been {reviewedLabel} and approved.</p>
       </IdentityApprovedRecord>
     );
   }
@@ -146,6 +154,8 @@ export function SummaryWorkspace({
   onSaveDraft: (summary: SummaryFields) => Promise<void>;
   onApprove: (summary: SummaryFields) => Promise<void>;
 }) {
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
   const [summary, setSummary] = useState(initialData.summary);
   const [status, setStatus] = useState(initialData.status);
   const { feedback, isLoading, markUnsaved, runAction, reset } =
@@ -203,7 +213,7 @@ export function SummaryWorkspace({
       <PageSectionHeading
         eyebrow="Conversation record"
         title="Review the session summary"
-        description="AI may prepare a draft, but only the coach can review and approve it."
+        description="AI may prepare a draft, but only you can review and approve it."
         actions={
           <>
             <IntelligenceModeIndicator
@@ -230,7 +240,16 @@ export function SummaryWorkspace({
         }
       />
 
-      <SummaryStatusBanner status={status} />
+      <SummaryStatusBanner
+        status={status}
+        reviewedLabel={
+          organisation?.professionalRole === "manager"
+            ? "manager-reviewed"
+            : organisation?.professionalRole === "coach"
+              ? "coach-reviewed"
+              : "practitioner-reviewed"
+        }
+      />
 
       {patternInsight ? (
         <SessionPatternInsightBanner
@@ -281,7 +300,7 @@ export function SummaryWorkspace({
           <SummaryEditorSection
             eyebrow="Next steps"
             title="Agreed actions"
-            description="Specific commitments agreed with the client."
+            description={`Specific commitments agreed with the ${language.personSingular}.`}
             value={summary.agreedActions}
             disabled={readOnly}
             onChange={value => updateField("agreedActions", value)}
@@ -291,9 +310,11 @@ export function SummaryWorkspace({
         <aside className="summary-review-panel">
           <h2>Review before approval</h2>
 
-          <ReviewCheck label="Client name is correct" />
+          <ReviewCheck label={language.personNameConfirmLabel} />
           <ReviewCheck label="Claims are supported by evidence" />
-          <ReviewCheck label="Private coach notes are excluded" />
+          <ReviewCheck
+            label={`Private ${language.notesLabel.toLowerCase()} are excluded`}
+          />
           <ReviewCheck label="Actions reflect the conversation" />
 
           <div className="summary-review-panel__notice">

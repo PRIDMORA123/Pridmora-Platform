@@ -6,8 +6,10 @@ import {
   COACHING_MOMENT_INSIGHT_PROMPT,
   COACHING_MOMENT_PREPARATION_PROMPT,
 } from "@/lib/ai/coaching-moment-prompt";
-import { requireAuthenticatedUser, notFoundOrForbidden } from "@/lib/auth/session";
+import { notFoundOrForbidden } from "@/lib/auth/session";
 import { loadAuthorisedCoachingMomentContext } from "@/lib/coaching-moments/authorised-context";
+import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import { trackCoachingMomentEvent } from "@/lib/coaching-moments/analytics";
 import {
   buildGuidanceFingerprint,
@@ -79,29 +81,16 @@ function errorResponse(error: unknown) {
 }
 
 export async function GET(request: Request) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
-
   const url = new URL(request.url);
   const clientId = url.searchParams.get("clientId")?.trim() ?? "";
   const momentId = url.searchParams.get("momentId")?.trim() ?? "";
   const recent = url.searchParams.get("recent") === "1";
   const limit = Number(url.searchParams.get("limit") ?? "20");
 
-  if (!clientId || !isUuid(clientId)) {
-    return NextResponse.json({ error: "clientId is required." }, { status: 400 });
-  }
+  const access = await requireAssignedPersonInOrganisation({ clientId });
+  if (!access.ok) return access.response;
 
-  const { supabase, coachId } = auth.context;
-
-  const { data: client } = await supabase
-    .from("clients")
-    .select("id")
-    .eq("id", clientId)
-    .eq("coach_id", coachId)
-    .maybeSingle();
-
-  if (!client) return notFoundOrForbidden();
+  const { supabase, coachId } = access.context;
 
   try {
     if (momentId) {
@@ -111,7 +100,7 @@ export async function GET(request: Request) {
       const moment = await getCoachingMoment(supabase, {
         momentId,
         coachId,
-        clientId,
+        clientId: access.clientId,
       });
       if (!moment) return notFoundOrForbidden();
       return NextResponse.json({ moment });
@@ -119,7 +108,7 @@ export async function GET(request: Request) {
 
     if (recent) {
       const moments = await listRecentSavedCoachingMoments(supabase, {
-        clientId,
+        clientId: access.clientId,
         coachId,
         limit: Math.min(Math.max(limit || 3, 1), 3),
       });
@@ -127,7 +116,7 @@ export async function GET(request: Request) {
     }
 
     const moments = await listCoachingMoments(supabase, {
-      clientId,
+      clientId: access.clientId,
       coachId,
       limit: Math.min(Math.max(limit || 20, 1), 50),
     });
@@ -138,9 +127,6 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
-
   let body: ActionBody;
   try {
     body = await request.json();
@@ -151,26 +137,48 @@ export async function POST(request: Request) {
   const action = body.action?.trim() || "create";
   const clientId = body.clientId?.trim() ?? "";
   const momentId = body.momentId?.trim() ?? "";
-  const { supabase, coachId } = auth.context;
+  const needsAi =
+    action === "prepare_guidance" || action === "generate_insight";
+
+  let personClientId = clientId;
+  if ((!personClientId || !isUuid(personClientId)) && momentId && isUuid(momentId)) {
+    const org = await requireOrganisationContext();
+    if (!org.ok) return org.response;
+    const existingMoment = await getCoachingMoment(org.context.supabase, {
+      momentId,
+      coachId: org.context.coachId,
+    });
+    if (!existingMoment) return notFoundOrForbidden();
+    personClientId = existingMoment.clientId;
+  }
+
+  const access = await requireAssignedPersonInOrganisation({
+    clientId: personClientId,
+    requireAiEnabled: needsAi,
+  });
+  if (!access.ok) return access.response;
+  personClientId = access.clientId;
+
+  const { supabase, coachId } = access.context;
 
   try {
     switch (action) {
       case "create": {
-        if (!clientId || !isUuid(clientId)) {
+        if (!personClientId || !isUuid(personClientId)) {
           return NextResponse.json(
             { error: "clientId is required." },
             { status: 400 }
           );
         }
         const moment = await createDraftCoachingMoment(supabase, {
-          clientId,
+          clientId: personClientId,
           coachId,
           situation: body.situation,
           desiredOutcome: body.desiredOutcome,
         });
         trackCoachingMomentEvent({
           event: "coaching_moment_started",
-          relationshipId: clientId,
+          relationshipId: personClientId,
           momentId: moment.id,
           status: moment.status,
         });

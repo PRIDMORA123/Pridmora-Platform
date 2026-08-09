@@ -289,6 +289,7 @@ export async function generateCoachingSupport(
     notes: string;
     focus?: string;
     clientName?: string;
+    clientId?: string;
     preparation?: string;
   }
 ): Promise<CoachingSupportResult> {
@@ -309,7 +310,7 @@ export async function generateCoachingSupport(
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notes }),
+        body: JSON.stringify({ notes, clientId: context.clientId }),
       }
     );
 
@@ -349,6 +350,7 @@ export async function generateCoachingSupport(
         focus: context.focus || "",
         preparation: context.preparation || "",
         clientName: context.clientName || "",
+        clientId: context.clientId,
       }),
     });
 

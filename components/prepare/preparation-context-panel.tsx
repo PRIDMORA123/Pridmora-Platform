@@ -78,7 +78,7 @@ export function PreparationContextPanel({
       />
 
       <ContextButton
-        title="Coaching guidance"
+        title="Conversation guidance"
         description="Questions and relevant framework"
         available
         highlighted

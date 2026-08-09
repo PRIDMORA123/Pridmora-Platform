@@ -1,10 +1,13 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import { IDENTITY_SYSTEM_PROMPT } from "@/lib/ai/identity-system-prompt";
-import { requireAuthenticatedUser } from "@/lib/auth/session";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 
 type CoachingQuestionsRequest = {
   notes?: string;
+  clientId?: string;
+  sessionId?: string;
+  organisationId?: string;
 };
 
 const COACHING_QUESTIONS_TASK_PROMPT = `Generate five powerful coaching questions.
@@ -40,8 +43,19 @@ No introductions.
 No explanations.`;
 
 export async function POST(request: Request) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
+  let body: CoachingQuestionsRequest;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+  }
+
+  const access = await requireAssignedPersonInOrganisation({
+    clientId: body.clientId,
+    bodyOrganisationId: body.organisationId,
+    requireAiEnabled: true,
+  });
+  if (!access.ok) return access.response;
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -49,13 +63,6 @@ export async function POST(request: Request) {
       { error: "OpenAI API key is not configured." },
       { status: 500 }
     );
-  }
-
-  let body: CoachingQuestionsRequest;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
   const { notes } = body;

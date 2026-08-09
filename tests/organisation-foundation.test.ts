@@ -54,6 +54,23 @@ describe("organisation foundation source guards", () => {
     expect(route).toContain("requireAssignedClientAccess");
   });
 
+  it("notes AI and patterns routes enforce organisation assignment before OpenAI", () => {
+    for (const path of [
+      "app/api/draft-summary/route.ts",
+      "app/api/coaching-questions/route.ts",
+      "app/api/patterns/generate/route.ts",
+    ]) {
+      const route = read(path);
+      expect(route).toContain("requireAssignedPersonInOrganisation");
+      expect(route.indexOf("requireAssignedPersonInOrganisation")).toBeLessThan(
+        route.indexOf("new OpenAI")
+      );
+    }
+    expect(read("app/api/team-intelligence/route.ts")).toContain(
+      "listAssignedClientIds"
+    );
+  });
+
   it("centralises permissions away from scattered role strings in org pages", () => {
     const permissions = read("lib/organisations/permissions.ts");
     expect(permissions).toContain("canAccessCoachingContent");

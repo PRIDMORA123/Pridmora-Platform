@@ -1,5 +1,8 @@
 "use client";
 
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { resolveProductLanguage } from "@/lib/role-language";
+
 import type { CoachingSupportResult } from "@/types/coach-workspace";
 
 type Props = {
@@ -13,6 +16,8 @@ export function CoachingSupportDrawer({
   onAddToNotes,
   onClose,
 }: Props) {
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
   if (!result) return null;
 
   const support = result;
@@ -31,7 +36,7 @@ export function CoachingSupportDrawer({
         type="button"
         className="coach-support-overlay"
         onClick={onClose}
-        aria-label="Close coaching support"
+        aria-label="Close conversation support"
       />
 
       <aside
@@ -42,7 +47,7 @@ export function CoachingSupportDrawer({
       >
         <div className="coach-support-drawer__header">
           <div>
-            <p className="coach-section-label">Coaching support</p>
+            <p className="coach-section-label">{language.supportLabel}</p>
             <h2 id="coach-support-drawer-title">{support.title}</h2>
           </div>
 

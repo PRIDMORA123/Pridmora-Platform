@@ -13,8 +13,8 @@ import {
   buildPreparationIntelligenceInstructions,
 } from "@/lib/coaching-intelligence/prompt";
 import { resolveIntelligenceSources } from "@/lib/coaching-intelligence/resolve-sources";
-import { requireAuthenticatedUser } from "@/lib/auth/session";
 import { buildSourceFingerprint } from "@/lib/preparation-brief";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import { evaluatePreparationIsolationAttempt } from "@/lib/coaching-intelligence/preparation-isolation";
 import {
   assertRelationshipOwnership,
@@ -182,20 +182,6 @@ async function generatePreparationDraft(input: {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
-
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json(
-      {
-        error: PREPARATION_REFRESH_UNCHANGED,
-        errorCode: "PREPARATION_AI_UNAVAILABLE" satisfies PreparationErrorCode,
-      },
-      { status: 503 }
-    );
-  }
-
   let body: PrepareRequest;
   try {
     body = await request.json();
@@ -231,8 +217,25 @@ export async function POST(request: Request) {
     );
   }
 
-  const supabase = auth.context.supabase;
-  const coachId = auth.context.coachId;
+  const access = await requireAssignedPersonInOrganisation({
+    clientId: relationshipId,
+    requireAiEnabled: true,
+  });
+  if (!access.ok) return access.response;
+
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json(
+      {
+        error: PREPARATION_REFRESH_UNCHANGED,
+        errorCode: "PREPARATION_AI_UNAVAILABLE" satisfies PreparationErrorCode,
+      },
+      { status: 503 }
+    );
+  }
+
+  const supabase = access.context.supabase;
+  const coachId = access.context.coachId;
 
   try {
     // Best-effort status marker — ignore schema-cache misses until migration is applied.

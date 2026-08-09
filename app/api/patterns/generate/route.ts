@@ -5,13 +5,14 @@ import {
   formatEvidenceCatalogue,
   PATTERN_RECOGNITION_SYSTEM_PROMPT,
 } from "@/lib/ai/pattern-recognition-prompt";
-import { requireAuthenticatedUser } from "@/lib/auth/session";
+import { notFoundOrForbidden } from "@/lib/auth/session";
 import { listCoachingMoments } from "@/lib/coaching-moments/repository";
 import { developmentUpdateErrorResponse } from "@/lib/development-updates/api-response";
 import {
   ensureProfileOrEmpty,
   saveCoachingPatterns,
 } from "@/lib/development-updates/repository";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import { collectPatternEvidenceFromRelationship } from "@/lib/patterns/collect";
 import {
   generateRelationshipPatterns,
@@ -26,6 +27,7 @@ import { rowToSession } from "@/lib/supabase/map";
 
 type GenerateRequest = {
   clientId?: string;
+  organisationId?: string;
   force?: boolean;
   /** When true, skip OpenAI and use deterministic continuity detection only. */
   deterministicOnly?: boolean;
@@ -37,9 +39,6 @@ type GenerateRequest = {
  * Does not run on page view.
  */
 export async function POST(request: Request) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
-
   let body: GenerateRequest;
   try {
     body = await request.json();
@@ -47,13 +46,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const clientId = body.clientId?.trim();
-  if (!clientId) {
-    return NextResponse.json({ error: "clientId is required." }, { status: 400 });
-  }
+  const access = await requireAssignedPersonInOrganisation({
+    clientId: body.clientId,
+    bodyOrganisationId: body.organisationId,
+  });
+  if (!access.ok) return access.response;
 
-  const supabase = auth.context.supabase;
-  const coachId = auth.context.user.id;
+  const supabase = access.context.supabase;
+  const coachId = access.context.coachId;
+  const clientId = access.clientId;
   const force = Boolean(body.force);
 
   try {
@@ -67,7 +68,7 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     if (clientError || !client) {
-      return NextResponse.json({ error: "Person not found." }, { status: 404 });
+      return notFoundOrForbidden();
     }
 
     // Production schema uses session_date / session_number — not `date`.
@@ -150,7 +151,8 @@ export async function POST(request: Request) {
     let generationFailed = false;
 
     const apiKey = process.env.OPENAI_API_KEY;
-    if (apiKey && !body.deterministicOnly) {
+    const aiEnabled = access.context.organisation.organisation.aiEnabled;
+    if (apiKey && aiEnabled && !body.deterministicOnly) {
       try {
         const openai = new OpenAI({ apiKey });
         const existingSummary = profile.coachingPatterns

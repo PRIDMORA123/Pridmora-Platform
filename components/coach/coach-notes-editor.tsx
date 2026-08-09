@@ -1,5 +1,8 @@
 "use client";
 
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { resolveProductLanguage } from "@/lib/role-language";
+
 import { useRef } from "react";
 import { NoteInsertToolbar } from "@/components/coach/note-insert-toolbar";
 import type { SaveState } from "@/types/coach-workspace";
@@ -19,6 +22,8 @@ export function CoachNotesEditor({
   onChange,
   onSave,
 }: Props) {
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   function insertAtCursor(text: string) {
@@ -42,12 +47,14 @@ export function CoachNotesEditor({
     <section className="coach-notes-card identity-coach-content">
       <div className="coach-notes-card__header">
         <div>
-          <p className="coach-section-label identity-coach-content__label">Your notes</p>
+          <p className="coach-section-label identity-coach-content__label">
+            {language.notesLabel}
+          </p>
 
           <h2>Session notes</h2>
 
           <p>
-            Capture what happened in the conversation. Keep it concise and private to your practice.
+            Capture what happened in the conversation. Keep it concise and private to your work.
           </p>
         </div>
 
@@ -60,7 +67,7 @@ export function CoachNotesEditor({
       />
 
       <label className="sr-only" htmlFor="coach-notes-editor">
-        Coach notes
+        {language.notesLabel}
       </label>
 
       <textarea

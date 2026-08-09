@@ -18,6 +18,7 @@ type Props = {
   sessionStatus: SessionStatus;
   notes: string;
   clientName?: string;
+  clientId?: string;
   preparation?: string;
   isOpen: boolean;
   onClose: () => void;
@@ -37,6 +38,7 @@ export function CoachingContextPanel({
   sessionStatus,
   notes,
   clientName,
+  clientId,
   preparation,
   isOpen,
   onClose,
@@ -133,6 +135,7 @@ export function CoachingContextPanel({
           notes={notes}
           focus={focus}
           clientName={clientName}
+          clientId={clientId}
           preparation={preparation}
           onAddToNotes={onAddSupportToNotes}
         />

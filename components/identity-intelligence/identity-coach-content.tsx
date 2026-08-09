@@ -9,7 +9,7 @@ export type CoachContentKind =
 const KIND_LABELS: Record<CoachContentKind, string> = {
   notes: "Your notes",
   "private-reminder": "Private reminder",
-  reflection: "Coach reflection",
+  reflection: "Reflection",
   "manager-note": "Manager note",
 };
 

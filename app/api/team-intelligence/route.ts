@@ -1,48 +1,50 @@
 import { NextResponse } from "next/server";
-import { requireAuthenticatedUser } from "@/lib/auth/session";
 import {
   buildTeamIntelligenceView,
   listEvidenceForClient,
 } from "@/lib/development-evidence";
+import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
+import { listAssignedClientIds } from "@/lib/organisations/repository";
 import { parseIdentityMode } from "@/lib/relationship-identity";
 import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 
 /**
  * Team Intelligence for the current organisation workspace.
- * Aggregates safely across assigned relationships.
+ * Aggregates safely across assigned relationships only.
+ * Never uses "first membership" — always the authenticated user's active org.
  */
 export async function GET() {
-  const auth = await requireAuthenticatedUser();
+  const auth = await requireOrganisationContext();
   if (!auth.ok) return auth.response;
 
+  const organisationId = auth.context.organisation.organisationId;
+  const userId = auth.context.user.id;
+  const supabase = auth.context.supabase;
+
   try {
-    const { data: memberships } = await auth.context.supabase
-      .from("organisation_memberships")
-      .select("organisation_id")
-      .eq("user_id", auth.context.user.id)
-      .eq("status", "active");
+    const assignedIds = await listAssignedClientIds(
+      supabase,
+      organisationId,
+      userId
+    );
 
-    const organisationIds = (memberships ?? [])
-      .map(row => row.organisation_id as string)
-      .filter(Boolean);
-
-    if (organisationIds.length === 0) {
-      return NextResponse.json({
-        view: buildTeamIntelligenceView({ members: [] }),
-        emptyReason: "No organisation workspace is active.",
-      });
-    }
-
-    // Prefer the first active org membership for V1 team view.
-    const organisationId = organisationIds[0]!;
-
-    const { data: clients, error } = await auth.context.supabase
+    // Mirror listClientsFromDb: assignment rows when present; otherwise
+    // coach-owned rows still inside the active organisation (solo/legacy).
+    let query = supabase
       .from("clients")
       .select(
-        "id, name, identity_mode, display_label, confidential_reference, ai_name_allowed, role, organisation"
+        "id, name, identity_mode, display_label, confidential_reference, ai_name_allowed, role, organisation, organisation_id, coach_id"
       )
       .eq("organisation_id", organisationId)
       .is("archived_at", null);
+
+    if (assignedIds.length > 0) {
+      query = query.in("id", assignedIds);
+    } else {
+      query = query.eq("coach_id", userId);
+    }
+
+    const { data: clients, error } = await query;
 
     if (error) {
       return NextResponse.json(
@@ -51,11 +53,18 @@ export async function GET() {
       );
     }
 
+    // Defence in depth: never return rows from another organisation.
+    const scopedClients = (clients ?? []).filter(
+      client =>
+        typeof client.organisation_id === "string" &&
+        client.organisation_id === organisationId
+    );
+
     const members = [];
-    for (const client of clients ?? []) {
+    for (const client of scopedClients) {
       const evidence = await listEvidenceForClient(
-        auth.context.supabase,
-        auth.context.user.id,
+        supabase,
+        userId,
         String(client.id)
       );
       members.push({

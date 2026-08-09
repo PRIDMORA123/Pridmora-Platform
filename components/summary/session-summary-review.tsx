@@ -224,7 +224,7 @@ export function SessionSummaryReview({
             {SUMMARY_STATUS_LABELS[status]}
           </span>
           {status === "draft" ? (
-            <em className="summary-ai-label">AI draft — coach review required</em>
+            <em className="summary-ai-label">AI draft — your review required</em>
           ) : null}
         </span>
         <div className="session-summary-review__live" aria-live="polite">

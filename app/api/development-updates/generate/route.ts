@@ -6,8 +6,8 @@ import {
   DEVELOPMENT_UPDATE_SYSTEM_PROMPT,
   formatProfileForPrompt,
 } from "@/lib/ai/development-update-prompt";
-import { requireAuthenticatedUser } from "@/lib/auth/session";
 import { developmentUpdateErrorResponse } from "@/lib/development-updates/api-response";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import {
   buildDevelopmentRetryPromptAddon,
   developmentRejectionResponseBody,
@@ -80,8 +80,26 @@ async function persistRejection(
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
+  let body: GenerateRequest;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+  }
+
+  const sessionId = body.sessionId?.trim();
+  if (!sessionId) {
+    return NextResponse.json(
+      { error: "clientId and sessionId are required." },
+      { status: 400 }
+    );
+  }
+
+  const access = await requireAssignedPersonInOrganisation({
+    clientId: body.clientId,
+    requireAiEnabled: true,
+  });
+  if (!access.ok) return access.response;
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -91,24 +109,9 @@ export async function POST(request: Request) {
     );
   }
 
-  let body: GenerateRequest;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
-  }
-
-  const clientId = body.clientId?.trim();
-  const sessionId = body.sessionId?.trim();
-  if (!clientId || !sessionId) {
-    return NextResponse.json(
-      { error: "clientId and sessionId are required." },
-      { status: 400 }
-    );
-  }
-
-  const supabase = auth.context.supabase;
-  const coachId = auth.context.user.id;
+  const clientId = access.clientId;
+  const supabase = access.context.supabase;
+  const coachId = access.context.coachId;
 
   try {
     const { data: session, error: sessionError } = await supabase

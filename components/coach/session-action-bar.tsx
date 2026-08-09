@@ -147,7 +147,7 @@ function getActionBarDescription(status: SessionStatus) {
   switch (status) {
     case "prepared":
     case "not_started":
-      return "Start the timer when the coaching conversation begins.";
+      return "Start the timer when the conversation begins.";
     case "in_progress":
       return "Your notes are saving automatically.";
     case "paused":

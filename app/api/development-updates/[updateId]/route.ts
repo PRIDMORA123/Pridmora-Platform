@@ -1,45 +1,52 @@
 import { NextResponse } from "next/server";
-import { requireAuthenticatedUser } from "@/lib/auth/session";
+import { notFoundOrForbidden } from "@/lib/auth/session";
 import { developmentUpdateErrorResponse } from "@/lib/development-updates/api-response";
 import {
   getDevelopmentUpdateById,
   saveEditedDevelopmentUpdate,
 } from "@/lib/development-updates/repository";
 import { proposedProfileChangesSchema } from "@/lib/development-updates/schema";
+import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 import { ZodError } from "zod";
 
 type Params = { params: Promise<{ updateId: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
+  const org = await requireOrganisationContext();
+  if (!org.ok) return org.response;
 
   const { updateId } = await params;
   try {
     const update = await getDevelopmentUpdateById(
-      auth.context.supabase,
-      auth.context.user.id,
+      org.context.supabase,
+      org.context.user.id,
       updateId
     );
     if (!update) {
-      return NextResponse.json({ error: "Development update not found." }, { status: 404 });
+      return notFoundOrForbidden();
     }
 
-    const { data: client } = await auth.context.supabase
+    const access = await requireAssignedPersonInOrganisation({
+      clientId: update.clientId,
+    });
+    if (!access.ok) return access.response;
+
+    const { data: client } = await access.context.supabase
       .from("clients")
       .select(
         "id, name, identity_mode, display_label, confidential_reference, ai_name_allowed, role, organisation"
       )
       .eq("id", update.clientId)
-      .eq("coach_id", auth.context.user.id)
+      .eq("coach_id", access.context.coachId)
       .maybeSingle();
 
-    const { data: session } = await auth.context.supabase
+    const { data: session } = await access.context.supabase
       .from("sessions")
       .select("id, session_date, display_date, title")
       .eq("id", update.sessionId)
-      .eq("coach_id", auth.context.user.id)
+      .eq("coach_id", access.context.coachId)
       .maybeSingle();
 
     const clientName = client
@@ -69,8 +76,8 @@ export async function GET(_request: Request, { params }: Params) {
 }
 
 export async function PATCH(request: Request, { params }: Params) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
+  const org = await requireOrganisationContext();
+  if (!org.ok) return org.response;
 
   const { updateId } = await params;
   let body: {
@@ -86,10 +93,24 @@ export async function PATCH(request: Request, { params }: Params) {
   }
 
   try {
+    const existing = await getDevelopmentUpdateById(
+      org.context.supabase,
+      org.context.user.id,
+      updateId
+    );
+    if (!existing) {
+      return notFoundOrForbidden();
+    }
+
+    const access = await requireAssignedPersonInOrganisation({
+      clientId: existing.clientId,
+    });
+    if (!access.ok) return access.response;
+
     const editedChanges = proposedProfileChangesSchema.parse(body.editedChanges ?? {});
     const update = await saveEditedDevelopmentUpdate(
-      auth.context.supabase,
-      auth.context.user.id,
+      access.context.supabase,
+      access.context.user.id,
       updateId,
       {
         conversationSummary: body.conversationSummary,

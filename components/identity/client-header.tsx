@@ -72,7 +72,7 @@ export function ClientIdentityHeader({
         <dl className="client-identity-summary">
           <HeaderDetail
             label="Current stage"
-            value={journeyStage || "Coaching relationship established"}
+            value={journeyStage || "Development relationship established"}
           />
           <HeaderDetail
             label="Current focus"

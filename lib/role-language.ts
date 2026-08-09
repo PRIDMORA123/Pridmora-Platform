@@ -38,7 +38,28 @@ export type ProductLanguage = {
   newMomentLabel: string;
   momentsUnavailable: string;
   momentsArchived: string;
+  /** Capitalised person label for menus/titles (e.g. "Team member", "Client"). */
+  personTitle: string;
+  editPersonLabel: string;
+  archivePersonLabel: string;
+  restorePersonLabel: string;
+  deletePersonLabel: string;
+  personActionsAriaLabel: string;
+  archivePersonConfirmTitle: string;
+  archivePersonConfirmBody: string;
+  personDetailsLabel: string;
+  developmentPurposeLabel: string;
+  momentSingular: string;
+  saveMomentLabel: string;
+  workspaceTitle: string;
+  reflectionLabel: string;
+  supportLabel: string;
+  personNameConfirmLabel: string;
 };
+
+function titleCasePerson(personSingular: string): string {
+  return personSingular.charAt(0).toUpperCase() + personSingular.slice(1);
+}
 
 const MANAGER_LANGUAGE: ProductLanguage = {
   peopleNavLabel: "People",
@@ -77,6 +98,23 @@ const MANAGER_LANGUAGE: ProductLanguage = {
   momentsUnavailable: "Development moments are temporarily unavailable.",
   momentsArchived:
     "This relationship is archived. New development moments cannot be created. Historical moments remain available below.",
+  personTitle: "Team member",
+  editPersonLabel: "Edit team member",
+  archivePersonLabel: "Archive team member",
+  restorePersonLabel: "Restore team member",
+  deletePersonLabel: "Permanently delete team member",
+  personActionsAriaLabel: "Team member actions",
+  archivePersonConfirmTitle: "Archive team member?",
+  archivePersonConfirmBody:
+    "This team member will be removed from your active people list. Their development records, conversations, journey and reports will be retained. You can restore them later.",
+  personDetailsLabel: "Team member details",
+  developmentPurposeLabel: "Development purpose",
+  momentSingular: "Development moment",
+  saveMomentLabel: "Save development moment",
+  workspaceTitle: "Conversation workspace",
+  reflectionLabel: "Manager reflection",
+  supportLabel: "Conversation support",
+  personNameConfirmLabel: "Team member name is correct",
 };
 
 const COACH_LANGUAGE: ProductLanguage = {
@@ -116,6 +154,23 @@ const COACH_LANGUAGE: ProductLanguage = {
   momentsUnavailable: "Coaching Moments are temporarily unavailable.",
   momentsArchived:
     "This relationship is archived. New Coaching Moments cannot be created. Historical moments remain available below.",
+  personTitle: "Client",
+  editPersonLabel: "Edit client",
+  archivePersonLabel: "Archive client",
+  restorePersonLabel: "Restore client",
+  deletePersonLabel: "Permanently delete client",
+  personActionsAriaLabel: "Client actions",
+  archivePersonConfirmTitle: "Archive client?",
+  archivePersonConfirmBody:
+    "This client will be removed from your active client list. Their coaching records, sessions, journey and reports will be retained. You can restore the client later.",
+  personDetailsLabel: "Client details",
+  developmentPurposeLabel: "Coaching purpose",
+  momentSingular: "Coaching Moment",
+  saveMomentLabel: "Save coaching moment",
+  workspaceTitle: "Coaching workspace",
+  reflectionLabel: "Coach reflection",
+  supportLabel: "Coaching support",
+  personNameConfirmLabel: "Client name is correct",
 };
 
 const DEFAULT_LANGUAGE: ProductLanguage = {
@@ -143,6 +198,23 @@ const DEFAULT_LANGUAGE: ProductLanguage = {
   momentsUnavailable: "Development moments are temporarily unavailable.",
   momentsArchived:
     "This relationship is archived. New development moments cannot be created. Historical moments remain available below.",
+  personTitle: "Person",
+  editPersonLabel: "Edit person",
+  archivePersonLabel: "Archive person",
+  restorePersonLabel: "Restore person",
+  deletePersonLabel: "Permanently delete person",
+  personActionsAriaLabel: "Person actions",
+  archivePersonConfirmTitle: "Archive person?",
+  archivePersonConfirmBody:
+    "This person will be removed from your active people list. Their development records, conversations, journey and reports will be retained. You can restore them later.",
+  personDetailsLabel: "Person details",
+  developmentPurposeLabel: "Development purpose",
+  momentSingular: "Development moment",
+  saveMomentLabel: "Save development moment",
+  workspaceTitle: "Conversation workspace",
+  reflectionLabel: "Practitioner reflection",
+  supportLabel: "Conversation support",
+  personNameConfirmLabel: "Person name is correct",
 };
 
 export function resolveProductLanguage(
@@ -159,6 +231,7 @@ export function resolveProductLanguage(
       ...DEFAULT_LANGUAGE,
       personSingular: "person",
       personPlural: "people",
+      personTitle: titleCasePerson("person"),
       peopleISupport: "People I support",
     };
   }

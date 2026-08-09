@@ -19,6 +19,8 @@ import {
 import { getRelationshipDisplayName, relationshipPublicIdentity } from "@/lib/relationship-identity";
 import { getConciseDevelopmentFocus } from "@/lib/people/development-focus-display";
 import { apiJson } from "@/lib/api-client";
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { resolveProductLanguage } from "@/lib/role-language";
 
 export type ClientsListFilter = "active" | "archived" | "all";
 
@@ -35,6 +37,8 @@ export function ClientsView({
   creating?: boolean;
   flashMessage?: string;
 }) {
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
   const [query, setQuery] = useState("");
   const [listFilter, setListFilter] = useState<ClientsListFilter>("active");
   const [privateMatchIds, setPrivateMatchIds] = useState<string[]>([]);
@@ -156,7 +160,7 @@ export function ClientsView({
           description={identityEmptyStates.noRelationships.description}
           action={
             <IdentityButton onClick={onAdd} disabled={creating} aria-busy={creating}>
-              <Plus size={17} aria-hidden /> Add first client
+              <Plus size={17} aria-hidden /> Add first {language.personSingular}
             </IdentityButton>
           }
         />
@@ -164,17 +168,17 @@ export function ClientsView({
         <IdentityEmptyState
           title={
             listFilter === "archived"
-              ? "No archived clients"
+              ? `No archived ${language.personPlural}`
               : listFilter === "active"
-                ? "No active clients"
-                : "No matching clients"
+                ? `No active ${language.personPlural}`
+                : `No matching ${language.personPlural}`
           }
           description={
             query.trim()
-              ? "Try a different name, organisation or coaching purpose."
+              ? `Try a different name, organisation or ${language.developmentPurposeLabel.toLowerCase()}.`
               : listFilter === "archived"
-                ? "Archived clients will appear here when you archive someone from Journey."
-                : "Switch to Archived or All to see other clients."
+                ? `Archived ${language.personPlural} will appear here when you archive someone from Journey.`
+                : `Switch to Archived or All to see other ${language.personPlural}.`
           }
         />
       ) : (

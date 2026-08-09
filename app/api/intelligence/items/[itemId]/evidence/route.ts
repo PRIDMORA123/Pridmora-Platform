@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
-import { requireAuthenticatedUser } from "@/lib/auth/session";
+import { notFoundOrForbidden } from "@/lib/auth/session";
 import { intelligenceErrorResponse } from "@/lib/intelligence/api-response";
-import { addEvidence } from "@/lib/intelligence/repository";
+import { addEvidence, getIntelligenceItem } from "@/lib/intelligence/repository";
+import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 
 type Params = { params: Promise<{ itemId: string }> };
 
 export async function POST(request: Request, { params }: Params) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
+  const org = await requireOrganisationContext();
+  if (!org.ok) return org.response;
 
   const { itemId } = await params;
   let body: {
@@ -28,8 +30,18 @@ export async function POST(request: Request, { params }: Params) {
   }
 
   try {
-    const supabase = auth.context.supabase;
-    const evidence = await addEvidence(supabase, auth.context.user.id, itemId, {
+    const supabase = org.context.supabase;
+    const existing = await getIntelligenceItem(supabase, org.context.user.id, itemId);
+    if (!existing) {
+      return notFoundOrForbidden();
+    }
+
+    const access = await requireAssignedPersonInOrganisation({
+      clientId: existing.clientId,
+    });
+    if (!access.ok) return access.response;
+
+    const evidence = await addEvidence(supabase, access.context.user.id, itemId, {
       evidenceText: body.evidenceText.trim(),
       evidenceType: body.evidenceType,
       sourceExcerpt: body.sourceExcerpt,

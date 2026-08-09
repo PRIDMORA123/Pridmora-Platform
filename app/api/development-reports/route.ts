@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAuthenticatedUser, notFoundOrForbidden } from "@/lib/auth/session";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import { developmentReportErrorResponse } from "@/lib/reports/errors";
 import {
   createDevelopmentReport,
@@ -11,7 +11,6 @@ import {
   type ReportAudience,
   type ReportType,
 } from "@/lib/reports/types";
-import { assertClientOwned } from "@/lib/supabase/repository";
 import { isUuid } from "@/lib/uuid";
 
 const REPORT_TYPES: ReportType[] = [
@@ -23,26 +22,15 @@ const REPORT_TYPES: ReportType[] = [
 const AUDIENCES: ReportAudience[] = ["coachee", "coach", "sponsor"];
 
 export async function GET(request: Request) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
-
   const clientId = new URL(request.url).searchParams.get("clientId");
-  if (!clientId) {
-    return NextResponse.json({ error: "clientId is required." }, { status: 400 });
-  }
+  const access = await requireAssignedPersonInOrganisation({ clientId });
+  if (!access.ok) return access.response;
 
   try {
-    const owned = await assertClientOwned(
-      auth.context.supabase,
-      auth.context.coachId,
-      clientId
-    );
-    if (!owned) return notFoundOrForbidden();
-
     const reports = await listDevelopmentReportsForClient(
-      auth.context.supabase,
-      auth.context.coachId,
-      clientId
+      access.context.supabase,
+      access.context.coachId,
+      access.clientId
     );
 
     return NextResponse.json({ status: "available", reports });
@@ -55,9 +43,6 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
-
   try {
     const body = (await request.json()) as {
       clientId?: string;
@@ -72,17 +57,11 @@ export async function POST(request: Request) {
       requestId?: string;
     };
 
-    const clientId = body.clientId?.trim();
-    if (!clientId) {
-      return NextResponse.json({ error: "clientId is required." }, { status: 400 });
-    }
-
-    const owned = await assertClientOwned(
-      auth.context.supabase,
-      auth.context.coachId,
-      clientId
-    );
-    if (!owned) return notFoundOrForbidden();
+    const access = await requireAssignedPersonInOrganisation({
+      clientId: body.clientId,
+    });
+    if (!access.ok) return access.response;
+    const clientId = access.clientId;
 
     if (!body.type || !REPORT_TYPES.includes(body.type)) {
       return NextResponse.json({ error: "A valid report type is required." }, { status: 400 });
@@ -108,8 +87,8 @@ export async function POST(request: Request) {
     const requestId =
       body.requestId && isUuid(body.requestId) ? body.requestId : null;
 
-    const report = await createDevelopmentReport(auth.context.supabase, {
-      coachId: auth.context.coachId,
+    const report = await createDevelopmentReport(access.context.supabase, {
+      coachId: access.context.coachId,
       relationshipId: clientId,
       type: body.type,
       audience,

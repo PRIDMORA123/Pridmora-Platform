@@ -24,6 +24,8 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { DeleteClientDialog } from "@/components/delete-client-dialog";
 import { PrivateIdentityAccess } from "@/components/private-identity/private-identity-access";
 import { getRelationshipDisplayName } from "@/lib/relationship-identity";
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { resolveProductLanguage } from "@/lib/role-language";
 
 const POPOVER_WIDTH = 220;
 const POPOVER_GAP = 8;
@@ -56,7 +58,9 @@ function ClientActionsPopover({
   onArchive,
   onRestore,
   onDelete,
+  allowPermanentDelete,
   onNewCoachingMoment,
+  labels,
   popoverRef,
 }: {
   menuId: string;
@@ -69,7 +73,15 @@ function ClientActionsPopover({
   onArchive: () => void;
   onRestore: () => void;
   onDelete: () => void;
+  allowPermanentDelete: boolean;
   onNewCoachingMoment?: () => void;
+  labels: {
+    newMomentLabel: string;
+    editPersonLabel: string;
+    archivePersonLabel: string;
+    restorePersonLabel: string;
+    deletePersonLabel: string;
+  };
   popoverRef: React.RefObject<HTMLDivElement | null>;
 }) {
   return (
@@ -90,7 +102,7 @@ function ClientActionsPopover({
           className="client-actions-item"
           onClick={onNewCoachingMoment}
         >
-          <MessageCircle size={15} aria-hidden="true" /> New Coaching Moment
+          <MessageCircle size={15} aria-hidden="true" /> {labels.newMomentLabel}
         </button>
       ) : null}
       {showPrivateIdentity ? (
@@ -109,7 +121,7 @@ function ClientActionsPopover({
         className="client-actions-item"
         onClick={onEdit}
       >
-        <Pencil size={15} aria-hidden="true" /> Edit client
+        <Pencil size={15} aria-hidden="true" /> {labels.editPersonLabel}
       </button>
       {archived ? (
         <button
@@ -119,7 +131,7 @@ function ClientActionsPopover({
           disabled={submitting}
           onClick={onRestore}
         >
-          <RotateCcw size={15} aria-hidden="true" /> Restore client
+          <RotateCcw size={15} aria-hidden="true" /> {labels.restorePersonLabel}
         </button>
       ) : (
         <button
@@ -128,17 +140,19 @@ function ClientActionsPopover({
           className="client-actions-item"
           onClick={onArchive}
         >
-          <Archive size={15} aria-hidden="true" /> Archive client
+          <Archive size={15} aria-hidden="true" /> {labels.archivePersonLabel}
         </button>
       )}
-      <button
-        type="button"
-        role="menuitem"
-        className="client-actions-item client-actions-item--danger"
-        onClick={onDelete}
-      >
-        <Trash2 size={15} aria-hidden="true" /> Permanently delete client
-      </button>
+      {allowPermanentDelete ? (
+        <button
+          type="button"
+          role="menuitem"
+          className="client-actions-item client-actions-item--danger"
+          onClick={onDelete}
+        >
+          <Trash2 size={15} aria-hidden="true" /> {labels.deletePersonLabel}
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -150,6 +164,7 @@ export function ClientActionsMenu({
   onArchive,
   onRestore,
   onPermanentlyDelete,
+  allowPermanentDelete = true,
   onNewCoachingMoment,
 }: {
   client: Client;
@@ -157,9 +172,15 @@ export function ClientActionsMenu({
   onEdit: () => void;
   onArchive: () => Promise<void> | void;
   onRestore: () => Promise<void> | void;
-  onPermanentlyDelete: () => Promise<void> | void;
+  onPermanentlyDelete?: () => Promise<void> | void;
+  /** When false (e.g. Manager pilot), hide permanent delete; archive/restore remain. */
+  allowPermanentDelete?: boolean;
   onNewCoachingMoment?: () => void;
 }) {
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
+  const canPermanentlyDelete =
+    allowPermanentDelete && typeof onPermanentlyDelete === "function";
   const archived = isClientArchived(client);
   const isConfidential = client.identityMode === "confidential";
   const [open, setOpen] = useState(false);
@@ -257,7 +278,7 @@ export function ClientActionsMenu({
         ref={triggerRef}
         type="button"
         className="icon-button ghost-icon-button"
-        aria-label="Client actions"
+        aria-label={language.personActionsAriaLabel}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={menuId}
@@ -308,7 +329,16 @@ export function ClientActionsMenu({
                 closeMenu();
                 void runAction(onRestore, () => undefined);
               }}
+              allowPermanentDelete={canPermanentlyDelete}
+              labels={{
+                newMomentLabel: language.newMomentLabel,
+                editPersonLabel: language.editPersonLabel,
+                archivePersonLabel: language.archivePersonLabel,
+                restorePersonLabel: language.restorePersonLabel,
+                deletePersonLabel: language.deletePersonLabel,
+              }}
               onDelete={() => {
+                if (!canPermanentlyDelete) return;
                 closeMenu();
                 setActionError("");
                 setDeleteOpen(true);
@@ -335,7 +365,7 @@ export function ClientActionsMenu({
 
       <ConfirmDialog
         open={archiveOpen}
-        title="Archive client?"
+        title={language.archivePersonConfirmTitle}
         closeDisabled={submitting}
         onClose={() => {
           if (!submitting) setArchiveOpen(false);
@@ -359,14 +389,13 @@ export function ClientActionsMenu({
                 void runAction(onArchive, () => setArchiveOpen(false));
               }}
             >
-              {submitting ? "Archiving..." : "Archive client"}
+              {submitting ? "Archiving..." : language.archivePersonLabel}
             </button>
           </>
         }
       >
         <p>
-          This client will be removed from your active client list. Their coaching records,
-          sessions, journey and reports will be retained. You can restore the client later.
+          {language.archivePersonConfirmBody}
         </p>
         {actionError ? (
           <p className="dialog-error" role="alert">
@@ -375,18 +404,20 @@ export function ClientActionsMenu({
         ) : null}
       </ConfirmDialog>
 
-      <DeleteClientDialog
-        isOpen={deleteOpen}
-        clientName={getRelationshipDisplayName(client)}
-        isDeleting={submitting || busy}
-        errorMessage={actionError}
-        onClose={() => {
-          if (!submitting) setDeleteOpen(false);
-        }}
-        onConfirm={() =>
-          runAction(onPermanentlyDelete, () => setDeleteOpen(false))
-        }
-      />
+      {canPermanentlyDelete ? (
+        <DeleteClientDialog
+          isOpen={deleteOpen}
+          clientName={getRelationshipDisplayName(client)}
+          isDeleting={submitting || busy}
+          errorMessage={actionError}
+          onClose={() => {
+            if (!submitting) setDeleteOpen(false);
+          }}
+          onConfirm={() =>
+            runAction(onPermanentlyDelete!, () => setDeleteOpen(false))
+          }
+        />
+      ) : null}
     </div>
   );
 }

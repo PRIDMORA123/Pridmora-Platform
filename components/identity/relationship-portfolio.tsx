@@ -30,10 +30,11 @@ export function RelationshipPortfolio({
         <div>
           <p className="home-section-eyebrow">People I support</p>
           <h2 id="relationship-portfolio-title">
-            {title ?? "Your coaching relationships"}
+            {title ?? "Your development relationships"}
           </h2>
           <p>
-            {description ?? "A focused view of your active coaching portfolio."}
+            {description ??
+              "A focused view of your active development relationships."}
           </p>
         </div>
 

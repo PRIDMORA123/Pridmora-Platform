@@ -23,7 +23,7 @@ const SOURCE_TYPE_LABELS: Record<PatternEvidenceSourceType, string> = {
   commitment: "Commitment",
   development_observation: "Development observation",
   supporting_context: "Supporting context",
-  coaching_moment: "Coaching moment",
+  coaching_moment: "Development moment",
 };
 
 export function evidenceTypeLabel(

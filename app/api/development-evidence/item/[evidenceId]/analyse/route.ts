@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
-import { requireAuthenticatedUser } from "@/lib/auth/session";
+import { notFoundOrForbidden } from "@/lib/auth/session";
 import { analyseEvidenceDocument } from "@/lib/development-evidence";
 import { getEvidenceById } from "@/lib/development-evidence/repository";
+import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 
 type Params = { params: Promise<{ evidenceId: string }> };
 
 export async function POST(request: Request, { params }: Params) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
+  const org = await requireOrganisationContext();
+  if (!org.ok) return org.response;
 
   const { evidenceId } = await params;
   let force = false;
@@ -20,12 +22,18 @@ export async function POST(request: Request, { params }: Params) {
 
   try {
     const detail = await getEvidenceById(
-      auth.context.supabase,
-      auth.context.user.id,
+      org.context.supabase,
+      org.context.user.id,
       evidenceId
     );
 
-    const { data: client, error } = await auth.context.supabase
+    const access = await requireAssignedPersonInOrganisation({
+      clientId: detail.evidence.clientId,
+      requireAiEnabled: true,
+    });
+    if (!access.ok) return access.response;
+
+    const { data: client, error } = await access.context.supabase
       .from("clients")
       .select(
         "id, name, role, organisation, identity_mode, display_label, confidential_reference, ai_name_allowed"
@@ -34,12 +42,12 @@ export async function POST(request: Request, { params }: Params) {
       .maybeSingle();
 
     if (error || !client) {
-      return NextResponse.json({ error: "Person not found." }, { status: 404 });
+      return notFoundOrForbidden();
     }
 
     const result = await analyseEvidenceDocument({
-      supabase: auth.context.supabase,
-      userId: auth.context.user.id,
+      supabase: access.context.supabase,
+      userId: access.context.user.id,
       evidenceId,
       client: {
         name: String(client.name ?? ""),
@@ -57,8 +65,8 @@ export async function POST(request: Request, { params }: Params) {
     });
 
     const refreshed = await getEvidenceById(
-      auth.context.supabase,
-      auth.context.user.id,
+      access.context.supabase,
+      access.context.user.id,
       evidenceId
     );
 

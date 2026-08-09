@@ -152,11 +152,19 @@ describe("manager repositioning foundations", () => {
     expect(manager.personSingular).toBe("team member");
     expect(manager.activeWorkDescription).toMatch(/management work/i);
     expect(manager.momentsTitle).toBe("Development moments");
+    expect(manager.newMomentLabel).toBe("New development moment");
+    expect(manager.momentSingular).toBe("Development moment");
+    expect(manager.relationshipSingular).toBe("development relationship");
+    expect(manager.notesLabel).toBe("Manager notes");
+    expect(manager.reflectionLabel).toBe("Manager reflection");
+    expect(manager.editPersonLabel).toBe("Edit team member");
     expect(manager.accountRoleTitle).toBe("Manager");
     expect(coach.personSingular).toBe("client");
     expect(coach.homeTitle).toBe("Development Overview");
     expect(coach.activeWorkDescription).toMatch(/coaching work/i);
     expect(coach.momentsTitle).toBe("Coaching Moments");
+    expect(coach.newMomentLabel).toBe("New Coaching Moment");
+    expect(coach.notesLabel).toBe("Coach notes");
     expect(coach.accountRoleTitle).toBe("Professional Coach");
     expect(
       resolveAccountRoleTitle({

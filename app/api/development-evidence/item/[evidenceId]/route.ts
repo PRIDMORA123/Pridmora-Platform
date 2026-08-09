@@ -1,24 +1,31 @@
 import { NextResponse } from "next/server";
-import { requireAuthenticatedUser } from "@/lib/auth/session";
+import { notFoundOrForbidden } from "@/lib/auth/session";
 import {
   getEvidenceById,
   softDeleteEvidence,
   toEvidenceListItem,
 } from "@/lib/development-evidence";
+import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 
 type Params = { params: Promise<{ evidenceId: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
+  const org = await requireOrganisationContext();
+  if (!org.ok) return org.response;
 
   const { evidenceId } = await params;
   try {
     const detail = await getEvidenceById(
-      auth.context.supabase,
-      auth.context.user.id,
+      org.context.supabase,
+      org.context.user.id,
       evidenceId
     );
+
+    const access = await requireAssignedPersonInOrganisation({
+      clientId: detail.evidence.clientId,
+    });
+    if (!access.ok) return access.response;
 
     return NextResponse.json({
       evidence: detail.evidence,
@@ -45,19 +52,30 @@ export async function GET(_request: Request, { params }: Params) {
       links: detail.links,
     });
   } catch {
-    return NextResponse.json({ error: "Evidence not found." }, { status: 404 });
+    return notFoundOrForbidden();
   }
 }
 
 export async function DELETE(_request: Request, { params }: Params) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
+  const org = await requireOrganisationContext();
+  if (!org.ok) return org.response;
 
   const { evidenceId } = await params;
   try {
+    const detail = await getEvidenceById(
+      org.context.supabase,
+      org.context.user.id,
+      evidenceId
+    );
+
+    const access = await requireAssignedPersonInOrganisation({
+      clientId: detail.evidence.clientId,
+    });
+    if (!access.ok) return access.response;
+
     await softDeleteEvidence({
-      supabase: auth.context.supabase,
-      userId: auth.context.user.id,
+      supabase: access.context.supabase,
+      userId: access.context.user.id,
       evidenceId,
     });
     return NextResponse.json({ ok: true });

@@ -64,7 +64,7 @@ export function PreparationIntelligenceStrip({
           label="Possible focus"
           value={
             intelligence.suggestedFocus ??
-            "Use the agreed coaching purpose to shape this conversation."
+            "Use the agreed development purpose to shape this conversation."
           }
         />
       </div>

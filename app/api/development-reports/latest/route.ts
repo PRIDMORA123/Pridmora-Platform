@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import { filterClientIdsToOrganisation } from "@/lib/organisations/workspace-scope";
 import { isMissingDevelopmentReportsTable } from "@/lib/reports/availability";
 import { developmentReportErrorResponse } from "@/lib/reports/errors";
@@ -31,6 +32,17 @@ export async function GET() {
     );
 
     if (!allowed.has(report.relationshipId)) {
+      return NextResponse.json({
+        status: "available",
+        report: null,
+        organisationId,
+      });
+    }
+
+    const access = await requireAssignedPersonInOrganisation({
+      clientId: report.relationshipId,
+    });
+    if (!access.ok) {
       return NextResponse.json({
         status: "available",
         report: null,

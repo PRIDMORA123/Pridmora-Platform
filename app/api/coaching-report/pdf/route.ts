@@ -9,7 +9,8 @@ import {
   type CoachingReportDraft,
   type ReportPrivacyOptions,
 } from "@/lib/coaching-report";
-import { notFoundOrForbidden, requireAuthenticatedUser } from "@/lib/auth/session";
+import { notFoundOrForbidden } from "@/lib/auth/session";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import { assertClientActive } from "@/lib/supabase/repository";
 
 export const runtime = "nodejs";
@@ -73,9 +74,6 @@ async function optionallySaveApprovedReport(input: {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
-
   let body: PdfRequestBody;
   try {
     body = await request.json();
@@ -102,11 +100,16 @@ export async function POST(request: Request) {
     );
   }
 
-  if (body.clientId) {
+  const access = await requireAssignedPersonInOrganisation({
+    clientId: body.clientId,
+  });
+  if (!access.ok) return access.response;
+
+  {
     const activity = await assertClientActive(
-      auth.context.supabase,
-      auth.context.coachId,
-      body.clientId
+      access.context.supabase,
+      access.context.coachId,
+      access.clientId
     );
     if (activity === "missing") {
       return notFoundOrForbidden();
@@ -134,9 +137,9 @@ export async function POST(request: Request) {
     let reportId: string | null = null;
     if (body.saveReport !== false) {
       reportId = await optionallySaveApprovedReport({
-        supabase: auth.context.supabase,
-        coachId: auth.context.coachId,
-        clientId: body.clientId,
+        supabase: access.context.supabase,
+        coachId: access.context.coachId,
+        clientId: access.clientId,
         draft,
         privacy,
       });

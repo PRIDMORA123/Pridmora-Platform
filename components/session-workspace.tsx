@@ -529,6 +529,7 @@ export function SessionWorkspace({
           focus: sourceSession.focus || sourceSession.title,
           preparation: sourceSession.preparation,
           clientName: getRelationshipDisplayName(client),
+          clientId: client.id,
           depthMode:
             coachingIntelligenceMode === "comprehensive"
               ? "comprehensive"

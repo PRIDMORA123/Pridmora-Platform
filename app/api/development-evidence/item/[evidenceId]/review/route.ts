@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { requireAuthenticatedUser } from "@/lib/auth/session";
 import { reviewEvidence } from "@/lib/development-evidence";
+import { getEvidenceById } from "@/lib/development-evidence/repository";
+import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 
 type Params = { params: Promise<{ evidenceId: string }> };
 
@@ -20,19 +22,30 @@ type ReviewBody = {
 };
 
 export async function POST(request: Request, { params }: Params) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
+  const org = await requireOrganisationContext();
+  if (!org.ok) return org.response;
 
   const { evidenceId } = await params;
 
   try {
+    const detail = await getEvidenceById(
+      org.context.supabase,
+      org.context.user.id,
+      evidenceId
+    );
+
+    const access = await requireAssignedPersonInOrganisation({
+      clientId: detail.evidence.clientId,
+    });
+    if (!access.ok) return access.response;
+
     const body = (await request.json()) as ReviewBody;
     const decision = body.decision ?? "approve";
 
     let observationDecisions = body.observationDecisions;
 
     if (body.includeAll || body.excludeAll) {
-      const { data: observations } = await auth.context.supabase
+      const { data: observations } = await access.context.supabase
         .from("development_evidence_observations")
         .select("id")
         .eq("evidence_id", evidenceId);
@@ -45,8 +58,8 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     const result = await reviewEvidence({
-      supabase: auth.context.supabase,
-      userId: auth.context.user.id,
+      supabase: access.context.supabase,
+      userId: access.context.user.id,
       evidenceId,
       decision,
       includeInIntelligence:

@@ -11,6 +11,8 @@ import {
 } from "@/components/identity";
 import { coachingStatusLabel } from "@/lib/identity-journey-path";
 import { identityEmptyStates } from "@/lib/identity-language";
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { resolveProductLanguage } from "@/lib/role-language";
 
 export function PersonActionsView({
   client,
@@ -21,6 +23,8 @@ export function PersonActionsView({
   onBack: () => void;
   onTabChange?: (tab: ClientWorkspaceTab) => void;
 }) {
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
   const actions = client.actions;
 
   return (
@@ -41,7 +45,7 @@ export function PersonActionsView({
 
       <IdentitySection
         title="Commitments"
-        description="Outstanding and recent commitments linked to this coaching relationship."
+        description={`Outstanding and recent commitments linked to this ${language.relationshipSingular}.`}
       >
         {actions.length === 0 ? (
           <IdentityEmptyState

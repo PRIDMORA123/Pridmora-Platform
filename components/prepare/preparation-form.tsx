@@ -19,6 +19,8 @@ import { SaveStatus } from "@/components/feedback/save-status";
 import { useToast } from "@/components/feedback/toast-provider";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
 import { toActionButtonStatus } from "@/types/action-feedback";
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { resolveProductLanguage } from "@/lib/role-language";
 
 function splitTopics(value: string): string[] {
   return value
@@ -325,6 +327,8 @@ export function PreparationForm({
   /** Compact refinement fields only — no draft cards or Start conversation. */
   refinementMode?: boolean;
 }) {
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
   // Seed is expected to already be normalised by PrepareSessionView.
   const [values, setValues] = useState<PreparationFormValues>(() =>
     sanitisePreparationFormValues(normalisePreparation(initialPreparation))
@@ -525,7 +529,7 @@ export function PreparationForm({
         {!refinementMode ? (
           <PrepareFormSection
             title="Desired outcome"
-            helper="What would you like the client to leave with?"
+            helper={`What would you like the ${language.personSingular} to leave with?`}
           >
             <textarea
               id="preparation-outcome"
@@ -571,7 +575,11 @@ export function PreparationForm({
 
         <PrepareFormSection
           title={
-            refinementMode ? "Private preparation note" : "Coach reminders"
+            refinementMode
+              ? "Private preparation note"
+              : organisation?.professionalRole === "coach"
+                ? "Coach reminders"
+                : "Private reminders"
           }
           helper="Private and optional"
         >

@@ -1,5 +1,8 @@
 "use client";
 
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { resolveProductLanguage } from "@/lib/role-language";
+
 import { useState } from "react";
 import { useToast } from "@/components/feedback/toast-provider";
 import { CoachingSupportDrawer } from "@/components/coach/coaching-support-drawer";
@@ -13,6 +16,7 @@ type Props = {
   notes: string;
   focus?: string | null;
   clientName?: string;
+  clientId?: string;
   preparation?: string;
   onAddToNotes: (content: string) => void;
 };
@@ -21,9 +25,12 @@ export function CoachingSupportActions({
   notes,
   focus,
   clientName,
+  clientId,
   preparation,
   onAddToNotes,
 }: Props) {
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
   const [workingAction, setWorkingAction] = useState<CoachingSupportAction | null>(
     null
   );
@@ -43,6 +50,7 @@ export function CoachingSupportActions({
         notes,
         focus: focus || "",
         clientName,
+        clientId,
         preparation,
       });
 
@@ -52,7 +60,7 @@ export function CoachingSupportActions({
 
       showToast({
         type: "error",
-        title: "Coaching support is unavailable",
+        title: `${language.supportLabel} is unavailable`,
         description: "Your notes have not been changed.",
       });
     } finally {
@@ -63,7 +71,7 @@ export function CoachingSupportActions({
   return (
     <>
       <section className="coaching-support-card">
-        <p className="coach-section-label">Coaching support</p>
+        <p className="coach-section-label">{language.supportLabel}</p>
 
         <h3>Need a prompt?</h3>
 

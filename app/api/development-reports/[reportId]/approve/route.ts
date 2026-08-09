@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import {
-  notFoundOrForbidden,
-  requireAuthenticatedUser,
-} from "@/lib/auth/session";
+import { notFoundOrForbidden } from "@/lib/auth/session";
+import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import { developmentReportErrorResponse } from "@/lib/reports/errors";
 import {
   approveDevelopmentReport,
@@ -13,8 +12,8 @@ import {
 type Params = { params: Promise<{ reportId: string }> };
 
 export async function POST(request: Request, { params }: Params) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
+  const org = await requireOrganisationContext();
+  if (!org.ok) return org.response;
 
   const { reportId } = await params;
 
@@ -35,11 +34,16 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     const existing = await getDevelopmentReport(
-      auth.context.supabase,
-      auth.context.coachId,
+      org.context.supabase,
+      org.context.coachId,
       reportId
     );
     if (!existing) return notFoundOrForbidden();
+
+    const access = await requireAssignedPersonInOrganisation({
+      clientId: existing.relationshipId,
+    });
+    if (!access.ok) return access.response;
 
     if (existing.audience === "sponsor" && !body.audienceConfirmed) {
       return NextResponse.json(
@@ -53,15 +57,15 @@ export async function POST(request: Request, { params }: Params) {
 
     const now = new Date().toISOString();
     await updateDraftDevelopmentReport(
-      auth.context.supabase,
-      auth.context.coachId,
+      access.context.supabase,
+      access.context.coachId,
       reportId,
       { confidentialityConfirmedAt: now }
     );
 
     const report = await approveDevelopmentReport(
-      auth.context.supabase,
-      auth.context.coachId,
+      access.context.supabase,
+      access.context.coachId,
       reportId
     );
 

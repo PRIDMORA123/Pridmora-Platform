@@ -49,8 +49,8 @@ export function RecentDevelopment({
       ) : (
         <div className="identity-empty-state identity-empty-state--compact">
           <p>
-            Approved development changes will appear here as coaching journeys
-            progress.
+            Approved development changes will appear here as development
+            journeys progress.
           </p>
         </div>
       )}

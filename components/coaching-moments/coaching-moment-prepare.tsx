@@ -1,5 +1,7 @@
 "use client";
 
+import { resolveProductLanguage } from "@/lib/role-language";
+import { useOrganisation } from "@/lib/organisations/organisation-context";
 export type CoachingMomentPrepareProps = {
   situation: string;
   desiredOutcome: string;
@@ -17,9 +19,11 @@ export function CoachingMomentPrepare({
   onSituationChange,
   onDesiredOutcomeChange,
 }: CoachingMomentPrepareProps) {
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
   return (
     <div className="coaching-moment-prepare">
-      <h3 className="coaching-moment-heading">Prepare for a coaching moment</h3>
+      <h3 className="coaching-moment-heading">{`Prepare for a ${language.momentSingular.toLowerCase()}`}</h3>
       <p className="coaching-moment-supporting">
         Capture just enough context to stay present. AI guidance is optional.
       </p>

@@ -58,7 +58,7 @@ function resolveCopy(input: {
   return {
     title: "Preparation ready",
     description: input.hasApprovedEvidence
-      ? "Prepared from approved coaching evidence."
+      ? "Prepared from approved development evidence."
       : "Prepared from the information currently available.",
     tone: "ready",
   };

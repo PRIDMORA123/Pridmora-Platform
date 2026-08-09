@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { requireAuthenticatedUser } from "@/lib/auth/session";
+import { notFoundOrForbidden } from "@/lib/auth/session";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import {
   buildDevelopmentIntelligenceEvidenceView,
   buildWhyThisPayload,
@@ -10,35 +11,35 @@ import {
 type Params = { params: Promise<{ clientId: string }> };
 
 export async function GET(request: Request, { params }: Params) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
-
   const { clientId } = await params;
+  const access = await requireAssignedPersonInOrganisation({ clientId });
+  if (!access.ok) return access.response;
+
   const url = new URL(request.url);
   const insight = url.searchParams.get("insight");
   const whyEvidenceIds = url.searchParams.get("evidenceIds");
 
   try {
-    const { data: client, error } = await auth.context.supabase
+    const { data: client, error } = await access.context.supabase
       .from("clients")
       .select("id, current_focus, organisation_id")
       .eq("id", clientId)
       .maybeSingle();
 
     if (error || !client) {
-      return NextResponse.json({ error: "Person not found." }, { status: 404 });
+      return notFoundOrForbidden();
     }
 
     const records = await listEvidenceForClient(
-      auth.context.supabase,
-      auth.context.user.id,
+      access.context.supabase,
+      access.context.user.id,
       clientId
     );
 
     const frameworkLabels: Record<string, string[]> = {};
     const organisationId = client.organisation_id as string | null;
     if (organisationId) {
-      const { data: frameworkCaps } = await auth.context.supabase
+      const { data: frameworkCaps } = await access.context.supabase
         .from("organisation_framework_capabilities")
         .select("label, pridmora_capability_key")
         .eq("organisation_id", organisationId);
@@ -67,11 +68,11 @@ export async function GET(request: Request, { params }: Params) {
       });
 
       await writeEvidenceAudit({
-        supabase: auth.context.supabase,
+        supabase: access.context.supabase,
         organisationId,
         clientId,
         evidenceId: selected[0]?.id ?? null,
-        actorUserId: auth.context.user.id,
+        actorUserId: access.context.user.id,
         action: "intelligence_evidence_opened",
         metadata: {
           evidenceType: selected[0]?.evidenceType,

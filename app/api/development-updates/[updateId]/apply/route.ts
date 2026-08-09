@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAuthenticatedUser } from "@/lib/auth/session";
+import { notFoundOrForbidden } from "@/lib/auth/session";
 import { developmentUpdateErrorResponse } from "@/lib/development-updates/api-response";
 import {
   applyDevelopmentUpdateRpc,
@@ -8,32 +8,39 @@ import {
 } from "@/lib/development-updates/repository";
 import { syncCommitmentActionsAfterApply } from "@/lib/development-updates/sync-commitment-actions";
 import { effectiveChanges } from "@/lib/development-updates/types";
+import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 
 type Params = { params: Promise<{ updateId: string }> };
 
 export async function POST(_request: Request, { params }: Params) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
+  const org = await requireOrganisationContext();
+  if (!org.ok) return org.response;
 
   const { updateId } = await params;
 
   try {
     const existing = await getDevelopmentUpdateById(
-      auth.context.supabase,
-      auth.context.user.id,
+      org.context.supabase,
+      org.context.user.id,
       updateId
     );
     if (!existing) {
-      return NextResponse.json({ error: "Development update not found." }, { status: 404 });
+      return notFoundOrForbidden();
     }
 
+    const access = await requireAssignedPersonInOrganisation({
+      clientId: existing.clientId,
+    });
+    if (!access.ok) return access.response;
+
     const changesToApply = effectiveChanges(existing);
-    const result = await applyDevelopmentUpdateRpc(auth.context.supabase, updateId);
+    const result = await applyDevelopmentUpdateRpc(access.context.supabase, updateId);
 
     if (!result.alreadyApplied) {
       await syncCommitmentActionsAfterApply(
-        auth.context.supabase,
-        auth.context.coachId,
+        access.context.supabase,
+        access.context.coachId,
         existing.clientId,
         existing.sessionId,
         changesToApply
@@ -41,14 +48,14 @@ export async function POST(_request: Request, { params }: Params) {
     }
 
     const update = await getDevelopmentUpdateById(
-      auth.context.supabase,
-      auth.context.user.id,
+      access.context.supabase,
+      access.context.user.id,
       updateId
     );
     const profile = update
       ? await getDevelopmentProfileForClient(
-          auth.context.supabase,
-          auth.context.user.id,
+          access.context.supabase,
+          access.context.user.id,
           update.clientId
         )
       : null;

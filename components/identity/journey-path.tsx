@@ -11,7 +11,7 @@ export function IdentityJourneyPath({
   steps: JourneyStep[];
 }) {
   return (
-    <ol className="identity-journey-path" aria-label="Coaching journey">
+    <ol className="identity-journey-path" aria-label="Development journey">
       {steps.map(step => (
         <li
           key={step.id}

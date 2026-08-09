@@ -33,9 +33,9 @@ describe("server-side ownership guards", () => {
     expect(preparation).toMatch(/coachId|coach_id/);
   });
 
-  it("keeps development update generation behind authentication", () => {
+  it("keeps development update generation behind organisation assignment", () => {
     const updates = read("app/api/development-updates/generate/route.ts");
-    expect(updates).toContain("requireAuthenticatedUser");
+    expect(updates).toContain("requireAssignedPersonInOrganisation");
   });
 
   it("scopes journey and AI generation by relationship id", () => {

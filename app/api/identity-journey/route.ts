@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import { IDENTITY_SYSTEM_PROMPT } from "@/lib/ai/identity-system-prompt";
 import { IDENTITY_JOURNEY_TASK_PROMPT } from "@/lib/ai/identity-journey-prompt";
-import { requireAuthenticatedUser } from "@/lib/auth/session";
+import { notFoundOrForbidden } from "@/lib/auth/session";
 import {
   IDENTITY_PREFIX,
   POSSIBLE_OBSERVATION_PREFIX,
@@ -10,6 +10,7 @@ import {
 } from "@/lib/journey";
 import { cleanJourneyLanguage } from "@/lib/journey/clean-journey-language";
 import { getApprovedRelationshipEvidence } from "@/lib/journey/load-journey-view-model";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import {
   assertRelationshipOwnership,
   validateGeneratedJourney,
@@ -71,17 +72,6 @@ function parseJourneyAiOutput(raw: string): IdentityJourneyAiResponse {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
-
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: "OpenAI API key is not configured." },
-      { status: 500 }
-    );
-  }
-
   let body: IdentityJourneyRequest;
   try {
     body = await request.json();
@@ -97,8 +87,22 @@ export async function POST(request: Request) {
     );
   }
 
-  const coachId = auth.context.coachId;
-  const supabase = auth.context.supabase;
+  const access = await requireAssignedPersonInOrganisation({
+    clientId: relationshipId,
+    requireAiEnabled: true,
+  });
+  if (!access.ok) return access.response;
+
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json(
+      { error: "OpenAI API key is not configured." },
+      { status: 500 }
+    );
+  }
+
+  const coachId = access.context.coachId;
+  const supabase = access.context.supabase;
 
   const { data: client, error: clientError } = await supabase
     .from("clients")
@@ -110,7 +114,7 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (clientError || !client) {
-    return NextResponse.json({ error: "Relationship not found." }, { status: 404 });
+    return notFoundOrForbidden();
   }
 
   const scopedEvidence = await getApprovedRelationshipEvidence(supabase, {

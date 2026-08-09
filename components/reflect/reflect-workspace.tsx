@@ -6,6 +6,8 @@ import { IntelligenceModeIndicator } from "@/components/coaching-intelligence/in
 import { ActionButton } from "@/components/feedback/action-button";
 import { SaveStatus } from "@/components/feedback/save-status";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { resolveProductLanguage } from "@/lib/role-language";
 import { toActionButtonStatus } from "@/types/action-feedback";
 import type {
   CoachingIntelligenceMode,
@@ -136,6 +138,8 @@ export function ReflectWorkspace({
     reflection: ReflectionWorkspaceViewModel["reflection"]
   ) => Promise<boolean>;
 }) {
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
   const [values, setValues] = useState(initialData.reflection);
   const { feedback, isLoading, markUnsaved, runAction, reset } =
     useActionFeedback();
@@ -177,11 +181,13 @@ export function ReflectWorkspace({
     <main className="reflection-workspace-page">
       <div className="reflection-workspace-page__header">
         <div>
-          <p className="identity-section-heading__eyebrow">Coach reflection</p>
+          <p className="identity-section-heading__eyebrow">
+            {language.reflectionLabel}
+          </p>
           <h1>Notice what matters</h1>
           <p>
-            Reflect privately before deciding what should carry forward into the
-            client’s development record.
+            Reflect privately before deciding what should carry forward into the{" "}
+            {language.personSingular}’s development record.
           </p>
           <div style={{ marginTop: 12 }}>
             <IntelligenceModeIndicator
@@ -237,7 +243,9 @@ export function ReflectWorkspace({
 
           <div className="reflection-private-notes">
             <h2>
-              <label htmlFor="reflection-private-notes">Private coach notes</label>
+              <label htmlFor="reflection-private-notes">
+                Private {language.notesLabel.toLowerCase()}
+              </label>
             </h2>
             <p>
               These notes remain private and are excluded from shared summaries

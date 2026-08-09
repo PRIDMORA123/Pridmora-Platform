@@ -284,7 +284,7 @@ export function SessionDebriefForm({
                 disabled={busy || values.noCommitmentAgreed}
                 value={values.commitment}
                 onChange={event => updateField("commitment", event.target.value)}
-                placeholder="What the client agreed to do…"
+                placeholder="What was agreed to do…"
               />
             </label>
 

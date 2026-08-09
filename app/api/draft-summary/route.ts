@@ -5,7 +5,7 @@ import {
   buildDraftSummaryInstructions,
   type DraftSummaryDepthMode,
 } from "@/lib/ai/draft-summary-prompt";
-import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import { parseDraftSummary } from "@/lib/sessions";
 import {
   parseSummaryInsightsFromModel,
@@ -31,15 +31,19 @@ function resolveDepthMode(
 }
 
 export async function POST(request: Request) {
-  const auth = await requireOrganisationContext();
-  if (!auth.ok) return auth.response;
-
-  if (!auth.context.organisation.organisation.aiEnabled) {
-    return NextResponse.json(
-      { error: "AI is disabled for this organisation." },
-      { status: 403 }
-    );
+  let body: DraftSummaryRequest;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
+
+  const access = await requireAssignedPersonInOrganisation({
+    clientId: body.clientId,
+    bodyOrganisationId: body.organisationId,
+    requireAiEnabled: true,
+  });
+  if (!access.ok) return access.response;
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -47,13 +51,6 @@ export async function POST(request: Request) {
       { error: "OpenAI API key is not configured." },
       { status: 500 }
     );
-  }
-
-  let body: DraftSummaryRequest;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
   const { notes } = body;

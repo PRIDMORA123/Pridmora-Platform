@@ -581,8 +581,8 @@ export function IdentityHomePage({
         {viewModel.relationships.length > 0 ? (
           <RelationshipPortfolio
             items={viewModel.relationships}
-            title="Your coaching relationships"
-            description="A focused view of your active coaching portfolio."
+            title={`Your ${language.relationshipPlural}`}
+            description={`A focused view of your active ${language.relationshipPlural}.`}
             onOpen={id => {
               const client = clientById(id);
               if (client) onOpenClient(client);

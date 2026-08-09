@@ -18,6 +18,8 @@ import {
   type CoachingMoment,
 } from "@/lib/coaching-moments/coaching-moment";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { resolveProductLanguage } from "@/lib/role-language";
 
 type WorkspaceView =
   | "prepare"
@@ -48,6 +50,8 @@ export function CoachingMomentWorkspace({
   onSaved,
   triggerRef,
 }: CoachingMomentWorkspaceProps) {
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
   const [moment, setMoment] = useState<CoachingMoment | null>(initialMoment);
   const [view, setView] = useState<WorkspaceView>("prepare");
   const [situation, setSituation] = useState(initialMoment?.situation ?? "");
@@ -151,7 +155,9 @@ export function CoachingMomentWorkspace({
         syncFromMoment(response.moment);
       })
       .catch(() => {
-        setError("Unable to start a coaching moment. Please try again.");
+        setError(
+          `Unable to start a ${language.momentSingular.toLowerCase()}. Please try again.`
+        );
       })
       .finally(() => {
         setBusy(false);
@@ -365,7 +371,7 @@ export function CoachingMomentWorkspace({
       setView("insight");
     } catch {
       setError(
-        "Insight could not be created right now. Your coaching moment remains saved."
+        `Insight could not be created right now. Your ${language.momentSingular.toLowerCase()} remains saved.`
       );
       setView("done");
     } finally {
@@ -432,14 +438,14 @@ export function CoachingMomentWorkspace({
   const guidance = moment ? guidanceFromMoment(moment) : null;
   const title =
     view === "conversation"
-      ? "Coaching Moment"
+      ? language.momentSingular
       : view === "capture"
         ? "Capture outcome"
         : view === "insight"
           ? "Review insight"
           : view === "done"
-            ? "Coaching Moment saved"
-            : "New Coaching Moment";
+            ? `${language.momentSingular} saved`
+            : language.newMomentLabel;
 
   return (
     <>
@@ -488,7 +494,7 @@ export function CoachingMomentWorkspace({
                 aria-busy={busy}
                 onClick={() => void handleSaveOutcome(false)}
               >
-                {busy ? "Saving…" : "Save coaching moment"}
+                {busy ? "Saving…" : language.saveMomentLabel}
               </button>
             </>
           ) : view === "done" ? (
@@ -526,8 +532,8 @@ export function CoachingMomentWorkspace({
 
           <p className="coaching-moment-record-note" aria-live="polite">
             {view === "done"
-              ? "Saved as a Coaching Moment — not a formal coaching session."
-              : "This will be added to the coaching record as a Coaching Moment, not a formal session."}
+              ? `Saved as a ${language.momentSingular} — not a formal ${language.conversationSingular}.`
+              : `This will be added to the development record as a ${language.momentSingular}, not a formal ${language.conversationSingular}.`}
           </p>
 
           {view === "prepare" ? (
@@ -616,7 +622,7 @@ export function CoachingMomentWorkspace({
           {view === "done" ? (
             <div className="coaching-moment-done">
               <p>
-                Your Coaching Moment for <strong>{clientName}</strong> has been
+                Your {language.momentSingular} for <strong>{clientName}</strong> has been
                 saved. It may inform Current Position and Development where
                 relevant, without counting as a formal session.
               </p>

@@ -75,3 +75,6 @@ export {
 } from "@/lib/organisations/current-organisation";
 
 export type { OrganisationRequestContext } from "@/lib/organisations/current-organisation";
+
+export { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
+export type { AssignedPersonAccess } from "@/lib/organisations/person-access-gate";

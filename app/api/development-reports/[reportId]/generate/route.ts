@@ -2,10 +2,9 @@ import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import { IDENTITY_SYSTEM_PROMPT } from "@/lib/ai/identity-system-prompt";
 import { DEVELOPMENT_REPORT_TASK_PROMPT } from "@/lib/ai/development-report-prompt";
-import {
-  notFoundOrForbidden,
-  requireAuthenticatedUser,
-} from "@/lib/auth/session";
+import { notFoundOrForbidden } from "@/lib/auth/session";
+import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import { developmentReportErrorResponse } from "@/lib/reports/errors";
 import { parseDevelopmentReportAiDraft } from "@/lib/reports/parse-ai-draft";
 import {
@@ -21,25 +20,33 @@ import { REPORT_TYPE_LABELS, type ReportEvidenceItem } from "@/lib/reports/types
 type Params = { params: Promise<{ reportId: string }> };
 
 export async function POST(request: Request, { params }: Params) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
+  const org = await requireOrganisationContext();
+  if (!org.ok) return org.response;
 
   const { reportId } = await params;
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: "OpenAI API key is not configured." },
-      { status: 500 }
-    );
-  }
 
   try {
     const existing = await getDevelopmentReport(
-      auth.context.supabase,
-      auth.context.coachId,
+      org.context.supabase,
+      org.context.coachId,
       reportId
     );
     if (!existing) return notFoundOrForbidden();
+
+    const access = await requireAssignedPersonInOrganisation({
+      clientId: existing.relationshipId,
+      requireAiEnabled: true,
+    });
+    if (!access.ok) return access.response;
+
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: "OpenAI API key is not configured." },
+        { status: 500 }
+      );
+    }
+
     if (existing.status === "approved") {
       return NextResponse.json(
         {
@@ -69,8 +76,8 @@ export async function POST(request: Request, { params }: Params) {
 
     // Persist selected evidence snapshot before generation.
     await updateDraftDevelopmentReport(
-      auth.context.supabase,
-      auth.context.coachId,
+      access.context.supabase,
+      access.context.coachId,
       reportId,
       {
         evidenceItems,
@@ -89,13 +96,13 @@ export async function POST(request: Request, { params }: Params) {
       }
     );
 
-    const { data: person } = await auth.context.supabase
+    const { data: person } = await access.context.supabase
       .from("clients")
       .select(
         "name, identity_mode, display_label, confidential_reference, ai_name_allowed, organisation, role"
       )
       .eq("id", existing.relationshipId)
-      .eq("coach_id", auth.context.coachId)
+      .eq("coach_id", access.context.coachId)
       .maybeSingle();
 
     const coacheeName = person
@@ -109,10 +116,10 @@ export async function POST(request: Request, { params }: Params) {
           aiNameAllowed: person.ai_name_allowed,
         }).aiDisplayName
       : "";
-    const { data: otherClients } = await auth.context.supabase
+    const { data: otherClients } = await access.context.supabase
       .from("clients")
       .select("name")
-      .eq("coach_id", auth.context.coachId)
+      .eq("coach_id", access.context.coachId)
       .neq("id", existing.relationshipId);
     const knownOtherNames = (otherClients ?? []).map(row => String(row.name ?? ""));
 
@@ -170,8 +177,8 @@ export async function POST(request: Request, { params }: Params) {
     }));
 
     const report = await updateDraftDevelopmentReport(
-      auth.context.supabase,
-      auth.context.coachId,
+      access.context.supabase,
+      access.context.coachId,
       reportId,
       {
         executiveSummary: parsed.executiveSummary || null,

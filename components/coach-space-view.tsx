@@ -63,6 +63,7 @@ export function CoachSpaceView({
   onArchiveClient,
   onRestoreClient,
   onPermanentlyDeleteClient,
+  allowPermanentDelete = true,
   coachPreparationStyle: _coachPreparationStyle = "guided",
 }: {
   client: Client;
@@ -103,6 +104,8 @@ export function CoachSpaceView({
   onArchiveClient: () => Promise<void>;
   onRestoreClient: () => Promise<void>;
   onPermanentlyDeleteClient: () => Promise<void>;
+  /** Managers must not see permanent delete; coaches/admins keep existing behaviour. */
+  allowPermanentDelete?: boolean;
 }) {
   const archived = isClientArchived(client);
   const [editOpen, setEditOpen] = useState(false);
@@ -397,6 +400,7 @@ export function CoachSpaceView({
                 onArchive={onArchiveClient}
                 onRestore={onRestoreClient}
                 onPermanentlyDelete={onPermanentlyDeleteClient}
+                allowPermanentDelete={allowPermanentDelete}
               />
             }
             recentCoachingMoments={recentCoachingMoments}

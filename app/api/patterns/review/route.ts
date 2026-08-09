@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { requireAuthenticatedUser } from "@/lib/auth/session";
+import { notFoundOrForbidden } from "@/lib/auth/session";
 import { developmentUpdateErrorResponse } from "@/lib/development-updates/api-response";
 import {
   ensureProfileOrEmpty,
   saveCoachingPatterns,
 } from "@/lib/development-updates/repository";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import { applyCoachPatternReview } from "@/lib/patterns/reconcile";
 import { evidenceFingerprint } from "@/lib/patterns/evidence";
 import { assertRelationshipOwnership } from "@/lib/relationship-scope";
@@ -12,6 +13,7 @@ import type { CoachingPatternStatus } from "@/lib/patterns/types";
 
 type ReviewRequest = {
   clientId?: string;
+  organisationId?: string;
   patternId?: string;
   action?: "accept" | "reject" | "edit" | "no_longer_relevant";
   title?: string;
@@ -21,9 +23,6 @@ type ReviewRequest = {
 };
 
 export async function POST(request: Request) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
-
   let body: ReviewRequest;
   try {
     body = await request.json();
@@ -31,11 +30,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const clientId = body.clientId?.trim();
   const patternId = body.patternId?.trim();
   const action = body.action;
 
-  if (!clientId || !patternId || !action) {
+  if (!patternId || !action) {
     return NextResponse.json(
       { error: "clientId, patternId and action are required." },
       { status: 400 }
@@ -46,10 +44,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid review action." }, { status: 400 });
   }
 
-  const coachId = auth.context.user.id;
+  const access = await requireAssignedPersonInOrganisation({
+    clientId: body.clientId,
+    bodyOrganisationId: body.organisationId,
+  });
+  if (!access.ok) return access.response;
+
+  const coachId = access.context.coachId;
+  const clientId = access.clientId;
 
   try {
-    const { data: client, error } = await auth.context.supabase
+    const { data: client, error } = await access.context.supabase
       .from("clients")
       .select("id, current_focus")
       .eq("id", clientId)
@@ -57,11 +62,11 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     if (error || !client) {
-      return NextResponse.json({ error: "Person not found." }, { status: 404 });
+      return notFoundOrForbidden();
     }
 
     const profile = await ensureProfileOrEmpty(
-      auth.context.supabase,
+      access.context.supabase,
       coachId,
       clientId,
       String(client.current_focus ?? "")
@@ -86,7 +91,7 @@ export async function POST(request: Request) {
     );
 
     const saved = await saveCoachingPatterns(
-      auth.context.supabase,
+      access.context.supabase,
       coachId,
       clientId,
       patterns,

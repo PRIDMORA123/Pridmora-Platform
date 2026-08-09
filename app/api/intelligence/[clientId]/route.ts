@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { requireAuthenticatedUser } from "@/lib/auth/session";
 import { intelligenceErrorResponse } from "@/lib/intelligence/api-response";
 import {
   listIntelligenceForClient,
@@ -7,26 +6,24 @@ import {
   listSignalsForClient,
 } from "@/lib/intelligence/repository";
 import { buildIntelligenceSnapshot } from "@/lib/intelligence/snapshot";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 
 type Params = { params: Promise<{ clientId: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
-  const auth = await requireAuthenticatedUser();
-  if (!auth.ok) return auth.response;
-
   const { clientId } = await params;
-  if (!clientId) {
-    return NextResponse.json({ error: "clientId is required." }, { status: 400 });
-  }
+  const access = await requireAssignedPersonInOrganisation({ clientId });
+  if (!access.ok) return access.response;
 
   try {
-    const supabase = auth.context.supabase;
+    const supabase = access.context.supabase;
+    const userId = access.context.user.id;
     const [items, questions, signals] = await Promise.all([
-      listIntelligenceForClient(supabase, auth.context.user.id, clientId, {
+      listIntelligenceForClient(supabase, userId, access.clientId, {
         includeRejected: false,
       }),
-      listQuestionsForClient(supabase, auth.context.user.id, clientId),
-      listSignalsForClient(supabase, auth.context.user.id, clientId),
+      listQuestionsForClient(supabase, userId, access.clientId),
+      listSignalsForClient(supabase, userId, access.clientId),
     ]);
 
     const approved = items.filter(item => item.status === "approved" && !item.archivedAt);

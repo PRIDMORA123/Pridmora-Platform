@@ -270,7 +270,7 @@ export function SessionView({
       const data = await apiJson<{ questions?: string; error?: string }>("/api/coaching-questions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notes: session.notes }),
+        body: JSON.stringify({ notes: session.notes, clientId: client.id }),
       });
 
       const parsed = parseCoachingQuestions(String(data.questions ?? ""));
@@ -310,6 +310,7 @@ export function SessionView({
           focus: session.focus,
           preparation: session.preparation,
           clientName: getRelationshipDisplayName(client),
+          clientId: client.id,
         }),
       });
 

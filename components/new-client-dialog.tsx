@@ -221,10 +221,10 @@ export function NewClientDialog({
           <span>
             <strong>
               Confidential{" "}
-              <span className="identity-mode-recommended">Recommended for sensitive coaching</span>
+              <span className="identity-mode-recommended">Recommended for sensitive development work</span>
             </strong>
             <span className="identity-mode-option-copy">
-              Use a confidential reference and keep private identity separate from coaching
+              Use a confidential reference and keep private identity separate from development
               information.
             </span>
           </span>
@@ -232,8 +232,8 @@ export function NewClientDialog({
       </div>
 
       <p className="identity-mode-intro">
-        Confidential coaching keeps personal identity separate from coaching information. AI works
-        with coaching evidence, not unnecessary personal details. You decide whether names are
+        Confidential mode keeps personal identity separate from development information. AI works
+        with development evidence, not unnecessary personal details. You decide whether names are
         stored.
       </p>
 
@@ -431,7 +431,7 @@ export function NewClientDialog({
         value={formData.currentFocus}
         disabled={locked}
         rows={3}
-        placeholder="What is this coaching engagement for?"
+        placeholder="What is this development relationship for?"
         onChange={handleChange}
         onKeyDown={event => {
           if (event.key === "Enter") {

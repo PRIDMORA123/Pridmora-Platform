@@ -21,6 +21,8 @@ import {
   PersonFlowBackLink,
   PersonFlowBreadcrumb,
 } from "@/components/identity/person-flow-nav";
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { resolveProductLanguage } from "@/lib/role-language";
 
 function formatDate(value: string | null | undefined): string {
   if (!value) return "—";
@@ -48,6 +50,8 @@ export function DevelopmentUpdateReviewView({
   onApplied?: () => void;
   onDiscarded?: () => void;
 }) {
+  const organisation = useOrganisation();
+  const language = resolveProductLanguage(organisation?.professionalRole);
   const [update, setUpdate] = useState<DevelopmentUpdate | null>(null);
   const [clientName, setClientName] = useState("Person");
   const [sessionDate, setSessionDate] = useState("");
@@ -416,9 +420,11 @@ export function DevelopmentUpdateReviewView({
 
       {editing ? (
         <article className="panel">
-          <h2>Coach note</h2>
+          <h2>{language.notesLabel.replace(/ notes$/i, " note")}</h2>
           <label className="full">
-            <span className="sr-only">Coach note</span>
+            <span className="sr-only">
+              {language.notesLabel.replace(/ notes$/i, " note")}
+            </span>
             <textarea
               className="full"
               rows={3}

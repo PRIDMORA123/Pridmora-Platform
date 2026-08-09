@@ -385,7 +385,7 @@ export function HomeApp() {
   async function refreshSessionsForClient(clientId: string) {
     if (!authReady || !profile || !activeRef.current) return;
     if (!isUuid(clientId)) {
-      setStorageError("Select a valid client before loading sessions.");
+      setStorageError("Select a valid person before loading sessions.");
       return;
     }
     // Only refresh sessions for clients this coach actually owns in memory.
@@ -454,7 +454,7 @@ export function HomeApp() {
     const destination = getPrepareRoute(client.id);
     if (!isUuid(destination.personId) || !authReady || !profile) return;
     if (isClientArchived(client)) {
-      setStorageError("This client is archived. Restore them to add new coaching activity.");
+      setStorageError("This person is archived. Restore them to add new development activity.");
       return;
     }
     setSelectedId(destination.personId);
@@ -564,7 +564,7 @@ export function HomeApp() {
       // Keep the modal open and surface the error inside it.
       throw toError(
         error,
-        "Unable to create the client in Supabase. Please try again."
+        "Unable to create the person in Supabase. Please try again."
       );
     } finally {
       if (activeRef.current) setCreatingClient(false);
@@ -699,10 +699,10 @@ export function HomeApp() {
 
   async function saveSession(updated: Session): Promise<Session> {
     if (!selected || !coachId || !authReady || !profile) {
-      throw new Error("Sign in and select a client before saving a session.");
+      throw new Error("Sign in and select a person before saving a session.");
     }
     if (isClientArchived(selected)) {
-      throw new Error("This client is archived. Restore them to add new coaching activity.");
+      throw new Error("This person is archived. Restore them to add new development activity.");
     }
     setStorageError("");
 
@@ -742,10 +742,10 @@ export function HomeApp() {
       );
     }
     if (!coachId || !authReady || !profile) {
-      throw new Error("Select a client before scheduling a session.");
+      throw new Error("Select a person before scheduling a session.");
     }
     if (isClientArchived(client)) {
-      throw new Error("This client is archived. Restore them to add new coaching activity.");
+      throw new Error("This person is archived. Restore them to add new development activity.");
     }
     setStorageError("");
 
@@ -874,7 +874,7 @@ export function HomeApp() {
         handleAuthFailure(error);
         throw error;
       }
-      throw toError(error, "Unable to update the client. Please try again.");
+      throw toError(error, "Unable to update the person. Please try again.");
     } finally {
       if (activeRef.current) setLifecycleBusy(false);
     }
@@ -906,7 +906,7 @@ export function HomeApp() {
         handleAuthFailure(error);
         throw error;
       }
-      throw toError(error, "Unable to archive the client. Please try again.");
+      throw toError(error, "Unable to archive the person. Please try again.");
     } finally {
       if (activeRef.current) setLifecycleBusy(false);
     }
@@ -938,7 +938,7 @@ export function HomeApp() {
         handleAuthFailure(error);
         throw error;
       }
-      throw toError(error, "Unable to restore the client. Please try again.");
+      throw toError(error, "Unable to restore the person. Please try again.");
     } finally {
       if (activeRef.current) setLifecycleBusy(false);
     }
@@ -1302,6 +1302,7 @@ export function HomeApp() {
               onArchiveClient={() => archiveSelectedClient()}
               onRestoreClient={() => restoreSelectedClient()}
               onPermanentlyDeleteClient={() => permanentlyDeleteSelectedClient()}
+              allowPermanentDelete={organisationRole !== "manager"}
             />
           )}
           {view === PREPARE_VIEW && selected && (() => {

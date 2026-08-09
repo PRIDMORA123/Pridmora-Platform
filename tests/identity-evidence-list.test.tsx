@@ -31,6 +31,7 @@ describe("evidence date formatting", () => {
     );
     expect(evidenceTypeLabel("approved_summary")).toBe("Approved summary");
     expect(evidenceTypeLabel("commitment")).toBe("Commitment");
+    expect(evidenceTypeLabel("coaching_moment")).toBe("Development moment");
   });
 });
 
