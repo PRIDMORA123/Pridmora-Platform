@@ -75,9 +75,11 @@ describe("My Development self evidence wiring", () => {
     const intel = read("components/my-development-intelligence-view.tsx");
 
     expect(shell).toContain('"my-development-intelligence"');
+    expect(shell).toContain('"my-development-reflection"');
     expect(home).toContain("openSelfDevelopmentView");
     expect(home).toContain('navigate("my-development-intelligence")');
     expect(home).toContain("<MyDevelopmentIntelligenceView");
+    expect(home).toContain("<MyDevelopmentReflectionView");
     expect(home).toContain(
       'view === "my-development-intelligence" && selfDevelopmentClient'
     );
@@ -87,13 +89,14 @@ describe("My Development self evidence wiring", () => {
     expect(myDev).toContain("onOpenPersonalIntelligence");
     expect(myDev).toContain("View development intelligence");
     expect(myDev).toContain("Development Intelligence");
+    expect(myDev).toContain("onOpenPersonalReflection");
     expect(evidence).toContain("View development intelligence");
     expect(evidence).toContain("Retry analysis");
     expect(evidence).toContain("Analysis pending");
     expect(evidence).toContain("Analysis failed");
     expect(evidence).toContain("decision === \"approve\" && onOpenIntelligence");
     expect(intel).toContain("DevelopmentIntelligenceEvidencePanel");
-    expect(intel).toContain("own development");
+    expect(intel).toContain("separate from people you manage");
     expect(intel).not.toMatch(/self[- ]?client/i);
   });
 

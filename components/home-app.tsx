@@ -16,6 +16,7 @@ import { GlobalIntelligenceView } from "@/components/global-intelligence-view";
 import { SessionsView } from "@/components/sessions-view";
 import { MyDevelopmentView } from "@/components/my-development-view";
 import { MyDevelopmentIntelligenceView } from "@/components/my-development-intelligence-view";
+import { MyDevelopmentReflectionView } from "@/components/my-development-reflection-view";
 import { SettingsView } from "@/components/settings-view";
 import { JourneyView } from "@/components/journey-view";
 import { CareerJourneyView } from "@/components/career-journey-view";
@@ -300,7 +301,10 @@ export function HomeApp() {
   }
 
   async function openSelfDevelopmentView(
-    next: "my-development-evidence" | "my-development-intelligence"
+    next:
+      | "my-development-evidence"
+      | "my-development-intelligence"
+      | "my-development-reflection"
   ) {
     setSelfDevelopmentError("");
     try {
@@ -315,7 +319,9 @@ export function HomeApp() {
           error,
           next === "my-development-intelligence"
             ? "Unable to open your Development Intelligence."
-            : "Unable to open your My Development evidence record."
+            : next === "my-development-reflection"
+              ? "Unable to open your development reflection."
+              : "Unable to open your My Development evidence record."
         )
       );
     }
@@ -1213,6 +1219,9 @@ export function HomeApp() {
               onOpenPersonalIntelligence={() => {
                 void openSelfDevelopmentView("my-development-intelligence");
               }}
+              onOpenPersonalReflection={() => {
+                void openSelfDevelopmentView("my-development-reflection");
+              }}
               onSwitchToPersonal={() => {
                 const personal = organisationState?.organisations.find(
                   entry => entry.organisation.organisationType === "personal"
@@ -1235,6 +1244,14 @@ export function HomeApp() {
               }}
             />
           )}
+          {view === "my-development-reflection" && (
+            <MyDevelopmentReflectionView
+              onBack={() => navigate("my-development")}
+              onOpenIntelligence={() => {
+                void openSelfDevelopmentView("my-development-intelligence");
+              }}
+            />
+          )}
           {view === "my-development-evidence" && selfDevelopmentClient && (
             <DevelopmentEvidenceView
               key={`my-evidence-${selfDevelopmentClient.id}`}
@@ -1251,6 +1268,7 @@ export function HomeApp() {
               client={selfDevelopmentClient}
               onBack={() => navigate("my-development")}
               onOpenEvidence={() => navigate("my-development-evidence")}
+              onOpenReflection={() => navigate("my-development-reflection")}
             />
           )}
           {view === "team-intelligence" && (

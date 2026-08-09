@@ -54,11 +54,16 @@ export async function GET() {
     }
 
     // Defence in depth: never return rows from another organisation.
-    const scopedClients = (clients ?? []).filter(
-      client =>
+    // Exclude Manager My Development self-records from team aggregation.
+    const scopedClients = (clients ?? []).filter(client => {
+      const orgOk =
         typeof client.organisation_id === "string" &&
-        client.organisation_id === organisationId
-    );
+        client.organisation_id === organisationId;
+      if (!orgOk) return false;
+      const isSelf =
+        String(client.role ?? "").toLowerCase() === "self development";
+      return !isSelf;
+    });
 
     const members = [];
     for (const client of scopedClients) {

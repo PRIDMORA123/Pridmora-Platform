@@ -17,9 +17,12 @@ import type {
 export function DevelopmentIntelligenceEvidencePanel({
   clientId,
   onOpenEvidence,
+  voice = "person",
 }: {
   clientId: string;
   onOpenEvidence?: () => void;
+  /** Self voice softens copy for Manager My Development. */
+  voice?: "person" | "self";
 }) {
   const [view, setView] = useState<DevelopmentIntelligenceEvidenceView | null>(
     null
@@ -79,15 +82,21 @@ export function DevelopmentIntelligenceEvidencePanel({
 
   if (!view) return null;
 
+  const isSelf = voice === "self";
+
   return (
     <div className="development-intelligence-evidence">
       <p className="development-intelligence-evidence__question">
-        What do we now understand about this person?
+        {isSelf
+          ? "What do we currently understand about your development?"
+          : "What do we now understand about this person?"}
       </p>
 
       <section className="development-section development-section--story">
         <h2>Current Position</h2>
-        <p className="development-section__purpose">Where is this person now?</p>
+        <p className="development-section__purpose">
+          {isSelf ? "Where are you now?" : "Where is this person now?"}
+        </p>
         <p>{limitSentences(view.currentPosition, 3)}</p>
         <button
           type="button"
@@ -106,7 +115,9 @@ export function DevelopmentIntelligenceEvidencePanel({
       <section className="development-section development-section--story">
         <h2>Development Trajectory</h2>
         <p className="development-section__purpose">
-          How have they changed over time?
+          {isSelf
+            ? "What appears to be changing over time?"
+            : "How have they changed over time?"}
         </p>
         <p>{limitSentences(view.developmentTrajectory, 3)}</p>
       </section>
@@ -114,7 +125,9 @@ export function DevelopmentIntelligenceEvidencePanel({
       <section className="development-section development-section--story">
         <h2>Current Priorities</h2>
         <p className="development-section__purpose">
-          Where would further development help?
+          {isSelf
+            ? "Where would further development help?"
+            : "Where would further development help?"}
         </p>
         {view.developmentPriorities.length === 0 ? (
           <p className="muted">No reviewed development priorities yet.</p>
@@ -130,7 +143,9 @@ export function DevelopmentIntelligenceEvidencePanel({
       <section className="development-section development-section--story">
         <h2>Capabilities &amp; Behavioural Patterns</h2>
         <p className="development-section__purpose">
-          What management behaviours are emerging or strengthening?
+          {isSelf
+            ? "What behaviours appear to be emerging or strengthening?"
+            : "What management behaviours are emerging or strengthening?"}
         </p>
         {view.capabilities.length === 0 ? (
           <p className="muted">
@@ -178,12 +193,20 @@ export function DevelopmentIntelligenceEvidencePanel({
       </section>
 
       <section className="development-section development-section--story">
-        <h2>Strengths Being Demonstrated</h2>
+        <h2>
+          {isSelf ? "Emerging strengths" : "Strengths Being Demonstrated"}
+        </h2>
         <p className="development-section__purpose">
-          What positive behaviours are evidenced?
+          {isSelf
+            ? "What positive behaviours are evidenced so far?"
+            : "What positive behaviours are evidenced?"}
         </p>
         {view.strengthsBeingDemonstrated.length === 0 ? (
-          <p className="muted">No reviewed strength signals yet.</p>
+          <p className="muted">
+            {isSelf
+              ? "No reviewed strength signals yet — add reflections or evidence to build this picture."
+              : "No reviewed strength signals yet."}
+          </p>
         ) : (
           <ul className="development-evidence-list">
             {view.strengthsBeingDemonstrated.map(item => (
@@ -194,7 +217,9 @@ export function DevelopmentIntelligenceEvidencePanel({
       </section>
 
       <section className="development-section development-section--story">
-        <h2>Next Development Focus</h2>
+        <h2>
+          {isSelf ? "Areas worth exploring" : "Next Development Focus"}
+        </h2>
         <p className="development-section__purpose">
           What would be valuable to explore next?
         </p>
