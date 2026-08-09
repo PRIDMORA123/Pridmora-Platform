@@ -57,8 +57,24 @@ export async function analyseEvidenceDocument(input: {
     input.evidenceId
   );
 
-  if (!detail.document?.extractedText?.trim()) {
-    throw new Error("No extracted text is available to analyse.");
+  const extractedText = detail.document?.extractedText?.replace(/\s+/g, " ").trim() ?? "";
+  if (!extractedText) {
+    await markEvidenceAnalysisFailed({
+      supabase: input.supabase,
+      evidenceId: detail.evidence.id,
+    });
+    throw new Error(
+      "No readable text is available to analyse. The evidence was saved — export the DISC report as text or a text-based PDF and retry, or re-upload a clearer file."
+    );
+  }
+  if (extractedText.length < 40) {
+    await markEvidenceAnalysisFailed({
+      supabase: input.supabase,
+      evidenceId: detail.evidence.id,
+    });
+    throw new Error(
+      "Extracted text is too limited for reliable analysis. The evidence was saved — try a text-based PDF or plain-text export, then retry analysis."
+    );
   }
 
   if (
@@ -132,11 +148,11 @@ export async function analyseEvidenceDocument(input: {
     client: input.client,
     privateIdentity: input.privateIdentity,
     document: {
-      fileName: detail.document.fileName,
+      fileName: detail.document?.fileName,
       evidenceType: detail.evidence.evidenceType,
       evidenceDate: detail.evidence.evidenceDate,
       purpose: detail.evidence.purpose,
-      extractedText: detail.document.extractedText,
+      extractedText,
       contentHash: detail.evidence.contentHash,
     },
     approvedEvidence: approved,
@@ -146,13 +162,22 @@ export async function analyseEvidenceDocument(input: {
   const openai = getOpenAiClient();
   let structured: StructuredEvidence;
   let sourceSummary: string;
-  const ANALYSE_TIMEOUT_MS = 25_000;
+  const ANALYSE_TIMEOUT_MS = 20_000;
 
   try {
+    await input.supabase
+      .from("development_evidence")
+      .update({
+        processing_status: "analysing",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", detail.evidence.id)
+      .is("deleted_at", null);
+
     if (!openai) {
       structured = buildDeterministicExtraction({
         evidenceType: detail.evidence.evidenceType,
-        text: detail.document.extractedText,
+        text: extractedText,
       });
       sourceSummary =
         structured.observations?.[0]?.description ??
@@ -162,6 +187,7 @@ export async function analyseEvidenceDocument(input: {
         {
           model: process.env.OPENAI_EVIDENCE_MODEL?.trim() || "gpt-4.1-mini",
           temperature: 0.2,
+          max_tokens: 1200,
           messages: [
             {
               role: "system",
@@ -214,13 +240,25 @@ export async function analyseEvidenceDocument(input: {
       supabase: input.supabase,
       evidenceId: detail.evidence.id,
     });
-    if (error instanceof Error && error.name === "AbortError") {
+    if (isAnalyseTimeoutError(error)) {
       throw new Error(
         "Analysis timed out. Your uploaded evidence was saved — retry analysis without re-uploading."
       );
     }
     throw error;
   }
+}
+
+function isAnalyseTimeoutError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  if (
+    error.name === "AbortError" ||
+    error.name === "TimeoutError" ||
+    error.name === "APIUserAbortError"
+  ) {
+    return true;
+  }
+  return /timeout|timed out|aborted/i.test(error.message);
 }
 
 function buildDeterministicExtraction(input: {

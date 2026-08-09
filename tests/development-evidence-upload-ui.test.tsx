@@ -301,8 +301,9 @@ describe("DevelopmentEvidenceView Analyse upload", () => {
     });
 
     expect(container.textContent).toContain("Unable to upload evidence.");
-    expect(container.textContent).not.toMatch(/Working…/);
-    expect(container.textContent).toMatch(/Upload did not complete|Go back/);
+    expect(container.textContent).not.toMatch(/Uploading…/);
+    expect(container.textContent).toContain("Confirm purpose");
+    expect(container.textContent).toContain("Analyse");
   });
 
   it("keeps uploaded evidence and offers retry when AI analysis fails", async () => {
@@ -454,7 +455,7 @@ describe("DevelopmentEvidenceView Analyse upload", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(container.textContent).toMatch(/Uploading evidence|Working/);
+    expect(container.textContent).toMatch(/Uploading/);
 
     await act(async () => {
       resolveUpload?.({
@@ -464,5 +465,43 @@ describe("DevelopmentEvidenceView Analyse upload", () => {
       });
       await Promise.resolve();
     });
+  });
+
+  it("keeps purpose step during upload and only then moves to analyse", async () => {
+    const file = new File(["hello evidence"], "notes.txt", {
+      type: "text/plain",
+    });
+    let resolveUpload: ((value: unknown) => void) | null = null;
+    fetchMock.mockImplementation(
+      () =>
+        new Promise(resolve => {
+          resolveUpload = resolve;
+        })
+    );
+
+    await openWizardToPurpose(file);
+    const analyse = Array.from(container.querySelectorAll("button")).find(
+      button => button.textContent === "Analyse"
+    ) as HTMLButtonElement;
+
+    await act(async () => {
+      analyse.click();
+    });
+
+    expect(container.textContent).toContain("Why is this being added?");
+    expect(container.textContent).toMatch(/Uploading/);
+    expect(container.textContent).not.toMatch(/Retry analysis/);
+
+    await act(async () => {
+      resolveUpload?.({
+        ok: false,
+        status: 500,
+        json: async () => ({ error: "Unable to upload evidence." }),
+      });
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toContain("Unable to upload evidence.");
+    expect(container.textContent).toContain("Why is this being added?");
   });
 });

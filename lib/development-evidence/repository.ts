@@ -221,7 +221,9 @@ export async function createUploadedEvidence(input: {
     .single();
 
   if (documentError || !documentRow) {
-    throw new Error("Unable to store evidence document.");
+    throw new Error(
+      documentError?.message?.trim() || "Unable to store evidence document."
+    );
   }
 
   const document = mapDocumentRow(documentRow as Record<string, unknown>);
@@ -238,7 +240,11 @@ export async function createUploadedEvidence(input: {
       captured_by: input.userId,
       original_document_id: document.id,
       processing_status:
-        input.extractionStatus === "extracted" ? "extracted" : "failed",
+        input.extractionStatus === "extracted"
+          ? "extracted"
+          : input.extractionStatus === "pending"
+            ? "uploaded"
+            : "failed",
       review_status: "pending_review",
       include_in_intelligence: false,
       structured_evidence: {},
@@ -255,7 +261,9 @@ export async function createUploadedEvidence(input: {
     .single();
 
   if (evidenceError || !evidenceRow) {
-    throw new Error("Unable to create evidence record.");
+    throw new Error(
+      evidenceError?.message?.trim() || "Unable to create evidence record."
+    );
   }
 
   await input.supabase
@@ -284,6 +292,50 @@ export async function createUploadedEvidence(input: {
     evidence,
     document: { ...document, evidenceId: evidence.id },
   };
+}
+
+/** Persist extraction results after the evidence/document rows already exist. */
+export async function updateDocumentExtraction(input: {
+  supabase: SupabaseClient;
+  documentId: string;
+  evidenceId: string;
+  extractedText: string | null;
+  extractionMethod: string | null;
+  extractionStatus: "extracted" | "failed" | "unsupported" | "pending";
+}): Promise<void> {
+  const { error: documentError } = await input.supabase
+    .from("development_evidence_documents")
+    .update({
+      extracted_text: input.extractedText,
+      extraction_method: input.extractionMethod,
+      extraction_status: input.extractionStatus,
+      extraction_version: EXTRACTION_VERSION,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.documentId);
+
+  if (documentError) {
+    throw new Error(
+      documentError.message || "Unable to update extracted document text."
+    );
+  }
+
+  const { error: evidenceError } = await input.supabase
+    .from("development_evidence")
+    .update({
+      processing_status:
+        input.extractionStatus === "extracted" ? "extracted" : "failed",
+      extraction_version: EXTRACTION_VERSION,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.evidenceId)
+    .is("deleted_at", null);
+
+  if (evidenceError) {
+    throw new Error(
+      evidenceError.message || "Unable to update evidence extraction status."
+    );
+  }
 }
 
 /** Mark uploaded evidence as failed analysis without deleting the document. */

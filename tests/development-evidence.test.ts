@@ -204,7 +204,10 @@ describe("Development Evidence uploads and extraction", () => {
     const repo = read("lib/development-evidence/repository.ts");
     expect(analyse).toContain("AbortSignal.timeout");
     expect(analyse).toContain("markEvidenceAnalysisFailed");
+    expect(analyse).toContain("too limited for reliable analysis");
+    expect(analyse).toContain("isAnalyseTimeoutError");
     expect(repo).toContain("markEvidenceAnalysisFailed");
+    expect(repo).toContain("updateDocumentExtraction");
     expect(repo).toContain('processing_status: "failed"');
   });
 

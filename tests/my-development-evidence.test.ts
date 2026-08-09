@@ -72,15 +72,18 @@ describe("My Development self evidence wiring", () => {
     expect(list).toContain("requireAssignedPersonInOrganisation");
   });
 
-  it("creates evidence DB rows and does not await storage upload", () => {
+  it("creates evidence DB rows before extraction and does not await storage", () => {
     const upload = read("app/api/development-evidence/[clientId]/upload/route.ts");
     const createIdx = upload.indexOf("createUploadedEvidence");
+    const extractIdx = upload.indexOf("extractEvidenceDocumentText");
     const storageIdx = upload.indexOf("startBestEffortStorageUpload");
     expect(createIdx).toBeGreaterThan(-1);
+    expect(extractIdx).toBeGreaterThan(-1);
     expect(storageIdx).toBeGreaterThan(-1);
+    expect(createIdx).toBeLessThan(extractIdx);
     expect(createIdx).toBeLessThan(storageIdx);
     expect(upload).toContain("Fire-and-forget");
-    expect(upload).not.toContain("await bestEffortStorageUpload");
+    expect(upload).toContain("updateDocumentExtraction");
     expect(upload).not.toContain("await startBestEffortStorageUpload");
   });
 });

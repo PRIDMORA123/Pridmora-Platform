@@ -18,6 +18,7 @@ export {
   listEvidenceForClient,
   getEvidenceById,
   createUploadedEvidence,
+  updateDocumentExtraction,
   saveAnalysedEvidence,
   markEvidenceAnalysisFailed,
   reviewEvidence,

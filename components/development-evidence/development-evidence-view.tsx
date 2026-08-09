@@ -15,8 +15,8 @@ import {
 import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 import type { Client } from "@/lib/types";
 
-const UPLOAD_REQUEST_TIMEOUT_MS = 30_000;
-const ANALYSE_REQUEST_TIMEOUT_MS = 35_000;
+const UPLOAD_REQUEST_TIMEOUT_MS = 25_000;
+const ANALYSE_REQUEST_TIMEOUT_MS = 25_000;
 
 function isAbortError(error: unknown): boolean {
   return (
@@ -175,7 +175,7 @@ export function DevelopmentEvidenceView({
     setBusy(true);
     setError("");
     setProgressLabel("Uploading evidence…");
-    setStep("analyse");
+    // Stay on purpose until upload succeeds — do not pretend analysis has started.
 
     const uploadController = new AbortController();
     const uploadTimeoutId = window.setTimeout(
@@ -218,18 +218,20 @@ export function DevelopmentEvidenceView({
 
       createdEvidenceId = uploadJson.evidence.id;
       setActiveEvidenceId(createdEvidenceId);
-      await load();
+      window.clearTimeout(uploadTimeoutId);
 
       if (uploadJson.needsManualText) {
         setProgressLabel("");
+        setStep("analyse");
         throw new Error(
           uploadJson.error ||
-            "Text could not be extracted. Your evidence record was saved — try a text-based PDF or plain text file."
+            "Text could not be extracted. Your evidence record was saved — try a text-based PDF or plain text file, then retry analysis if text becomes available."
         );
       }
 
       await runAnalyseForEvidence(createdEvidenceId);
       setProgressLabel("");
+      void load();
     } catch (err) {
       if (isAbortError(err)) {
         setError(
@@ -241,7 +243,9 @@ export function DevelopmentEvidenceView({
         setError(errorMessage(err, "Unable to process evidence."));
       }
       setProgressLabel("");
-      setStep("analyse");
+      if (createdEvidenceId) {
+        setStep("analyse");
+      }
     } finally {
       window.clearTimeout(uploadTimeoutId);
       uploadInFlightRef.current = false;
@@ -495,12 +499,18 @@ export function DevelopmentEvidenceView({
                   value={purpose}
                   onChange={event => setPurpose(event.target.value)}
                   placeholder="For example: support development planning after a recent 360."
+                  disabled={busy}
                 />
               </label>
               <p className="muted">
                 Uploaded documents are interpreted as development evidence. This
                 is not a formal integration with assessment providers.
               </p>
+              {busy && progressLabel ? (
+                <p className="muted" aria-live="polite">
+                  {progressLabel}
+                </p>
+              ) : null}
               <div className="button-row">
                 <button
                   type="button"
@@ -508,11 +518,12 @@ export function DevelopmentEvidenceView({
                   disabled={busy || !purpose.trim()}
                   onClick={() => void uploadAndAnalyse()}
                 >
-                  {busy ? "Working…" : "Analyse"}
+                  {busy ? "Uploading…" : "Analyse"}
                 </button>
                 <button
                   type="button"
                   className="secondary"
+                  disabled={busy}
                   onClick={() => setStep("upload")}
                 >
                   Back

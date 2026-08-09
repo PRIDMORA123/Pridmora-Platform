@@ -8,6 +8,7 @@ import {
   extractEvidenceDocumentText,
   hashEvidenceBytes,
   isSupportedEvidenceUpload,
+  updateDocumentExtraction,
   type DevelopmentEvidenceType,
 } from "@/lib/development-evidence";
 
@@ -97,17 +98,11 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     const contentHash = await hashEvidenceBytes(bytes);
-    // Bounded sync extract — must complete before DB create so analyse has text,
-    // but must not scan multi‑MB binaries without a cap (event-loop freeze).
-    const extraction = await extractEvidenceDocumentText({
-      fileName: file.name,
-      mimeType: file.type || "application/octet-stream",
-      bytes,
-    });
-
     const organisationId = (client.organisation_id as string | null) ?? "personal";
     const storagePath = `${organisationId}/${clientId}/${contentHash.slice(0, 16)}-${file.name.replace(/[^\w.\-]+/g, "_")}`;
 
+    // Create rows BEFORE extraction so a slow/failed extract never leaves
+    // the UI stuck with zero persisted evidence.
     const created = await createUploadedEvidence({
       supabase: access.context.supabase,
       userId: access.context.user.id,
@@ -121,9 +116,9 @@ export async function POST(request: Request, { params }: Params) {
       mimeType: file.type || "application/octet-stream",
       byteSize: bytes.byteLength,
       contentHash,
-      extractedText: extraction.ok ? extraction.text : null,
-      extractionMethod: extraction.ok ? extraction.method : null,
-      extractionStatus: extraction.ok ? "extracted" : extraction.status,
+      extractedText: null,
+      extractionMethod: null,
+      extractionStatus: "pending",
       storagePath,
     });
 
@@ -134,14 +129,32 @@ export async function POST(request: Request, { params }: Params) {
       contentType: file.type || "application/octet-stream",
     });
 
+    const extraction = await extractEvidenceDocumentText({
+      fileName: file.name,
+      mimeType: file.type || "application/octet-stream",
+      bytes,
+    });
+
+    await updateDocumentExtraction({
+      supabase: access.context.supabase,
+      documentId: created.document.id,
+      evidenceId: created.evidence.id,
+      extractedText: extraction.ok ? extraction.text : null,
+      extractionMethod: extraction.ok ? extraction.method : null,
+      extractionStatus: extraction.ok ? "extracted" : extraction.status,
+    });
+
     if (!extraction.ok) {
       return NextResponse.json(
         {
-          evidence: created.evidence,
+          evidence: {
+            ...created.evidence,
+            processingStatus: "failed",
+          },
           document: {
             id: created.document.id,
             fileName: created.document.fileName,
-            extractionStatus: created.document.extractionStatus,
+            extractionStatus: extraction.status,
           },
           error: extraction.error,
           needsManualText: true,
@@ -150,13 +163,45 @@ export async function POST(request: Request, { params }: Params) {
       );
     }
 
+    const usable = extraction.text.replace(/\s+/g, " ").trim().length >= 40;
+    if (!usable) {
+      await updateDocumentExtraction({
+        supabase: access.context.supabase,
+        documentId: created.document.id,
+        evidenceId: created.evidence.id,
+        extractedText: extraction.text,
+        extractionMethod: extraction.method,
+        extractionStatus: "failed",
+      });
+      return NextResponse.json(
+        {
+          evidence: {
+            ...created.evidence,
+            processingStatus: "failed",
+          },
+          document: {
+            id: created.document.id,
+            fileName: created.document.fileName,
+            extractionStatus: "failed",
+          },
+          error:
+            "The document was saved, but not enough readable text could be extracted for analysis. Try a text-based PDF or plain-text export.",
+          needsManualText: true,
+        },
+        { status: 201 }
+      );
+    }
+
     return NextResponse.json(
       {
-        evidence: created.evidence,
+        evidence: {
+          ...created.evidence,
+          processingStatus: "extracted",
+        },
         document: {
           id: created.document.id,
           fileName: created.document.fileName,
-          extractionStatus: created.document.extractionStatus,
+          extractionStatus: "extracted",
         },
       },
       { status: 201 }
@@ -167,7 +212,12 @@ export async function POST(request: Request, { params }: Params) {
       error instanceof Error ? error.message : "unknown"
     );
     return NextResponse.json(
-      { error: "Unable to upload evidence." },
+      {
+        error:
+          error instanceof Error && error.message.trim()
+            ? error.message
+            : "Unable to upload evidence.",
+      },
       { status: 500 }
     );
   }
