@@ -16,44 +16,33 @@ export const maxDuration = 60;
 
 type Params = { params: Promise<{ clientId: string }> };
 
-const STORAGE_UPLOAD_TIMEOUT_MS = 8_000;
-
-async function bestEffortStorageUpload(input: {
+function startBestEffortStorageUpload(input: {
   supabase: SupabaseClient;
   storagePath: string;
   bytes: Uint8Array;
   contentType: string;
-}): Promise<void> {
-  try {
-    const uploadPromise = input.supabase.storage
-      .from("development-evidence")
-      .upload(input.storagePath, input.bytes, {
-        contentType: input.contentType,
-        upsert: false,
-      });
-
-    const timed = await Promise.race([
-      uploadPromise,
-      new Promise<{ error: { message: string } }>(resolve => {
-        setTimeout(
-          () =>
-            resolve({
-              error: { message: "Storage upload timed out." },
-            }),
-          STORAGE_UPLOAD_TIMEOUT_MS
+}): void {
+  // Fire-and-forget: never block the upload HTTP response on storage.
+  void input.supabase.storage
+    .from("development-evidence")
+    .upload(input.storagePath, input.bytes, {
+      contentType: input.contentType,
+      upsert: false,
+    })
+    .then(result => {
+      if (result.error) {
+        console.error(
+          "Evidence storage upload skipped:",
+          result.error.message
         );
-      }),
-    ]);
-
-    if (timed.error) {
-      console.error("Evidence storage upload skipped:", timed.error.message);
-    }
-  } catch (error) {
-    console.error(
-      "Evidence storage upload skipped:",
-      error instanceof Error ? error.message : "unknown"
-    );
-  }
+      }
+    })
+    .catch(error => {
+      console.error(
+        "Evidence storage upload skipped:",
+        error instanceof Error ? error.message : "unknown"
+      );
+    });
 }
 
 export async function POST(request: Request, { params }: Params) {
@@ -108,6 +97,8 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     const contentHash = await hashEvidenceBytes(bytes);
+    // Bounded sync extract — must complete before DB create so analyse has text,
+    // but must not scan multi‑MB binaries without a cap (event-loop freeze).
     const extraction = await extractEvidenceDocumentText({
       fileName: file.name,
       mimeType: file.type || "application/octet-stream",
@@ -117,7 +108,6 @@ export async function POST(request: Request, { params }: Params) {
     const organisationId = (client.organisation_id as string | null) ?? "personal";
     const storagePath = `${organisationId}/${clientId}/${contentHash.slice(0, 16)}-${file.name.replace(/[^\w.\-]+/g, "_")}`;
 
-    // DB first — never block evidence creation on best-effort storage.
     const created = await createUploadedEvidence({
       supabase: access.context.supabase,
       userId: access.context.user.id,
@@ -137,7 +127,7 @@ export async function POST(request: Request, { params }: Params) {
       storagePath,
     });
 
-    await bestEffortStorageUpload({
+    startBestEffortStorageUpload({
       supabase: access.context.supabase,
       storagePath,
       bytes,

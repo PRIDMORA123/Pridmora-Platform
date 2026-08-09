@@ -179,6 +179,35 @@ describe("Development Evidence uploads and extraction", () => {
     }
   });
 
+  it("bounds binary PDF extraction scan window", async () => {
+    const { EXTRACT_BINARY_SCAN_BYTES } = await import(
+      "@/lib/development-evidence/extract"
+    );
+    expect(EXTRACT_BINARY_SCAN_BYTES).toBeLessThanOrEqual(512 * 1024);
+
+    // Oversized pseudo-PDF should still return promptly (failed or extracted),
+    // not hang on a full multi‑MB sync scan.
+    const huge = new Uint8Array(2 * 1024 * 1024);
+    huge.set(new TextEncoder().encode("%PDF-1.4\nBT (hello) Tj ET\n"), 0);
+    const started = Date.now();
+    const result = await extractEvidenceDocumentText({
+      fileName: "large.pdf",
+      mimeType: "application/pdf",
+      bytes: huge,
+    });
+    expect(Date.now() - started).toBeLessThan(2_000);
+    expect(result.ok === true || result.ok === false).toBe(true);
+  });
+
+  it("analyse path marks failure without discarding evidence helpers", () => {
+    const analyse = read("lib/development-evidence/analyse.ts");
+    const repo = read("lib/development-evidence/repository.ts");
+    expect(analyse).toContain("AbortSignal.timeout");
+    expect(analyse).toContain("markEvidenceAnalysisFailed");
+    expect(repo).toContain("markEvidenceAnalysisFailed");
+    expect(repo).toContain('processing_status: "failed"');
+  });
+
   it("hashes document bytes for re-analysis prevention", async () => {
     const bytes = new TextEncoder().encode("same document");
     const a = await hashEvidenceBytes(bytes);

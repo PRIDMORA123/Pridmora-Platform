@@ -17,6 +17,7 @@ import {
   findExistingByContentHash,
   getEvidenceById,
   listEvidenceForClient,
+  markEvidenceAnalysisFailed,
   recordEvidenceAiUsage,
   saveAnalysedEvidence,
 } from "@/lib/development-evidence/repository";
@@ -145,64 +146,81 @@ export async function analyseEvidenceDocument(input: {
   const openai = getOpenAiClient();
   let structured: StructuredEvidence;
   let sourceSummary: string;
+  const ANALYSE_TIMEOUT_MS = 25_000;
 
-  if (!openai) {
-    structured = buildDeterministicExtraction({
-      evidenceType: detail.evidence.evidenceType,
-      text: detail.document.extractedText,
-    });
-    sourceSummary =
-      structured.observations?.[0]?.description ??
-      "Deterministic extraction produced limited observations for review.";
-  } else {
-    const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_EVIDENCE_MODEL?.trim() || "gpt-4.1-mini",
-      temperature: 0.2,
-      messages: [
+  try {
+    if (!openai) {
+      structured = buildDeterministicExtraction({
+        evidenceType: detail.evidence.evidenceType,
+        text: detail.document.extractedText,
+      });
+      sourceSummary =
+        structured.observations?.[0]?.description ??
+        "Deterministic extraction produced limited observations for review.";
+    } else {
+      const completion = await openai.chat.completions.create(
         {
-          role: "system",
-          content: `${EVIDENCE_ANALYSIS_SYSTEM_PROMPT}\n\n${aiContext.systemAddendum}`,
+          model: process.env.OPENAI_EVIDENCE_MODEL?.trim() || "gpt-4.1-mini",
+          temperature: 0.2,
+          messages: [
+            {
+              role: "system",
+              content: `${EVIDENCE_ANALYSIS_SYSTEM_PROMPT}\n\n${aiContext.systemAddendum}`,
+            },
+            { role: "user", content: aiContext.userPrompt },
+          ],
+          response_format: { type: "json_object" },
         },
-        { role: "user", content: aiContext.userPrompt },
-      ],
-      response_format: { type: "json_object" },
-    });
+        { signal: AbortSignal.timeout(ANALYSE_TIMEOUT_MS) }
+      );
 
-    const content = completion.choices[0]?.message?.content ?? "{}";
-    structured = validateStructuredPsychometricEvidence(
-      detail.evidence.evidenceType,
-      parseStructuredEvidenceJson(content)
-    );
-    sourceSummary =
-      structured.observations?.[0]?.description ??
-      "Aurelia proposed observations for human review.";
+      const content = completion.choices[0]?.message?.content ?? "{}";
+      structured = validateStructuredPsychometricEvidence(
+        detail.evidence.evidenceType,
+        parseStructuredEvidenceJson(content)
+      );
+      sourceSummary =
+        structured.observations?.[0]?.description ??
+        "Aurelia proposed observations for human review.";
 
-    await recordEvidenceAiUsage({
+      await recordEvidenceAiUsage({
+        supabase: input.supabase,
+        organisationId: detail.evidence.organisationId,
+        clientId: detail.evidence.clientId,
+        evidenceId: detail.evidence.id,
+        usageKind: "evidence_processing",
+        model: completion.model,
+        promptTokens: completion.usage?.prompt_tokens ?? null,
+        completionTokens: completion.usage?.completion_tokens ?? null,
+        contentHash: detail.evidence.contentHash,
+      });
+    }
+
+    const saved = await saveAnalysedEvidence({
       supabase: input.supabase,
-      organisationId: detail.evidence.organisationId,
-      clientId: detail.evidence.clientId,
+      userId: input.userId,
       evidenceId: detail.evidence.id,
-      usageKind: "evidence_processing",
-      model: completion.model,
-      promptTokens: completion.usage?.prompt_tokens ?? null,
-      completionTokens: completion.usage?.completion_tokens ?? null,
-      contentHash: detail.evidence.contentHash,
+      structured,
+      sourceSummary,
     });
+
+    return {
+      evidenceId: saved.evidence.id,
+      structured: saved.evidence.structuredEvidence,
+      reusedExistingAnalysis: false,
+    };
+  } catch (error) {
+    await markEvidenceAnalysisFailed({
+      supabase: input.supabase,
+      evidenceId: detail.evidence.id,
+    });
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(
+        "Analysis timed out. Your uploaded evidence was saved — retry analysis without re-uploading."
+      );
+    }
+    throw error;
   }
-
-  const saved = await saveAnalysedEvidence({
-    supabase: input.supabase,
-    userId: input.userId,
-    evidenceId: detail.evidence.id,
-    structured,
-    sourceSummary,
-  });
-
-  return {
-    evidenceId: saved.evidence.id,
-    structured: saved.evidence.structuredEvidence,
-    reusedExistingAnalysis: false,
-  };
 }
 
 function buildDeterministicExtraction(input: {

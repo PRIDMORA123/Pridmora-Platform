@@ -15,7 +15,18 @@ import {
 import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 import type { Client } from "@/lib/types";
 
-const UPLOAD_REQUEST_TIMEOUT_MS = 45_000;
+const UPLOAD_REQUEST_TIMEOUT_MS = 30_000;
+const ANALYSE_REQUEST_TIMEOUT_MS = 35_000;
+
+function isAbortError(error: unknown): boolean {
+  return (
+    (typeof DOMException !== "undefined" &&
+      error instanceof DOMException &&
+      error.name === "AbortError") ||
+    (error instanceof Error &&
+      (error.name === "AbortError" || /aborted|timed out/i.test(error.message)))
+  );
+}
 
 type UploadableType = { value: string; label: string };
 
@@ -71,6 +82,7 @@ export function DevelopmentEvidenceView({
     Record<string, { title: string; description: string; include: boolean }>
   >({});
   const uploadInFlightRef = useRef(false);
+  const [progressLabel, setProgressLabel] = useState("");
 
   const displayName = getRelationshipDisplayName(client);
 
@@ -125,6 +137,29 @@ export function DevelopmentEvidenceView({
     setEditMap(next);
   }
 
+  async function runAnalyseForEvidence(evidenceId: string) {
+    setProgressLabel("Analysing evidence…");
+    setStep("analyse");
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(
+      () => controller.abort(),
+      ANALYSE_REQUEST_TIMEOUT_MS
+    );
+    try {
+      await apiJson(`/api/development-evidence/item/${evidenceId}/analyse`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+        signal: controller.signal,
+      });
+      await loadDetail(evidenceId);
+      setStep("review");
+      await load();
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
+  }
+
   async function uploadAndAnalyse() {
     if (!file || !evidenceType || uploadInFlightRef.current) return;
     if (!purpose.trim()) {
@@ -139,11 +174,15 @@ export function DevelopmentEvidenceView({
     uploadInFlightRef.current = true;
     setBusy(true);
     setError("");
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(
-      () => controller.abort(),
+    setProgressLabel("Uploading evidence…");
+    setStep("analyse");
+
+    const uploadController = new AbortController();
+    const uploadTimeoutId = window.setTimeout(
+      () => uploadController.abort(),
       UPLOAD_REQUEST_TIMEOUT_MS
     );
+    let createdEvidenceId: string | null = null;
 
     try {
       const form = new FormData();
@@ -155,7 +194,7 @@ export function DevelopmentEvidenceView({
 
       const uploadResponse = await fetch(
         `/api/development-evidence/${client.id}/upload`,
-        { method: "POST", body: form, signal: controller.signal }
+        { method: "POST", body: form, signal: uploadController.signal }
       );
 
       let uploadJson: {
@@ -177,42 +216,58 @@ export function DevelopmentEvidenceView({
         throw new Error(uploadJson.error || "Upload failed.");
       }
 
+      createdEvidenceId = uploadJson.evidence.id;
+      setActiveEvidenceId(createdEvidenceId);
+      await load();
+
       if (uploadJson.needsManualText) {
-        setActiveEvidenceId(uploadJson.evidence.id);
-        setStep("purpose");
+        setProgressLabel("");
         throw new Error(
           uploadJson.error ||
-            "Text could not be extracted. Try a text-based PDF or plain text file."
+            "Text could not be extracted. Your evidence record was saved — try a text-based PDF or plain text file."
         );
       }
 
-      setActiveEvidenceId(uploadJson.evidence.id);
-      setStep("analyse");
-
-      await apiJson(
-        `/api/development-evidence/item/${uploadJson.evidence.id}/analyse`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: "{}",
-          signal: controller.signal,
-        }
-      );
-      await loadDetail(uploadJson.evidence.id);
-      setStep("review");
-      await load();
+      await runAnalyseForEvidence(createdEvidenceId);
+      setProgressLabel("");
     } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") {
+      if (isAbortError(err)) {
         setError(
-          "Evidence upload timed out. Check the file size and try again."
+          createdEvidenceId
+            ? "Analysis timed out. Your uploaded evidence was saved — retry analysis without re-uploading."
+            : "Evidence upload timed out. Check the file size and try again."
         );
       } else {
         setError(errorMessage(err, "Unable to process evidence."));
       }
-      // Keep the wizard on a recoverable step when analysis fails mid-flight.
-      setStep(current => (current === "analyse" ? "purpose" : current));
+      setProgressLabel("");
+      setStep("analyse");
     } finally {
-      window.clearTimeout(timeoutId);
+      window.clearTimeout(uploadTimeoutId);
+      uploadInFlightRef.current = false;
+      setBusy(false);
+    }
+  }
+
+  async function retryAnalyse() {
+    if (!activeEvidenceId || uploadInFlightRef.current) return;
+    uploadInFlightRef.current = true;
+    setBusy(true);
+    setError("");
+    try {
+      await runAnalyseForEvidence(activeEvidenceId);
+      setProgressLabel("");
+    } catch (err) {
+      if (isAbortError(err)) {
+        setError(
+          "Analysis timed out. Your uploaded evidence was saved — retry analysis without re-uploading."
+        );
+      } else {
+        setError(errorMessage(err, "Unable to analyse evidence."));
+      }
+      setProgressLabel("");
+      setStep("analyse");
+    } finally {
       uploadInFlightRef.current = false;
       setBusy(false);
     }
@@ -453,7 +508,7 @@ export function DevelopmentEvidenceView({
                   disabled={busy || !purpose.trim()}
                   onClick={() => void uploadAndAnalyse()}
                 >
-                  {busy ? "Processing…" : "Analyse"}
+                  {busy ? "Working…" : "Analyse"}
                 </button>
                 <button
                   type="button"
@@ -468,17 +523,32 @@ export function DevelopmentEvidenceView({
 
           {step === "analyse" ? (
             <>
-              <p className="muted">
+              <p className="muted" aria-live="polite">
                 {busy
-                  ? "Aurelia is proposing observations for review…"
-                  : "Analysis paused. You can go back and try again."}
+                  ? progressLabel ||
+                    "Aurelia is proposing observations for review…"
+                  : activeEvidenceId
+                    ? "Upload saved. Analysis did not finish — retry without re-uploading the file."
+                    : "Upload did not complete. Go back and try again."}
               </p>
               {!busy ? (
                 <div className="button-row">
+                  {activeEvidenceId ? (
+                    <button
+                      type="button"
+                      className="primary"
+                      onClick={() => void retryAnalyse()}
+                    >
+                      Retry analysis
+                    </button>
+                  ) : null}
                   <button
                     type="button"
                     className="secondary"
-                    onClick={() => setStep("purpose")}
+                    onClick={() => {
+                      setStep(activeEvidenceId ? "purpose" : "upload");
+                      setError("");
+                    }}
                   >
                     Back
                   </button>

@@ -19,6 +19,7 @@ export {
   getEvidenceById,
   createUploadedEvidence,
   saveAnalysedEvidence,
+  markEvidenceAnalysisFailed,
   reviewEvidence,
   softDeleteEvidence,
   createInternalEvidenceReference,

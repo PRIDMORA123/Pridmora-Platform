@@ -5,6 +5,9 @@ import { getEvidenceById } from "@/lib/development-evidence/repository";
 import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
 import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 type Params = { params: Promise<{ evidenceId: string }> };
 
 export async function POST(request: Request, { params }: Params) {

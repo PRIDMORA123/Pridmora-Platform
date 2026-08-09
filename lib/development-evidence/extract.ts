@@ -2,6 +2,9 @@
  * Document extraction for Development Evidence uploads.
  * Supports plain text natively. PDF/DOCX: best-effort text extraction
  * without OCR. No formal assessment-provider integrations.
+ *
+ * Binary extractors must stay bounded — sync full-file scans can freeze
+ * the Node event loop and prevent evidence rows from being created.
  */
 
 import {
@@ -9,6 +12,10 @@ import {
   SUPPORTED_UPLOAD_EXTENSIONS,
   SUPPORTED_UPLOAD_MIME_TYPES,
 } from "@/lib/development-evidence/constants";
+
+/** Max bytes scanned for sync PDF/DOCX best-effort extraction. */
+export const EXTRACT_BINARY_SCAN_BYTES = 384 * 1024;
+const MAX_PDF_TEXT_BLOCKS = 250;
 
 export type ExtractionResult =
   | {
@@ -57,6 +64,11 @@ export function isSupportedEvidenceUpload(input: {
   return { ok: true };
 }
 
+function scanWindow(bytes: Uint8Array): Uint8Array {
+  if (bytes.byteLength <= EXTRACT_BINARY_SCAN_BYTES) return bytes;
+  return bytes.subarray(0, EXTRACT_BINARY_SCAN_BYTES);
+}
+
 export async function extractEvidenceDocumentText(input: {
   fileName: string;
   mimeType: string;
@@ -88,7 +100,7 @@ export async function extractEvidenceDocumentText(input: {
   }
 
   if (lower.endsWith(".pdf") || input.mimeType === "application/pdf") {
-    const text = extractPdfTextBestEffort(input.bytes);
+    const text = extractPdfTextBestEffort(scanWindow(input.bytes));
     if (!text.trim()) {
       return {
         ok: false,
@@ -111,7 +123,7 @@ export async function extractEvidenceDocumentText(input: {
     input.mimeType ===
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
   ) {
-    const text = extractDocxTextBestEffort(input.bytes);
+    const text = extractDocxTextBestEffort(scanWindow(input.bytes));
     if (!text.trim()) {
       return {
         ok: false,
@@ -130,7 +142,9 @@ export async function extractEvidenceDocumentText(input: {
   }
 
   // Last resort for octet-stream text-like payloads
-  const fallback = new TextDecoder("utf-8", { fatal: false }).decode(input.bytes);
+  const fallback = new TextDecoder("utf-8", { fatal: false }).decode(
+    scanWindow(input.bytes)
+  );
   if (fallback.trim() && !fallback.includes("\u0000")) {
     return {
       ok: true,
@@ -178,7 +192,9 @@ function extractPdfTextBestEffort(bytes: Uint8Array): string {
 
   const btPattern = /BT([\s\S]*?)ET/g;
   let match: RegExpExecArray | null;
-  while ((match = btPattern.exec(raw))) {
+  let blocks = 0;
+  while ((match = btPattern.exec(raw)) && blocks < MAX_PDF_TEXT_BLOCKS) {
+    blocks += 1;
     const block = match[1] ?? "";
     const stringPattern = /\((?:\\.|[^\\)])*\)\s*Tj|\[(.*?)\]\s*TJ/g;
     let stringMatch: RegExpExecArray | null;
@@ -195,7 +211,7 @@ function extractPdfTextBestEffort(bytes: Uint8Array): string {
     }
   }
 
-  // Fallback: harvest readable ASCII runs from the whole file
+  // Fallback: harvest readable ASCII runs from the scanned window
   if (chunks.join("").trim().length < 40) {
     const ascii = raw
       .replace(/[^\x09\x0A\x0D\x20-\x7E]+/g, " ")
@@ -223,14 +239,12 @@ function unescapePdfString(value: string): string {
  */
 function extractDocxTextBestEffort(bytes: Uint8Array): string {
   const raw = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
-  if (!raw.includes("word/") && !raw.includes("document.xml")) {
-    // Still try XML-ish text nodes if present
-  }
-
   const textChunks: string[] = [];
   const tagPattern = /<w:t[^>]*>([^<]*)<\/w:t>/g;
   let match: RegExpExecArray | null;
-  while ((match = tagPattern.exec(raw))) {
+  let tags = 0;
+  while ((match = tagPattern.exec(raw)) && tags < 2_000) {
+    tags += 1;
     if (match[1]) textChunks.push(decodeXml(match[1]));
   }
 
@@ -242,7 +256,9 @@ function extractDocxTextBestEffort(bytes: Uint8Array): string {
   const latin = new TextDecoder("latin1").decode(bytes);
   const latinChunks: string[] = [];
   const latinPattern = /<w:t[^>]*>([^<]*)<\/w:t>/g;
-  while ((match = latinPattern.exec(latin))) {
+  tags = 0;
+  while ((match = latinPattern.exec(latin)) && tags < 2_000) {
+    tags += 1;
     if (match[1]) latinChunks.push(decodeXml(match[1]));
   }
   return latinChunks.join(" ").replace(/\s+/g, " ").trim();

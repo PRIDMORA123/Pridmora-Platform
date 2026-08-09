@@ -286,6 +286,25 @@ export async function createUploadedEvidence(input: {
   };
 }
 
+/** Mark uploaded evidence as failed analysis without deleting the document. */
+export async function markEvidenceAnalysisFailed(input: {
+  supabase: SupabaseClient;
+  evidenceId: string;
+}): Promise<void> {
+  const { error } = await input.supabase
+    .from("development_evidence")
+    .update({
+      processing_status: "failed",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.evidenceId)
+    .is("deleted_at", null);
+
+  if (error) {
+    console.error("Unable to mark evidence analysis failed:", error.message);
+  }
+}
+
 export async function saveAnalysedEvidence(input: {
   supabase: SupabaseClient;
   userId: string;

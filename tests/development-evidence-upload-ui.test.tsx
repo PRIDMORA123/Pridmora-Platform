@@ -275,11 +275,7 @@ describe("DevelopmentEvidenceView Analyse upload", () => {
     });
 
     expect(container.textContent).toMatch(/Review extracted evidence|Include all/);
-    expect(container.textContent).not.toMatch(/Processing…/);
-    const analyseAgain = Array.from(container.querySelectorAll("button")).find(
-      button => button.textContent === "Analyse"
-    );
-    expect(analyseAgain).toBeFalsy();
+    expect(container.textContent).not.toMatch(/Working…|Uploading evidence/);
   });
 
   it("failed upload clears loading and surfaces error", async () => {
@@ -305,12 +301,131 @@ describe("DevelopmentEvidenceView Analyse upload", () => {
     });
 
     expect(container.textContent).toContain("Unable to upload evidence.");
-    expect(container.textContent).not.toMatch(/Processing…/);
-    const retry = Array.from(container.querySelectorAll("button")).find(
+    expect(container.textContent).not.toMatch(/Working…/);
+    expect(container.textContent).toMatch(/Upload did not complete|Go back/);
+  });
+
+  it("keeps uploaded evidence and offers retry when AI analysis fails", async () => {
+    const file = new File(["hello evidence"], "notes.txt", {
+      type: "text/plain",
+    });
+
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({
+        evidence: { id: "ev-1", title: "notes.txt" },
+      }),
+    });
+    apiJson.mockImplementation(async (url: string) => {
+      if (String(url).includes("/analyse")) {
+        throw new Error("Analysis timed out. Your uploaded evidence was saved.");
+      }
+      if (String(url).includes("/api/development-evidence/") && !String(url).includes("/item/")) {
+        return {
+          items: [],
+          confidence: {
+            level: "low",
+            label: "Low",
+            basis: "Limited approved evidence.",
+            independentSourceCount: 0,
+            factors: {
+              independentSources: 0,
+              recentSources: 0,
+              repeatedBehaviours: 0,
+              consistencyScore: 0,
+              humanValidated: false,
+              contradictionCount: 0,
+              specificityScore: 0,
+              relevanceScore: 0,
+            },
+          },
+          coverage: {
+            level: "narrow",
+            label: "Narrow",
+            represented: [],
+            representedLabels: [],
+            notRepresented: [],
+            notRepresentedLabels: [],
+            summary: "No approved evidence yet.",
+          },
+          uploadableTypes: [
+            { value: "feedback_360", label: "360 feedback" },
+          ],
+        };
+      }
+      return {};
+    });
+
+    await openWizardToPurpose(file);
+    const analyse = Array.from(container.querySelectorAll("button")).find(
       button => button.textContent === "Analyse"
     ) as HTMLButtonElement;
+
+    await act(async () => {
+      analyse.click();
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toMatch(/uploaded evidence was saved|Retry analysis/i);
+    const retry = Array.from(container.querySelectorAll("button")).find(
+      button => button.textContent === "Retry analysis"
+    ) as HTMLButtonElement;
     expect(retry).toBeTruthy();
-    expect(retry.disabled).toBe(false);
+
+    apiJson.mockImplementation(async (url: string) => {
+      if (String(url).includes("/analyse")) return { ok: true };
+      if (String(url).includes("/item/")) {
+        return {
+          evidence: { id: "ev-1", title: "notes.txt", reviewStatus: "pending_review" },
+          observations: [
+            {
+              id: "obs-1",
+              title: "Observation",
+              description: "Detail",
+              reviewStatus: "proposed",
+            },
+          ],
+          document: { id: "doc-1", fileName: "notes.txt", hasExtractedText: true },
+        };
+      }
+      return {
+        items: [],
+        confidence: {
+          level: "low",
+          label: "Low",
+          basis: "Limited",
+          independentSourceCount: 0,
+          factors: {
+            independentSources: 0,
+            recentSources: 0,
+            repeatedBehaviours: 0,
+            consistencyScore: 0,
+            humanValidated: false,
+            contradictionCount: 0,
+            specificityScore: 0,
+            relevanceScore: 0,
+          },
+        },
+        coverage: {
+          level: "narrow",
+          label: "Narrow",
+          represented: [],
+          representedLabels: [],
+          notRepresented: [],
+          notRepresentedLabels: [],
+          summary: "None",
+        },
+        uploadableTypes: [],
+      };
+    });
+
+    await act(async () => {
+      retry.click();
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toMatch(/Review extracted evidence|Include all/);
   });
 
   it("blocks duplicate Analyse submissions while busy", async () => {
@@ -339,8 +454,7 @@ describe("DevelopmentEvidenceView Analyse upload", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(analyse.disabled).toBe(true);
-    expect(analyse.textContent).toMatch(/Processing/);
+    expect(container.textContent).toMatch(/Uploading evidence|Working/);
 
     await act(async () => {
       resolveUpload?.({
