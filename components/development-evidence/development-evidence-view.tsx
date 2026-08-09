@@ -1,18 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { IdentityBackLink } from "@/components/identity";
 import { EvidenceConfidencePanel } from "@/components/development-evidence/evidence-confidence-panel";
 import { apiJson, errorMessage } from "@/lib/api-client";
-import type {
-  DevelopmentEvidenceObservation,
-  DevelopmentEvidenceRecord,
-  EvidenceConfidenceResult,
-  EvidenceCoverageResult,
-  EvidenceListItem,
+import {
+  MAX_UPLOAD_BYTES,
+  type DevelopmentEvidenceObservation,
+  type DevelopmentEvidenceRecord,
+  type EvidenceConfidenceResult,
+  type EvidenceCoverageResult,
+  type EvidenceListItem,
 } from "@/lib/development-evidence";
 import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 import type { Client } from "@/lib/types";
+
+const UPLOAD_REQUEST_TIMEOUT_MS = 45_000;
 
 type UploadableType = { value: string; label: string };
 
@@ -67,6 +70,7 @@ export function DevelopmentEvidenceView({
   const [editMap, setEditMap] = useState<
     Record<string, { title: string; description: string; include: boolean }>
   >({});
+  const uploadInFlightRef = useRef(false);
 
   const displayName = getRelationshipDisplayName(client);
 
@@ -122,50 +126,94 @@ export function DevelopmentEvidenceView({
   }
 
   async function uploadAndAnalyse() {
-    if (!file || !evidenceType) return;
+    if (!file || !evidenceType || uploadInFlightRef.current) return;
+    if (!purpose.trim()) {
+      setError("Add a short purpose before analysing this evidence.");
+      return;
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setError("Files larger than 10 MB are not supported.");
+      return;
+    }
+
+    uploadInFlightRef.current = true;
     setBusy(true);
     setError("");
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(
+      () => controller.abort(),
+      UPLOAD_REQUEST_TIMEOUT_MS
+    );
+
     try {
       const form = new FormData();
       form.set("file", file);
       form.set("evidenceType", evidenceType);
       form.set("title", file.name);
-      form.set("purpose", purpose);
+      form.set("purpose", purpose.trim());
       if (evidenceDate) form.set("evidenceDate", evidenceDate);
 
       const uploadResponse = await fetch(
         `/api/development-evidence/${client.id}/upload`,
-        { method: "POST", body: form }
+        { method: "POST", body: form, signal: controller.signal }
       );
-      const uploadJson = (await uploadResponse.json()) as {
+
+      let uploadJson: {
         evidence?: DevelopmentEvidenceRecord;
         error?: string;
         needsManualText?: boolean;
-      };
+      } = {};
+      try {
+        uploadJson = (await uploadResponse.json()) as typeof uploadJson;
+      } catch {
+        throw new Error(
+          uploadResponse.ok
+            ? "Upload succeeded but returned an unreadable response."
+            : `Upload failed (${uploadResponse.status}).`
+        );
+      }
+
       if (!uploadResponse.ok || !uploadJson.evidence) {
         throw new Error(uploadJson.error || "Upload failed.");
       }
 
-      setActiveEvidenceId(uploadJson.evidence.id);
-      setStep("analyse");
-
       if (uploadJson.needsManualText) {
+        setActiveEvidenceId(uploadJson.evidence.id);
+        setStep("purpose");
         throw new Error(
           uploadJson.error ||
             "Text could not be extracted. Try a text-based PDF or plain text file."
         );
       }
 
+      setActiveEvidenceId(uploadJson.evidence.id);
+      setStep("analyse");
+
       await apiJson(
         `/api/development-evidence/item/${uploadJson.evidence.id}/analyse`,
-        { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" }
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: "{}",
+          signal: controller.signal,
+        }
       );
       await loadDetail(uploadJson.evidence.id);
       setStep("review");
       await load();
     } catch (err) {
-      setError(errorMessage(err, "Unable to process evidence."));
+      if (err instanceof DOMException && err.name === "AbortError") {
+        setError(
+          "Evidence upload timed out. Check the file size and try again."
+        );
+      } else {
+        setError(errorMessage(err, "Unable to process evidence."));
+      }
+      // Keep the wizard on a recoverable step when analysis fails mid-flight.
+      setStep(current => (current === "analyse" ? "purpose" : current));
     } finally {
+      window.clearTimeout(timeoutId);
+      uploadInFlightRef.current = false;
       setBusy(false);
     }
   }
@@ -419,7 +467,24 @@ export function DevelopmentEvidenceView({
           ) : null}
 
           {step === "analyse" ? (
-            <p className="muted">Aurelia is proposing observations for review…</p>
+            <>
+              <p className="muted">
+                {busy
+                  ? "Aurelia is proposing observations for review…"
+                  : "Analysis paused. You can go back and try again."}
+              </p>
+              {!busy ? (
+                <div className="button-row">
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={() => setStep("purpose")}
+                  >
+                    Back
+                  </button>
+                </div>
+              ) : null}
+            </>
           ) : null}
 
           {step === "review" && detail ? (

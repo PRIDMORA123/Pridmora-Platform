@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { notFoundOrForbidden } from "@/lib/auth/session";
 import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import {
@@ -10,7 +11,50 @@ import {
   type DevelopmentEvidenceType,
 } from "@/lib/development-evidence";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 type Params = { params: Promise<{ clientId: string }> };
+
+const STORAGE_UPLOAD_TIMEOUT_MS = 8_000;
+
+async function bestEffortStorageUpload(input: {
+  supabase: SupabaseClient;
+  storagePath: string;
+  bytes: Uint8Array;
+  contentType: string;
+}): Promise<void> {
+  try {
+    const uploadPromise = input.supabase.storage
+      .from("development-evidence")
+      .upload(input.storagePath, input.bytes, {
+        contentType: input.contentType,
+        upsert: false,
+      });
+
+    const timed = await Promise.race([
+      uploadPromise,
+      new Promise<{ error: { message: string } }>(resolve => {
+        setTimeout(
+          () =>
+            resolve({
+              error: { message: "Storage upload timed out." },
+            }),
+          STORAGE_UPLOAD_TIMEOUT_MS
+        );
+      }),
+    ]);
+
+    if (timed.error) {
+      console.error("Evidence storage upload skipped:", timed.error.message);
+    }
+  } catch (error) {
+    console.error(
+      "Evidence storage upload skipped:",
+      error instanceof Error ? error.message : "unknown"
+    );
+  }
+}
 
 export async function POST(request: Request, { params }: Params) {
   const { clientId } = await params;
@@ -73,18 +117,7 @@ export async function POST(request: Request, { params }: Params) {
     const organisationId = (client.organisation_id as string | null) ?? "personal";
     const storagePath = `${organisationId}/${clientId}/${contentHash.slice(0, 16)}-${file.name.replace(/[^\w.\-]+/g, "_")}`;
 
-    // Best-effort private storage upload; DB remains source of extracted text.
-    try {
-      await access.context.supabase.storage
-        .from("development-evidence")
-        .upload(storagePath, bytes, {
-          contentType: file.type || "application/octet-stream",
-          upsert: false,
-        });
-    } catch {
-      // Storage may be unavailable in local/dev; continue with DB provenance.
-    }
-
+    // DB first — never block evidence creation on best-effort storage.
     const created = await createUploadedEvidence({
       supabase: access.context.supabase,
       userId: access.context.user.id,
@@ -102,6 +135,13 @@ export async function POST(request: Request, { params }: Params) {
       extractionMethod: extraction.ok ? extraction.method : null,
       extractionStatus: extraction.ok ? "extracted" : extraction.status,
       storagePath,
+    });
+
+    await bestEffortStorageUpload({
+      supabase: access.context.supabase,
+      storagePath,
+      bytes,
+      contentType: file.type || "application/octet-stream",
     });
 
     if (!extraction.ok) {

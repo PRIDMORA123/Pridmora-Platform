@@ -71,6 +71,16 @@ describe("My Development self evidence wiring", () => {
     expect(upload).toContain("requireAssignedPersonInOrganisation");
     expect(list).toContain("requireAssignedPersonInOrganisation");
   });
+
+  it("creates evidence DB rows before best-effort storage upload", () => {
+    const upload = read("app/api/development-evidence/[clientId]/upload/route.ts");
+    const createIdx = upload.indexOf("createUploadedEvidence");
+    const storageIdx = upload.indexOf("bestEffortStorageUpload");
+    expect(createIdx).toBeGreaterThan(-1);
+    expect(storageIdx).toBeGreaterThan(-1);
+    expect(createIdx).toBeLessThan(storageIdx);
+    expect(upload).toContain("STORAGE_UPLOAD_TIMEOUT_MS");
+  });
 });
 
 describe("My Development self-relationship scoping", () => {
