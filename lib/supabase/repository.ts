@@ -755,6 +755,29 @@ export async function createSessionInDb(
   return saved;
 }
 
+async function resolveClientOrganisationId(
+  supabase: SupabaseClient,
+  coachId: string,
+  clientId: string
+): Promise<string> {
+  const { data, error } = await supabase
+    .from("clients")
+    .select("organisation_id")
+    .eq("id", clientId)
+    .eq("coach_id", coachId)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  const organisationId =
+    typeof data?.organisation_id === "string" ? data.organisation_id.trim() : "";
+  if (!organisationId) {
+    throw new Error(
+      "Unable to resolve organisation for this development relationship."
+    );
+  }
+  return organisationId;
+}
+
 export async function upsertActionInDb(
   supabase: SupabaseClient,
   coachId: string,
@@ -765,11 +788,20 @@ export async function upsertActionInDb(
     if (activity === "missing") throw new OwnershipError();
     if (activity === "archived") throw new ClientArchivedError();
 
+    // organisation_id is required and must come from the owned client row —
+    // never from browser-supplied action payload.
+    const organisationId = await resolveClientOrganisationId(
+      supabase,
+      coachId,
+      action.clientId
+    );
+
     const id = isUuid(action.id) ? action.id : crypto.randomUUID();
     const row: Omit<ClientItemRow, "created_at"> = {
       id,
       client_id: action.clientId,
       coach_id: coachId,
+      organisation_id: organisationId,
       session_id: action.sessionId ?? null,
       item_type: "action",
       title: action.title.trim(),
@@ -792,11 +824,13 @@ export async function upsertActionInDb(
 
     if (error) {
       // Retry without optional columns when the live DB is partially migrated.
+      // Never strip organisation_id.
       if (/session_id|owner|schema cache/i.test(error.message)) {
         const legacy = {
           id: row.id,
           client_id: row.client_id,
           coach_id: row.coach_id,
+          organisation_id: organisationId,
           item_type: row.item_type,
           title: row.title,
           detail: row.detail,

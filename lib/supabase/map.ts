@@ -135,6 +135,7 @@ export type ClientItemRow = {
   id: string;
   client_id: string;
   coach_id: string;
+  organisation_id?: string | null;
   session_id?: string | null;
   item_type: "strength" | "value" | "theme" | "goal" | "action" | "quote" | "journey";
   title: string;

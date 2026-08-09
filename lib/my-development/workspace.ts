@@ -412,6 +412,76 @@ export async function getMyDevelopmentReflection(input: {
   return found ? toReflectionDetail(found) : null;
 }
 
+/**
+ * Build theme rows for My Development focus.
+ * organisation_id is always taken from the authenticated current organisation
+ * (never from browser input).
+ */
+export function buildMyDevelopmentFocusItemRows(input: {
+  clientId: string;
+  coachId: string;
+  organisationId: string;
+  priorities: string[];
+}): Array<{
+  id: string;
+  client_id: string;
+  coach_id: string;
+  organisation_id: string;
+  item_type: "theme";
+  title: string;
+  detail: null;
+  status: null;
+  evidence: null;
+  event_date: null;
+}> {
+  const organisationId = input.organisationId.trim();
+  if (!organisationId) {
+    throw new Error("Organisation is required to save development focus.");
+  }
+  return input.priorities
+    .map(item => item.trim())
+    .filter(Boolean)
+    .slice(0, 12)
+    .map(title => ({
+      id: crypto.randomUUID(),
+      client_id: input.clientId,
+      coach_id: input.coachId,
+      organisation_id: organisationId,
+      item_type: "theme" as const,
+      title,
+      detail: null,
+      status: null,
+      evidence: null,
+      event_date: null,
+    }));
+}
+
+async function assertSelfClientOrganisation(input: {
+  supabase: SupabaseClient;
+  clientId: string;
+  userId: string;
+  organisationId: string;
+}): Promise<void> {
+  const { data, error } = await input.supabase
+    .from("clients")
+    .select("id, organisation_id, coach_id")
+    .eq("id", input.clientId)
+    .eq("coach_id", input.userId)
+    .maybeSingle();
+
+  if (error || !data) {
+    throw new Error("My Development record not found in this organisation.");
+  }
+
+  const clientOrg =
+    typeof data.organisation_id === "string" ? data.organisation_id.trim() : "";
+  if (!clientOrg || clientOrg !== input.organisationId.trim()) {
+    throw new Error(
+      "My Development record does not belong to the current organisation."
+    );
+  }
+}
+
 export async function updateMyDevelopmentFocus(input: {
   supabase: SupabaseClient;
   organisationId: string;
@@ -420,6 +490,13 @@ export async function updateMyDevelopmentFocus(input: {
   priorities: string[];
 }): Promise<MyDevelopmentWorkspace> {
   const client = await resolveSelfClient(input);
+  await assertSelfClientOrganisation({
+    supabase: input.supabase,
+    clientId: client.id,
+    userId: input.userId,
+    organisationId: input.organisationId,
+  });
+
   const cleaned = input.priorities
     .map(item => item.trim())
     .filter(Boolean)
@@ -430,20 +507,16 @@ export async function updateMyDevelopmentFocus(input: {
     .delete()
     .eq("client_id", client.id)
     .eq("coach_id", input.userId)
+    .eq("organisation_id", input.organisationId)
     .eq("item_type", "theme");
 
   if (cleaned.length > 0) {
-    const rows = cleaned.map(title => ({
-      id: crypto.randomUUID(),
-      client_id: client.id,
-      coach_id: input.userId,
-      item_type: "theme" as const,
-      title,
-      detail: null,
-      status: null,
-      evidence: null,
-      event_date: null,
-    }));
+    const rows = buildMyDevelopmentFocusItemRows({
+      clientId: client.id,
+      coachId: input.userId,
+      organisationId: input.organisationId,
+      priorities: cleaned,
+    });
     const { error } = await input.supabase.from("client_items").insert(rows);
     if (error) {
       throw new Error(error.message || "Unable to save development focus.");

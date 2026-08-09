@@ -5,7 +5,10 @@ import {
   buildReflectionPatternInsights,
   patternsSafeForIntelligence,
 } from "@/lib/my-development/reflection-patterns";
-import { buildMyDevelopmentMaturity } from "@/lib/my-development/workspace";
+import {
+  buildMyDevelopmentFocusItemRows,
+  buildMyDevelopmentMaturity,
+} from "@/lib/my-development/workspace";
 import type { DevelopmentEvidenceRecord } from "@/lib/development-evidence/types";
 
 const root = process.cwd();
@@ -89,6 +92,62 @@ describe("Manager My Development journey", () => {
     expect(read("components/my-development-view.tsx")).toContain(
       "/api/my-development/focus"
     );
+  });
+
+  it("focus theme rows always include server organisation_id (BSH vs personal isolation)", () => {
+    const bsh = "6adc66d5-3e6a-4e65-946d-a8ee6ef66250";
+    const personal = "fee88946-8964-4788-94ef-49a5b098cec5";
+    const bshRows = buildMyDevelopmentFocusItemRows({
+      clientId: "self-bsh",
+      coachId: "kate",
+      organisationId: bsh,
+      priorities: ["Delegation"],
+    });
+    const personalRows = buildMyDevelopmentFocusItemRows({
+      clientId: "self-personal",
+      coachId: "kate",
+      organisationId: personal,
+      priorities: ["Confidence"],
+    });
+
+    expect(bshRows).toHaveLength(1);
+    expect(bshRows[0]?.organisation_id).toBe(bsh);
+    expect(bshRows[0]?.item_type).toBe("theme");
+    expect(personalRows[0]?.organisation_id).toBe(personal);
+    expect(personalRows[0]?.organisation_id).not.toBe(
+      bshRows[0]?.organisation_id
+    );
+
+    expect(() =>
+      buildMyDevelopmentFocusItemRows({
+        clientId: "self-bsh",
+        coachId: "kate",
+        organisationId: "   ",
+        priorities: ["Delegation"],
+      })
+    ).toThrow(/Organisation is required/i);
+
+    const workspace = read("lib/my-development/workspace.ts");
+    expect(workspace).toContain("buildMyDevelopmentFocusItemRows");
+    expect(workspace).toContain("assertSelfClientOrganisation");
+    expect(workspace).toContain("organisation_id: organisationId");
+    expect(workspace).toContain('.eq("organisation_id", input.organisationId)');
+  });
+
+  it("actions upsert derives organisation_id from owned client, never browser payload", () => {
+    const repo = read("lib/supabase/repository.ts");
+    const actions = read("app/api/actions/route.ts");
+    expect(repo).toContain("resolveClientOrganisationId");
+    expect(repo).toContain("organisation_id: organisationId");
+    expect(repo).toContain("Never strip organisation_id");
+    expect(repo).toContain(
+      "never from browser-supplied action payload"
+    );
+    expect(actions).toContain("requireAssignedPersonInOrganisation");
+    expect(actions).toContain("upsertActionInDb");
+    // Browser body must not be the source of organisation_id.
+    expect(actions).not.toMatch(/organisationId:\s*input\.organisationId/);
+    expect(actions).not.toMatch(/organisation_id:\s*body/);
   });
 
   it("supports multiple dated reflections without overwrite", () => {

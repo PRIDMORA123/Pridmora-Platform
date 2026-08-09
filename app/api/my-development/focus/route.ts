@@ -53,6 +53,14 @@ export async function PUT(request: Request) {
 
     return NextResponse.json({ workspace });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      /does not belong to the current organisation|not found in this organisation/i.test(
+        error.message
+      )
+    ) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
     return supabaseErrorResponse(error);
   }
 }
