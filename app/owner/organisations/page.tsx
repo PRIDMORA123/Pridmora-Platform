@@ -57,6 +57,15 @@ export default function OwnerOrganisationsPage() {
       title="Organisations"
       subtitle="Search and manage customer organisations across the platform."
     >
+      <div
+        className="owner-filters"
+        style={{ justifyContent: "space-between", width: "100%" }}
+      >
+        <Link href="/owner/organisations/new" className="owner-button">
+          New organisation
+        </Link>
+      </div>
+
       <div className="owner-filters">
         <div className="owner-field">
           <label htmlFor="owner-org-search">Search</label>

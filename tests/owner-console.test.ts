@@ -67,6 +67,7 @@ describe("owner console foundation", () => {
     for (const path of [
       "app/owner/page.tsx",
       "app/owner/organisations/page.tsx",
+      "app/owner/organisations/new/page.tsx",
       "app/owner/organisations/[id]/page.tsx",
       "app/owner/users/page.tsx",
       "app/owner/commercial/page.tsx",
