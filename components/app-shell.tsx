@@ -81,6 +81,12 @@ const DEVELOPMENT_FLOW_VIEWS: AppView[] = [
   "team-intelligence",
 ];
 
+/** Manager "My Development" nav — own record (+ team intel entered from that space). */
+const MY_DEVELOPMENT_NAV_VIEWS: AppView[] = [
+  "my-development",
+  "team-intelligence",
+];
+
 export function AppShell({
   view,
   onNavigate,
@@ -112,11 +118,22 @@ export function AppShell({
             icon: MessageSquare,
           },
         ]),
-    {
-      key: "global-intelligence" as const,
-      label: isManager ? language.myDevelopmentLabel : "Development",
-      icon: Sparkles,
-    },
+    // Managers: own development. Coaches/others: team Development Intelligence.
+    ...(isManager
+      ? [
+          {
+            key: "my-development" as const,
+            label: language.myDevelopmentLabel,
+            icon: Sparkles,
+          },
+        ]
+      : [
+          {
+            key: "global-intelligence" as const,
+            label: "Development",
+            icon: Sparkles,
+          },
+        ]),
     { key: "reports" as const, label: "Reports", icon: FileText },
     { key: "settings" as const, label: "Settings", icon: Settings },
   ];
@@ -136,6 +153,7 @@ export function AppShell({
     if (key === "dashboard") return view === "dashboard" || view === "today";
     if (key === "people") return PEOPLE_FLOW_VIEWS.includes(view);
     if (key === "sessions") return view === "sessions";
+    if (key === "my-development") return MY_DEVELOPMENT_NAV_VIEWS.includes(view);
     if (key === "global-intelligence")
       return DEVELOPMENT_FLOW_VIEWS.includes(view);
     if (key === "reports") return view === "reports" || view === "coaching-report";

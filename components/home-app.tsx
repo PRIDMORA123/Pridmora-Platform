@@ -1112,6 +1112,7 @@ export function HomeApp() {
                 void refreshSessionsForClient(client.id);
               }}
               onOpenIntelligence={() => navigate("global-intelligence")}
+              onOpenMyDevelopment={() => navigate("my-development")}
               onReviewDevelopmentUpdate={(client, updateId) => {
                 setSelectedId(client.id);
                 setFocusUpdateId(updateId);

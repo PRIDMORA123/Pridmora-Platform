@@ -195,7 +195,12 @@ describe("manager repositioning foundations", () => {
     const view = read("components/my-development-view.tsx");
     expect(view).toContain("My development");
     expect(view).toContain("separate from the people you manage");
-    expect(read("components/app-shell.tsx")).toContain("my-development");
+    const shell = read("components/app-shell.tsx");
+    expect(shell).toContain("my-development");
+    expect(shell).toContain('key: "my-development" as const');
+    expect(read("components/home-app.tsx")).toContain(
+      'onOpenMyDevelopment={() => navigate("my-development")}'
+    );
   });
 });
 

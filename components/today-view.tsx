@@ -54,6 +54,7 @@ export function IdentityHomePage({
   onPrepare,
   onOpenSession,
   onOpenIntelligence,
+  onOpenMyDevelopment,
   onReviewDevelopmentUpdate,
   onOpenReport,
   onCreatePerson,
@@ -71,6 +72,8 @@ export function IdentityHomePage({
   onPrepare: (client: Client) => void;
   onOpenSession?: (client: Client, sessionId: string) => void;
   onOpenIntelligence?: () => void;
+  /** Manager own development — must not open team Development Intelligence. */
+  onOpenMyDevelopment?: () => void;
   onReviewDevelopmentUpdate?: (client: Client, updateId: string) => void;
   onOpenReport?: (client: Client, reportId: string) => void;
   onCreatePerson?: () => void;
@@ -419,7 +422,7 @@ export function IdentityHomePage({
             if (client) onOpenClient(client);
           }}
           onOpenPeople={() => onViewPeople?.()}
-          onOpenMyDevelopment={() => onOpenIntelligence?.()}
+          onOpenMyDevelopment={() => onOpenMyDevelopment?.()}
           onOpenOrganisation={() => {
             window.location.href = "/organisation/intelligence";
           }}
