@@ -31,6 +31,7 @@ export type AppView =
   | "global-intelligence"
   | "my-development"
   | "my-development-evidence"
+  | "my-development-intelligence"
   | "settings"
   | "coach-space"
   | "prepare"
@@ -78,6 +79,7 @@ const DEVELOPMENT_FLOW_VIEWS: AppView[] = [
   "global-intelligence",
   "my-development",
   "my-development-evidence",
+  "my-development-intelligence",
   "intelligence",
   "development-evidence",
   "team-intelligence",
@@ -87,6 +89,7 @@ const DEVELOPMENT_FLOW_VIEWS: AppView[] = [
 const MY_DEVELOPMENT_NAV_VIEWS: AppView[] = [
   "my-development",
   "my-development-evidence",
+  "my-development-intelligence",
   "team-intelligence",
 ];
 

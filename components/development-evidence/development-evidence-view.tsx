@@ -316,11 +316,39 @@ export function DevelopmentEvidenceView({
       setFile(null);
       setPurpose("");
       await load();
+      if (decision === "approve" && onOpenIntelligence) {
+        onOpenIntelligence();
+      }
     } catch (err) {
       setError(errorMessage(err, "Unable to save review."));
     } finally {
       setBusy(false);
     }
+  }
+
+  function evidenceNextStepLabel(item: EvidenceListItem): string {
+    if (item.processingStatus === "failed") {
+      return "Analysis failed — open to retry";
+    }
+    if (
+      item.processingStatus === "pending_upload" ||
+      item.processingStatus === "uploaded" ||
+      item.processingStatus === "extracting" ||
+      item.processingStatus === "extracted" ||
+      item.processingStatus === "analysing"
+    ) {
+      return "Analysis pending";
+    }
+    if (
+      item.reviewStatus === "pending_review" ||
+      item.reviewStatus === "in_review"
+    ) {
+      return "Ready for your review";
+    }
+    if (item.includeInIntelligence) {
+      return "Included in Development Intelligence";
+    }
+    return "Reviewed";
   }
 
   function setAllObservations(include: boolean) {
@@ -707,29 +735,55 @@ export function DevelopmentEvidenceView({
                     {item.sourceLabel ? ` · ${item.sourceLabel}` : ""}
                   </p>
                   <p className="evidence-record-card__meta">
-                    Processing: {item.processingStatus.replaceAll("_", " ")} ·
-                    Review: {item.reviewStatus.replaceAll("_", " ")} ·{" "}
-                    {item.includeInIntelligence
-                      ? "Included in intelligence"
-                      : "Excluded from intelligence"}{" "}
-                    · {item.freshnessLabel}
+                    {evidenceNextStepLabel(item)} · Processing:{" "}
+                    {item.processingStatus.replaceAll("_", " ")} · Review:{" "}
+                    {item.reviewStatus.replaceAll("_", " ")} ·{" "}
+                    {item.freshnessLabel}
                   </p>
                 </div>
-                {(item.reviewStatus === "pending_review" ||
-                  item.reviewStatus === "in_review") && (
-                  <button
-                    type="button"
-                    className="secondary"
-                    onClick={() => {
-                      setAdding(true);
-                      setActiveEvidenceId(item.id);
-                      setStep("review");
-                      void loadDetail(item.id);
-                    }}
-                  >
-                    Review
-                  </button>
-                )}
+                <div className="button-row">
+                  {item.processingStatus === "failed" && (
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={() => {
+                        setAdding(true);
+                        setActiveEvidenceId(item.id);
+                        setStep("analyse");
+                        setError(
+                          "Analysis did not complete. Retry analysis, or replace the file with a text-based PDF or plain-text summary."
+                        );
+                        void loadDetail(item.id);
+                      }}
+                    >
+                      Retry analysis
+                    </button>
+                  )}
+                  {(item.reviewStatus === "pending_review" ||
+                    item.reviewStatus === "in_review") && (
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={() => {
+                        setAdding(true);
+                        setActiveEvidenceId(item.id);
+                        setStep("review");
+                        void loadDetail(item.id);
+                      }}
+                    >
+                      Review
+                    </button>
+                  )}
+                  {item.includeInIntelligence && onOpenIntelligence ? (
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={onOpenIntelligence}
+                    >
+                      View development intelligence
+                    </button>
+                  ) : null}
+                </div>
               </li>
             ))}
           </ul>

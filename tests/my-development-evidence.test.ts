@@ -65,6 +65,38 @@ describe("My Development self evidence wiring", () => {
     );
   });
 
+  it("surfaces self-development intelligence via dedicated My Development route", () => {
+    const home = read("components/home-app.tsx");
+    const shell = read("components/app-shell.tsx");
+    const myDev = read("components/my-development-view.tsx");
+    const evidence = read(
+      "components/development-evidence/development-evidence-view.tsx"
+    );
+    const intel = read("components/my-development-intelligence-view.tsx");
+
+    expect(shell).toContain('"my-development-intelligence"');
+    expect(home).toContain("openSelfDevelopmentView");
+    expect(home).toContain('navigate("my-development-intelligence")');
+    expect(home).toContain("<MyDevelopmentIntelligenceView");
+    expect(home).toContain(
+      'view === "my-development-intelligence" && selfDevelopmentClient'
+    );
+    expect(home).toContain(
+      'onOpenIntelligence={() => navigate("intelligence")}'
+    );
+    expect(myDev).toContain("onOpenPersonalIntelligence");
+    expect(myDev).toContain("View development intelligence");
+    expect(myDev).toContain("Development Intelligence");
+    expect(evidence).toContain("View development intelligence");
+    expect(evidence).toContain("Retry analysis");
+    expect(evidence).toContain("Analysis pending");
+    expect(evidence).toContain("Analysis failed");
+    expect(evidence).toContain("decision === \"approve\" && onOpenIntelligence");
+    expect(intel).toContain("DevelopmentIntelligenceEvidencePanel");
+    expect(intel).toContain("own development");
+    expect(intel).not.toMatch(/self[- ]?client/i);
+  });
+
   it("reuses gated development-evidence APIs for add/read after self client is resolved", () => {
     const upload = read("app/api/development-evidence/[clientId]/upload/route.ts");
     const list = read("app/api/development-evidence/[clientId]/route.ts");

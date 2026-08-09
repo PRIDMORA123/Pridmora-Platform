@@ -14,6 +14,7 @@ import {
   extractEvidenceDocumentText,
   hashEvidenceBytes,
   isSupportedEvidenceUpload,
+  isUnusablePdfExtract,
   preferenceFramedSummary,
   sanitizeEvidenceTextForAi,
   surfaceAssessmentBehaviourConflict,
@@ -197,6 +198,33 @@ describe("Development Evidence uploads and extraction", () => {
     });
     expect(Date.now() - started).toBeLessThan(2_000);
     expect(result.ok === true || result.ok === false).toBe(true);
+  });
+
+  it("rejects unusable PDF structural/binary extract as failed", async () => {
+    const noise =
+      "%PDF-1.4 endobj endstream /Filter /Standard xref " +
+      "obj stream Encrypt binary%%%%".repeat(40);
+    expect(isUnusablePdfExtract(noise)).toBe(true);
+
+    const readable =
+      "DISC profile summary. Dominance is elevated. Influence and Steady " +
+      "styles appear moderate. Conscientiousness supports detail focus. " +
+      "Development themes include pacing decisions and inviting dissent. ".repeat(
+        3
+      );
+    expect(isUnusablePdfExtract(readable)).toBe(false);
+
+    const bytes = new TextEncoder().encode(noise);
+    const result = await extractEvidenceDocumentText({
+      fileName: "protected-disc.pdf",
+      mimeType: "application/pdf",
+      bytes,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.status).toBe("failed");
+      expect(result.error).toMatch(/readable text|text-based PDF/i);
+    }
   });
 
   it("analyse path marks failure without discarding evidence helpers", () => {

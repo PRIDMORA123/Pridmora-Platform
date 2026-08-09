@@ -13,6 +13,7 @@ export function MyDevelopmentView({
   onSwitchToPersonal,
   onOpenTeamIntelligence,
   onOpenPersonalEvidence,
+  onOpenPersonalIntelligence,
   isPersonalWorkspace,
   evidenceError = "",
 }: {
@@ -20,6 +21,7 @@ export function MyDevelopmentView({
   onSwitchToPersonal?: () => void;
   onOpenTeamIntelligence?: () => void;
   onOpenPersonalEvidence?: () => void;
+  onOpenPersonalIntelligence?: () => void;
   isPersonalWorkspace: boolean;
   evidenceError?: string;
 }) {
@@ -54,6 +56,13 @@ export function MyDevelopmentView({
         <button
           type="button"
           className="person-development-subnav__item"
+          onClick={onOpenPersonalIntelligence}
+        >
+          Development Intelligence
+        </button>
+        <button
+          type="button"
+          className="person-development-subnav__item"
           onClick={onOpenTeamIntelligence}
         >
           Team Intelligence
@@ -77,6 +86,15 @@ export function MyDevelopmentView({
                 onClick={onOpenPersonalEvidence}
               >
                 Add development evidence
+              </button>
+            ) : null}
+            {onOpenPersonalIntelligence ? (
+              <button
+                type="button"
+                className="secondary"
+                onClick={onOpenPersonalIntelligence}
+              >
+                View development intelligence
               </button>
             ) : null}
             {!isPersonalWorkspace && onSwitchToPersonal ? (

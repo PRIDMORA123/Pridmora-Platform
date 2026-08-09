@@ -101,11 +101,11 @@ export async function extractEvidenceDocumentText(input: {
 
   if (lower.endsWith(".pdf") || input.mimeType === "application/pdf") {
     const text = extractPdfTextBestEffort(scanWindow(input.bytes));
-    if (!text.trim()) {
+    if (!text.trim() || isUnusablePdfExtract(text)) {
       return {
         ok: false,
         error:
-          "Could not extract text from this PDF. Try a text-based PDF or paste a plain-text summary.",
+          "Could not extract readable text from this PDF (it may be scanned, image-only, or protected). Try a text-based PDF or paste a plain-text summary, then retry analysis.",
         status: "failed",
         method: "none",
       };
@@ -180,6 +180,27 @@ export async function hashEvidenceBytes(bytes: Uint8Array): Promise<string> {
     hash = (hash * 31 + bytes[i]!) >>> 0;
   }
   return `fallback-${hash.toString(16)}-${bytes.length}`;
+}
+
+/**
+ * Reject PDF "text" that is mostly structural/binary noise rather than
+ * readable assessment content (common with encrypted or image-only PDFs).
+ */
+export function isUnusablePdfExtract(text: string): boolean {
+  const sample = text.slice(0, 4000);
+  if (!sample.trim()) return true;
+
+  const structuralHits =
+    (sample.match(/%PDF-\d|endobj|endstream|\/Filter\s*\/Standard|\/Encrypt|xref/gi) ??
+      []).length;
+  if (structuralHits >= 3) return true;
+
+  const letters = (sample.match(/[A-Za-z]/g) ?? []).length;
+  const words = (sample.match(/[A-Za-z]{3,}/g) ?? []).length;
+  if (sample.length > 200 && letters / sample.length < 0.35) return true;
+  if (sample.length > 400 && words < 40) return true;
+
+  return false;
 }
 
 /**

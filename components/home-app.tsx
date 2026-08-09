@@ -15,6 +15,7 @@ import { PersonActionsView } from "@/components/person-actions-view";
 import { GlobalIntelligenceView } from "@/components/global-intelligence-view";
 import { SessionsView } from "@/components/sessions-view";
 import { MyDevelopmentView } from "@/components/my-development-view";
+import { MyDevelopmentIntelligenceView } from "@/components/my-development-intelligence-view";
 import { SettingsView } from "@/components/settings-view";
 import { JourneyView } from "@/components/journey-view";
 import { CareerJourneyView } from "@/components/career-journey-view";
@@ -295,6 +296,28 @@ export function HomeApp() {
     }
     if (next !== "clients") {
       setClientsFlash("");
+    }
+  }
+
+  async function openSelfDevelopmentView(
+    next: "my-development-evidence" | "my-development-intelligence"
+  ) {
+    setSelfDevelopmentError("");
+    try {
+      const data = await apiJson<{ client: Client }>(
+        "/api/my-development/self-relationship"
+      );
+      setSelfDevelopmentClient(data.client);
+      navigate(next);
+    } catch (error) {
+      setSelfDevelopmentError(
+        errorMessage(
+          error,
+          next === "my-development-intelligence"
+            ? "Unable to open your Development Intelligence."
+            : "Unable to open your My Development evidence record."
+        )
+      );
     }
   }
 
@@ -1185,24 +1208,10 @@ export function HomeApp() {
               onOpenPeople={() => navigate("people")}
               onOpenTeamIntelligence={() => navigate("team-intelligence")}
               onOpenPersonalEvidence={() => {
-                void (async () => {
-                  setSelfDevelopmentError("");
-                  try {
-                    const { apiJson } = await import("@/lib/api-client");
-                    const data = await apiJson<{ client: Client }>(
-                      "/api/my-development/self-relationship"
-                    );
-                    setSelfDevelopmentClient(data.client);
-                    navigate("my-development-evidence");
-                  } catch (error) {
-                    setSelfDevelopmentError(
-                      errorMessage(
-                        error,
-                        "Unable to open your My Development evidence record."
-                      )
-                    );
-                  }
-                })();
+                void openSelfDevelopmentView("my-development-evidence");
+              }}
+              onOpenPersonalIntelligence={() => {
+                void openSelfDevelopmentView("my-development-intelligence");
               }}
               onSwitchToPersonal={() => {
                 const personal = organisationState?.organisations.find(
@@ -1231,7 +1240,17 @@ export function HomeApp() {
               key={`my-evidence-${selfDevelopmentClient.id}`}
               client={selfDevelopmentClient}
               onBack={() => navigate("my-development")}
-              onOpenIntelligence={() => navigate("my-development")}
+              onOpenIntelligence={() =>
+                navigate("my-development-intelligence")
+              }
+            />
+          )}
+          {view === "my-development-intelligence" && selfDevelopmentClient && (
+            <MyDevelopmentIntelligenceView
+              key={`my-intelligence-${selfDevelopmentClient.id}`}
+              client={selfDevelopmentClient}
+              onBack={() => navigate("my-development")}
+              onOpenEvidence={() => navigate("my-development-evidence")}
             />
           )}
           {view === "team-intelligence" && (
