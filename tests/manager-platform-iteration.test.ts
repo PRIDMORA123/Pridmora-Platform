@@ -113,15 +113,14 @@ describe("organisation workspace isolation", () => {
 describe("navigation sign-out accessibility", () => {
   it("keeps account/sign-out outside the scroll region", () => {
     const shell = read("components/app-shell.tsx");
+    const accountMenu = read("components/account-menu.tsx");
     const css = read("app/globals.css");
     expect(shell).toContain("identity-sidebar-scroll");
-    expect(shell).toContain("identity-sidebar-sign-out");
+    expect(shell).toContain("AccountMenu");
     expect(shell.indexOf("identity-sidebar-scroll")).toBeLessThan(
       shell.indexOf("identity-sidebar-account")
     );
-    expect(shell.indexOf("identity-sidebar-account")).toBeLessThan(
-      shell.indexOf("Sign out")
-    );
+    expect(accountMenu).toContain("Sign out");
     expect(css).toContain("identity-sidebar-scroll");
     expect(css).toContain("height:100dvh");
     expect(css).toContain("overflow-y:auto");

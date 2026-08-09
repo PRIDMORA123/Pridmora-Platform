@@ -1292,6 +1292,111 @@
   color: var(--identity-white);
 }
 
+.identity-account-menu {
+  position: relative;
+}
+
+.identity-account-menu__trigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 8px 6px;
+  border: 0;
+  border-radius: var(--identity-radius-md, 10px);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--identity-transition-fast, 120ms ease);
+}
+
+.identity-account-menu__trigger:hover {
+  background: var(--identity-sidebar-hover, rgba(255, 255, 255, 0.06));
+}
+
+.identity-account-menu__trigger:focus-visible {
+  outline: 3px solid rgba(24, 175, 179, 0.55);
+  outline-offset: 2px;
+}
+
+.identity-account-menu__identity {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.identity-account-menu__identity strong,
+.identity-account-menu__identity small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.identity-account-menu__chevron {
+  flex: 0 0 auto;
+  color: rgba(255, 255, 255, 0.64);
+  transition: transform 160ms ease, color 120ms ease;
+}
+
+.identity-account-menu__trigger:hover .identity-account-menu__chevron,
+.identity-account-menu__chevron.is-open {
+  color: var(--identity-sidebar-text-strong, #ffffff);
+}
+
+.identity-account-menu__chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.identity-account-menu__panel {
+  position: fixed;
+  z-index: 80;
+  display: grid;
+  gap: 2px;
+  min-width: 220px;
+  padding: 0.35rem;
+  border: 1px solid var(--identity-border-soft, #e7ecef);
+  border-radius: 12px;
+  background: var(--identity-white, #ffffff);
+  box-shadow: 0 12px 28px rgba(8, 39, 68, 0.18);
+}
+
+.identity-account-menu__item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--identity-navy, #0f2f44);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.identity-account-menu__item:hover,
+.identity-account-menu__item:focus-visible {
+  background: var(--identity-surface-muted, #f8fafb);
+  outline: none;
+}
+
+.identity-account-menu__item:focus-visible {
+  box-shadow: inset 0 0 0 2px rgba(24, 175, 179, 0.45);
+}
+
+.identity-account-menu__item.is-danger {
+  color: var(--identity-danger, #b42318);
+}
+
 .identity-sidebar :focus-visible {
   outline: 3px solid rgba(24, 175, 179, 0.55);
   outline-offset: 3px;

@@ -7,16 +7,15 @@ import {
   MessageSquare,
   Sparkles,
   Users,
-  LogOut,
   Menu,
   X,
   Plus,
   Settings,
 } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
+import { AccountMenu } from "@/components/account-menu";
 import { IdentityButton } from "@/components/identity/button";
 import { IdentityProductMark } from "@/components/identity/product-mark";
-import { OwnerConsoleNavLink } from "@/components/owner/owner-console-nav-link";
 import { WorkspaceSelector } from "@/components/organisation/workspace-selector";
 import { BRAND } from "@/lib/brand";
 import { useOrganisation } from "@/lib/organisations/organisation-context";
@@ -230,23 +229,17 @@ export function AppShell({
         </div>
 
         <div className="sidebar-footer identity-sidebar-account">
-          <div className="coach-mini">
-            <span className="identity-sidebar-avatar">{coachInitials}</span>
-            <div>
-              <strong className="identity-sidebar-account-name">{coachName}</strong>
-              <small className="identity-sidebar-account-role">{coachTitle}</small>
-            </div>
-          </div>
-          <OwnerConsoleNavLink onNavigate={() => setMobileOpen(false)} />
-          <button
-            type="button"
-            className="identity-nav-link identity-sidebar-sign-out"
-            onClick={() => {
-              onSignOut();
+          <AccountMenu
+            coachName={coachName}
+            coachTitle={coachTitle}
+            coachInitials={coachInitials}
+            onOpenSettings={() => {
+              onNavigate("settings");
+              setMobileOpen(false);
             }}
-          >
-            <LogOut size={18} aria-hidden /> Sign out
-          </button>
+            onSignOut={onSignOut}
+            onNavigateAway={() => setMobileOpen(false)}
+          />
         </div>
       </aside>
 
