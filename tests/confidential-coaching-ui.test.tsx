@@ -136,17 +136,16 @@ describe("confidential coaching UI", () => {
     );
 
     expect(container.textContent).toMatch(/How would you like to manage identity/);
-    expect(container.textContent).toMatch(/Recommended for sensitive coaching/i);
-    expect(container.textContent).toMatch(/Confidential coaching/i);
+    expect(container.textContent).toMatch(
+      /Recommended for sensitive development work/i
+    );
+    expect(container.textContent).toMatch(/Confidential mode/i);
   });
 
-  it("switches to confidential fields without requiring a real name", () => {
+  it("switches to confidential fields and requires Identity Vault real name", () => {
+    const onCreate = vi.fn(async () => undefined);
     render(
-      <NewClientDialog
-        open
-        onClose={() => undefined}
-        onCreate={async () => undefined}
-      />
+      <NewClientDialog open onClose={() => undefined} onCreate={onCreate} />
     );
 
     const confidentialRadio = container.querySelector(
@@ -160,7 +159,19 @@ describe("confidential coaching UI", () => {
     expect(container.querySelector("#new-client-display-label")).toBeTruthy();
     expect(container.querySelector("#new-client-role-confidential")).toBeTruthy();
     expect(container.querySelector("#new-client-name")).toBeNull();
-    expect(container.textContent).toMatch(/Add private identity details/);
+    expect(container.querySelector("#new-client-private-name")).toBeTruthy();
+    expect(container.textContent).toMatch(/Identity Vault/);
+    expect(container.textContent).toMatch(/Add optional private contact details/);
+
+    const createButton = Array.from(
+      container.querySelectorAll("button")
+    ).find(button =>
+      /Create relationship/i.test(button.textContent || "")
+    ) as HTMLButtonElement | undefined;
+    expect(createButton).toBeTruthy();
+    // Alias alone is not enough — vault real name is required for formValid.
+    expect(createButton?.disabled).toBe(true);
+    expect(onCreate).not.toHaveBeenCalled();
   });
 
   it("keeps confidential workspace header anonymous without private identity entry", () => {
@@ -180,7 +191,9 @@ describe("confidential coaching UI", () => {
 
     act(() => {
       (
-        container.querySelector('button[aria-label="Client actions"]') as HTMLButtonElement
+        container.querySelector(
+          'button[aria-label="Client actions"], button[aria-label="Person actions"], button[aria-label="Team member actions"]'
+        ) as HTMLButtonElement
       ).click();
     });
 
@@ -192,7 +205,9 @@ describe("confidential coaching UI", () => {
 
     act(() => {
       (
-        container.querySelector('button[aria-label="Client actions"]') as HTMLButtonElement
+        container.querySelector(
+          'button[aria-label="Client actions"], button[aria-label="Person actions"], button[aria-label="Team member actions"]'
+        ) as HTMLButtonElement
       ).click();
     });
 
@@ -204,7 +219,9 @@ describe("confidential coaching UI", () => {
 
     act(() => {
       (
-        container.querySelector('button[aria-label="Client actions"]') as HTMLButtonElement
+        container.querySelector(
+          'button[aria-label="Client actions"], button[aria-label="Person actions"], button[aria-label="Team member actions"]'
+        ) as HTMLButtonElement
       ).click();
     });
 
@@ -227,7 +244,9 @@ describe("confidential coaching UI", () => {
 
     act(() => {
       (
-        container.querySelector('button[aria-label="Client actions"]') as HTMLButtonElement
+        container.querySelector(
+          'button[aria-label="Client actions"], button[aria-label="Person actions"], button[aria-label="Team member actions"]'
+        ) as HTMLButtonElement
       ).click();
     });
 

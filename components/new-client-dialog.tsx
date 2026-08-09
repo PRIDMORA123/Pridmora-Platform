@@ -66,7 +66,9 @@ export function NewClientDialog({
 
   const standardValid = formData.name.trim().length > 0;
   const confidentialValid =
-    formData.displayLabel.trim().length > 0 || formData.role.trim().length > 0;
+    (formData.displayLabel.trim().length > 0 ||
+      formData.role.trim().length > 0) &&
+    formData.privateRealName.trim().length > 0;
   const formValid =
     formData.identityMode === "confidential" ? confidentialValid : standardValid;
   const locked = submitting || busy;
@@ -108,6 +110,15 @@ export function NewClientDialog({
       !formData.role.trim()
     ) {
       setError("Add a display label or role for this confidential relationship.");
+      return;
+    }
+    if (
+      formData.identityMode === "confidential" &&
+      !formData.privateRealName.trim()
+    ) {
+      setError(
+        "Enter the person’s real name for the Identity Vault. It stays private from the workspace."
+      );
       return;
     }
 
@@ -351,6 +362,27 @@ export function NewClientDialog({
             onChange={handleChange}
           />
 
+          <div className="identity-private-panel identity-private-panel--required">
+            <p className="identity-private-note">
+              Identity Vault — the real name is stored privately and is never shown in the
+              People list, intelligence, AI prompts or reports. The workspace uses the
+              display label and confidential reference only.
+            </p>
+            <label className="dialog-field-label" htmlFor="new-client-private-name">
+              Real name <span className="dialog-required">*</span>
+            </label>
+            <input
+              id="new-client-private-name"
+              name="privateRealName"
+              className="dialog-confirm-input"
+              value={formData.privateRealName}
+              disabled={locked}
+              autoComplete="off"
+              placeholder="Full legal or preferred identifying name"
+              onChange={handleChange}
+            />
+          </div>
+
           <button
             type="button"
             className="secondary identity-private-toggle"
@@ -358,27 +390,17 @@ export function NewClientDialog({
             aria-expanded={privateOpen}
             onClick={() => setPrivateOpen(current => !current)}
           >
-            {privateOpen ? "Hide private identity details" : "Add private identity details"}
+            {privateOpen
+              ? "Hide optional private details"
+              : "Add optional private contact details"}
           </button>
 
           {privateOpen ? (
             <div className="identity-private-panel">
               <p className="identity-private-note">
-                Private identity details are kept separate from coaching information and are not
-                shared with AI.
+                Optional contact details stay in the Identity Vault and are not shared with
+                AI.
               </p>
-              <label className="dialog-field-label" htmlFor="new-client-private-name">
-                Real name
-              </label>
-              <input
-                id="new-client-private-name"
-                name="privateRealName"
-                className="dialog-confirm-input"
-                value={formData.privateRealName}
-                disabled={locked}
-                autoComplete="off"
-                onChange={handleChange}
-              />
               <label className="dialog-field-label" htmlFor="new-client-private-email">
                 Email
               </label>

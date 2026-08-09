@@ -459,6 +459,14 @@ export function validateCreateRelationshipIdentity(
     };
   }
 
+  if (!privateIdentity.realName.trim()) {
+    return {
+      status: 400,
+      error:
+        "Confidential relationships require the person’s real name in the Identity Vault.",
+    };
+  }
+
   const confidentialReference = options.generateReference();
   const displayLabel = resolveConfidentialDisplayLabel({
     displayLabel: displayLabelInput,
@@ -481,6 +489,6 @@ export function validateCreateRelationshipIdentity(
     email: "", // public email unused in confidential mode
     aiNameAllowed: false,
     confidentialReference,
-    privateIdentity: privateRow,
+    privateIdentity: privateIdentity,
   };
 }

@@ -60,6 +60,7 @@ export type ClientRow = {
   relationship_agreement?: unknown;
   initial_conversation?: unknown;
   supporting_context?: unknown;
+  is_self_development?: boolean | null;
   initials: string | null;
   created_at?: string;
   updated_at?: string;
@@ -786,6 +787,7 @@ export function assembleClient(
     displayLabel: row.display_label?.trim() || row.name,
     confidentialReference: row.confidential_reference?.trim() || null,
     aiNameAllowed: Boolean(row.ai_name_allowed),
+    isSelfDevelopment: Boolean(row.is_self_development),
     status: asClientStatus(row.status, row.archived_at),
     archivedAt: row.archived_at ?? null,
     createdAt: row.created_at ?? "",

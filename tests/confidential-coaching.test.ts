@@ -126,7 +126,7 @@ describe("relationship creation validation", () => {
     });
   });
 
-  it("creates confidential relationships without a real name", () => {
+  it("creates confidential relationships with vault real name kept private", () => {
     const result = validateCreateRelationshipIdentity(
       {
         identityMode: "confidential",
@@ -149,6 +149,21 @@ describe("relationship creation validation", () => {
       email: "secret@example.com",
       phone: "+441234",
       privateNotes: "Do not share",
+    });
+  });
+
+  it("requires Identity Vault real name for confidential create", () => {
+    const result = validateCreateRelationshipIdentity(
+      {
+        identityMode: "confidential",
+        displayLabel: "Programme lead",
+        role: "Head of Finance",
+      },
+      { generateReference: () => "C-7K4M2P" }
+    );
+    expect(result).toMatchObject({
+      status: 400,
+      error: expect.stringMatching(/Identity Vault|real name/i),
     });
   });
 

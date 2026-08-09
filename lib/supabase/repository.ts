@@ -382,7 +382,10 @@ export async function listClientsFromDb(
     }
 
     let rows = (clientRows ?? []) as Array<
-      ClientRow & { organisation_id?: string | null }
+      ClientRow & {
+        organisation_id?: string | null;
+        is_self_development?: boolean | null;
+      }
     >;
 
     // Defence in depth: never return rows from another organisation.
@@ -393,6 +396,13 @@ export async function listClientsFromDb(
           row.organisation_id === organisationId
       );
     }
+
+    // My Development self-records must not appear in People / managed lists.
+    rows = rows.filter(
+      row =>
+        !Boolean(row.is_self_development) &&
+        String(row.role ?? "").trim().toLowerCase() !== "self development"
+    );
 
     if (rows.length === 0) return [];
 

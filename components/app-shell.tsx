@@ -30,6 +30,7 @@ export type AppView =
   | "sessions"
   | "global-intelligence"
   | "my-development"
+  | "my-development-evidence"
   | "settings"
   | "coach-space"
   | "prepare"
@@ -76,6 +77,7 @@ const PEOPLE_FLOW_VIEWS: AppView[] = [
 const DEVELOPMENT_FLOW_VIEWS: AppView[] = [
   "global-intelligence",
   "my-development",
+  "my-development-evidence",
   "intelligence",
   "development-evidence",
   "team-intelligence",
@@ -84,6 +86,7 @@ const DEVELOPMENT_FLOW_VIEWS: AppView[] = [
 /** Manager "My Development" nav — own record (+ team intel entered from that space). */
 const MY_DEVELOPMENT_NAV_VIEWS: AppView[] = [
   "my-development",
+  "my-development-evidence",
   "team-intelligence",
 ];
 

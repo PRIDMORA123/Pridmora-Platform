@@ -178,6 +178,11 @@ export type Client = {
   confidentialReference?: string | null;
   /** When true in standard mode, AI may use the preferred name. */
   aiNameAllowed?: boolean;
+  /**
+   * Practitioner's own My Development record — not a managed person.
+   * Excluded from People lists.
+   */
+  isSelfDevelopment?: boolean;
   status: ClientStatus;
   /** ISO timestamp when archived; null/undefined when active. */
   archivedAt?: string | null;

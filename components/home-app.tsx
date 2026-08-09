@@ -101,6 +101,9 @@ export function HomeApp() {
   const [clientFlash, setClientFlash] = useState("");
   const [organisationState, setOrganisationState] =
     useState<OrganisationWorkspaceState | null>(null);
+  const [selfDevelopmentClient, setSelfDevelopmentClient] =
+    useState<Client | null>(null);
+  const [selfDevelopmentError, setSelfDevelopmentError] = useState("");
 
   const coachId = profile?.id ?? "";
   const coachDisplayName = profile?.fullName || "Coach";
@@ -1178,14 +1181,28 @@ export function HomeApp() {
               isPersonalWorkspace={
                 organisationState?.organisation.organisationType === "personal"
               }
+              evidenceError={selfDevelopmentError}
               onOpenPeople={() => navigate("people")}
               onOpenTeamIntelligence={() => navigate("team-intelligence")}
               onOpenPersonalEvidence={() => {
-                if (selected) {
-                  navigate("development-evidence");
-                  return;
-                }
-                navigate("people");
+                void (async () => {
+                  setSelfDevelopmentError("");
+                  try {
+                    const { apiJson } = await import("@/lib/api-client");
+                    const data = await apiJson<{ client: Client }>(
+                      "/api/my-development/self-relationship"
+                    );
+                    setSelfDevelopmentClient(data.client);
+                    navigate("my-development-evidence");
+                  } catch (error) {
+                    setSelfDevelopmentError(
+                      errorMessage(
+                        error,
+                        "Unable to open your My Development evidence record."
+                      )
+                    );
+                  }
+                })();
               }}
               onSwitchToPersonal={() => {
                 const personal = organisationState?.organisations.find(
@@ -1207,6 +1224,14 @@ export function HomeApp() {
                   })();
                 }
               }}
+            />
+          )}
+          {view === "my-development-evidence" && selfDevelopmentClient && (
+            <DevelopmentEvidenceView
+              key={`my-evidence-${selfDevelopmentClient.id}`}
+              client={selfDevelopmentClient}
+              onBack={() => navigate("my-development")}
+              onOpenIntelligence={() => navigate("my-development")}
             />
           )}
           {view === "team-intelligence" && (

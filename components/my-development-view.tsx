@@ -14,12 +14,14 @@ export function MyDevelopmentView({
   onOpenTeamIntelligence,
   onOpenPersonalEvidence,
   isPersonalWorkspace,
+  evidenceError = "",
 }: {
   onOpenPeople: () => void;
   onSwitchToPersonal?: () => void;
   onOpenTeamIntelligence?: () => void;
   onOpenPersonalEvidence?: () => void;
   isPersonalWorkspace: boolean;
+  evidenceError?: string;
 }) {
   const organisation = useOrganisation();
   const language = resolveProductLanguage(organisation?.professionalRole);
@@ -34,6 +36,11 @@ export function MyDevelopmentView({
           or support.
         </p>
       </div>
+      {evidenceError ? (
+        <div className="inline-error" role="alert">
+          <p>{evidenceError}</p>
+        </div>
+      ) : null}
 
       <nav className="person-development-subnav" aria-label="My development sections">
         <span className="person-development-subnav__item is-active">Overview</span>
@@ -62,41 +69,22 @@ export function MyDevelopmentView({
             Development Evidence. Reviewed evidence contributes only to your personal
             Development Intelligence — never to people you manage.
           </p>
-          {!isPersonalWorkspace && onSwitchToPersonal ? (
-            <div className="button-row">
-              <button type="button" className="primary" onClick={onSwitchToPersonal}>
+          <div className="button-row">
+            {onOpenPersonalEvidence ? (
+              <button
+                type="button"
+                className="primary"
+                onClick={onOpenPersonalEvidence}
+              >
+                Add development evidence
+              </button>
+            ) : null}
+            {!isPersonalWorkspace && onSwitchToPersonal ? (
+              <button type="button" className="secondary" onClick={onSwitchToPersonal}>
                 Open personal workspace
               </button>
-              {onOpenPersonalEvidence ? (
-                <button
-                  type="button"
-                  className="secondary"
-                  onClick={onOpenPersonalEvidence}
-                >
-                  Development Evidence
-                </button>
-              ) : null}
-            </div>
-          ) : (
-            <>
-              <p className="muted">
-                You are in your personal workspace. Create or open your own development
-                relationship from People when you are receiving support, then add
-                evidence there.
-              </p>
-              {onOpenPersonalEvidence ? (
-                <div className="button-row">
-                  <button
-                    type="button"
-                    className="secondary"
-                    onClick={onOpenPersonalEvidence}
-                  >
-                    Open Development Evidence
-                  </button>
-                </div>
-              ) : null}
-            </>
-          )}
+            ) : null}
+          </div>
         </article>
 
         <article className="panel">
