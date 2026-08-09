@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { OwnerShell } from "@/components/owner/owner-shell";
 import { OwnerEmpty } from "@/components/owner/owner-empty";
@@ -22,6 +22,20 @@ import type {
   SupportCase,
 } from "@/lib/owner/types";
 import { ACCOUNT_STATUS_LABELS } from "@/lib/owner/types";
+
+type ManagerInvitation = {
+  id: string;
+  organisationId: string;
+  email: string;
+  fullName: string | null;
+  jobTitle: string | null;
+  role: "practitioner";
+  professionalRole: "manager";
+  status: "pending" | "accepted" | "revoked" | "expired";
+  expiresAt: string;
+  acceptedAt: string | null;
+  createdAt: string;
+};
 
 type DetailPayload = {
   organisation: {
@@ -72,11 +86,30 @@ type Tab = (typeof TABS)[number];
 export default function OwnerOrganisationDetailPage() {
   const params = useParams<{ id: string }>();
   const [data, setData] = useState<DetailPayload | null>(null);
+  const [invitations, setInvitations] = useState<ManagerInvitation[]>([]);
   const [tab, setTab] = useState<Tab>("Overview");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [confirmSuspend, setConfirmSuspend] = useState(false);
+  const [showInviteForm, setShowInviteForm] = useState(false);
+  const [inviteFullName, setInviteFullName] = useState("");
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteJobTitle, setInviteJobTitle] = useState("");
+  const [inviting, setInviting] = useState(false);
+  const [inviteMessage, setInviteMessage] = useState("");
+
+  async function loadInvitations() {
+    try {
+      const payload = await apiJson<{ invitations: ManagerInvitation[] }>(
+        `/api/owner/organisations/${params.id}/invitations`
+      );
+      setInvitations(payload.invitations);
+    } catch {
+      // Detail can still render without invitation list.
+      setInvitations([]);
+    }
+  }
 
   async function load() {
     setLoading(true);
@@ -86,6 +119,7 @@ export default function OwnerOrganisationDetailPage() {
       );
       setData(payload);
       setError("");
+      await loadInvitations();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load organisation.");
     } finally {
@@ -97,6 +131,34 @@ export default function OwnerOrganisationDetailPage() {
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
+
+  async function submitInvite(event: FormEvent) {
+    event.preventDefault();
+    setInviting(true);
+    setInviteMessage("");
+    setError("");
+    try {
+      await apiJson(`/api/owner/organisations/${params.id}/invitations`, {
+        method: "POST",
+        body: JSON.stringify({
+          fullName: inviteFullName,
+          email: inviteEmail,
+          jobTitle: inviteJobTitle.trim() || null,
+        }),
+      });
+      setInviteMessage("Manager invitation sent.");
+      setInviteFullName("");
+      setInviteEmail("");
+      setInviteJobTitle("");
+      setShowInviteForm(false);
+      await loadInvitations();
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to invite manager.");
+    } finally {
+      setInviting(false);
+    }
+  }
 
   async function updateOrganisation(body: Record<string, unknown>) {
     setSaving(true);
@@ -141,9 +203,30 @@ export default function OwnerOrganisationDetailPage() {
                 data.organisation.primaryContactEmail ||
                 "Not set"}
             </p>
+            <div className="owner-filters" style={{ marginTop: "1rem" }}>
+              <button
+                type="button"
+                className="owner-button"
+                onClick={() => {
+                  setShowInviteForm(true);
+                  setTab("Users");
+                }}
+              >
+                Invite manager
+              </button>
+              <span className="owner-muted" style={{ color: "rgba(255,255,255,0.82)" }}>
+                {data.organisation.seatsPurchased} seats · manager invites use
+                practitioner seats
+              </span>
+            </div>
           </header>
 
           <p className="owner-muted">{data.confidentialityNote}</p>
+          {inviteMessage ? (
+            <p className="owner-muted" role="status">
+              {inviteMessage}
+            </p>
+          ) : null}
 
           <div className="owner-tabs" role="tablist" aria-label="Organisation sections">
             {TABS.map(item => (
@@ -234,7 +317,89 @@ export default function OwnerOrganisationDetailPage() {
           ) : null}
 
           {tab === "Users" ? (
-            <UsersPanel users={data.users} />
+            <>
+              <section className="owner-panel" style={{ marginBottom: "1rem" }}>
+                <div
+                  className="owner-filters"
+                  style={{ justifyContent: "space-between", marginBottom: "0.75rem" }}
+                >
+                  <h2 className="owner-panel__title" style={{ margin: 0 }}>
+                    Managers
+                  </h2>
+                  <button
+                    type="button"
+                    className="owner-button"
+                    onClick={() => setShowInviteForm(value => !value)}
+                  >
+                    {showInviteForm ? "Close invite form" : "Invite manager"}
+                  </button>
+                </div>
+                <p className="owner-muted">
+                  Invite the first Manager for this organisation. They join as a
+                  practitioner with professional role Manager — not an organisation
+                  owner or Owner Console user.
+                </p>
+
+                {showInviteForm ? (
+                  <form
+                    onSubmit={event => {
+                      void submitInvite(event);
+                    }}
+                    style={{ marginTop: "1rem" }}
+                  >
+                    <div className="owner-filters" style={{ alignItems: "stretch" }}>
+                      <div className="owner-field" style={{ minWidth: "14rem", flex: 1 }}>
+                        <label htmlFor="owner-invite-manager-name">Full name</label>
+                        <input
+                          id="owner-invite-manager-name"
+                          required
+                          value={inviteFullName}
+                          onChange={event => setInviteFullName(event.target.value)}
+                          autoComplete="name"
+                        />
+                      </div>
+                      <div className="owner-field" style={{ minWidth: "14rem", flex: 1 }}>
+                        <label htmlFor="owner-invite-manager-email">Email</label>
+                        <input
+                          id="owner-invite-manager-email"
+                          type="email"
+                          required
+                          value={inviteEmail}
+                          onChange={event => setInviteEmail(event.target.value)}
+                          autoComplete="email"
+                        />
+                      </div>
+                      <div className="owner-field" style={{ minWidth: "12rem", flex: 1 }}>
+                        <label htmlFor="owner-invite-manager-title">
+                          Job title (optional)
+                        </label>
+                        <input
+                          id="owner-invite-manager-title"
+                          value={inviteJobTitle}
+                          onChange={event => setInviteJobTitle(event.target.value)}
+                          autoComplete="organization-title"
+                        />
+                      </div>
+                    </div>
+                    <div className="owner-filters" style={{ marginTop: "0.75rem" }}>
+                      <button
+                        type="submit"
+                        className="owner-button"
+                        disabled={inviting}
+                      >
+                        {inviting ? "Sending invitation…" : "Send invitation"}
+                      </button>
+                    </div>
+                  </form>
+                ) : null}
+
+                <h3 className="owner-section__title" style={{ marginTop: "1.25rem" }}>
+                  Manager invitations
+                </h3>
+                <ManagerInvitationsPanel invitations={invitations} />
+              </section>
+              <UsersPanel users={data.users} />
+            </>
           ) : null}
 
           {tab === "Usage" ? (
@@ -366,12 +531,65 @@ function Metric({ value, label }: { value: string | number; label: string }) {
   );
 }
 
+function invitationDisplayStatus(invitation: ManagerInvitation): string {
+  if (
+    invitation.status === "pending" &&
+    new Date(invitation.expiresAt).getTime() <= Date.now()
+  ) {
+    return "expired";
+  }
+  if (invitation.status === "accepted") return "accepted / active";
+  return invitation.status;
+}
+
+function ManagerInvitationsPanel({
+  invitations,
+}: {
+  invitations: ManagerInvitation[];
+}) {
+  if (invitations.length === 0) {
+    return (
+      <OwnerEmpty
+        title="No manager invitations yet"
+        description="Use Invite manager to send the first Manager invitation for this organisation."
+      />
+    );
+  }
+
+  return (
+    <div className="owner-table-wrap">
+      <table className="owner-table">
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">Job title</th>
+            <th scope="col">Status</th>
+            <th scope="col">Expires</th>
+          </tr>
+        </thead>
+        <tbody>
+          {invitations.map(invitation => (
+            <tr key={invitation.id}>
+              <td>{invitation.fullName || "—"}</td>
+              <td>{invitation.email}</td>
+              <td>{invitation.jobTitle || "—"}</td>
+              <td>{invitationDisplayStatus(invitation)}</td>
+              <td>{new Date(invitation.expiresAt).toLocaleDateString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function UsersPanel({ users }: { users: OwnerUserListItem[] }) {
   if (users.length === 0) {
     return (
       <OwnerEmpty
-        title="No users"
-        description="Membership records for this organisation will appear here."
+        title="No active memberships"
+        description="Accepted managers appear here after they complete account setup."
       />
     );
   }

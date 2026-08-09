@@ -32,8 +32,9 @@ export default function AcceptInvitationPage() {
         setStatus("done");
         const orgLabel = result.organisationName?.trim() || "your organisation";
         setMessage(
-          `You have joined ${orgLabel} on the ${BRAND.productName}. Opening your organisation workspace…`
+          `You have joined ${orgLabel} on the ${BRAND.productName}. Opening your workspace…`
         );
+        // Manager / practitioner landing: Command Centre — never /owner or /organisation.
         window.location.assign("/?view=dashboard");
         void result;
       })

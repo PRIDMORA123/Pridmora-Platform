@@ -143,6 +143,8 @@ export type OrganisationInvitation = {
   id: string;
   organisationId: string;
   email: string;
+  fullName?: string | null;
+  jobTitle?: string | null;
   role: MembershipRole;
   professionalRole: ProfessionalRole | null;
   status: "pending" | "accepted" | "revoked" | "expired";

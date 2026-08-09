@@ -46,6 +46,28 @@ export function sanitizeNextPath(
   return trimmed;
 }
 
+/**
+ * Build the `next` value for unauthenticated → sign-in redirects.
+ * Preserves pathname + search (e.g. invitation tokens) after open-redirect checks.
+ */
+export function buildSafeSignInNext(
+  pathname: string,
+  search = ""
+): string {
+  if (pathname === "/" && (search === "" || search === "?")) {
+    return sanitizeNextPath("/?view=dashboard", "/?view=dashboard");
+  }
+
+  const query =
+    !search || search === "?"
+      ? ""
+      : search.startsWith("?")
+        ? search
+        : `?${search}`;
+
+  return sanitizeNextPath(`${pathname}${query}`, "/");
+}
+
 export function isAllowedEmailOtpType(value: string | null | undefined): value is AllowedEmailOtpType {
   return (
     typeof value === "string" &&

@@ -25,9 +25,10 @@ describe("owner console routing contracts", () => {
     expect(middleware).not.toMatch(/pathname.*\/owner.*redirect/i);
     expect(middleware).not.toMatch(/rewrite.*\/owner/i);
     expect(middleware).toContain("/owner and /organisation are intentionally NOT public");
-    // Unauthenticated /owner must preserve next=/owner (not force dashboard).
+    // Unauthenticated /owner must preserve next via buildSafeSignInNext (not force dashboard).
+    expect(middleware).toContain("buildSafeSignInNext");
     expect(middleware).toContain(
-      'redirectUrl.searchParams.set("next", pathname === "/" ? "/?view=dashboard" : pathname)'
+      "buildSafeSignInNext(pathname, request.nextUrl.search)"
     );
   });
 

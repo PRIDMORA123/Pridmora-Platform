@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { buildSafeSignInNext } from "@/lib/auth/email-link";
 import { updateSession } from "@/lib/supabase/middleware";
 
 const PUBLIC_PATHS = [
@@ -45,7 +46,12 @@ export async function middleware(request: NextRequest) {
   ) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/auth/sign-in";
-    redirectUrl.searchParams.set("next", pathname === "/" ? "/?view=dashboard" : pathname);
+    // Preserve pathname + search (invitation tokens, etc.) after open-redirect checks.
+    redirectUrl.search = "";
+    redirectUrl.searchParams.set(
+      "next",
+      buildSafeSignInNext(pathname, request.nextUrl.search)
+    );
     return NextResponse.redirect(redirectUrl);
   }
 
