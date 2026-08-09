@@ -37,17 +37,26 @@ export type InviteManagerResult = {
   authDelivery: "invite" | "recovery_existing_user" | "none";
 };
 
-function buildAcceptPath(token: string): string {
+/**
+ * Safe relative post-auth destination for organisation invitation acceptance.
+ * Survives /auth/confirm → sanitizeNextPath → accept page.
+ */
+export function buildManagerInviteAcceptNext(token: string): string {
   return `/organisation/invitations/accept?token=${encodeURIComponent(token)}`;
 }
 
+/**
+ * Value passed as inviteUserByEmail `redirectTo` (appears as {{ .RedirectTo }}).
+ * Absolute allowlisted accept URL — NOT /auth/callback (no PKCE for server invites).
+ * Invite User email template must open /auth/confirm with token_hash + type=invite
+ * and pass this value as urlencoded `next` (or `redirect_to`).
+ */
 export function buildManagerInviteRedirectTo(
   siteOrigin: string,
   token: string
 ): string {
   const origin = siteOrigin.trim().replace(/\/$/, "");
-  const next = buildAcceptPath(token);
-  return `${origin}/auth/callback?next=${encodeURIComponent(next)}`;
+  return `${origin}${buildManagerInviteAcceptNext(token)}`;
 }
 
 function isAlreadyRegisteredError(message: string): boolean {
@@ -168,7 +177,7 @@ export async function inviteOrganisationManager(input: {
 
   const { token, tokenHash } = generateInvitationToken();
   const expiresAt = new Date(Date.now() + INVITE_TTL_MS).toISOString();
-  const acceptPath = buildAcceptPath(token);
+  const acceptPath = buildManagerInviteAcceptNext(token);
 
   const { data: invitation, error: insertError } = await input.service
     .from("organisation_invitations")

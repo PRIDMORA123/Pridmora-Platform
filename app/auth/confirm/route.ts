@@ -27,8 +27,11 @@ export async function GET(request: Request) {
   const tokenHash = requestUrl.searchParams.get("token_hash");
   const typeParam = requestUrl.searchParams.get("type");
   // Must match callback: recovery + next=/ (or missing next) must not land on marketing `/`.
+  // Invite User templates may pass redirect_to={{ .RedirectTo }} (Supabase SSR docs).
   const next = resolveAuthCallbackNext({
-    next: requestUrl.searchParams.get("next"),
+    next:
+      requestUrl.searchParams.get("next") ??
+      requestUrl.searchParams.get("redirect_to"),
     type: typeParam,
   });
 

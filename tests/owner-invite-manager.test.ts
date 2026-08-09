@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { inviteManagerSchema } from "@/lib/owner/invite-manager-schema";
-import { buildManagerInviteRedirectTo } from "@/lib/owner/invite-manager";
+import {
+  buildManagerInviteAcceptNext,
+  buildManagerInviteRedirectTo,
+} from "@/lib/owner/invite-manager";
 import { canInviteMembers, permissionsForRole } from "@/lib/organisations/permissions";
 
 const root = process.cwd();
@@ -84,15 +87,21 @@ describe("Slice 2 — owner invite first manager", () => {
     expect(schemaSource).not.toContain("organisationId");
   });
 
-  it("builds auth callback redirect that lands on invitation accept", () => {
+  it("builds invite RedirectTo as accept URL without PKCE callback", () => {
+    const acceptNext = buildManagerInviteAcceptNext("token-value");
+    expect(acceptNext).toBe(
+      "/organisation/invitations/accept?token=token-value"
+    );
+
     const redirect = buildManagerInviteRedirectTo(
       "https://platform.pridmora.com",
       "token-value"
     );
-    expect(redirect).toContain("/auth/callback?next=");
-    expect(decodeURIComponent(redirect)).toContain(
-      "/organisation/invitations/accept?token=token-value"
+    expect(redirect).toBe(
+      "https://platform.pridmora.com/organisation/invitations/accept?token=token-value"
     );
+    expect(redirect).not.toContain("/auth/callback");
+    expect(redirect).not.toContain("code=");
   });
 
   it("wires Invite manager UI on organisation detail without Lead hierarchy", () => {

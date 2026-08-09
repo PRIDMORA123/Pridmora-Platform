@@ -32,6 +32,10 @@ const PROTOCOL_OR_SCHEME = /:|\\|\/\//;
 /**
  * Restrict post-auth redirects to same-origin relative paths.
  * Rejects protocol-relative URLs, schemes, and other open-redirect vectors.
+ *
+ * Same-origin absolute URLs (matching NEXT_PUBLIC_SITE_URL) are reduced to
+ * pathname + search so Invite User `{{ .RedirectTo }}` can be passed as `next`
+ * after email-template urlencoding.
  */
 export function sanitizeNextPath(
   raw: string | null | undefined,
@@ -39,6 +43,23 @@ export function sanitizeNextPath(
 ): string {
   if (typeof raw !== "string") return fallback;
   const trimmed = raw.trim();
+
+  if (/^https?:\/\//i.test(trimmed)) {
+    try {
+      const absolute = new URL(trimmed);
+      const site = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
+      if (!site) return fallback;
+      const siteUrl = new URL(site);
+      if (absolute.origin !== siteUrl.origin) return fallback;
+      return sanitizeNextPath(
+        `${absolute.pathname}${absolute.search}`,
+        fallback
+      );
+    } catch {
+      return fallback;
+    }
+  }
+
   if (!trimmed.startsWith("/")) return fallback;
   if (trimmed.startsWith("//")) return fallback;
   if (PROTOCOL_OR_SCHEME.test(trimmed.slice(1))) return fallback;

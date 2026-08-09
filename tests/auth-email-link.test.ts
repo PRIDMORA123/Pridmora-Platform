@@ -28,6 +28,21 @@ describe("sanitizeNextPath", () => {
     expect(sanitizeNextPath("/auth/reset-password\n/evil")).toBe("/");
   });
 
+  it("reduces same-origin absolute RedirectTo URLs to relative paths", () => {
+    const previous = process.env.NEXT_PUBLIC_SITE_URL;
+    process.env.NEXT_PUBLIC_SITE_URL = "https://platform.pridmora.com";
+    expect(
+      sanitizeNextPath(
+        "https://platform.pridmora.com/organisation/invitations/accept?token=abc"
+      )
+    ).toBe("/organisation/invitations/accept?token=abc");
+    expect(
+      sanitizeNextPath("https://evil.example/organisation/invitations/accept?token=abc")
+    ).toBe("/");
+    if (previous === undefined) delete process.env.NEXT_PUBLIC_SITE_URL;
+    else process.env.NEXT_PUBLIC_SITE_URL = previous;
+  });
+
   it("uses the provided fallback", () => {
     expect(sanitizeNextPath(null, "/auth/reset-password")).toBe("/auth/reset-password");
     expect(sanitizeNextPath("//evil", "/auth/reset-password")).toBe("/auth/reset-password");
