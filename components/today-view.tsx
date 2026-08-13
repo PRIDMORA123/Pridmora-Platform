@@ -57,6 +57,7 @@ export function IdentityHomePage({
   onOpenMyDevelopment,
   onOpenMyDevelopmentReflection,
   onOpenMyDevelopmentEvidence,
+  onOpenManagerAurelia,
   onReviewDevelopmentUpdate,
   onOpenReport,
   onCreatePerson,
@@ -80,6 +81,8 @@ export function IdentityHomePage({
   onOpenMyDevelopmentReflection?: () => void;
   /** Manager personal evidence upload — existing My Development evidence surface. */
   onOpenMyDevelopmentEvidence?: () => void;
+  /** Manager Aurelia conversation shell — Talk something through. */
+  onOpenManagerAurelia?: () => void;
   onReviewDevelopmentUpdate?: (client: Client, updateId: string) => void;
   onOpenReport?: (client: Client, reportId: string) => void;
   onCreatePerson?: () => void;
@@ -433,7 +436,7 @@ export function IdentityHomePage({
         <ManagerCommandCentre
           greeting={viewModel.greeting}
           coachName={viewModel.coachName}
-          onTalkThrough={() => onViewPeople?.()}
+          onTalkThrough={() => onOpenManagerAurelia?.()}
           onPrepareSomething={openPrepareSomething}
           onReflect={() => onOpenMyDevelopmentReflection?.()}
           onOpenMyDevelopment={() => onOpenMyDevelopment?.()}

@@ -11177,6 +11177,204 @@ button.coaching-moments-section__item:focus-visible {
   gap: 0.65rem;
 }
 
+/* Stage 2.2 — Manager Aurelia conversation workspace */
+.manager-aurelia {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: min(40rem, 100%);
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3.5rem;
+  display: grid;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.manager-aurelia *,
+.manager-aurelia *::before,
+.manager-aurelia *::after {
+  box-sizing: border-box;
+}
+
+.manager-aurelia__header h1 {
+  margin: 0.3rem 0 0.65rem;
+  color: var(--identity-navy-950, #082b4b);
+}
+
+.manager-aurelia__lead {
+  margin: 0;
+  max-width: 34rem;
+  line-height: 1.55;
+  color: rgba(15, 35, 64, 0.72);
+}
+
+.manager-aurelia__privacy {
+  margin: 1rem 0 0;
+  padding: 0.75rem 0 0;
+  border-top: 1px solid rgba(15, 35, 64, 0.08);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: rgba(15, 35, 64, 0.62);
+  max-width: 34rem;
+}
+
+.manager-aurelia__conversation {
+  display: grid;
+  gap: 1rem;
+  min-height: 12rem;
+  padding: 1.25rem 0;
+  border-top: 1px solid rgba(15, 35, 64, 0.08);
+  border-bottom: 1px solid rgba(15, 35, 64, 0.08);
+}
+
+.manager-aurelia__turn {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 100%;
+}
+
+.manager-aurelia__turn--aurelia {
+  justify-items: start;
+}
+
+.manager-aurelia__turn--manager {
+  justify-items: end;
+}
+
+.manager-aurelia__turn-label {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--identity-teal-700, #168f98);
+}
+
+.manager-aurelia__turn--manager .manager-aurelia__turn-label {
+  color: rgba(15, 35, 64, 0.55);
+}
+
+.manager-aurelia__turn-body {
+  padding: 0.95rem 1.1rem;
+  border-radius: 0.4rem;
+  background: #fff;
+  border: 1px solid rgba(15, 35, 64, 0.1);
+  max-width: min(34rem, 100%);
+}
+
+.manager-aurelia__turn--manager .manager-aurelia__turn-body {
+  background: var(--identity-teal-50, #eff9f8);
+  border-color: rgba(28, 165, 173, 0.28);
+}
+
+.manager-aurelia__opening {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--identity-navy-950, #082b4b);
+  line-height: 1.35;
+}
+
+.manager-aurelia__turn-text,
+.manager-aurelia__thinking {
+  margin: 0;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--identity-navy-950, #082b4b);
+}
+
+.manager-aurelia__thinking {
+  font-style: italic;
+  color: rgba(15, 35, 64, 0.68);
+}
+
+.manager-aurelia__error {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.35rem;
+  border: 1px solid rgba(180, 35, 24, 0.22);
+  background: var(--identity-danger-bg, #fff1f0);
+  color: var(--identity-danger, #b42318);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.manager-aurelia__composer {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.manager-aurelia__composer-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--identity-navy-950, #082b4b);
+}
+
+.manager-aurelia__input {
+  width: 100%;
+  min-height: 6.5rem;
+  resize: vertical;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(15, 35, 64, 0.16);
+  border-radius: 0.4rem;
+  background: #fff;
+  color: var(--identity-navy-950, #082b4b);
+  font: inherit;
+  line-height: 1.5;
+}
+
+.manager-aurelia__input:focus-visible {
+  outline: 2px solid var(--identity-teal-600, #1ca5ad);
+  outline-offset: 2px;
+}
+
+.manager-aurelia__composer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+
+.manager-aurelia__composer-hint {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.manager-aurelia__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  padding-top: 0.25rem;
+}
+
+.manager-aurelia__footer .identity-button:focus-visible,
+.manager-aurelia__composer .identity-button:focus-visible {
+  outline: 2px solid var(--identity-teal-600, #1ca5ad);
+  outline-offset: 2px;
+}
+
+@media (max-width: 680px) {
+  .manager-aurelia {
+    width: 100%;
+    max-width: 100%;
+    padding: 1.35rem 1rem 2.75rem;
+    gap: 1.25rem;
+  }
+
+  .manager-aurelia__opening {
+    font-size: 1.1rem;
+  }
+
+  .manager-aurelia__footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .manager-aurelia__footer .identity-button {
+    width: 100%;
+  }
+}
+
 .person-overview-current-development {
   margin: 1.5rem 0 1.75rem;
 }

@@ -17,6 +17,7 @@ import { SessionsView } from "@/components/sessions-view";
 import { MyDevelopmentView } from "@/components/my-development-view";
 import { MyDevelopmentIntelligenceView } from "@/components/my-development-intelligence-view";
 import { MyDevelopmentReflectionView } from "@/components/my-development-reflection-view";
+import { ManagerAureliaView } from "@/components/aurelia/manager-aurelia-view";
 import { SettingsView } from "@/components/settings-view";
 import { JourneyView } from "@/components/journey-view";
 import { CareerJourneyView } from "@/components/career-journey-view";
@@ -299,6 +300,16 @@ export function HomeApp() {
       setClientsFlash("");
     }
   }
+
+  useEffect(() => {
+    if (
+      view === "manager-aurelia" &&
+      organisationRole &&
+      organisationRole !== "manager"
+    ) {
+      setView("dashboard");
+    }
+  }, [view, organisationRole]);
 
   async function openSelfDevelopmentView(
     next:
@@ -1151,6 +1162,7 @@ export function HomeApp() {
               onOpenMyDevelopmentEvidence={() => {
                 void openSelfDevelopmentView("my-development-evidence");
               }}
+              onOpenManagerAurelia={() => navigate("manager-aurelia")}
               onReviewDevelopmentUpdate={(client, updateId) => {
                 setSelectedId(client.id);
                 setFocusUpdateId(updateId);
@@ -1211,6 +1223,12 @@ export function HomeApp() {
               onOpenMyDevelopment={() => navigate("my-development")}
             />
           )}
+          {view === "manager-aurelia" &&
+            organisationRole === "manager" && (
+              <ManagerAureliaView
+                onBackHome={() => navigate("dashboard")}
+              />
+            )}
           {view === "my-development" && (
             <MyDevelopmentView
               isPersonalWorkspace={

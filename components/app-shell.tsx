@@ -45,7 +45,8 @@ export type AppView =
   | "journey"
   | "career-journey"
   | "coaching-report"
-  | "reports";
+  | "reports"
+  | "manager-aurelia";
 
 type Props = {
   view: AppView;

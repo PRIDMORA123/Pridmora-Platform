@@ -214,6 +214,7 @@ describe("Manager Front Door UI", () => {
   it("shows Manager front door for managers and not for coaches", async () => {
     const clients: Client[] = [pilotClientA];
     const onViewPeople = vi.fn();
+    const onOpenManagerAurelia = vi.fn();
     const onOpenMyDevelopment = vi.fn();
     const onOpenMyDevelopmentReflection = vi.fn();
     const onOpenMyDevelopmentEvidence = vi.fn();
@@ -225,6 +226,7 @@ describe("Manager Front Door UI", () => {
         onOpenClient={() => undefined}
         onPrepare={() => undefined}
         onViewPeople={onViewPeople}
+        onOpenManagerAurelia={onOpenManagerAurelia}
         onOpenMyDevelopment={onOpenMyDevelopment}
         onOpenMyDevelopmentReflection={onOpenMyDevelopmentReflection}
         onOpenMyDevelopmentEvidence={onOpenMyDevelopmentEvidence}
@@ -264,6 +266,7 @@ describe("Manager Front Door UI", () => {
       ).click();
     });
 
+    expect(onOpenManagerAurelia).toHaveBeenCalledTimes(1);
     expect(onViewPeople).toHaveBeenCalled();
     expect(onOpenMyDevelopmentReflection).toHaveBeenCalledTimes(1);
     expect(onOpenMyDevelopmentEvidence).toHaveBeenCalledTimes(1);

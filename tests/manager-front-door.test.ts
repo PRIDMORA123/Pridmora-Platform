@@ -59,9 +59,12 @@ describe("Stage 2.1 Manager Front Door", () => {
     expect(mcc).toContain("onAddEvidence");
     expect(mcc).toContain('data-front-door-action={action.id}');
 
-    // Talk / team development → existing People (Aurelia via Prepare with Aurelia).
-    expect(today).toContain("onTalkThrough={() => onViewPeople?.()}");
+    // Talk → dedicated Manager Aurelia shell (Stage 2.2.1).
+    expect(today).toContain("onTalkThrough={() => onOpenManagerAurelia?.()}");
     expect(today).toContain("onOpenPeople={() => onViewPeople?.()}");
+    expect(home).toContain(
+      'onOpenManagerAurelia={() => navigate("manager-aurelia")}'
+    );
 
     // Prepare → existing prepare flow when available, else People.
     expect(today).toContain("onPrepareSomething={openPrepareSomething}");
