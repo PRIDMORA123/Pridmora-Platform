@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { IdentityBackLink } from "@/components/identity";
+import type { MyDevelopmentReflectionPrefill } from "@/components/my-development-view";
 import { apiJson, errorMessage } from "@/lib/api-client";
 import type {
   MyDevelopmentReflectionDetail,
@@ -15,9 +16,13 @@ import type {
 export function MyDevelopmentReflectionView({
   onBack,
   onOpenIntelligence,
+  initialPrefill = null,
+  onPrefillConsumed,
 }: {
   onBack: () => void;
   onOpenIntelligence?: () => void;
+  initialPrefill?: MyDevelopmentReflectionPrefill | null;
+  onPrefillConsumed?: () => void;
 }) {
   const [reflections, setReflections] = useState<
     MyDevelopmentReflectionSummary[]
@@ -39,6 +44,7 @@ export function MyDevelopmentReflectionView({
   const [whatDifferently, setWhatDifferently] = useState("");
   const [practiseNext, setPractiseNext] = useState("");
   const [anythingElse, setAnythingElse] = useState("");
+  const prefillAppliedRef = useRef(false);
 
   const loadList = useCallback(async () => {
     setLoading(true);
@@ -58,6 +64,21 @@ export function MyDevelopmentReflectionView({
   useEffect(() => {
     void loadList();
   }, [loadList]);
+
+  useEffect(() => {
+    if (!initialPrefill || prefillAppliedRef.current) return;
+    prefillAppliedRef.current = true;
+    setSelected(null);
+    setWriting(true);
+    setSavedMessage("");
+    if (initialPrefill.title?.trim()) {
+      setTitle(initialPrefill.title.trim());
+    }
+    if (initialPrefill.context?.trim()) {
+      setContext(initialPrefill.context.trim());
+    }
+    onPrefillConsumed?.();
+  }, [initialPrefill, onPrefillConsumed]);
 
   function resetForm() {
     setTitle("");

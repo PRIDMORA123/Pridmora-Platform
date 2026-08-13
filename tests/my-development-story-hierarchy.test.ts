@@ -80,11 +80,11 @@ describe("Stage 2.3.1 My Development story hierarchy", () => {
     const view = read("components/my-development-view.tsx");
     expect(view).toContain("listActiveDevelopmentActions");
     expect(view).toContain("completedActionCount");
-    expect(view).toContain("kept");
-    expect(view).toContain("for your record");
-    expect(view).not.toMatch(/status:\s*"Complete"[\s\S]{0,80}onClick/);
-    expect(view).not.toContain("Mark complete");
-    expect(view).not.toContain("Complete action");
+    expect(view).toContain("completed");
+    expect(view).toContain("show recent");
+    // Stage 2.3.2.1 adds Mark complete; still no free-form status editing.
+    expect(view).toContain("Mark complete");
+    expect(view).not.toContain("<select");
   });
 
   it("shows latest reflection learning signal instead of count-only presentation", () => {

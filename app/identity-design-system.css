@@ -11649,7 +11649,8 @@ button.coaching-moments-section__item:focus-visible {
   line-height: 1.45;
 }
 
-.my-dev-story__practice-list li {
+.my-dev-story__practice-list li,
+.my-dev-story__practice-item {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
@@ -11657,10 +11658,64 @@ button.coaching-moments-section__item:focus-visible {
   padding: 0;
 }
 
+.my-dev-story__practice-item {
+  gap: 0.55rem;
+}
+
+.my-dev-story__practice-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
 .my-dev-story__practice-title {
   font-weight: 600;
   color: var(--identity-navy, #0f2340);
   line-height: 1.4;
+}
+
+.my-dev-story__mark-complete {
+  align-self: flex-start;
+  min-height: 44px;
+}
+
+.my-dev-story__completion-prompt {
+  margin: 1rem 0 0.5rem;
+  padding: 1rem 0 0;
+  border-top: 1px solid rgba(15, 35, 64, 0.1);
+}
+
+.my-dev-story__completion-title {
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+  color: var(--identity-navy, #0f2340);
+}
+
+.my-dev-story__completion-question {
+  margin: 0;
+  color: rgba(15, 35, 64, 0.78);
+}
+
+.my-dev-story__completed {
+  margin-top: 0.85rem;
+}
+
+.my-dev-story__completed-list {
+  margin: 0.65rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.my-dev-story__completed-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin: 0 0 0.55rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid rgba(15, 35, 64, 0.08);
+  color: rgba(15, 35, 64, 0.78);
 }
 
 .my-dev-story__learning-title {
@@ -11772,5 +11827,10 @@ button.coaching-moments-section__item:focus-visible {
   .my-dev-story__actions .identity-text-action {
     width: 100%;
     text-align: left;
+  }
+
+  .my-dev-story__mark-complete,
+  .my-dev-story__completed-list .identity-button {
+    width: 100%;
   }
 }

@@ -4,6 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import { BRAND } from "@/lib/brand";
 import { apiJson, errorMessage } from "@/lib/api-client";
 import {
+  buildCompletedActionReflectionContext,
+  listCompletedDevelopmentActions,
+} from "@/lib/my-development/self-action";
+import {
   listActiveDevelopmentActions,
   resolveMyDevelopmentNextStep,
 } from "@/lib/my-development/next-step";
@@ -11,6 +15,11 @@ import type { MyDevelopmentWorkspace } from "@/lib/my-development/workspace";
 import { useOrganisation } from "@/lib/organisations/organisation-context";
 import { resolveProductLanguage } from "@/lib/role-language";
 import type { ActionStatus, CoachingAction } from "@/lib/types";
+
+export type MyDevelopmentReflectionPrefill = {
+  context: string;
+  title?: string;
+};
 
 const FOCUS_SUGGESTIONS = [
   "Delegation",
@@ -29,12 +38,14 @@ export function MyDevelopmentView({
   onOpenPersonalEvidence,
   onOpenPersonalIntelligence,
   onOpenPersonalReflection,
+  onReflectAfterComplete,
   onTalkThrough,
   evidenceError = "",
 }: {
   onOpenPersonalEvidence?: () => void;
   onOpenPersonalIntelligence?: () => void;
   onOpenPersonalReflection?: () => void;
+  onReflectAfterComplete?: (prefill: MyDevelopmentReflectionPrefill) => void;
   onTalkThrough?: () => void;
   evidenceError?: string;
 }) {
@@ -52,22 +63,40 @@ export function MyDevelopmentView({
   const [actionBusy, setActionBusy] = useState(false);
   const [editingFocus, setEditingFocus] = useState(false);
   const [addingAction, setAddingAction] = useState(false);
+  const [lifecycleBusyId, setLifecycleBusyId] = useState("");
+  const [showCompleted, setShowCompleted] = useState(false);
+  const [completionPrompt, setCompletionPrompt] = useState<{
+    title: string;
+  } | null>(null);
+  const [reloadWarning, setReloadWarning] = useState("");
+
+  const applyWorkspace = useCallback((next: MyDevelopmentWorkspace) => {
+    setWorkspace(next);
+    setFocusItems(next.focusItems.map(item => item.title));
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
+    setReloadWarning("");
     try {
       const data = await apiJson<{ workspace: MyDevelopmentWorkspace }>(
         "/api/my-development/workspace"
       );
-      setWorkspace(data.workspace);
-      setFocusItems(data.workspace.focusItems.map(item => item.title));
+      applyWorkspace(data.workspace);
     } catch (err) {
       setError(errorMessage(err, "Unable to load My Development."));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [applyWorkspace]);
+
+  const reloadQuiet = useCallback(async () => {
+    const data = await apiJson<{ workspace: MyDevelopmentWorkspace }>(
+      "/api/my-development/workspace"
+    );
+    applyWorkspace(data.workspace);
+  }, [applyWorkspace]);
 
   useEffect(() => {
     void load();
@@ -122,12 +151,67 @@ export function MyDevelopmentView({
     }
   }
 
+  async function completeAction(action: CoachingAction) {
+    if (lifecycleBusyId) return;
+    setLifecycleBusyId(action.id);
+    setError("");
+    setReloadWarning("");
+    try {
+      await apiJson(`/api/my-development/actions/${action.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ operation: "complete" }),
+      });
+      setCompletionPrompt({ title: action.title });
+      try {
+        await reloadQuiet();
+      } catch {
+        setReloadWarning(
+          "Action completed, but unable to refresh your development picture. Please reload the page."
+        );
+      }
+    } catch (err) {
+      setCompletionPrompt(null);
+      setError(errorMessage(err, "Unable to mark this action complete."));
+    } finally {
+      setLifecycleBusyId("");
+    }
+  }
+
+  async function reopenAction(action: CoachingAction) {
+    if (lifecycleBusyId) return;
+    setLifecycleBusyId(action.id);
+    setError("");
+    setReloadWarning("");
+    try {
+      await apiJson(`/api/my-development/actions/${action.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ operation: "reopen" }),
+      });
+      try {
+        await reloadQuiet();
+      } catch {
+        setReloadWarning(
+          "Action reopened, but unable to refresh your development picture. Please reload the page."
+        );
+      }
+    } catch (err) {
+      setError(errorMessage(err, "Unable to reopen this action."));
+    } finally {
+      setLifecycleBusyId("");
+    }
+  }
+
   const maturity = workspace?.maturity;
   const isEmpty = maturity?.isEmpty ?? !loading;
   const primaryFocus = focusItems[0] ?? "";
   const secondaryFocuses = focusItems.slice(1);
   const activeActions = workspace
     ? listActiveDevelopmentActions(workspace.actions, 3)
+    : [];
+  const completedActions = workspace
+    ? listCompletedDevelopmentActions(workspace.actions, 3)
     : [];
   const completedActionCount =
     workspace?.actions.filter(action => action.status === "Complete").length ??
@@ -157,6 +241,12 @@ export function MyDevelopmentView({
       {evidenceError || error ? (
         <div className="inline-error" role="alert">
           <p>{evidenceError || error}</p>
+        </div>
+      ) : null}
+
+      {reloadWarning ? (
+        <div className="inline-error" role="status">
+          <p>{reloadWarning}</p>
         </div>
       ) : null}
 
@@ -353,14 +443,27 @@ export function MyDevelopmentView({
                 {activeActions.length > 0 ? (
                   <ul className="my-dev-story__practice-list">
                     {activeActions.map(action => (
-                      <li key={action.id}>
-                        <span className="my-dev-story__practice-title">
-                          {action.title}
-                        </span>
-                        <span className="muted">
-                          {action.status}
-                          {action.due ? ` · due ${action.due}` : ""}
-                        </span>
+                      <li key={action.id} className="my-dev-story__practice-item">
+                        <div className="my-dev-story__practice-copy">
+                          <span className="my-dev-story__practice-title">
+                            {action.title}
+                          </span>
+                          <span className="muted">
+                            {action.status}
+                            {action.due ? ` · due ${action.due}` : ""}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          className="identity-button is-quiet is-sm my-dev-story__mark-complete"
+                          disabled={Boolean(lifecycleBusyId)}
+                          aria-busy={lifecycleBusyId === action.id}
+                          onClick={() => void completeAction(action)}
+                        >
+                          {lifecycleBusyId === action.id
+                            ? "Saving…"
+                            : "Mark complete"}
+                        </button>
                       </li>
                     ))}
                   </ul>
@@ -371,12 +474,78 @@ export function MyDevelopmentView({
                   </p>
                 )}
 
+                {completionPrompt ? (
+                  <div
+                    className="my-dev-story__completion-prompt"
+                    role="status"
+                    data-testid="my-dev-completion-prompt"
+                  >
+                    <p className="my-dev-story__completion-title">
+                      Action completed.
+                    </p>
+                    <p className="my-dev-story__completion-question">
+                      What did you notice?
+                    </p>
+                    <div className="my-dev-story__actions">
+                      <button
+                        type="button"
+                        className="identity-button is-primary"
+                        onClick={() => {
+                          const prefill: MyDevelopmentReflectionPrefill = {
+                            context: buildCompletedActionReflectionContext(
+                              completionPrompt.title
+                            ),
+                          };
+                          setCompletionPrompt(null);
+                          onReflectAfterComplete?.(prefill);
+                        }}
+                      >
+                        Reflect now
+                      </button>
+                      <button
+                        type="button"
+                        className="identity-button is-quiet"
+                        onClick={() => setCompletionPrompt(null)}
+                      >
+                        Not now
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+
                 {completedActionCount > 0 ? (
-                  <p className="my-dev-story__aside muted">
-                    {completedActionCount} completed
-                    {completedActionCount === 1 ? " action" : " actions"} kept
-                    for your record.
-                  </p>
+                  <div className="my-dev-story__completed">
+                    <button
+                      type="button"
+                      className="identity-text-action"
+                      aria-expanded={showCompleted}
+                      onClick={() => setShowCompleted(current => !current)}
+                    >
+                      {completedActionCount} completed
+                      {completedActionCount === 1 ? " action" : " actions"}
+                      {showCompleted ? " — hide" : " — show recent"}
+                    </button>
+                    {showCompleted ? (
+                      <ul className="my-dev-story__completed-list">
+                        {completedActions.map(action => (
+                          <li key={action.id}>
+                            <span>{action.title}</span>
+                            <button
+                              type="button"
+                              className="identity-button is-quiet is-sm"
+                              disabled={Boolean(lifecycleBusyId)}
+                              aria-busy={lifecycleBusyId === action.id}
+                              onClick={() => void reopenAction(action)}
+                            >
+                              {lifecycleBusyId === action.id
+                                ? "Saving…"
+                                : "Reopen"}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
                 ) : null}
 
                 {addingAction ? (

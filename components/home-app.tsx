@@ -14,7 +14,10 @@ import { DevelopmentUpdateReviewView } from "@/components/development-update-rev
 import { PersonActionsView } from "@/components/person-actions-view";
 import { GlobalIntelligenceView } from "@/components/global-intelligence-view";
 import { SessionsView } from "@/components/sessions-view";
-import { MyDevelopmentView } from "@/components/my-development-view";
+import {
+  MyDevelopmentView,
+  type MyDevelopmentReflectionPrefill,
+} from "@/components/my-development-view";
 import { MyDevelopmentIntelligenceView } from "@/components/my-development-intelligence-view";
 import { MyDevelopmentReflectionView } from "@/components/my-development-reflection-view";
 import { ManagerAureliaView } from "@/components/aurelia/manager-aurelia-view";
@@ -107,6 +110,8 @@ export function HomeApp() {
   const [selfDevelopmentClient, setSelfDevelopmentClient] =
     useState<Client | null>(null);
   const [selfDevelopmentError, setSelfDevelopmentError] = useState("");
+  const [reflectionPrefill, setReflectionPrefill] =
+    useState<MyDevelopmentReflectionPrefill | null>(null);
 
   const coachId = profile?.id ?? "";
   const coachDisplayName = profile?.fullName || "Coach";
@@ -1239,6 +1244,11 @@ export function HomeApp() {
                 void openSelfDevelopmentView("my-development-intelligence");
               }}
               onOpenPersonalReflection={() => {
+                setReflectionPrefill(null);
+                void openSelfDevelopmentView("my-development-reflection");
+              }}
+              onReflectAfterComplete={prefill => {
+                setReflectionPrefill(prefill);
                 void openSelfDevelopmentView("my-development-reflection");
               }}
               onTalkThrough={() => navigate("manager-aurelia")}
@@ -1246,10 +1256,15 @@ export function HomeApp() {
           )}
           {view === "my-development-reflection" && (
             <MyDevelopmentReflectionView
-              onBack={() => navigate("my-development")}
+              onBack={() => {
+                setReflectionPrefill(null);
+                navigate("my-development");
+              }}
               onOpenIntelligence={() => {
                 void openSelfDevelopmentView("my-development-intelligence");
               }}
+              initialPrefill={reflectionPrefill}
+              onPrefillConsumed={() => setReflectionPrefill(null)}
             />
           )}
           {view === "my-development-evidence" && selfDevelopmentClient && (
