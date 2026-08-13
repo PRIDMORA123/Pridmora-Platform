@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ManagerDevelopmentIntelligenceView } from "@/lib/manager-development-intelligence";
 import {
   LEAD_LENS_SEPARATION_COPY,
+  LEAD_OVERVIEW_LENS_NOTE,
   LEAD_PRIVACY_BOUNDARY_COPY,
   STRENGTH_EXPLANATIONS,
   strengthDisplayLabel,
@@ -63,9 +64,9 @@ export function ManagerDevelopmentIntelligenceView({
         <p>{LEAD_PRIVACY_BOUNDARY_COPY}</p>
       </aside>
 
-      {!isOverview ? (
-        <p className="manager-dev-intel__lens-note">{LEAD_LENS_SEPARATION_COPY}</p>
-      ) : null}
+      <p className="manager-dev-intel__lens-note">
+        {isOverview ? LEAD_OVERVIEW_LENS_NOTE : LEAD_LENS_SEPARATION_COPY}
+      </p>
 
       {patternsAvailable ? (
         <PatternsAvailable data={data} isOverview={isOverview} />

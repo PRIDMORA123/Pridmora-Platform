@@ -225,7 +225,10 @@ describe("Manager Aurelia capture UI", () => {
     });
 
     expect(container.textContent).toContain("A hard conversation is coming.");
-    expect(container.textContent).toContain("proposal failed");
+    expect(container.textContent).toContain(
+      "Aurelia couldn't prepare a draft just now. Nothing has been saved. Please try again."
+    );
+    expect(container.textContent).not.toContain("OpenAI");
     expect(apiJson).toHaveBeenCalledTimes(2);
   });
 

@@ -4,6 +4,10 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Modal } from "@/components/ui/modal";
 import { apiJson, errorMessage } from "@/lib/api-client";
 import {
+  MANAGER_AURELIA_CAPTURE_UNAVAILABLE,
+  toManagerAureliaUserError,
+} from "@/lib/ai/manager-aurelia-user-errors";
+import {
   reflectionDraftHasNote,
   type ManagerAureliaActionDraft,
   type ManagerAureliaCaptureType,
@@ -104,7 +108,7 @@ export function ManagerAureliaCapturePanel({
       setPhase("review-action");
     } catch (err) {
       setError(
-        errorMessage(err, "Unable to propose a draft right now. Please try again.")
+        toManagerAureliaUserError(err, MANAGER_AURELIA_CAPTURE_UNAVAILABLE)
       );
       setPhase("choice");
     }

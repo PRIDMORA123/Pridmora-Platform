@@ -418,15 +418,24 @@ export default function OrganisationIntelligencePage() {
   return (
     <OrganisationShell
       compactHeader
-      eyebrow="Organisation intelligence"
-      title="Organisation Intelligence"
-      subtitle="An anonymised view of management development across the organisation."
+      eyebrow="People Development"
+      title="People Development Intelligence"
+      subtitle="Patterns emerging through developmental work with people — separate from Manager Development Intelligence."
     >
       <div className="org-intelligence-layout">
         {loading ? (
-          <p className="organisation-muted">Loading organisation intelligence…</p>
+          <p className="organisation-muted">Loading people development intelligence…</p>
         ) : null}
         {error ? <p className="organisation-error">{error}</p> : null}
+
+        <p className="organisation-muted org-intelligence-lens-note">
+          This lens uses anonymised signals from work with people you support.
+          For privacy-safe patterns from Managers&apos; own development, open{" "}
+          <Link href="/organisation/manager-development">
+            Manager Development
+          </Link>
+          .
+        </p>
 
         <aside className="org-intelligence-privacy-notice" role="note">
           <span className="org-intelligence-privacy-notice__icon" aria-hidden="true">
@@ -437,9 +446,10 @@ export default function OrganisationIntelligencePage() {
               Privacy protected
             </p>
             <p className="org-intelligence-privacy-notice__copy">
-              Organisation Intelligence uses anonymised, aggregated development
-              evidence. Confidential coaching content remains available only to
-              authorised practitioners.
+              People Development Intelligence uses anonymised, aggregated
+              development evidence from relationship work. Confidential content
+              remains available only to authorised practitioners. Individual
+              Manager development records are not shown here.
             </p>
           </div>
         </aside>

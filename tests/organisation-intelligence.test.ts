@@ -448,7 +448,8 @@ describe("organisation intelligence UI and navigation", () => {
   it("adds Organisation Intelligence to organisation navigation", () => {
     const nav = read("components/organisation/organisation-navigation.tsx");
     expect(nav).toContain('/organisation/intelligence');
-    expect(nav).toContain("Intelligence");
+    expect(nav).toContain("People Development");
+    expect(nav).toContain("Manager Development");
   });
 
   it("renders the executive view sections", () => {
@@ -476,10 +477,11 @@ describe("organisation intelligence UI and navigation", () => {
     expect(page).toContain(
       "A minimum of five contributing relationships helps reduce the risk of identifying individuals."
     );
-    expect(page).toContain("Organisation Intelligence");
+    expect(page).toContain("People Development Intelligence");
     expect(page).toContain(
-      "An anonymised view of management development across the organisation."
+      "Patterns emerging through developmental work with people"
     );
+    expect(page).toContain("/organisation/manager-development");
     expect(page).toContain("Building organisation intelligence");
     expect(page).toContain(
       "Your organisation is beginning to build a clearer picture."

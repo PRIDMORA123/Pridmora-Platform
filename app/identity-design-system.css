@@ -11177,6 +11177,49 @@ button.coaching-moments-section__item:focus-visible {
   gap: 0.65rem;
 }
 
+.manager-front-door__prepare-guidance {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--identity-border-soft, #e7ecef);
+  border-left: 3px solid var(--identity-teal, #1a9b94);
+  border-radius: var(--identity-radius-md, 10px);
+  background: var(--identity-white, #ffffff);
+  max-width: 42rem;
+}
+
+.manager-front-door__prepare-guidance h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--identity-navy);
+}
+
+.manager-front-door__prepare-guidance p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--identity-text-body, #344652);
+}
+
+.manager-front-door__prepare-guidance-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.25rem;
+}
+
+.manager-front-door__prepare-guidance-actions .identity-button {
+  min-height: 44px;
+}
+
+@media (max-width: 390px) {
+  .manager-front-door__prepare-guidance-actions .identity-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 /* Stage 2.2 — Manager Aurelia conversation workspace */
 .manager-aurelia {
   box-sizing: border-box;

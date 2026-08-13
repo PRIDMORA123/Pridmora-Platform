@@ -10,7 +10,10 @@ const BASE_NAV: Array<{ href: string; label: string; exact?: boolean }> = [
     href: "/organisation/manager-development",
     label: "Manager Development",
   },
-  { href: "/organisation/intelligence", label: "Intelligence" },
+  {
+    href: "/organisation/intelligence",
+    label: "People Development",
+  },
   { href: "/organisation/members", label: "Members" },
   { href: "/organisation/assignments", label: "Assignments" },
   { href: "/organisation/usage", label: "Usage" },

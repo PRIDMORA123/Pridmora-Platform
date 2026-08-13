@@ -98,10 +98,11 @@ describe("organisation intelligence empty-state UI", () => {
     expect(container.textContent).toContain("Reporting period");
     expect(container.textContent).toContain("Not yet generated");
     expect(container.textContent).toContain("5 relationships");
-    expect(container.textContent).toContain("Organisation Intelligence");
+    expect(container.textContent).toContain("People Development Intelligence");
     expect(container.textContent).toContain(
-      "An anonymised view of management development across the organisation."
+      "Patterns emerging through developmental work with people"
     );
+    expect(container.textContent).toContain("Manager Development");
     expect(container.textContent).toContain(
       "Your organisation is beginning to build a clearer picture."
     );

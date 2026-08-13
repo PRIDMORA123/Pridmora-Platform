@@ -345,7 +345,12 @@ export function IdentityHomePage({
     onPrepare(person);
   }
 
+  const isManager = organisation?.professionalRole === "manager";
+
+  // Managers keep the Stage 2.1 need-led Home even with zero People.
+  // Coach first-user / empty-home flows must not gate Manager first use.
   if (
+    !isManager &&
     showFirstUserOnboarding &&
     onCreateClientForOnboarding &&
     onCreateSessionForOnboarding &&
@@ -376,7 +381,7 @@ export function IdentityHomePage({
     );
   }
 
-  if (showPremiumEmptyHome) {
+  if (!isManager && showPremiumEmptyHome) {
     return (
       <section className="identity-home">
         <PremiumEmptyHome onCreateRelationship={handleStartRelationshipFromEmpty} />
@@ -406,8 +411,6 @@ export function IdentityHomePage({
       )
   );
 
-  const isManager = organisation?.professionalRole === "manager";
-
   function openPrepareSomething() {
     const prepareAttention = viewModel.todayAttention.find(
       item => item.actionKind === "prepare"
@@ -436,6 +439,7 @@ export function IdentityHomePage({
         <ManagerCommandCentre
           greeting={viewModel.greeting}
           coachName={viewModel.coachName}
+          hasManagedPeople={clients.length > 0}
           onTalkThrough={() => onOpenManagerAurelia?.()}
           onPrepareSomething={openPrepareSomething}
           onReflect={() => onOpenMyDevelopmentReflection?.()}

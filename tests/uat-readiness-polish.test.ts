@@ -101,10 +101,10 @@ describe("UAT readiness polish", () => {
 
   it("keeps Organisation Intelligence generation CTA and title", () => {
     const page = read("app/organisation/intelligence/page.tsx");
-    expect(page).toContain('title="Organisation Intelligence"');
+    expect(page).toContain('title="People Development Intelligence"');
     expect(page).toContain("Generate Executive Brief");
     expect(page).toContain("Refresh Intelligence");
-    expect(page).toMatch(/management development/i);
+    expect(page).toMatch(/developmental work with people/i);
   });
 
   it("authenticated platform root prefers the workspace over marketing", () => {

@@ -8,11 +8,15 @@ import {
   type FormEvent,
   type KeyboardEvent,
 } from "react";
-import { apiJson, errorMessage } from "@/lib/api-client";
+import { apiJson } from "@/lib/api-client";
 import {
   MANAGER_AURELIA_MAX_MESSAGE_CHARS,
   type ManagerAureliaTurn,
 } from "@/lib/ai/manager-aurelia-conversation";
+import {
+  MANAGER_AURELIA_CHAT_UNAVAILABLE,
+  toManagerAureliaUserError,
+} from "@/lib/ai/manager-aurelia-user-errors";
 import { BRAND } from "@/lib/brand";
 import { ManagerAureliaCapturePanel } from "@/components/aurelia/manager-aurelia-capture";
 
@@ -99,7 +103,7 @@ export function ManagerAureliaView({
       const reply = data.reply?.trim();
       if (!reply) {
         setDraft(message);
-        setError("Aurelia could not generate a reply. Please try again.");
+        setError(MANAGER_AURELIA_CHAT_UNAVAILABLE);
         return;
       }
 
@@ -110,9 +114,7 @@ export function ManagerAureliaView({
       ]);
     } catch (err) {
       setDraft(message);
-      setError(
-        errorMessage(err, "Aurelia is unavailable right now. Please try again.")
-      );
+      setError(toManagerAureliaUserError(err, MANAGER_AURELIA_CHAT_UNAVAILABLE));
     } finally {
       sendingRef.current = false;
       setSending(false);

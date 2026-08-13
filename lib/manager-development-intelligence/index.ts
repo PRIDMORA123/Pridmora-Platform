@@ -47,6 +47,7 @@ export {
 export {
   LEAD_PRIVACY_BOUNDARY_COPY,
   LEAD_LENS_SEPARATION_COPY,
+  LEAD_OVERVIEW_LENS_NOTE,
   STRENGTH_EXPLANATIONS,
   strengthDisplayLabel,
   themeDescriptionForKey,

@@ -9,7 +9,10 @@ export const LEAD_PRIVACY_BOUNDARY_COPY =
   "Pridmora shows organisation-level development patterns only when enough Managers contribute similar themes. Individual Manager development records, reflections and Aurelia conversations remain private.";
 
 export const LEAD_LENS_SEPARATION_COPY =
-  "This view is about Manager development — what Managers are collectively working on in their own development. It is separate from People Development intelligence based on developmental work with people.";
+  "This view is about Manager development — what Managers are collectively working on in their own development. It is separate from People Development Intelligence, which looks at patterns emerging through developmental work with people.";
+
+export const LEAD_OVERVIEW_LENS_NOTE =
+  "Manager Development shows privacy-safe patterns from Managers’ own development. People Development Intelligence is a separate lens based on work with people.";
 
 export const STRENGTH_EXPLANATIONS: Record<
   ManagerDevelopmentPatternStrength,

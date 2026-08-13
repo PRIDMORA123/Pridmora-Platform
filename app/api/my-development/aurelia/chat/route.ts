@@ -96,7 +96,10 @@ export async function POST(request: Request) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
-      { error: "OpenAI API key is not configured." },
+      {
+        error:
+          "Aurelia couldn't respond just now. Your conversation hasn't been saved. Please try again.",
+      },
       { status: 500 }
     );
   }
@@ -126,7 +129,10 @@ export async function POST(request: Request) {
     const reply = boundManagerAureliaReply(response.output_text ?? "");
     if (!reply) {
       return NextResponse.json(
-        { error: "Aurelia could not generate a reply. Please try again." },
+        {
+          error:
+            "Aurelia couldn't respond just now. Your conversation hasn't been saved. Please try again.",
+        },
         { status: 502 }
       );
     }
@@ -139,7 +145,10 @@ export async function POST(request: Request) {
       errorCode: "MANAGER_AURELIA_AI_FAILED",
     });
     return NextResponse.json(
-      { error: "Aurelia is unavailable right now. Please try again." },
+      {
+        error:
+          "Aurelia couldn't respond just now. Your conversation hasn't been saved. Please try again.",
+      },
       { status: 500 }
     );
   }

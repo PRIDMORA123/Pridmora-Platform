@@ -10,7 +10,7 @@ export const MANAGER_FRONT_DOOR_ACTIONS = [
     id: "talk",
     title: "Talk something through",
     description:
-      "Get coaching support with a situation, decision or challenge.",
+      "Think through a situation, decision or challenge with Aurelia.",
   },
   {
     id: "prepare",
@@ -54,6 +54,7 @@ export type ManagerFrontDoorActionId =
 export function ManagerCommandCentre({
   greeting,
   coachName,
+  hasManagedPeople = true,
   onTalkThrough,
   onPrepareSomething,
   onReflect,
@@ -63,6 +64,8 @@ export function ManagerCommandCentre({
 }: {
   greeting: string;
   coachName: string;
+  /** False when the Manager has no managed People yet (self-dev excluded). */
+  hasManagedPeople?: boolean;
   onTalkThrough: () => void;
   onPrepareSomething: () => void;
   onReflect: () => void;
@@ -74,6 +77,7 @@ export function ManagerCommandCentre({
     null
   );
   const [continueLoaded, setContinueLoaded] = useState(false);
+  const [showPrepareNeedsPerson, setShowPrepareNeedsPerson] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -101,13 +105,37 @@ export function ManagerCommandCentre({
     };
   }, []);
 
+  function handlePrepare() {
+    if (!hasManagedPeople) {
+      setShowPrepareNeedsPerson(true);
+      return;
+    }
+    setShowPrepareNeedsPerson(false);
+    onPrepareSomething();
+  }
+
   const handlers: Record<ManagerFrontDoorActionId, () => void> = {
-    talk: onTalkThrough,
-    prepare: onPrepareSomething,
-    reflect: onReflect,
-    "my-development": onOpenMyDevelopment,
-    "my-people": onOpenPeople,
-    "add-evidence": onAddEvidence,
+    talk: () => {
+      setShowPrepareNeedsPerson(false);
+      onTalkThrough();
+    },
+    prepare: handlePrepare,
+    reflect: () => {
+      setShowPrepareNeedsPerson(false);
+      onReflect();
+    },
+    "my-development": () => {
+      setShowPrepareNeedsPerson(false);
+      onOpenMyDevelopment();
+    },
+    "my-people": () => {
+      setShowPrepareNeedsPerson(false);
+      onOpenPeople();
+    },
+    "add-evidence": () => {
+      setShowPrepareNeedsPerson(false);
+      onAddEvidence();
+    },
   };
 
   const focusLabel =
@@ -176,6 +204,59 @@ export function ManagerCommandCentre({
         </ul>
       </nav>
 
+      {showPrepareNeedsPerson ? (
+        <aside
+          className="manager-front-door__prepare-guidance"
+          role="status"
+          aria-labelledby="prepare-needs-person-title"
+        >
+          <h2 id="prepare-needs-person-title">
+            Person-specific preparation needs someone in My People
+          </h2>
+          <p>
+            Prepare with Aurelia is for a conversation or situation with someone
+            you support. Add them in My People when you are ready — nothing is
+            created automatically.
+          </p>
+          <p>
+            Meanwhile you can talk something through privately, or work on your
+            own development.
+          </p>
+          <div className="manager-front-door__prepare-guidance-actions">
+            <button
+              type="button"
+              className="identity-button"
+              onClick={() => {
+                setShowPrepareNeedsPerson(false);
+                onTalkThrough();
+              }}
+            >
+              Talk something through
+            </button>
+            <button
+              type="button"
+              className="identity-button is-secondary"
+              onClick={() => {
+                setShowPrepareNeedsPerson(false);
+                onOpenMyDevelopment();
+              }}
+            >
+              Open My Development
+            </button>
+            <button
+              type="button"
+              className="identity-button is-secondary"
+              onClick={() => {
+                setShowPrepareNeedsPerson(false);
+                onOpenPeople();
+              }}
+            >
+              Go to My People
+            </button>
+          </div>
+        </aside>
+      ) : null}
+
       <section
         className="manager-command-centre__panel manager-front-door__continue"
         aria-labelledby="continue-development-title"
@@ -223,7 +304,7 @@ export function ManagerCommandCentre({
             ) : null}
             {evidenceCount > 0 ? (
               <div>
-                <dt>Evidence in portfolio</dt>
+                <dt>Development evidence</dt>
                 <dd>
                   {evidenceCount} item{evidenceCount === 1 ? "" : "s"}
                 </dd>

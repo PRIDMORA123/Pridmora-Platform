@@ -38,6 +38,10 @@ describe("Stage 2.1 Manager Front Door", () => {
     expect(today).toContain('organisation?.professionalRole === "manager"');
     expect(today).toContain("<ManagerCommandCentre");
     expect(mcc).toContain("What would help you today?");
+    // Managers skip coach empty/onboarding traps (including zero People).
+    expect(today).toContain("!isManager &&");
+    expect(today).toContain("showFirstUserOnboarding");
+    expect(today).toContain("showPremiumEmptyHome");
     // Non-manager branch keeps the coach-style home header.
     expect(today).toContain("<PremiumWorkspaceHeader");
     const managerBranch = today.indexOf("if (isManager)");
@@ -66,10 +70,12 @@ describe("Stage 2.1 Manager Front Door", () => {
       'onOpenManagerAurelia={() => navigate("manager-aurelia")}'
     );
 
-    // Prepare → existing prepare flow when available, else People.
+    // Prepare → existing prepare flow when a person exists; zero-People guided on Home.
     expect(today).toContain("onPrepareSomething={openPrepareSomething}");
+    expect(today).toContain("hasManagedPeople={clients.length > 0}");
     expect(today).toContain('item.actionKind === "prepare"');
     expect(today).toContain("onPrepare");
+    expect(mcc).toContain("Person-specific preparation needs someone in My People");
 
     // Reflect / evidence → existing My Development self surfaces.
     expect(today).toContain(

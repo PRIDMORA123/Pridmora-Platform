@@ -94,7 +94,10 @@ export async function POST(request: Request) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
-      { error: "OpenAI API key is not configured." },
+      {
+        error:
+          "Aurelia couldn't prepare a draft just now. Nothing has been saved. Please try again.",
+      },
       { status: 500 }
     );
   }

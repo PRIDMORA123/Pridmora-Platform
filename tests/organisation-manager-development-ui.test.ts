@@ -24,6 +24,7 @@ describe("Stage 3.2 Organisation Lead Manager Development UI", () => {
     expect(nav).toContain('/organisation/manager-development');
     expect(nav).toContain("Manager Development");
     expect(nav).toContain('/organisation/intelligence');
+    expect(nav).toContain("People Development");
     expect(nav).toContain("Members");
   });
 
