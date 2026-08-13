@@ -1232,6 +1232,7 @@ export function HomeApp() {
             organisationRole === "manager" && (
               <ManagerAureliaView
                 onBackHome={() => navigate("dashboard")}
+                onViewMyDevelopment={() => navigate("my-development")}
               />
             )}
           {view === "my-development" && (
@@ -1260,6 +1261,9 @@ export function HomeApp() {
                 setReflectionPrefill(null);
                 navigate("my-development");
               }}
+              onOpenEvidence={() => {
+                void openSelfDevelopmentView("my-development-evidence");
+              }}
               onOpenIntelligence={() => {
                 void openSelfDevelopmentView("my-development-intelligence");
               }}
@@ -1275,6 +1279,18 @@ export function HomeApp() {
               onOpenIntelligence={() =>
                 navigate("my-development-intelligence")
               }
+              myDevelopmentNav={{
+                onOpenOverview: () => navigate("my-development"),
+                onOpenReflection: () => {
+                  void openSelfDevelopmentView("my-development-reflection");
+                },
+                onOpenEvidence: () => {
+                  void openSelfDevelopmentView("my-development-evidence");
+                },
+                onOpenIntelligence: () => {
+                  void openSelfDevelopmentView("my-development-intelligence");
+                },
+              }}
             />
           )}
           {view === "my-development-intelligence" && selfDevelopmentClient && (

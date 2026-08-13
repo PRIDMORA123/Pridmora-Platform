@@ -201,8 +201,10 @@ describe("manager repositioning foundations", () => {
 
   it("keeps my development distinct from my people", () => {
     const view = read("components/my-development-view.tsx");
-    expect(view).toContain("My development");
+    const subnav = read("components/my-development-subnav.tsx");
+    expect(view).toContain("My Development");
     expect(view).toContain("kept separate from the people");
+    expect(subnav).toContain("My development sections");
     const shell = read("components/app-shell.tsx");
     expect(shell).toContain("my-development");
     expect(shell).toContain('key: "my-development" as const');

@@ -50,7 +50,22 @@ export type MyDevelopmentReflectionSummary = {
   evidenceDate: string | null;
   capturedAt: string;
   preview: string;
+  /** Concise learning signal from existing observations, when present. */
+  whatNoticed: string | null;
+  /** Concise next-practice signal from existing observations, when present. */
+  practiseNext: string | null;
 };
+
+/** Bound overview learning snippets without inventing content. */
+export function boundMyDevelopmentLearningSnippet(
+  value: string | null | undefined,
+  maxChars = 180
+): string | null {
+  const trimmed = (value ?? "").trim().replace(/\s+/g, " ");
+  if (!trimmed) return null;
+  if (trimmed.length <= maxChars) return trimmed;
+  return `${trimmed.slice(0, Math.max(1, maxChars - 1)).trimEnd()}…`;
+}
 
 export type MyDevelopmentReflectionDetail = MyDevelopmentReflectionSummary & {
   context: string | null;
@@ -332,7 +347,7 @@ function observationValue(
   return found?.description?.trim() || null;
 }
 
-function toReflectionSummaries(
+export function toReflectionSummaries(
   evidence: DevelopmentEvidenceRecord[]
 ): MyDevelopmentReflectionSummary[] {
   return evidence
@@ -348,6 +363,12 @@ function toReflectionSummaries(
       evidenceDate: item.evidenceDate,
       capturedAt: item.capturedAt,
       preview: (item.sourceSummary ?? "").slice(0, 160),
+      whatNoticed: boundMyDevelopmentLearningSnippet(
+        observationValue(item, /noticed/i)
+      ),
+      practiseNext: boundMyDevelopmentLearningSnippet(
+        observationValue(item, /practise next/i)
+      ),
     }));
 }
 
@@ -363,13 +384,13 @@ export function toReflectionDetail(
     evidenceDate: item.evidenceDate,
     capturedAt: item.capturedAt,
     preview: (item.sourceSummary ?? "").slice(0, 160),
+    whatNoticed: observationValue(item, /noticed/i),
+    practiseNext: observationValue(item, /practise next/i),
     context: contextObs?.description?.trim() || null,
     whatHappened: observationValue(item, /what happened/i),
-    whatNoticed: observationValue(item, /noticed/i),
     whatWorked: observationValue(item, /what worked/i),
     whatWasDifficult: observationValue(item, /difficult/i),
     whatDifferently: observationValue(item, /differently/i),
-    practiseNext: observationValue(item, /practise next/i),
     anythingElse: observationValue(item, /anything else/i),
     sourceSummary: item.sourceSummary,
   };

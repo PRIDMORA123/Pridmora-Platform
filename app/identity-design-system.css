@@ -11736,6 +11736,19 @@ button.coaching-moments-section__item:focus-visible {
   line-height: 1.55;
 }
 
+.my-dev-story__learning-block {
+  margin-top: 0.75rem;
+}
+
+.my-dev-story__learning-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(15, 35, 64, 0.58);
+}
+
 .my-dev-story__next-emphasis {
   margin: 0 0 0.45rem;
   font-size: 1.2rem;

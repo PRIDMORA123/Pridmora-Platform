@@ -25,9 +25,16 @@ type Props = {
   open: boolean;
   turns: ManagerAureliaTurn[];
   onClose: () => void;
+  /** Navigation only — does not change capture behaviour. */
+  onViewMyDevelopment?: () => void;
 };
 
-export function ManagerAureliaCapturePanel({ open, turns, onClose }: Props) {
+export function ManagerAureliaCapturePanel({
+  open,
+  turns,
+  onClose,
+  onViewMyDevelopment,
+}: Props) {
   const titleInputRef = useRef<HTMLInputElement>(null);
   const noticeId = useId();
   const [phase, setPhase] = useState<CapturePhase>("closed");
@@ -236,14 +243,29 @@ export function ManagerAureliaCapturePanel({ open, turns, onClose }: Props) {
             </>
           ) : null}
           {phase === "success" ? (
-            <button
-              type="button"
-              className="identity-button is-primary"
-              onClick={closeAll}
-              data-testid="manager-aurelia-capture-success-done"
-            >
-              Done
-            </button>
+            <>
+              {onViewMyDevelopment ? (
+                <button
+                  type="button"
+                  className="identity-button is-secondary"
+                  onClick={() => {
+                    closeAll();
+                    onViewMyDevelopment();
+                  }}
+                  data-testid="manager-aurelia-capture-view-my-development"
+                >
+                  View My Development
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className="identity-button is-primary"
+                onClick={closeAll}
+                data-testid="manager-aurelia-capture-success-done"
+              >
+                Done
+              </button>
+            </>
           ) : null}
         </>
       }

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { IdentityBackLink } from "@/components/identity";
 import type { MyDevelopmentReflectionPrefill } from "@/components/my-development-view";
+import { MyDevelopmentSubnav } from "@/components/my-development-subnav";
 import { apiJson, errorMessage } from "@/lib/api-client";
 import type {
   MyDevelopmentReflectionDetail,
@@ -16,11 +17,13 @@ import type {
 export function MyDevelopmentReflectionView({
   onBack,
   onOpenIntelligence,
+  onOpenEvidence,
   initialPrefill = null,
   onPrefillConsumed,
 }: {
   onBack: () => void;
   onOpenIntelligence?: () => void;
+  onOpenEvidence?: () => void;
   initialPrefill?: MyDevelopmentReflectionPrefill | null;
   onPrefillConsumed?: () => void;
 }) {
@@ -164,18 +167,13 @@ export function MyDevelopmentReflectionView({
         </p>
       </div>
 
-      <nav className="person-development-subnav" aria-label="My development sections">
-        <button
-          type="button"
-          className="person-development-subnav__item"
-          onClick={onBack}
-        >
-          Overview
-        </button>
-        <span className="person-development-subnav__item is-active">
-          Reflection
-        </span>
-      </nav>
+      <MyDevelopmentSubnav
+        active="reflection"
+        onOpenOverview={onBack}
+        onOpenReflection={() => undefined}
+        onOpenEvidence={() => onOpenEvidence?.()}
+        onOpenIntelligence={() => onOpenIntelligence?.()}
+      />
 
       {error ? (
         <div className="inline-error" role="alert">
@@ -185,8 +183,11 @@ export function MyDevelopmentReflectionView({
       {savedMessage ? (
         <div className="panel" style={{ marginBottom: "1rem" }}>
           <p>{savedMessage}</p>
-          {onOpenIntelligence ? (
-            <div className="button-row">
+          <div className="button-row">
+            <button type="button" className="primary" onClick={onBack}>
+              View My Development
+            </button>
+            {onOpenIntelligence ? (
               <button
                 type="button"
                 className="secondary"
@@ -194,8 +195,8 @@ export function MyDevelopmentReflectionView({
               >
                 View development intelligence
               </button>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
         </div>
       ) : null}
 

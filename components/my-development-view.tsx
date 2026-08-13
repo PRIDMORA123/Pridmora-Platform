@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { BRAND } from "@/lib/brand";
 import { apiJson, errorMessage } from "@/lib/api-client";
+import { MyDevelopmentSubnav } from "@/components/my-development-subnav";
 import {
   buildCompletedActionReflectionContext,
   listCompletedDevelopmentActions,
@@ -250,35 +251,13 @@ export function MyDevelopmentView({
         </div>
       ) : null}
 
-      <nav
-        className="person-development-subnav"
-        aria-label="My development sections"
-      >
-        <span className="person-development-subnav__item is-active">
-          Overview
-        </span>
-        <button
-          type="button"
-          className="person-development-subnav__item"
-          onClick={onOpenPersonalReflection}
-        >
-          Reflection
-        </button>
-        <button
-          type="button"
-          className="person-development-subnav__item"
-          onClick={onOpenPersonalEvidence}
-        >
-          Evidence
-        </button>
-        <button
-          type="button"
-          className="person-development-subnav__item"
-          onClick={onOpenPersonalIntelligence}
-        >
-          Development Intelligence
-        </button>
-      </nav>
+      <MyDevelopmentSubnav
+        active="overview"
+        onOpenOverview={() => undefined}
+        onOpenReflection={() => onOpenPersonalReflection?.()}
+        onOpenEvidence={() => onOpenPersonalEvidence?.()}
+        onOpenIntelligence={() => onOpenPersonalIntelligence?.()}
+      />
 
       {loading ? (
         <p className="muted">Loading your development picture…</p>
@@ -616,7 +595,31 @@ export function MyDevelopmentView({
                       {latestReflection.evidenceDate ||
                         latestReflection.capturedAt.slice(0, 10)}
                     </p>
-                    {latestReflection.preview ? (
+                    {latestReflection.whatNoticed ||
+                    latestReflection.practiseNext ? (
+                      <>
+                        {latestReflection.whatNoticed ? (
+                          <div className="my-dev-story__learning-block">
+                            <p className="my-dev-story__learning-label">
+                              What I noticed
+                            </p>
+                            <p className="my-dev-story__learning-preview">
+                              {latestReflection.whatNoticed}
+                            </p>
+                          </div>
+                        ) : null}
+                        {latestReflection.practiseNext ? (
+                          <div className="my-dev-story__learning-block">
+                            <p className="my-dev-story__learning-label">
+                              What I&apos;ll practise next
+                            </p>
+                            <p className="my-dev-story__learning-preview">
+                              {latestReflection.practiseNext}
+                            </p>
+                          </div>
+                        ) : null}
+                      </>
+                    ) : latestReflection.preview ? (
                       <p className="my-dev-story__learning-preview">
                         {latestReflection.preview}
                       </p>

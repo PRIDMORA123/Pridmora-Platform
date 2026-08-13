@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { IdentityBackLink } from "@/components/identity";
 import { DevelopmentIntelligenceEvidencePanel } from "@/components/development-evidence/development-intelligence-evidence-panel";
+import { MyDevelopmentSubnav } from "@/components/my-development-subnav";
 import { apiJson, errorMessage } from "@/lib/api-client";
 import type { MyDevelopmentWorkspace } from "@/lib/my-development/workspace";
 import type { Client } from "@/lib/types";
@@ -87,34 +88,13 @@ export function MyDevelopmentIntelligenceView({
         </p>
       </div>
 
-      <nav className="person-development-subnav" aria-label="My development sections">
-        <button
-          type="button"
-          className="person-development-subnav__item"
-          onClick={onBack}
-        >
-          Overview
-        </button>
-        {onOpenReflection ? (
-          <button
-            type="button"
-            className="person-development-subnav__item"
-            onClick={onOpenReflection}
-          >
-            Reflection
-          </button>
-        ) : null}
-        <button
-          type="button"
-          className="person-development-subnav__item"
-          onClick={onOpenEvidence}
-        >
-          Evidence
-        </button>
-        <span className="person-development-subnav__item is-active">
-          Development Intelligence
-        </span>
-      </nav>
+      <MyDevelopmentSubnav
+        active="intelligence"
+        onOpenOverview={onBack}
+        onOpenReflection={() => onOpenReflection?.()}
+        onOpenEvidence={onOpenEvidence}
+        onOpenIntelligence={() => undefined}
+      />
 
       {error ? (
         <div className="inline-error" role="alert">

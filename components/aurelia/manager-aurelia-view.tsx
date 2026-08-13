@@ -20,7 +20,13 @@ import { ManagerAureliaCapturePanel } from "@/components/aurelia/manager-aurelia
  * Stage 2.2 — live multi-turn Manager Aurelia with deliberate capture (2.2.4).
  * Conversation state is React memory only — never persisted.
  */
-export function ManagerAureliaView({ onBackHome }: { onBackHome: () => void }) {
+export function ManagerAureliaView({
+  onBackHome,
+  onViewMyDevelopment,
+}: {
+  onBackHome: () => void;
+  onViewMyDevelopment?: () => void;
+}) {
   const inputId = useId();
   const noticeId = useId();
   const logRef = useRef<HTMLDivElement>(null);
@@ -274,6 +280,7 @@ export function ManagerAureliaView({ onBackHome }: { onBackHome: () => void }) {
         open={captureOpen}
         turns={turns}
         onClose={() => setCaptureOpen(false)}
+        onViewMyDevelopment={onViewMyDevelopment}
       />
     </section>
   );

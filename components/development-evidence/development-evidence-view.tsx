@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { IdentityBackLink } from "@/components/identity";
 import { EvidenceConfidencePanel } from "@/components/development-evidence/evidence-confidence-panel";
+import { MyDevelopmentSubnav } from "@/components/my-development-subnav";
 import { apiJson, errorMessage } from "@/lib/api-client";
 import {
   MAX_UPLOAD_BYTES,
@@ -55,10 +56,18 @@ export function DevelopmentEvidenceView({
   client,
   onBack,
   onOpenIntelligence,
+  myDevelopmentNav,
 }: {
   client: Client;
   onBack: () => void;
   onOpenIntelligence?: () => void;
+  /** Manager self-development navigation only — never for managed people. */
+  myDevelopmentNav?: {
+    onOpenOverview: () => void;
+    onOpenReflection: () => void;
+    onOpenEvidence: () => void;
+    onOpenIntelligence: () => void;
+  };
 }) {
   const [items, setItems] = useState<EvidenceListItem[]>([]);
   const [confidence, setConfidence] = useState<EvidenceConfidenceResult | null>(
@@ -85,6 +94,9 @@ export function DevelopmentEvidenceView({
   const [progressLabel, setProgressLabel] = useState("");
 
   const displayName = getRelationshipDisplayName(client);
+  // Only rendered when the parent explicitly supplies My Development nav
+  // (home-app self-evidence path). Managed-person evidence never passes this.
+  const showMyDevelopmentSubnav = Boolean(myDevelopmentNav);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -373,6 +385,16 @@ export function DevelopmentEvidenceView({
           document library.
         </p>
       </div>
+
+      {showMyDevelopmentSubnav && myDevelopmentNav ? (
+        <MyDevelopmentSubnav
+          active="evidence"
+          onOpenOverview={myDevelopmentNav.onOpenOverview}
+          onOpenReflection={myDevelopmentNav.onOpenReflection}
+          onOpenEvidence={myDevelopmentNav.onOpenEvidence}
+          onOpenIntelligence={myDevelopmentNav.onOpenIntelligence}
+        />
+      ) : null}
 
       <section className="panel evidence-orientation">
         <div className="evidence-orientation__block">
