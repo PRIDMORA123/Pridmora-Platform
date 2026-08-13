@@ -1,159 +1,245 @@
 "use client";
 
-import type { HomeAttentionItem, HomeWorkspaceViewModel } from "@/lib/home-workspace";
+import { useEffect, useState } from "react";
+import { apiJson } from "@/lib/api-client";
+import { BRAND } from "@/lib/brand";
+import type { MyDevelopmentWorkspace } from "@/lib/my-development/workspace";
 
+export const MANAGER_FRONT_DOOR_ACTIONS = [
+  {
+    id: "talk",
+    title: "Talk something through",
+    description:
+      "Get coaching support with a situation, decision or challenge.",
+  },
+  {
+    id: "prepare",
+    title: "Prepare for something",
+    description:
+      "Get ready for a conversation, meeting or management situation.",
+  },
+  {
+    id: "reflect",
+    title: "Reflect on something",
+    description:
+      "Think through what happened and what you can learn from it.",
+  },
+  {
+    id: "my-development",
+    title: "Work on my development",
+    description:
+      "Continue a development focus, review actions or see progress.",
+  },
+  {
+    id: "my-people",
+    title: "Develop someone in my team",
+    description: "Prepare for and support someone’s development.",
+  },
+  {
+    id: "add-evidence",
+    title: "Add evidence",
+    description:
+      "Add feedback, an assessment, document or other development evidence.",
+  },
+] as const;
+
+export type ManagerFrontDoorActionId =
+  (typeof MANAGER_FRONT_DOOR_ACTIONS)[number]["id"];
+
+/**
+ * Manager Home front door — need-led orientation.
+ * Routes into existing Aurelia/Prepare, Reflection, My Development,
+ * My People and evidence capabilities without new workflows.
+ */
 export function ManagerCommandCentre({
   greeting,
   coachName,
-  todayAttention,
-  recentDevelopment,
-  overview,
-  canOpenOrganisation,
-  onAttentionAction,
-  onOpenPerson,
-  onOpenPeople,
+  onTalkThrough,
+  onPrepareSomething,
+  onReflect,
   onOpenMyDevelopment,
-  onOpenOrganisation,
-  onOpenEvidence,
+  onOpenPeople,
+  onAddEvidence,
 }: {
   greeting: string;
   coachName: string;
-  todayAttention: HomeAttentionItem[];
-  recentDevelopment: HomeWorkspaceViewModel["recentDevelopment"];
-  overview: HomeWorkspaceViewModel["overview"];
-  canOpenOrganisation?: boolean;
-  onAttentionAction: (item: HomeAttentionItem) => void;
-  onOpenPerson: (relationshipId: string) => void;
-  onOpenPeople: () => void;
+  onTalkThrough: () => void;
+  onPrepareSomething: () => void;
+  onReflect: () => void;
   onOpenMyDevelopment: () => void;
-  onOpenOrganisation?: () => void;
-  onOpenEvidence?: () => void;
+  onOpenPeople: () => void;
+  onAddEvidence: () => void;
 }) {
+  const [workspace, setWorkspace] = useState<MyDevelopmentWorkspace | null>(
+    null
+  );
+  const [continueLoaded, setContinueLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadContinue() {
+      try {
+        const data = await apiJson<{ workspace: MyDevelopmentWorkspace }>(
+          "/api/my-development/workspace"
+        );
+        if (!cancelled) {
+          setWorkspace(data.workspace);
+        }
+      } catch {
+        if (!cancelled) {
+          setWorkspace(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setContinueLoaded(true);
+        }
+      }
+    }
+    void loadContinue();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handlers: Record<ManagerFrontDoorActionId, () => void> = {
+    talk: onTalkThrough,
+    prepare: onPrepareSomething,
+    reflect: onReflect,
+    "my-development": onOpenMyDevelopment,
+    "my-people": onOpenPeople,
+    "add-evidence": onAddEvidence,
+  };
+
+  const focusLabel =
+    workspace?.focusItems
+      .map(item => item.title.trim())
+      .filter(Boolean)
+      .slice(0, 2)
+      .join(" · ") || "";
+
+  const nextAction =
+    workspace?.actions.find(
+      action => action.status === "Open" || action.status === "In progress"
+    ) ?? null;
+
+  const recentReflection = workspace?.reflections[0] ?? null;
+  const evidenceCount = workspace?.maturity.totalEvidenceCount ?? 0;
+  const hasContinueDetail = Boolean(
+    focusLabel || nextAction || recentReflection || evidenceCount > 0
+  );
+
   return (
-    <section className="manager-command-centre identity-reveal">
-      <header className="manager-command-centre__header">
-        <p className="eyebrow">Manager command centre</p>
-        <h1>
+    <section
+      className="manager-command-centre manager-front-door identity-reveal"
+      aria-labelledby="manager-front-door-title"
+    >
+      <header className="manager-command-centre__header manager-front-door__header">
+        <p className="eyebrow">Manager home</p>
+        <h1 id="manager-front-door-title">
           {greeting}, {coachName}
         </h1>
+        <p className="manager-front-door__orientation">
+          {BRAND.companyName} supports your development through the management
+          situations you face. Start with what would help you today.
+        </p>
         <p className="manager-command-centre__question">
-          What needs my attention today?
+          What would help you today?
+        </p>
+        <p className="manager-front-door__supporting">
+          Choose what you need and {BRAND.companyName} will help you take the
+          next step.
         </p>
       </header>
 
-      <section
-        className="manager-command-centre__panel"
-        aria-labelledby="today-attention-title"
+      <nav
+        className="manager-front-door__needs"
+        aria-label="What would help you today"
       >
-        <h2 id="today-attention-title">Today</h2>
-        {todayAttention.length === 0 ? (
-          <p className="manager-command-centre__empty">
-            You’re up to date. No immediate development actions need your
-            attention.
+        <ul className="manager-front-door__need-list">
+          {MANAGER_FRONT_DOOR_ACTIONS.map(action => (
+            <li key={action.id}>
+              <button
+                type="button"
+                className="manager-front-door__need"
+                data-front-door-action={action.id}
+                onClick={handlers[action.id]}
+              >
+                <span className="manager-front-door__need-title">
+                  {action.title}
+                </span>
+                <span className="manager-front-door__need-description">
+                  {action.description}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <section
+        className="manager-command-centre__panel manager-front-door__continue"
+        aria-labelledby="continue-development-title"
+      >
+        <h2 id="continue-development-title">Continue your development</h2>
+        <p className="manager-front-door__continue-intro">
+          Connect today’s support with your longer-term development picture.
+        </p>
+
+        {!continueLoaded ? (
+          <p className="muted">Loading your development picture…</p>
+        ) : null}
+
+        {continueLoaded && !hasContinueDetail ? (
+          <p className="muted">
+            No development focus, actions or evidence to show yet. Open My
+            Development when you are ready to build your picture.
           </p>
-        ) : (
-          <ul className="manager-command-centre__attention-list">
-            {todayAttention.map(item => (
-              <li key={item.id} className="manager-command-centre__attention-item">
-                <div>
-                  <p className="manager-command-centre__attention-title">
-                    {item.title}
-                  </p>
-                  <p className="muted">{item.explanation}</p>
-                </div>
-                <button
-                  type="button"
-                  className="identity-button is-primary"
-                  onClick={() => onAttentionAction(item)}
-                >
-                  {item.actionLabel}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+        ) : null}
 
-      <section
-        className="manager-command-centre__panel"
-        aria-labelledby="what-changed-title"
-      >
-        <h2 id="what-changed-title">What has changed</h2>
-        {recentDevelopment.length === 0 ? (
-          <p className="muted">No recent development changes to highlight yet.</p>
-        ) : (
-          <ul className="manager-command-centre__change-list">
-            {recentDevelopment.map(item => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  className="manager-command-centre__change-link"
-                  onClick={() => onOpenPerson(item.relationshipId)}
-                >
-                  <strong>{item.personName}</strong>
-                  <span>{item.change}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+        {continueLoaded && hasContinueDetail ? (
+          <dl className="manager-front-door__continue-facts">
+            {focusLabel ? (
+              <div>
+                <dt>Current focus</dt>
+                <dd>{focusLabel}</dd>
+              </div>
+            ) : null}
+            {nextAction ? (
+              <div>
+                <dt>Next action</dt>
+                <dd>{nextAction.title}</dd>
+              </div>
+            ) : null}
+            {recentReflection ? (
+              <div>
+                <dt>Recent reflection</dt>
+                <dd>
+                  {recentReflection.title}
+                  {recentReflection.preview
+                    ? ` — ${recentReflection.preview}`
+                    : ""}
+                </dd>
+              </div>
+            ) : null}
+            {evidenceCount > 0 ? (
+              <div>
+                <dt>Evidence in portfolio</dt>
+                <dd>
+                  {evidenceCount} item{evidenceCount === 1 ? "" : "s"}
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+        ) : null}
 
-      <section
-        className="manager-command-centre__panel manager-command-centre__picture"
-        aria-labelledby="development-picture-title"
-      >
-        <h2 id="development-picture-title">Your development picture</h2>
-        <dl className="manager-command-centre__metrics">
-          <div>
-            <dt>People supported</dt>
-            <dd>{overview.activeRelationships}</dd>
-          </div>
-          <div>
-            <dt>Conversations in progress</dt>
-            <dd>{overview.conversationsInProgress}</dd>
-          </div>
-          <div>
-            <dt>Awaiting preparation</dt>
-            <dd>{overview.awaitingPreparation}</dd>
-          </div>
-          <div>
-            <dt>Recent conversations</dt>
-            <dd>{overview.recentReflections}</dd>
-          </div>
-        </dl>
-      </section>
-
-      <section
-        className="manager-command-centre__panel"
-        aria-labelledby="quick-actions-title"
-      >
-        <h2 id="quick-actions-title">Quick actions</h2>
-        <div className="manager-command-centre__actions">
-          <button type="button" className="secondary" onClick={onOpenPeople}>
-            Open People
-          </button>
+        <div className="manager-front-door__continue-actions">
           <button
             type="button"
-            className="secondary"
+            className="identity-button is-secondary"
             onClick={onOpenMyDevelopment}
           >
-            My Development
+            View My Development
           </button>
-          {canOpenOrganisation && onOpenOrganisation ? (
-            <button
-              type="button"
-              className="secondary"
-              onClick={onOpenOrganisation}
-            >
-              Organisation Intelligence
-            </button>
-          ) : null}
-          {onOpenEvidence ? (
-            <button type="button" className="secondary" onClick={onOpenEvidence}>
-              Review Development Evidence
-            </button>
-          ) : null}
         </div>
       </section>
     </section>

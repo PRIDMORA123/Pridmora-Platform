@@ -55,6 +55,8 @@ export function IdentityHomePage({
   onOpenSession,
   onOpenIntelligence,
   onOpenMyDevelopment,
+  onOpenMyDevelopmentReflection,
+  onOpenMyDevelopmentEvidence,
   onReviewDevelopmentUpdate,
   onOpenReport,
   onCreatePerson,
@@ -74,6 +76,10 @@ export function IdentityHomePage({
   onOpenIntelligence?: () => void;
   /** Manager own development — must not open team Development Intelligence. */
   onOpenMyDevelopment?: () => void;
+  /** Manager personal reflection — existing My Development reflection surface. */
+  onOpenMyDevelopmentReflection?: () => void;
+  /** Manager personal evidence upload — existing My Development evidence surface. */
+  onOpenMyDevelopmentEvidence?: () => void;
   onReviewDevelopmentUpdate?: (client: Client, updateId: string) => void;
   onOpenReport?: (client: Client, reportId: string) => void;
   onCreatePerson?: () => void;
@@ -399,6 +405,21 @@ export function IdentityHomePage({
 
   const isManager = organisation?.professionalRole === "manager";
 
+  function openPrepareSomething() {
+    const prepareAttention = viewModel.todayAttention.find(
+      item => item.actionKind === "prepare"
+    );
+    if (prepareAttention) {
+      runAttentionAction(prepareAttention);
+      return;
+    }
+    if (viewModel.nextBestAction?.actionKind === "prepare") {
+      runAttentionAction(viewModel.nextBestAction);
+      return;
+    }
+    onViewPeople?.();
+  }
+
   if (isManager) {
     return (
       <section className="identity-home identity-reveal">
@@ -412,33 +433,12 @@ export function IdentityHomePage({
         <ManagerCommandCentre
           greeting={viewModel.greeting}
           coachName={viewModel.coachName}
-          todayAttention={viewModel.todayAttention}
-          recentDevelopment={viewModel.recentDevelopment}
-          overview={viewModel.overview}
-          canOpenOrganisation={Boolean(organisation?.showOrganisationNav)}
-          onAttentionAction={handleAttentionItem}
-          onOpenPerson={relationshipId => {
-            const client = clientById(relationshipId);
-            if (client) onOpenClient(client);
-          }}
-          onOpenPeople={() => onViewPeople?.()}
+          onTalkThrough={() => onViewPeople?.()}
+          onPrepareSomething={openPrepareSomething}
+          onReflect={() => onOpenMyDevelopmentReflection?.()}
           onOpenMyDevelopment={() => onOpenMyDevelopment?.()}
-          onOpenOrganisation={() => {
-            window.location.href = "/organisation/intelligence";
-          }}
-          onOpenEvidence={
-            awaitingUpdates.length > 0
-              ? () => {
-                  const first = awaitingUpdates[0];
-                  const client = first ? clientById(first.clientId) : undefined;
-                  if (client && first && onReviewDevelopmentUpdate) {
-                    onReviewDevelopmentUpdate(client, first.update.id);
-                  } else {
-                    onViewPeople?.();
-                  }
-                }
-              : () => onViewPeople?.()
-          }
+          onOpenPeople={() => onViewPeople?.()}
+          onAddEvidence={() => onOpenMyDevelopmentEvidence?.()}
         />
       </section>
     );

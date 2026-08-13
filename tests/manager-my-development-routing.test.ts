@@ -29,7 +29,8 @@ describe("Manager My Development routing", () => {
     const mcc = read("components/identity/manager-command-centre.tsx");
 
     expect(mcc).toContain("onOpenMyDevelopment");
-    expect(mcc).toContain("My Development");
+    expect(mcc).toContain("View My Development");
+    expect(mcc).toContain("Work on my development");
     expect(today).toContain("onOpenMyDevelopment={() => onOpenMyDevelopment?.()}");
     expect(today).not.toContain(
       "onOpenMyDevelopment={() => onOpenIntelligence?.()}"

@@ -1145,6 +1145,12 @@ export function HomeApp() {
               }}
               onOpenIntelligence={() => navigate("global-intelligence")}
               onOpenMyDevelopment={() => navigate("my-development")}
+              onOpenMyDevelopmentReflection={() => {
+                void openSelfDevelopmentView("my-development-reflection");
+              }}
+              onOpenMyDevelopmentEvidence={() => {
+                void openSelfDevelopmentView("my-development-evidence");
+              }}
               onReviewDevelopmentUpdate={(client, updateId) => {
                 setSelectedId(client.id);
                 setFocusUpdateId(updateId);
