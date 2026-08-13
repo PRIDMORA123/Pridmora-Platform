@@ -89,7 +89,7 @@ describe("My Development self evidence wiring", () => {
       'onOpenIntelligence={() => navigate("intelligence")}'
     );
     expect(myDev).toContain("onOpenPersonalIntelligence");
-    expect(myDev).toContain("View development intelligence");
+    expect(myDev).toContain("Explore Development Intelligence");
     expect(myDev).toContain("Development Intelligence");
     expect(myDev).toContain("onOpenPersonalReflection");
     expect(evidence).toContain("View development intelligence");

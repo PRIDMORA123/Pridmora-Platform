@@ -3,6 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { BRAND } from "@/lib/brand";
 import { apiJson, errorMessage } from "@/lib/api-client";
+import {
+  listActiveDevelopmentActions,
+  resolveMyDevelopmentNextStep,
+} from "@/lib/my-development/next-step";
 import type { MyDevelopmentWorkspace } from "@/lib/my-development/workspace";
 import { useOrganisation } from "@/lib/organisations/organisation-context";
 import { resolveProductLanguage } from "@/lib/role-language";
@@ -17,39 +21,28 @@ const FOCUS_SUGGESTIONS = [
   "Coaching skills",
 ];
 
-const STATUS_LABEL: Record<string, string> = {
-  uploaded: "Uploaded",
-  analysing: "Analysing",
-  ready: "Ready",
-  needs_attention: "Needs attention",
-};
-
 /**
- * Manager My Development overview — focus, reflection, strengths signals,
- * actions, evidence and intelligence entry points for the current organisation.
+ * Manager My Development overview — one coherent development story for the
+ * current organisation (Stage 2.3.1 presentation hierarchy).
  */
 export function MyDevelopmentView({
-  onOpenPeople,
-  onSwitchToPersonal,
-  onOpenTeamIntelligence,
   onOpenPersonalEvidence,
   onOpenPersonalIntelligence,
   onOpenPersonalReflection,
-  isPersonalWorkspace,
+  onTalkThrough,
   evidenceError = "",
 }: {
-  onOpenPeople: () => void;
-  onSwitchToPersonal?: () => void;
-  onOpenTeamIntelligence?: () => void;
   onOpenPersonalEvidence?: () => void;
   onOpenPersonalIntelligence?: () => void;
   onOpenPersonalReflection?: () => void;
-  isPersonalWorkspace: boolean;
+  onTalkThrough?: () => void;
   evidenceError?: string;
 }) {
   const organisation = useOrganisation();
   const language = resolveProductLanguage(organisation?.professionalRole);
-  const [workspace, setWorkspace] = useState<MyDevelopmentWorkspace | null>(null);
+  const [workspace, setWorkspace] = useState<MyDevelopmentWorkspace | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [focusDraft, setFocusDraft] = useState("");
@@ -58,6 +51,7 @@ export function MyDevelopmentView({
   const [actionTitle, setActionTitle] = useState("");
   const [actionBusy, setActionBusy] = useState(false);
   const [editingFocus, setEditingFocus] = useState(false);
+  const [addingAction, setAddingAction] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -119,6 +113,7 @@ export function MyDevelopmentView({
         }),
       });
       setActionTitle("");
+      setAddingAction(false);
       await load();
     } catch (err) {
       setError(errorMessage(err, "Unable to add action."));
@@ -129,16 +124,33 @@ export function MyDevelopmentView({
 
   const maturity = workspace?.maturity;
   const isEmpty = maturity?.isEmpty ?? !loading;
+  const primaryFocus = focusItems[0] ?? "";
+  const secondaryFocuses = focusItems.slice(1);
+  const activeActions = workspace
+    ? listActiveDevelopmentActions(workspace.actions, 3)
+    : [];
+  const completedActionCount =
+    workspace?.actions.filter(action => action.status === "Complete").length ??
+    0;
+  const latestReflection = workspace?.reflections[0] ?? null;
+  const nextStep = resolveMyDevelopmentNextStep({
+    focusCount: focusItems.length,
+    actions: workspace?.actions ?? [],
+  });
+  const showNoticing =
+    Boolean(maturity) &&
+    !isEmpty &&
+    ((maturity?.includedSourceCount ?? 0) > 0 ||
+      (workspace?.intelligencePatterns.length ?? 0) > 0);
 
   return (
-    <section className="page identity-reveal">
-      <div className="page-heading">
+    <section className="page identity-reveal my-dev-story">
+      <div className="page-heading my-dev-story__intro">
         <p className="eyebrow">{language.myDevelopmentLabel}</p>
         <h1>My Development</h1>
         <p>
-          Build a clearer picture of how you lead, what you&apos;re developing and
-          what you&apos;re learning over time — separate from the people you manage
-          or support. Your record contributes never to people you manage.
+          Your own space to develop how you lead — kept separate from the people
+          you manage.
         </p>
       </div>
 
@@ -148,8 +160,13 @@ export function MyDevelopmentView({
         </div>
       ) : null}
 
-      <nav className="person-development-subnav" aria-label="My development sections">
-        <span className="person-development-subnav__item is-active">Overview</span>
+      <nav
+        className="person-development-subnav"
+        aria-label="My development sections"
+      >
+        <span className="person-development-subnav__item is-active">
+          Overview
+        </span>
         <button
           type="button"
           className="person-development-subnav__item"
@@ -173,309 +190,395 @@ export function MyDevelopmentView({
         </button>
       </nav>
 
-      {loading ? <p className="muted">Loading your development picture…</p> : null}
-
-      {!loading && isEmpty ? (
-        <section className="panel" style={{ marginBottom: "1.5rem" }}>
-          <p className="card-label">Get started</p>
-          <h2 className="identity-subheading">Build your development picture</h2>
-          <p className="muted">
-            Start with any of these. You do not need to upload evidence first.
-          </p>
-          <div className="button-row">
-            <button
-              type="button"
-              className="primary"
-              onClick={() => setEditingFocus(true)}
-            >
-              Set a development focus
-            </button>
-            <button
-              type="button"
-              className="secondary"
-              onClick={onOpenPersonalReflection}
-            >
-              Reflect on my development
-            </button>
-            <button
-              type="button"
-              className="secondary"
-              onClick={onOpenPersonalEvidence}
-            >
-              Add evidence
-            </button>
-          </div>
-        </section>
+      {loading ? (
+        <p className="muted">Loading your development picture…</p>
       ) : null}
 
-      {!loading && maturity && !isEmpty ? (
-        <section className="panel" style={{ marginBottom: "1.5rem" }}>
-          <p className="card-label">Development Intelligence</p>
-          <h2 className="identity-subheading">{maturity.headline}</h2>
-          <p className="muted">{maturity.supportCopy}</p>
-          <p className="muted">
-            Confidence: {maturity.confidenceLabel}
-            {maturity.includedSourceCount > 0
-              ? ` · ${maturity.includedSourceCount} included source${
-                  maturity.includedSourceCount === 1 ? "" : "s"
-                }`
-              : null}
-          </p>
-          <div className="button-row">
-            <button
-              type="button"
-              className="primary"
-              onClick={onOpenPersonalIntelligence}
-            >
-              View development intelligence
-            </button>
-          </div>
-        </section>
-      ) : null}
+      {!loading ? (
+        <div className="my-dev-story__flow">
+          <section
+            className="my-dev-story__section my-dev-story__section--focus"
+            aria-labelledby="my-dev-focus-heading"
+          >
+            <p className="my-dev-story__label">Your focus</p>
+            <h2 id="my-dev-focus-heading" className="my-dev-story__heading">
+              What are you working on?
+            </h2>
 
-      <div className="two-grid">
-        <article className="panel">
-          <p className="card-label">Current development focus</p>
-          <h2 className="identity-subheading">What are you working on?</h2>
-          {focusItems.length === 0 && !editingFocus ? (
-            <p className="muted">No development priorities set yet.</p>
-          ) : (
-            <ul className="development-evidence-list">
-              {focusItems.map(item => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          )}
-          {editingFocus ? (
-            <>
-              <label className="field">
-                <span>Add a priority</span>
-                <input
-                  value={focusDraft}
-                  onChange={event => setFocusDraft(event.target.value)}
-                  placeholder="e.g. Delegation"
-                />
-              </label>
-              <div className="button-row">
-                {FOCUS_SUGGESTIONS.map(suggestion => (
+            {focusItems.length === 0 && !editingFocus ? (
+              <>
+                <p className="my-dev-story__empty">
+                  Start by choosing what you want to develop.
+                </p>
+                <div className="my-dev-story__actions">
                   <button
-                    key={suggestion}
                     type="button"
-                    className="secondary"
-                    disabled={focusItems.includes(suggestion)}
-                    onClick={() => {
-                      if (!focusItems.includes(suggestion)) {
-                        setFocusItems(current => [...current, suggestion]);
-                      }
-                    }}
+                    className="identity-button is-primary"
+                    onClick={() => setEditingFocus(true)}
                   >
-                    {suggestion}
+                    Set your development focus
                   </button>
-                ))}
-              </div>
-              <div className="button-row">
-                <button
-                  type="button"
-                  className="secondary"
-                  disabled={!focusDraft.trim()}
-                  onClick={() => {
-                    const next = focusDraft.trim();
-                    if (!next || focusItems.includes(next)) return;
-                    setFocusItems(current => [...current, next]);
-                    setFocusDraft("");
-                  }}
-                >
-                  Add
-                </button>
-                <button
-                  type="button"
-                  className="primary"
-                  disabled={focusBusy}
-                  onClick={() => void saveFocus(focusItems)}
-                >
-                  Save focus
-                </button>
-                <button
-                  type="button"
-                  className="secondary"
-                  onClick={() => {
-                    setEditingFocus(false);
-                    setFocusItems(workspace?.focusItems.map(i => i.title) ?? []);
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-              {focusItems.length > 0 ? (
-                <div className="button-row">
-                  {focusItems.map(item => (
+                </div>
+                {isEmpty ? (
+                  <p className="my-dev-story__support muted">
+                    {BRAND.companyName} will help you turn that focus into
+                    practice and learning over time.
+                  </p>
+                ) : null}
+              </>
+            ) : null}
+
+            {focusItems.length > 0 && !editingFocus ? (
+              <>
+                <p className="my-dev-story__primary-focus">{primaryFocus}</p>
+                {secondaryFocuses.length > 0 ? (
+                  <ul className="my-dev-story__secondary-list">
+                    {secondaryFocuses.map(item => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                ) : null}
+                <div className="my-dev-story__actions">
+                  <button
+                    type="button"
+                    className="identity-button is-quiet"
+                    onClick={() => setEditingFocus(true)}
+                  >
+                    Edit focus
+                  </button>
+                </div>
+              </>
+            ) : null}
+
+            {editingFocus ? (
+              <div className="my-dev-story__edit">
+                <label className="field">
+                  <span>Add a priority</span>
+                  <input
+                    value={focusDraft}
+                    onChange={event => setFocusDraft(event.target.value)}
+                    placeholder="e.g. Delegation"
+                  />
+                </label>
+                <div className="my-dev-story__suggestions">
+                  {FOCUS_SUGGESTIONS.map(suggestion => (
                     <button
-                      key={item}
+                      key={suggestion}
                       type="button"
-                      className="secondary"
-                      onClick={() =>
-                        setFocusItems(current => current.filter(value => value !== item))
-                      }
+                      className="identity-button is-secondary is-sm"
+                      disabled={focusItems.includes(suggestion)}
+                      onClick={() => {
+                        if (!focusItems.includes(suggestion)) {
+                          setFocusItems(current => [...current, suggestion]);
+                        }
+                      }}
                     >
-                      Remove {item}
+                      {suggestion}
                     </button>
                   ))}
                 </div>
+                {focusItems.length > 0 ? (
+                  <ul className="my-dev-story__edit-list">
+                    {focusItems.map(item => (
+                      <li key={item}>
+                        <span>{item}</span>
+                        <button
+                          type="button"
+                          className="identity-text-action"
+                          onClick={() =>
+                            setFocusItems(current =>
+                              current.filter(value => value !== item)
+                            )
+                          }
+                        >
+                          Remove
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                <div className="my-dev-story__actions">
+                  <button
+                    type="button"
+                    className="identity-button is-secondary"
+                    disabled={!focusDraft.trim()}
+                    onClick={() => {
+                      const next = focusDraft.trim();
+                      if (!next || focusItems.includes(next)) return;
+                      setFocusItems(current => [...current, next]);
+                      setFocusDraft("");
+                    }}
+                  >
+                    Add
+                  </button>
+                  <button
+                    type="button"
+                    className="identity-button is-primary"
+                    disabled={focusBusy}
+                    onClick={() => void saveFocus(focusItems)}
+                  >
+                    Save focus
+                  </button>
+                  <button
+                    type="button"
+                    className="identity-button is-quiet"
+                    onClick={() => {
+                      setEditingFocus(false);
+                      setFocusItems(
+                        workspace?.focusItems.map(item => item.title) ?? []
+                      );
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : null}
+          </section>
+
+          {!isEmpty ? (
+            <>
+              <section
+                className="my-dev-story__section"
+                aria-labelledby="my-dev-practising-heading"
+              >
+                <p className="my-dev-story__label">What you&apos;re practising</p>
+                <h2
+                  id="my-dev-practising-heading"
+                  className="my-dev-story__heading"
+                >
+                  The things you&apos;re actively trying or changing
+                </h2>
+
+                {activeActions.length > 0 ? (
+                  <ul className="my-dev-story__practice-list">
+                    {activeActions.map(action => (
+                      <li key={action.id}>
+                        <span className="my-dev-story__practice-title">
+                          {action.title}
+                        </span>
+                        <span className="muted">
+                          {action.status}
+                          {action.due ? ` · due ${action.due}` : ""}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="my-dev-story__empty muted">
+                    No active practice yet. When you are ready, add something
+                    small to try.
+                  </p>
+                )}
+
+                {completedActionCount > 0 ? (
+                  <p className="my-dev-story__aside muted">
+                    {completedActionCount} completed
+                    {completedActionCount === 1 ? " action" : " actions"} kept
+                    for your record.
+                  </p>
+                ) : null}
+
+                {addingAction ? (
+                  <div className="my-dev-story__edit">
+                    <label className="field">
+                      <span>Add something to practise</span>
+                      <input
+                        value={actionTitle}
+                        onChange={event => setActionTitle(event.target.value)}
+                        placeholder="e.g. Practise a clearer ask when delegating"
+                      />
+                    </label>
+                    <div className="my-dev-story__actions">
+                      <button
+                        type="button"
+                        className="identity-button is-secondary"
+                        disabled={
+                          actionBusy || !actionTitle.trim() || !workspace
+                        }
+                        onClick={() => void addAction()}
+                      >
+                        Add action
+                      </button>
+                      <button
+                        type="button"
+                        className="identity-button is-quiet"
+                        disabled={actionBusy}
+                        onClick={() => {
+                          setAddingAction(false);
+                          setActionTitle("");
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="my-dev-story__actions">
+                    <button
+                      type="button"
+                      className="identity-button is-quiet"
+                      onClick={() => setAddingAction(true)}
+                    >
+                      Add something to practise
+                    </button>
+                  </div>
+                )}
+              </section>
+
+              <section
+                className="my-dev-story__section"
+                aria-labelledby="my-dev-learning-heading"
+              >
+                <p className="my-dev-story__label">What you&apos;re learning</p>
+                <h2
+                  id="my-dev-learning-heading"
+                  className="my-dev-story__heading"
+                >
+                  Recent reflection
+                </h2>
+
+                {latestReflection ? (
+                  <article className="my-dev-story__learning">
+                    <h3 className="my-dev-story__learning-title">
+                      {latestReflection.title}
+                    </h3>
+                    <p className="my-dev-story__learning-date muted">
+                      {latestReflection.evidenceDate ||
+                        latestReflection.capturedAt.slice(0, 10)}
+                    </p>
+                    {latestReflection.preview ? (
+                      <p className="my-dev-story__learning-preview">
+                        {latestReflection.preview}
+                      </p>
+                    ) : null}
+                  </article>
+                ) : (
+                  <p className="my-dev-story__empty muted">
+                    No reflections yet. A short reflection is often the clearest
+                    way to notice what you are learning.
+                  </p>
+                )}
+
+                <div className="my-dev-story__actions">
+                  <button
+                    type="button"
+                    className="identity-text-action"
+                    onClick={onOpenPersonalReflection}
+                  >
+                    See reflections
+                  </button>
+                </div>
+              </section>
+
+              <section
+                className="my-dev-story__section my-dev-story__section--next"
+                aria-labelledby="my-dev-next-heading"
+              >
+                <p className="my-dev-story__label">Your next step</p>
+                <h2 id="my-dev-next-heading" className="my-dev-story__heading">
+                  What to pay attention to now
+                </h2>
+
+                {nextStep.kind === "action" ? (
+                  <>
+                    <p className="my-dev-story__next-emphasis">
+                      {nextStep.action.title}
+                    </p>
+                    <p className="muted">
+                      Keep practising this until it feels more natural.
+                      {nextStep.action.due
+                        ? ` Due ${nextStep.action.due}.`
+                        : ""}
+                    </p>
+                  </>
+                ) : null}
+
+                {nextStep.kind === "reflect-or-talk" ? (
+                  <>
+                    <p className="my-dev-story__empty">
+                      You have a focus. Capture what you are noticing, or talk
+                      something through.
+                    </p>
+                    <div className="my-dev-story__actions">
+                      <button
+                        type="button"
+                        className="identity-button is-primary"
+                        onClick={onOpenPersonalReflection}
+                      >
+                        Reflect on something
+                      </button>
+                      {onTalkThrough ? (
+                        <button
+                          type="button"
+                          className="identity-text-action"
+                          onClick={onTalkThrough}
+                        >
+                          Talk something through
+                        </button>
+                      ) : null}
+                    </div>
+                  </>
+                ) : null}
+
+                {nextStep.kind === "set-focus" ? (
+                  <>
+                    <p className="my-dev-story__empty">
+                      Set a development focus to give this space a clear
+                      direction.
+                    </p>
+                    <div className="my-dev-story__actions">
+                      <button
+                        type="button"
+                        className="identity-button is-primary"
+                        onClick={() => setEditingFocus(true)}
+                      >
+                        Set your development focus
+                      </button>
+                    </div>
+                  </>
+                ) : null}
+              </section>
+
+              {showNoticing && maturity ? (
+                <section
+                  className="my-dev-story__section my-dev-story__section--noticing"
+                  aria-labelledby="my-dev-noticing-heading"
+                >
+                  <p className="my-dev-story__label">
+                    What {BRAND.companyName} is noticing
+                  </p>
+                  <h2
+                    id="my-dev-noticing-heading"
+                    className="my-dev-story__heading"
+                  >
+                    {maturity.headline}
+                  </h2>
+                  <p className="muted">
+                    Evidence before certainty — treat this as emerging, not
+                    complete. Observations strengthen as your reflections and
+                    evidence develop.
+                  </p>
+                  {workspace && workspace.intelligencePatterns.length > 0 ? (
+                    <p className="my-dev-story__pattern">
+                      {workspace.intelligencePatterns[0]?.statement}
+                    </p>
+                  ) : null}
+                  <div className="my-dev-story__actions">
+                    <button
+                      type="button"
+                      className="identity-text-action"
+                      onClick={onOpenPersonalIntelligence}
+                    >
+                      Explore Development Intelligence
+                    </button>
+                  </div>
+                </section>
               ) : null}
             </>
-          ) : (
-            <div className="button-row">
-              <button
-                type="button"
-                className="primary"
-                onClick={() => setEditingFocus(true)}
-              >
-                {focusItems.length ? "Edit focus" : "Set a development focus"}
-              </button>
-            </div>
-          )}
-        </article>
-
-        <article className="panel">
-          <p className="card-label">Reflection</p>
-          <h2 className="identity-subheading">Reflect on my development</h2>
-          <p className="muted">
-            Capture what happened and what you are learning — as many dated
-            reflections as you need over time.
-          </p>
-          {workspace && workspace.reflections.length > 0 ? (
-            <p className="muted">
-              {workspace.reflections.length} reflection
-              {workspace.reflections.length === 1 ? "" : "s"} recorded.
-            </p>
-          ) : (
-            <p className="muted">No reflections yet.</p>
-          )}
-          <div className="button-row">
-            <button
-              type="button"
-              className="primary"
-              onClick={onOpenPersonalReflection}
-            >
-              Reflect on my development
-            </button>
-          </div>
-        </article>
-
-        <article className="panel">
-          <p className="card-label">Actions</p>
-          <h2 className="identity-subheading">What will you practise?</h2>
-          {workspace && workspace.actions.length > 0 ? (
-            <ul className="development-evidence-list">
-              {workspace.actions.slice(0, 5).map(action => (
-                <li key={action.id}>
-                  <strong>{action.title}</strong>
-                  <span className="muted">
-                    {" "}
-                    — {action.status}
-                    {action.due ? ` · due ${action.due}` : ""}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="muted">No actions yet.</p>
-          )}
-          <label className="field">
-            <span>Add an action</span>
-            <input
-              value={actionTitle}
-              onChange={event => setActionTitle(event.target.value)}
-              placeholder="e.g. Practise a clearer ask when delegating"
-            />
-          </label>
-          <div className="button-row">
-            <button
-              type="button"
-              className="primary"
-              disabled={actionBusy || !actionTitle.trim() || !workspace}
-              onClick={() => void addAction()}
-            >
-              Add action
-            </button>
-          </div>
-        </article>
-
-        <article className="panel">
-          <p className="card-label">Evidence</p>
-          <h2 className="identity-subheading">Inputs to your picture</h2>
-          <p className="muted">
-            Assessments, feedback and documents feed Development Intelligence —
-            they are not the intelligence itself.
-          </p>
-          {workspace && workspace.evidence.length > 0 ? (
-            <ul className="development-evidence-list">
-              {workspace.evidence.slice(0, 5).map(item => (
-                <li key={item.id}>
-                  <strong>{item.title}</strong>
-                  <span className="muted">
-                    {" "}
-                    — {STATUS_LABEL[item.statusBucket] ?? item.statusBucket}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="muted">No evidence added yet.</p>
-          )}
-          <div className="button-row">
-            <button
-              type="button"
-              className="primary"
-              onClick={onOpenPersonalEvidence}
-            >
-              Add evidence
-            </button>
-          </div>
-        </article>
-      </div>
-
-      {workspace && workspace.intelligencePatterns.length > 0 ? (
-        <section className="panel" style={{ marginTop: "1.5rem" }}>
-          <p className="card-label">Emerging from reflections</p>
-          <h2 className="identity-subheading">Themes appearing over time</h2>
-          <ul className="development-evidence-list">
-            {workspace.intelligencePatterns.slice(0, 5).map(pattern => (
-              <li key={`${pattern.theme}-${pattern.occurrenceCount}`}>
-                {pattern.statement}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      <section className="panel" style={{ marginTop: "1.5rem" }}>
-        <p className="card-label">{language.myPeopleLabel}</p>
-        <h2 className="identity-subheading">Develop others</h2>
-        <p className="muted">
-          {BRAND.intelligenceName} helps you prepare and interpret development
-          for the people you support — without mixing their records into your own.
-        </p>
-        <div className="button-row">
-          <button type="button" className="secondary" onClick={onOpenPeople}>
-            View {language.myPeopleLabel.toLowerCase()}
-          </button>
-          {onOpenTeamIntelligence ? (
-            <button
-              type="button"
-              className="secondary"
-              onClick={onOpenTeamIntelligence}
-            >
-              Team Intelligence
-            </button>
-          ) : null}
-          {!isPersonalWorkspace && onSwitchToPersonal ? (
-            <button type="button" className="secondary" onClick={onSwitchToPersonal}>
-              Open personal workspace
-            </button>
           ) : null}
         </div>
-      </section>
+      ) : null}
     </section>
   );
 }

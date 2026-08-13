@@ -667,7 +667,7 @@ describe("Architecture and product wiring", () => {
   it("wires Development Evidence UI and My Development separation", () => {
     expect(existsSync(join(root, "components/development-evidence/development-evidence-view.tsx"))).toBe(true);
     expect(read("components/my-development-view.tsx")).toContain(
-      "never to people you manage"
+      "kept separate from the people"
     );
     expect(read("components/home-app.tsx")).toContain("development-evidence");
     expect(read("components/person-intelligence-view.tsx")).toContain(

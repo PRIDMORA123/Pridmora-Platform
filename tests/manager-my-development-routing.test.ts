@@ -57,7 +57,7 @@ describe("Manager My Development routing", () => {
     expect(globalViewIndex).toBeGreaterThan(globalIndex);
 
     const myDev = read("components/my-development-view.tsx");
-    expect(myDev).toContain("separate from the people you manage");
+    expect(myDev).toContain("kept separate from the people");
     expect(myDev).not.toContain("Updates ready for review");
 
     const global = read("components/global-intelligence-view.tsx");

@@ -74,14 +74,13 @@ describe("Manager My Development journey", () => {
     const home = read("components/home-app.tsx");
     expect(home).toContain('view === "my-development"');
     expect(home).toContain("<MyDevelopmentView");
-    expect(view).toContain("Build your development picture");
-    expect(view).toContain("Set a development focus");
-    expect(view).toContain("Reflect on my development");
-    expect(view).toContain("Add evidence");
+    expect(view).toContain("Set your development focus");
+    expect(view).toContain("Your focus");
     expect(view).toContain(
-      "Build a clearer picture of how you lead, what you"
+      "Your own space to develop how you lead — kept separate from the people"
     );
-    expect(view).toContain("developing and");
+    expect(view).toContain("will help you turn that focus into");
+    expect(view).toContain("practice and learning over time");
   });
 
   it("supports setting development focus via self-only API", () => {
@@ -185,8 +184,8 @@ describe("Manager My Development journey", () => {
     const home = read("components/home-app.tsx");
     expect(view).toContain("/api/actions");
     expect(view).toContain("Add action");
-    expect(view).toContain("STATUS_LABEL");
-    expect(view).toContain("Needs attention");
+    expect(view).toContain("What you&apos;re practising");
+    expect(view).toContain("onOpenPersonalEvidence");
     expect(home).toContain('navigate("my-development-evidence")');
     expect(home).toContain("my-development-reflection");
   });

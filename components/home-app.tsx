@@ -1231,12 +1231,7 @@ export function HomeApp() {
             )}
           {view === "my-development" && (
             <MyDevelopmentView
-              isPersonalWorkspace={
-                organisationState?.organisation.organisationType === "personal"
-              }
               evidenceError={selfDevelopmentError}
-              onOpenPeople={() => navigate("people")}
-              onOpenTeamIntelligence={() => navigate("team-intelligence")}
               onOpenPersonalEvidence={() => {
                 void openSelfDevelopmentView("my-development-evidence");
               }}
@@ -1246,26 +1241,7 @@ export function HomeApp() {
               onOpenPersonalReflection={() => {
                 void openSelfDevelopmentView("my-development-reflection");
               }}
-              onSwitchToPersonal={() => {
-                const personal = organisationState?.organisations.find(
-                  entry => entry.organisation.organisationType === "personal"
-                );
-                if (personal) {
-                  void (async () => {
-                    const { apiJson } = await import("@/lib/api-client");
-                    await apiJson("/api/organisations/current", {
-                      method: "POST",
-                      body: JSON.stringify({
-                        organisationId: personal.organisation.id,
-                      }),
-                    });
-                    setSelectedId("");
-                    setClients([]);
-                    setFocusSessionId(null);
-                    window.location.assign("/?view=dashboard");
-                  })();
-                }
-              }}
+              onTalkThrough={() => navigate("manager-aurelia")}
             />
           )}
           {view === "my-development-reflection" && (
