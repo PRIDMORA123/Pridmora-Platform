@@ -57,5 +57,6 @@ describe("middleware sign-in next destination", () => {
     expect(middleware).not.toContain(
       'redirectUrl.searchParams.set("next", pathname === "/" ? "/?view=dashboard" : pathname)'
     );
+    expect(middleware).toContain('"/organisation/invitations/accept"');
   });
 });

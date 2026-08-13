@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { generateInvitationToken } from "@/lib/organisations/invitations";
+import { buildOrganisationInviteAcceptNext } from "@/lib/organisations/invitation-accept-auth";
 import {
   assertPractitionerSeatAvailable,
   loadPractitionerSeatUsage,
@@ -77,9 +78,7 @@ export type InviteOrganisationMemberResult = {
  * Safe relative post-auth destination for organisation invitation acceptance.
  * Survives /auth/confirm → sanitizeNextPath → accept page.
  */
-export function buildOrganisationInviteAcceptNext(token: string): string {
-  return `/organisation/invitations/accept?token=${encodeURIComponent(token)}`;
-}
+export { buildOrganisationInviteAcceptNext } from "@/lib/organisations/invitation-accept-auth";
 
 /**
  * Value passed as inviteUserByEmail `redirectTo` (appears as {{ .RedirectTo }}).

@@ -12,6 +12,9 @@ const PUBLIC_PATHS = [
   "/auth/callback",
   "/auth/confirm",
   "/auth/error",
+  // Must load without a cookie session so invite/magic-link hash tokens can be
+  // consumed. Auth is still enforced by the accept API (email ownership check).
+  "/organisation/invitations/accept",
 ];
 
 /**
@@ -33,6 +36,9 @@ function isAuthFlowPath(pathname: string): boolean {
 export async function middleware(request: NextRequest) {
   const { response, userId } = await updateSession(request);
   const { pathname } = request.nextUrl;
+
+  // Let server layouts distinguish invitation accept from gated workspace routes.
+  response.headers.set("x-pathname", pathname);
 
   const isApi = pathname.startsWith("/api/");
   const isDevPreview =
