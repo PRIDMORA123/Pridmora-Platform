@@ -2,13 +2,17 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { AuthPasswordField, AuthTextField } from "@/components/auth/auth-fields";
+import {
+  logAuthClientDiagnostic,
+  mapAuthClientError,
+} from "@/lib/auth/client-errors";
+import { resolveAuthoritativePostLoginDestination } from "@/lib/auth/post-login-destination";
+import { resolveAuthSiteOrigin } from "@/lib/auth/recovery";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
 export function SignUpForm() {
-  const router = useRouter();
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
 
@@ -33,12 +37,12 @@ export function SignUpForm() {
 
     try {
       const supabase = createBrowserSupabaseClient();
-      const origin = window.location.origin;
+      const siteOrigin = resolveAuthSiteOrigin(window.location.origin);
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${origin}/auth/callback?next=/`,
+          emailRedirectTo: `${siteOrigin}/auth/callback?next=/`,
           data: {
             full_name: fullName,
             professional_title: professionalTitle || "Professional Coach",
@@ -48,22 +52,28 @@ export function SignUpForm() {
       });
 
       if (signUpError) {
-        setError(
-          signUpError.message.toLowerCase().includes("already")
-            ? "Unable to create this account. Try signing in, or use a different email address."
-            : "Unable to create your account. Please check your details and try again."
-        );
+        const mapped = mapAuthClientError(signUpError, "sign_up");
+        logAuthClientDiagnostic("sign_up", mapped, signUpError);
+        setError(mapped.userMessage);
         return;
       }
 
       // If email confirmation is required, there may be no session yet.
       if (!data.session) {
-        router.push(`/auth/check-email?email=${encodeURIComponent(email)}`);
+        window.location.assign(
+          `/auth/check-email?email=${encodeURIComponent(email)}`
+        );
         return;
       }
 
-      router.replace("/");
-      router.refresh();
+      const destination = data.user?.id
+        ? await resolveAuthoritativePostLoginDestination(
+            supabase,
+            data.user.id,
+            "/"
+          )
+        : "/";
+      window.location.assign(destination);
     } catch {
       setError("Network error. Please check your connection and try again.");
     } finally {
@@ -84,7 +94,10 @@ export function SignUpForm() {
     >
       <form
         className="auth-form-fields"
+        method="post"
+        action="#"
         onSubmit={event => {
+          event.preventDefault();
           void submit(event);
         }}
       >

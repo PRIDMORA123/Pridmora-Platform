@@ -1,3 +1,8 @@
+import {
+  assertSupabaseProjectIsolation,
+  extractSupabaseProjectRef,
+} from "@/lib/supabase/project-env";
+
 /**
  * True when `value` is a Supabase project API origin (Auth lives at {url}/auth/v1/...).
  * Rejects application site URLs such as https://platform.pridmora.com which must
@@ -19,10 +24,58 @@ export function isSupabaseProjectApiUrl(value: string): boolean {
   }
 }
 
+let isolationWarned = false;
+
+/**
+ * When PRIDMORA_ENV / PRIDMORA_EXPECTED_SUPABASE_REF is set, fail closed if the
+ * configured project ref does not match. Throws on mismatch so Pilot can never
+ * silently initialise an IDENTITY client (and vice versa).
+ */
+export function enforceSupabaseProjectIsolation(): void {
+  const result = assertSupabaseProjectIsolation(
+    process.env.NEXT_PUBLIC_SUPABASE_URL
+  );
+  if (result.ok) return;
+  if (result.code === "PROJECT_REF_MISMATCH") {
+    throw new Error(result.message);
+  }
+  // Missing/invalid URL is handled by callers as "not configured".
+  if (process.env.NODE_ENV !== "production" && !isolationWarned) {
+    isolationWarned = true;
+    console.warn(
+      JSON.stringify({
+        source: "supabase_env",
+        code: result.code,
+        message: result.message,
+        actualRef: result.actualRef,
+        expectedRef: result.expectedRef,
+      })
+    );
+  }
+}
+
 export function getSupabaseUrl(): string | undefined {
   const raw = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   if (!raw) return undefined;
   if (!isSupabaseProjectApiUrl(raw)) return undefined;
+
+  const expected = process.env.PRIDMORA_EXPECTED_SUPABASE_REF?.trim() ||
+    process.env.AUTH_EXPECTED_PROJECT_REF?.trim() ||
+    (process.env.PRIDMORA_ENV?.trim().toLowerCase() === "pilot"
+      ? "jfcxnkmflfzzxqovkuqw"
+      : process.env.PRIDMORA_ENV?.trim().toLowerCase() === "identity"
+        ? "lxfdhnwjmtfbawznivbu"
+        : null);
+
+  if (expected) {
+    const actual = extractSupabaseProjectRef(raw);
+    if (actual && actual !== expected.toLowerCase()) {
+      throw new Error(
+        `Supabase project ref mismatch: expected ${expected}, got ${actual}. Check .env.pilot.local vs .env.local and shell exports.`
+      );
+    }
+  }
+
   return raw.replace(/\/$/, "");
 }
 

@@ -137,13 +137,19 @@ describe("password recovery redirect helpers", () => {
     }
   });
 
-  it("builds a callback redirectTo that preserves reset-password next", () => {
+  it("builds recovery redirectTo at /auth/reset-password (not PKCE callback)", () => {
     expect(buildPasswordRecoveryRedirectTo("https://platform.pridmora.com")).toBe(
-      "https://platform.pridmora.com/auth/callback?next=%2Fauth%2Freset-password"
+      "https://platform.pridmora.com/auth/reset-password"
     );
     expect(buildPasswordRecoveryRedirectTo("https://platform.pridmora.com/")).toBe(
-      "https://platform.pridmora.com/auth/callback?next=%2Fauth%2Freset-password"
+      "https://platform.pridmora.com/auth/reset-password"
     );
+    expect(buildPasswordRecoveryRedirectTo("http://127.0.0.1:3001")).toBe(
+      "http://127.0.0.1:3001/auth/reset-password"
+    );
+    expect(
+      buildPasswordRecoveryRedirectTo("https://platform.pridmora.com")
+    ).not.toContain("/auth/callback");
   });
 
   it("prefers NEXT_PUBLIC_SITE_URL for recovery email redirects", () => {
@@ -151,6 +157,23 @@ describe("password recovery redirect helpers", () => {
     expect(resolveAuthSiteOrigin("http://localhost:3000")).toBe(
       "https://platform.pridmora.com"
     );
+    expect(
+      buildPasswordRecoveryRedirectTo(
+        resolveAuthSiteOrigin("http://127.0.0.1:3001")
+      )
+    ).toBe("https://platform.pridmora.com/auth/reset-password");
+  });
+
+  it("falls back to browser origin when NEXT_PUBLIC_SITE_URL is unset", () => {
+    delete process.env.NEXT_PUBLIC_SITE_URL;
+    expect(resolveAuthSiteOrigin("http://127.0.0.1:3001")).toBe(
+      "http://127.0.0.1:3001"
+    );
+    expect(
+      buildPasswordRecoveryRedirectTo(
+        resolveAuthSiteOrigin("http://127.0.0.1:3001")
+      )
+    ).toBe("http://127.0.0.1:3001/auth/reset-password");
   });
 
   it("resolves recovery callback next away from the marketing homepage", () => {

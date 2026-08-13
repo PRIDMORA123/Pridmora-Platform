@@ -11,6 +11,8 @@ import {
   loadPractitionerSeatUsage,
 } from "@/lib/organisations/licence";
 
+export { resolveInvitationAcceptLanding } from "@/lib/organisations/invitation-landing";
+
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 export function hashInvitationToken(token: string): string {

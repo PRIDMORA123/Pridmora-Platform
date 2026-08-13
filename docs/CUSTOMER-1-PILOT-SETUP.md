@@ -8,6 +8,23 @@ This runbook supports a **controlled** Customer #1 pilot. It does not put secret
 
 ---
 
+## 0. Frozen Supabase targets (product-owner decision)
+
+| Role | Project name | Project ref | Hostname |
+|---|---|---|---|
+| **CUSTOMER #1 PILOT** (only approved pilot DB) | Pridmora Pilot | `jfcxnkmflfzzxqovkuqw` | `jfcxnkmflfzzxqovkuqw.supabase.co` |
+| **DEVELOPMENT / REFERENCE ONLY** | IDENTITY | `lxfdhnwjmtfbawznivbu` | `lxfdhnwjmtfbawznivbu.supabase.co` |
+
+Rules:
+
+1. Customer #1 rehearsal, accounts, and pilot data may use **Pridmora Pilot only**.
+2. Do **not** apply Customer #1 migrations, create Customer #1 accounts, or run pilot rehearsal against IDENTITY.
+3. Do **not** modify IDENTITY as part of Customer #1 preparation.
+4. If CLI link or app env unexpectedly points at IDENTITY during Customer #1 work: **STOP** — do not mutate.
+5. Local env files: use `.env.pilot.local` for Pilot; keep `.env.local` for IDENTITY development and do not overwrite it with Pilot values casually.
+
+---
+
 ## 1. Principles
 
 1. Do **not** run blanket `supabase db push` while local and remote migration histories differ.
@@ -19,15 +36,15 @@ This runbook supports a **controlled** Customer #1 pilot. It does not put secret
 
 ## 2. Required environment variables
 
-Confirm the pilot environment has (names only — values live in secure env stores):
+Confirm the **Pridmora Pilot** environment has (names only — values live in secure env stores):
 
 | Variable | Purpose |
 |---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Browser anon key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server-only privileged operations |
+| `NEXT_PUBLIC_SUPABASE_URL` | Must be `https://jfcxnkmflfzzxqovkuqw.supabase.co` for Customer #1 |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Browser anon key for that same project |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only privileged operations for that same project |
 | `OPENAI_API_KEY` | Aurelia / AI features (org must also have AI enabled) |
-| Site / auth origin vars used by invite email redirects | Invitation acceptance URLs |
+| Site / auth origin vars used by invite email redirects | Invitation acceptance URLs (Pilot app origin) |
 
 Do not commit `.env*` files containing real values.
 
@@ -35,16 +52,37 @@ Do not commit `.env*` files containing real values.
 
 ## 3. Supabase / project connection checks
 
-1. Confirm the app points at the intended pilot project (URL matches the ops record).
-2. Confirm service-role and anon keys belong to that same project.
-3. Sign in as a known test account and load Home successfully.
-4. Run:
+1. Confirm the app points at **Pridmora Pilot** (`jfcxnkmflfzzxqovkuqw`) — URL matches this runbook §0.
+2. Confirm service-role and anon keys belong to that same project (not IDENTITY).
+3. Confirm CLI `project-ref` is `jfcxnkmflfzzxqovkuqw` before any Pilot migration work.
+4. Sign in as a known test account and load Home successfully.
+5. Run:
 
 ```bash
 npm run db:status
 ```
 
 Record local-vs-remote migration differences before any apply.
+
+### Password recovery (scanner-safe)
+
+Pilot Auth must use the Reset Password email template from  
+`supabase/email-templates/recovery.html` so the link lands on:
+
+`{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=recovery`
+
+(`redirectTo` from the app is `{origin}/auth/reset-password`.)
+
+The page requires an explicit **Continue** before `verifyOtp` (prefetch-safe).  
+Do **not** leave the default ConfirmationURL recovery link that hits `/auth/callback` with a single-use PKCE `code` on GET.
+
+| Environment | Site URL / `NEXT_PUBLIC_SITE_URL` |
+|---|---|
+| Local Pilot rehearsal | `http://127.0.0.1:3001` (or `http://localhost:3001`) |
+| Deployed / production app | `https://app.pridmora.com` |
+
+Redirect allowlist should include both production and local Pilot origins for `/auth/**` (including `/auth/reset-password` and `/auth/callback`).  
+Do **not** permanently set the Supabase project Site URL to localhost.
 
 ---
 
@@ -73,10 +111,24 @@ If reconciliation is unclear: **STOP and escalate** (see §12).
 
 ## 5. Organisation creation / setup
 
+### Platform owner bootstrap (before Owner Console works)
+
+Migration `20260808120000` creates `platform_owners` but **does not insert** any user. RLS allows select for owners; there is **no** client self-insert policy.
+
+After Owner Console migrations are applied on Pilot:
+
+1. Ensure the intended operator has an `auth.users` row on **Pridmora Pilot** (sign-up / invite on Pilot auth).
+2. Insert that user’s `user_id` into `public.platform_owners` with `status = 'active'` via an approved ops SQL path (service role / SQL Editor on Pilot only).
+3. Confirm `/owner` opens for that account.
+
+`enquiries@pridmora.com` appears in older auth/profile bootstrap migrations as a preferred demo identity; it is **not** automatically seeded as a platform owner by `20260808120000`.
+
+### Create customer organisation
+
 Via **Owner Console** (platform owner):
 
 1. Create the customer organisation (trial/licence as agreed).
-2. Note: create-org may **not** seed an organisation `owner` membership automatically.
+2. Confirmed behaviour: `owner_create_customer_organisation` creates organisation + trial licence/settings and sets `ai_enabled = true` by default — it does **not** seed an organisation membership / org `owner`.
 3. Do **not** invite Customer #1 users until Lead membership bootstrap is planned.
 
 ---

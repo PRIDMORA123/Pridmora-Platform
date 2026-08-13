@@ -4,23 +4,29 @@
   MANUAL CHANGE REQUIRED (not applied by deploy).
 
   Scanner-safe recovery:
-  - Link lands on /auth/reset-password with token_hash in the query string.
+  - Use {{ .RedirectTo }} from resetPasswordForEmail (…/auth/reset-password).
+  - Append token_hash + type=recovery so the page can verify after Continue.
   - The page does NOT call verifyOtp on GET/load.
   - The user must click "Continue to reset password" before verification.
   - Corporate Safe Links / prefetch can open the page without consuming the token.
 
-  Prefer this Reset Password URL. If an email still hits /auth/confirm with
-  type=recovery, that route now redirects here WITHOUT verifying on GET.
+  If an email still hits /auth/confirm with type=recovery, that route redirects
+  here WITHOUT verifying on GET. Legacy PKCE ?code= links still work via
+  /auth/callback compatibility in the reset-password client.
 -->
 <h2>Reset your password</h2>
+
 <p>Follow this link to set a new password for your Pridmora account:</p>
+
 <p>
-  <a href="{{ .SiteURL }}/auth/reset-password?token_hash={{ .TokenHash }}&type=recovery">
+  <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=recovery">
     Reset password
   </a>
 </p>
+
 <p>
-  When the page opens, choose <strong>Continue to reset password</strong> to confirm
-  it was you. This protects the link if your email security scans it first.
+  When the page opens, choose <strong>Continue to reset password</strong>
+  to confirm it was you.
 </p>
+
 <p>If you did not request a password reset, you can ignore this email.</p>

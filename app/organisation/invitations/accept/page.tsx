@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { apiJson } from "@/lib/api-client";
 import { BRAND } from "@/lib/brand";
+import { resolveInvitationAcceptLanding } from "@/lib/organisations/invitation-landing";
 
 export default function AcceptInvitationPage() {
   const params = useSearchParams();
@@ -20,13 +21,15 @@ export default function AcceptInvitationPage() {
 
     let active = true;
     setStatus("working");
-    apiJson<{ organisationId: string; organisationName?: string }>(
-      "/api/organisations/invitations",
-      {
-        method: "POST",
-        body: JSON.stringify({ action: "accept", token }),
-      }
-    )
+    apiJson<{
+      organisationId: string;
+      organisationName?: string;
+      role: string;
+      professionalRole: string | null;
+    }>("/api/organisations/invitations", {
+      method: "POST",
+      body: JSON.stringify({ action: "accept", token }),
+    })
       .then(result => {
         if (!active) return;
         setStatus("done");
@@ -34,9 +37,12 @@ export default function AcceptInvitationPage() {
         setMessage(
           `You have joined ${orgLabel} on the ${BRAND.productName}. Opening your workspace…`
         );
-        // Manager / practitioner landing: Command Centre — never /owner or /organisation.
-        window.location.assign("/?view=dashboard");
-        void result;
+        // Landing from server-returned membership role only — never URL/client role.
+        const landing = resolveInvitationAcceptLanding({
+          role: result.role,
+          professionalRole: result.professionalRole,
+        });
+        window.location.assign(landing);
       })
       .catch(err => {
         if (!active) return;

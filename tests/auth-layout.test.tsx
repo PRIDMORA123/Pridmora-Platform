@@ -32,6 +32,10 @@ const platformOwner = vi.hoisted(() => ({
   isPlatformOwner: vi.fn(),
 }));
 
+const postLogin = vi.hoisted(() => ({
+  resolveAuthoritativePostLoginDestination: vi.fn(),
+}));
+
 vi.mock("next/link", () => ({
   default: ({
     children,
@@ -64,6 +68,11 @@ vi.mock("@/lib/supabase/browser", () => ({
 
 vi.mock("@/lib/owner/platform-owner", () => ({
   isPlatformOwner: platformOwner.isPlatformOwner,
+}));
+
+vi.mock("@/lib/auth/post-login-destination", () => ({
+  resolveAuthoritativePostLoginDestination:
+    postLogin.resolveAuthoritativePostLoginDestination,
 }));
 
 const mounted: Array<{ root: Root; container: HTMLDivElement }> = [];
@@ -100,7 +109,16 @@ beforeEach(() => {
   });
   platformOwner.isPlatformOwner.mockReset();
   platformOwner.isPlatformOwner.mockResolvedValue(false);
+  postLogin.resolveAuthoritativePostLoginDestination.mockReset();
+  postLogin.resolveAuthoritativePostLoginDestination.mockResolvedValue("/");
   window.localStorage.clear();
+  vi.stubGlobal("location", {
+    ...window.location,
+    assign: vi.fn(),
+    replace: vi.fn(),
+    href: "http://127.0.0.1:3001/auth/sign-in",
+    origin: "http://127.0.0.1:3001",
+  });
 });
 
 afterEach(async () => {
@@ -210,7 +228,13 @@ describe("auth layout replacement", () => {
 
   it("sign-in prevents duplicate submission while pending", async () => {
     let resolveSignIn:
-      | ((value: { data: { user: { id: string } }; error: null }) => void)
+      | ((value: {
+          data: {
+            user: { id: string };
+            session: { access_token: string };
+          };
+          error: null;
+        }) => void)
       | undefined;
     supabaseAuth.signInWithPassword.mockImplementation(
       () =>
@@ -240,18 +264,29 @@ describe("auth layout replacement", () => {
 
     expect(supabaseAuth.signInWithPassword).toHaveBeenCalledTimes(1);
     await act(async () => {
-      resolveSignIn?.({ data: { user: { id: "coach-1" } }, error: null });
+      resolveSignIn?.({
+        data: {
+          user: { id: "coach-1" },
+          session: { access_token: "test" },
+        },
+        error: null,
+      });
       await Promise.resolve();
     });
-    expect(navigation.replace).toHaveBeenCalledWith("/");
+    expect(window.location.assign).toHaveBeenCalledWith("/");
+    expect(navigation.replace).not.toHaveBeenCalled();
+    expect(navigation.refresh).not.toHaveBeenCalled();
   });
 
-  it("sign-in sends platform owners to /owner after successful authentication", async () => {
+  it("sign-in hard-navigates platform owners to /owner after successful authentication", async () => {
     supabaseAuth.signInWithPassword.mockResolvedValue({
-      data: { user: { id: "owner-1" } },
+      data: {
+        user: { id: "owner-1" },
+        session: { access_token: "test" },
+      },
       error: null,
     });
-    platformOwner.isPlatformOwner.mockResolvedValue(true);
+    postLogin.resolveAuthoritativePostLoginDestination.mockResolvedValue("/owner");
     const { SignInForm } = await import("@/components/auth/sign-in-form");
     const container = await renderView(<SignInForm />);
     const email = container.querySelector('input[name="email"]') as HTMLInputElement;
@@ -265,8 +300,20 @@ describe("auth layout replacement", () => {
       await Promise.resolve();
     });
 
-    expect(platformOwner.isPlatformOwner).toHaveBeenCalled();
-    expect(navigation.replace).toHaveBeenCalledWith("/owner");
+    expect(postLogin.resolveAuthoritativePostLoginDestination).toHaveBeenCalled();
+    expect(window.location.assign).toHaveBeenCalledWith("/owner");
+    expect(navigation.replace).not.toHaveBeenCalled();
+    expect(navigation.refresh).not.toHaveBeenCalled();
+  });
+
+  it("successful password sign-in source uses hard navigation, not router.replace", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "components/auth/sign-in-form.tsx"),
+      "utf8"
+    );
+    expect(source).toContain("window.location.assign(destination)");
+    expect(source).not.toContain("router.replace(destination)");
+    expect(source).not.toContain("router.refresh()");
   });
 
   it("auth and marketing navigation links use the correct routes", async () => {
@@ -334,7 +381,7 @@ describe("auth layout replacement", () => {
     expect(supabaseAuth.resetPasswordForEmail).toHaveBeenCalledWith(
       "coach@example.com",
       {
-        redirectTo: `${window.location.origin}/auth/callback?next=%2Fauth%2Freset-password`,
+        redirectTo: `${window.location.origin}/auth/reset-password`,
       }
     );
     expect(container.textContent).toContain(
@@ -370,8 +417,11 @@ describe("auth layout replacement", () => {
     expect(supabaseAuth.resetPasswordForEmail).toHaveBeenCalledWith(
       "coach@example.com",
       expect.objectContaining({
-        redirectTo: expect.stringContaining("/auth/callback?next="),
+        redirectTo: expect.stringMatching(/\/auth\/reset-password$/),
       })
+    );
+    expect(supabaseAuth.resetPasswordForEmail.mock.calls[0][1].redirectTo).not.toContain(
+      "/auth/callback"
     );
   });
 
@@ -476,7 +526,8 @@ describe("auth layout replacement", () => {
     await act(async () => {
       await new Promise(resolve => setTimeout(resolve, 1300));
     });
-    expect(navigation.replace).toHaveBeenCalledWith("/auth/sign-in");
+    expect(window.location.assign).toHaveBeenCalledWith("/auth/sign-in");
+    expect(navigation.replace).not.toHaveBeenCalled();
   });
 
   it("reset password shows expired state without a recovery session", async () => {

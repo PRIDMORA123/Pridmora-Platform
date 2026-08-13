@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { PASSWORD_RESET_PATH } from "@/lib/auth/recovery";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
@@ -9,11 +9,10 @@ import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
  * Safety net for password recovery links that land on `/` (Site URL) or
  * another non-reset route with a recovery session / hash / code.
  * Does not grant access — only forwards an existing recovery auth state to
- * `/auth/reset-password`.
+ * `/auth/reset-password` via hard navigation.
  */
 export function RecoverySessionBridge() {
   const pathname = usePathname();
-  const router = useRouter();
 
   useEffect(() => {
     if (
@@ -43,7 +42,7 @@ export function RecoverySessionBridge() {
           callback.searchParams.set("code", code);
           callback.searchParams.set("next", PASSWORD_RESET_PATH);
           callback.searchParams.set("type", "recovery");
-          window.location.replace(callback.toString());
+          window.location.assign(callback.toString());
           return;
         }
 
@@ -53,7 +52,7 @@ export function RecoverySessionBridge() {
         } = supabase.auth.onAuthStateChange(event => {
           if (cancelled) return;
           if (event === "PASSWORD_RECOVERY") {
-            router.replace(PASSWORD_RESET_PATH);
+            window.location.assign(PASSWORD_RESET_PATH);
           }
         });
         unsubscribe = () => subscription.unsubscribe();
@@ -61,7 +60,7 @@ export function RecoverySessionBridge() {
         if (type === "recovery") {
           const { data } = await supabase.auth.getSession();
           if (!cancelled && data.session) {
-            router.replace(PASSWORD_RESET_PATH);
+            window.location.assign(PASSWORD_RESET_PATH);
           }
         }
       } catch {
@@ -75,7 +74,7 @@ export function RecoverySessionBridge() {
       cancelled = true;
       unsubscribe?.();
     };
-  }, [pathname, router]);
+  }, [pathname]);
 
   return null;
 }

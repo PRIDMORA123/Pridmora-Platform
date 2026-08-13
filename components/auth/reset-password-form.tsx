@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { AuthPasswordField } from "@/components/auth/auth-fields";
+import {
+  logAuthClientDiagnostic,
+  mapAuthClientError,
+} from "@/lib/auth/client-errors";
 import { PASSWORD_RESET_PATH } from "@/lib/auth/recovery";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
@@ -38,7 +41,6 @@ function clearRecoveryParamsFromUrl() {
 }
 
 export function ResetPasswordForm() {
-  const router = useRouter();
   const [phase, setPhase] = useState<Phase>("loading");
   const [tokenHash, setTokenHash] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -120,20 +122,9 @@ export function ResetPasswordForm() {
       });
 
       if (verifyError) {
-        const message = String(verifyError.message ?? "").toLowerCase();
-        const code = String(verifyError.code ?? "").toLowerCase();
-        if (
-          code.includes("expired") ||
-          code.includes("invalid") ||
-          message.includes("expired") ||
-          message.includes("invalid")
-        ) {
-          setError(
-            "This reset link has expired or is no longer valid. Request a new password reset email."
-          );
-        } else {
-          setError("Unable to verify this reset link. Request a new password reset email.");
-        }
+        const mapped = mapAuthClientError(verifyError, "verify_recovery");
+        logAuthClientDiagnostic("verify_recovery", mapped, verifyError);
+        setError(mapped.userMessage);
         setPhase("expired");
         return;
       }
@@ -174,21 +165,23 @@ export function ResetPasswordForm() {
       const { error: updateError } = await supabase.auth.updateUser({ password });
 
       if (updateError) {
-        const message = updateError.message.toLowerCase();
-        if (message.includes("expired") || message.includes("session")) {
+        const mapped = mapAuthClientError(updateError, "reset_password");
+        logAuthClientDiagnostic("reset_password", mapped, updateError);
+        if (
+          mapped.kind === "reset_link_invalid" ||
+          mapped.kind === "recovery_session_unavailable"
+        ) {
           setPhase("expired");
-          setError("This reset link has expired. Request a new password reset email.");
-        } else {
-          setError("Unable to update your password. Please try again.");
         }
+        setError(mapped.userMessage);
         return;
       }
 
+      // Only claim success after Supabase confirms the password write.
       setSuccess(true);
       await supabase.auth.signOut();
       window.setTimeout(() => {
-        router.replace("/auth/sign-in");
-        router.refresh();
+        window.location.assign("/auth/sign-in");
       }, 1200);
     } catch {
       setError("Network error. Please check your connection and try again.");

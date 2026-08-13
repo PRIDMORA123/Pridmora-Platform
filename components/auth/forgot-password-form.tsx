@@ -5,29 +5,14 @@ import { useState } from "react";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { AuthTextField } from "@/components/auth/auth-fields";
 import {
+  logAuthClientDiagnostic,
+  mapAuthClientError,
+} from "@/lib/auth/client-errors";
+import {
   buildPasswordRecoveryRedirectTo,
   resolveAuthSiteOrigin,
 } from "@/lib/auth/recovery";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
-
-function recoveryRequestErrorMessage(error: {
-  message?: string;
-  code?: string | null;
-}): string {
-  const code = String(error.code ?? "").toLowerCase();
-  const message = String(error.message ?? "").toLowerCase();
-
-  if (
-    code.includes("rate_limit") ||
-    message.includes("rate limit") ||
-    message.includes("security purposes") ||
-    message.includes("only request this after")
-  ) {
-    return "Too many reset requests. Please wait a moment and try again.";
-  }
-
-  return "Unable to send a reset link right now. Please try again shortly.";
-}
 
 export function ForgotPasswordForm() {
   const [status, setStatus] = useState<"idle" | "sent" | "error">("idle");
@@ -49,14 +34,16 @@ export function ForgotPasswordForm() {
       const supabase = createBrowserSupabaseClient();
       const siteOrigin = resolveAuthSiteOrigin(window.location.origin);
       // Success copy stays enumeration-safe. Auth API errors must not look like success.
-      // redirectTo must keep next=/auth/reset-password so callback does not fall to `/`.
+      // redirectTo is the password-change page; email template adds token_hash + type.
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: buildPasswordRecoveryRedirectTo(siteOrigin),
       });
 
       if (error) {
+        const mapped = mapAuthClientError(error, "forgot_password");
+        logAuthClientDiagnostic("forgot_password", mapped, error);
         setStatus("error");
-        setMessage(recoveryRequestErrorMessage(error));
+        setMessage(mapped.userMessage);
         return;
       }
 

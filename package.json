@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/dev-identity.mjs",
+    "dev:pilot": "node scripts/dev-pilot.mjs",
+    "auth:pilot-reliability": "node --experimental-strip-types scripts/pilot-auth-reliability.mjs",
+    "auth:reliability-gate": "node scripts/auth-reliability-gate.mjs",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",

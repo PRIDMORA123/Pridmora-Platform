@@ -56,18 +56,20 @@ describe("owner console routing contracts", () => {
     expect(sanitizeNextPath("/owner/organisations")).toBe("/owner/organisations");
     const signIn = read("components/auth/sign-in-form.tsx");
     expect(signIn).toContain('searchParams.get("next") || "/"');
-    expect(signIn).toContain('destination = "/owner"');
-    expect(signIn).toContain("isPlatformOwner");
+    expect(signIn).toContain("resolveAuthoritativePostLoginDestination");
   });
 
-  it("sign-in routes platform owners to /owner using the shared owner check", () => {
+  it("sign-in routes via shared authoritative post-login destination helper", () => {
     const signIn = read("components/auth/sign-in-form.tsx");
-    expect(signIn).toContain('from "@/lib/owner/platform-owner"');
-    expect(signIn).toContain("isPlatformOwner(supabase, data.user.id)");
-    expect(signIn).toContain('destination = "/owner"');
-    // Reuse — do not inline a second owner query in the form.
+    expect(signIn).toContain('from "@/lib/auth/post-login-destination"');
+    expect(signIn).toContain("resolveAuthoritativePostLoginDestination");
+    expect(signIn).toContain("window.location.assign(destination)");
+    // Role queries live in the shared helper — not inlined in the form.
     expect(signIn).not.toContain('from("platform_owners")');
     expect(signIn).not.toContain('rpc("is_platform_owner"');
+    const helper = read("lib/auth/post-login-destination.ts");
+    expect(helper).toContain('OWNER_CONSOLE_PATH = "/owner"');
+    expect(helper).toContain("isPlatformOwner");
   });
 });
 

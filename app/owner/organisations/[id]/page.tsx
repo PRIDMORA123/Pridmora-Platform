@@ -23,14 +23,14 @@ import type {
 } from "@/lib/owner/types";
 import { ACCOUNT_STATUS_LABELS } from "@/lib/owner/types";
 
-type ManagerInvitation = {
+type OrganisationInvitationRow = {
   id: string;
   organisationId: string;
   email: string;
   fullName: string | null;
   jobTitle: string | null;
-  role: "practitioner";
-  professionalRole: "manager";
+  role: "oversight" | "practitioner";
+  professionalRole: "manager" | null;
   status: "pending" | "accepted" | "revoked" | "expired";
   expiresAt: string;
   acceptedAt: string | null;
@@ -86,28 +86,41 @@ type Tab = (typeof TABS)[number];
 export default function OwnerOrganisationDetailPage() {
   const params = useParams<{ id: string }>();
   const [data, setData] = useState<DetailPayload | null>(null);
-  const [invitations, setInvitations] = useState<ManagerInvitation[]>([]);
+  const [invitations, setInvitations] = useState<OrganisationInvitationRow[]>(
+    []
+  );
+  const [leadInvitations, setLeadInvitations] = useState<
+    OrganisationInvitationRow[]
+  >([]);
   const [tab, setTab] = useState<Tab>("Overview");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [confirmSuspend, setConfirmSuspend] = useState(false);
   const [showInviteForm, setShowInviteForm] = useState(false);
+  const [showLeadInviteForm, setShowLeadInviteForm] = useState(false);
   const [inviteFullName, setInviteFullName] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteJobTitle, setInviteJobTitle] = useState("");
+  const [leadInviteFullName, setLeadInviteFullName] = useState("");
+  const [leadInviteEmail, setLeadInviteEmail] = useState("");
+  const [leadInviteJobTitle, setLeadInviteJobTitle] = useState("");
   const [inviting, setInviting] = useState(false);
+  const [invitingLead, setInvitingLead] = useState(false);
   const [inviteMessage, setInviteMessage] = useState("");
 
   async function loadInvitations() {
     try {
-      const payload = await apiJson<{ invitations: ManagerInvitation[] }>(
-        `/api/owner/organisations/${params.id}/invitations`
-      );
+      const payload = await apiJson<{
+        invitations: OrganisationInvitationRow[];
+        leadInvitations?: OrganisationInvitationRow[];
+      }>(`/api/owner/organisations/${params.id}/invitations`);
       setInvitations(payload.invitations);
+      setLeadInvitations(payload.leadInvitations ?? []);
     } catch {
       // Detail can still render without invitation list.
       setInvitations([]);
+      setLeadInvitations([]);
     }
   }
 
@@ -141,6 +154,7 @@ export default function OwnerOrganisationDetailPage() {
       await apiJson(`/api/owner/organisations/${params.id}/invitations`, {
         method: "POST",
         body: JSON.stringify({
+          inviteKind: "manager",
           fullName: inviteFullName,
           email: inviteEmail,
           jobTitle: inviteJobTitle.trim() || null,
@@ -157,6 +171,35 @@ export default function OwnerOrganisationDetailPage() {
       setError(err instanceof Error ? err.message : "Unable to invite manager.");
     } finally {
       setInviting(false);
+    }
+  }
+
+  async function submitLeadInvite(event: FormEvent) {
+    event.preventDefault();
+    setInvitingLead(true);
+    setInviteMessage("");
+    setError("");
+    try {
+      await apiJson(`/api/owner/organisations/${params.id}/invitations`, {
+        method: "POST",
+        body: JSON.stringify({
+          inviteKind: "lead",
+          fullName: leadInviteFullName,
+          email: leadInviteEmail,
+          jobTitle: leadInviteJobTitle.trim() || null,
+        }),
+      });
+      setInviteMessage("Organisation Lead invitation sent.");
+      setLeadInviteFullName("");
+      setLeadInviteEmail("");
+      setLeadInviteJobTitle("");
+      setShowLeadInviteForm(false);
+      await loadInvitations();
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to invite lead.");
+    } finally {
+      setInvitingLead(false);
     }
   }
 
@@ -208,15 +251,27 @@ export default function OwnerOrganisationDetailPage() {
                 type="button"
                 className="owner-button"
                 onClick={() => {
+                  setShowLeadInviteForm(true);
+                  setShowInviteForm(false);
+                  setTab("Users");
+                }}
+              >
+                Invite Lead
+              </button>
+              <button
+                type="button"
+                className="owner-button"
+                onClick={() => {
                   setShowInviteForm(true);
+                  setShowLeadInviteForm(false);
                   setTab("Users");
                 }}
               >
                 Invite manager
               </button>
               <span className="owner-muted" style={{ color: "rgba(255,255,255,0.82)" }}>
-                {data.organisation.seatsPurchased} seats · manager invites use
-                practitioner seats
+                {data.organisation.seatsPurchased} seats · Managers use
+                practitioner seats · Leads do not
               </span>
             </div>
           </header>
@@ -324,20 +379,115 @@ export default function OwnerOrganisationDetailPage() {
                   style={{ justifyContent: "space-between", marginBottom: "0.75rem" }}
                 >
                   <h2 className="owner-panel__title" style={{ margin: 0 }}>
+                    Organisation Leads
+                  </h2>
+                  <button
+                    type="button"
+                    className="owner-button"
+                    onClick={() => {
+                      setShowLeadInviteForm(value => !value);
+                      setShowInviteForm(false);
+                    }}
+                  >
+                    {showLeadInviteForm ? "Close invite form" : "Invite Lead"}
+                  </button>
+                </div>
+                <p className="owner-muted">
+                  Invite an Organisation Lead to view privacy-safe organisation
+                  development intelligence and oversight. Leads do not receive
+                  access to private Manager development content.
+                </p>
+
+                {showLeadInviteForm ? (
+                  <form
+                    onSubmit={event => {
+                      void submitLeadInvite(event);
+                    }}
+                    style={{ marginTop: "1rem" }}
+                  >
+                    <div className="owner-filters" style={{ alignItems: "stretch" }}>
+                      <div className="owner-field" style={{ minWidth: "14rem", flex: 1 }}>
+                        <label htmlFor="owner-invite-lead-name">Full name</label>
+                        <input
+                          id="owner-invite-lead-name"
+                          required
+                          value={leadInviteFullName}
+                          onChange={event =>
+                            setLeadInviteFullName(event.target.value)
+                          }
+                          autoComplete="name"
+                        />
+                      </div>
+                      <div className="owner-field" style={{ minWidth: "14rem", flex: 1 }}>
+                        <label htmlFor="owner-invite-lead-email">Email</label>
+                        <input
+                          id="owner-invite-lead-email"
+                          type="email"
+                          required
+                          value={leadInviteEmail}
+                          onChange={event =>
+                            setLeadInviteEmail(event.target.value)
+                          }
+                          autoComplete="email"
+                        />
+                      </div>
+                      <div className="owner-field" style={{ minWidth: "12rem", flex: 1 }}>
+                        <label htmlFor="owner-invite-lead-title">
+                          Job title (optional)
+                        </label>
+                        <input
+                          id="owner-invite-lead-title"
+                          value={leadInviteJobTitle}
+                          onChange={event =>
+                            setLeadInviteJobTitle(event.target.value)
+                          }
+                          autoComplete="organization-title"
+                        />
+                      </div>
+                    </div>
+                    <div className="owner-filters" style={{ marginTop: "0.75rem" }}>
+                      <button
+                        type="submit"
+                        className="owner-button"
+                        disabled={invitingLead}
+                      >
+                        {invitingLead
+                          ? "Sending invitation…"
+                          : "Send Lead invitation"}
+                      </button>
+                    </div>
+                  </form>
+                ) : null}
+
+                <h3 className="owner-section__title" style={{ marginTop: "1.25rem" }}>
+                  Lead invitations
+                </h3>
+                <LeadInvitationsPanel invitations={leadInvitations} />
+              </section>
+
+              <section className="owner-panel" style={{ marginBottom: "1rem" }}>
+                <div
+                  className="owner-filters"
+                  style={{ justifyContent: "space-between", marginBottom: "0.75rem" }}
+                >
+                  <h2 className="owner-panel__title" style={{ margin: 0 }}>
                     Managers
                   </h2>
                   <button
                     type="button"
                     className="owner-button"
-                    onClick={() => setShowInviteForm(value => !value)}
+                    onClick={() => {
+                      setShowInviteForm(value => !value);
+                      setShowLeadInviteForm(false);
+                    }}
                   >
                     {showInviteForm ? "Close invite form" : "Invite manager"}
                   </button>
                 </div>
                 <p className="owner-muted">
-                  Invite the first Manager for this organisation. They join as a
+                  Invite a Manager for this organisation. They join as a
                   practitioner with professional role Manager — not an organisation
-                  owner or Owner Console user.
+                  owner, Organisation Lead, or Owner Console user.
                 </p>
 
                 {showInviteForm ? (
@@ -531,7 +681,7 @@ function Metric({ value, label }: { value: string | number; label: string }) {
   );
 }
 
-function invitationDisplayStatus(invitation: ManagerInvitation): string {
+function invitationDisplayStatus(invitation: OrganisationInvitationRow): string {
   if (
     invitation.status === "pending" &&
     new Date(invitation.expiresAt).getTime() <= Date.now()
@@ -542,20 +692,11 @@ function invitationDisplayStatus(invitation: ManagerInvitation): string {
   return invitation.status;
 }
 
-function ManagerInvitationsPanel({
+function InvitationTable({
   invitations,
 }: {
-  invitations: ManagerInvitation[];
+  invitations: OrganisationInvitationRow[];
 }) {
-  if (invitations.length === 0) {
-    return (
-      <OwnerEmpty
-        title="No manager invitations yet"
-        description="Use Invite manager to send the first Manager invitation for this organisation."
-      />
-    );
-  }
-
   return (
     <div className="owner-table-wrap">
       <table className="owner-table">
@@ -584,12 +725,46 @@ function ManagerInvitationsPanel({
   );
 }
 
+function LeadInvitationsPanel({
+  invitations,
+}: {
+  invitations: OrganisationInvitationRow[];
+}) {
+  if (invitations.length === 0) {
+    return (
+      <OwnerEmpty
+        title="No Lead invitations yet"
+        description="Use Invite Lead to send an Organisation Lead invitation. Leads view privacy-safe organisation intelligence only."
+      />
+    );
+  }
+
+  return <InvitationTable invitations={invitations} />;
+}
+
+function ManagerInvitationsPanel({
+  invitations,
+}: {
+  invitations: OrganisationInvitationRow[];
+}) {
+  if (invitations.length === 0) {
+    return (
+      <OwnerEmpty
+        title="No manager invitations yet"
+        description="Use Invite manager to send the first Manager invitation for this organisation."
+      />
+    );
+  }
+
+  return <InvitationTable invitations={invitations} />;
+}
+
 function UsersPanel({ users }: { users: OwnerUserListItem[] }) {
   if (users.length === 0) {
     return (
       <OwnerEmpty
         title="No active memberships"
-        description="Accepted managers appear here after they complete account setup."
+        description="Accepted Leads and Managers appear here after they complete account setup."
       />
     );
   }

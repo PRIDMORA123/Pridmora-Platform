@@ -176,15 +176,16 @@ describe("scanner-safe password recovery UI", () => {
 describe("scanner-safe recovery wiring", () => {
   const root = process.cwd();
 
-  it("email template points at reset-password, not GET /auth/confirm", () => {
+  it("email template uses RedirectTo + token_hash on reset-password", () => {
     const template = readFileSync(
       join(root, "supabase/email-templates/recovery.html"),
       "utf8"
     );
     expect(template).toContain(
-      "{{ .SiteURL }}/auth/reset-password?token_hash={{ .TokenHash }}&type=recovery"
+      "{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=recovery"
     );
     expect(template).not.toContain("/auth/confirm?token_hash=");
+    expect(template).not.toContain("/auth/callback?next=");
     expect(template).toMatch(/Continue to reset password/i);
   });
 
