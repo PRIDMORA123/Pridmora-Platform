@@ -20,6 +20,11 @@ export type OrganisationIntelligencePeriod = {
 export type ThemeCandidate = {
   themeKey: string;
   category?: string | null;
+  /**
+   * Distinct-contributor token for aggregation.
+   * After Stage 3.1A RPC hardening this is an opaque hash, not a client UUID.
+   * Legacy payloads may still send relationshipId / client UUID.
+   */
   relationshipId: string;
   sourceType: string;
   occurredAt?: string | null;
@@ -38,6 +43,11 @@ export type OrganisationIntelligenceSourceAggregates = {
   periodEnd: string;
   previousPeriodStart: string;
   previousPeriodEnd: string;
+  /**
+   * True when the RPC already excluded self-development at the DB boundary.
+   * App-layer sanitize must not double-subtract counts when this is set.
+   */
+  selfDevelopmentExcluded?: boolean;
   activeRelationships: number;
   activePractitioners: number;
   conversations: number;

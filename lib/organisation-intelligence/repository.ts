@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { sanitizeOrganisationIntelligenceAggregates } from "@/lib/organisation-intelligence/exclude-self-development";
 import { resolveOrganisationIntelligencePeriod } from "@/lib/organisation-intelligence/periods";
 import type {
   OrganisationIntelligencePeriod,
@@ -42,12 +43,17 @@ function asThemeCandidates(value: unknown): ThemeCandidate[] {
         : typeof item.theme_key === "string"
           ? item.theme_key
           : null;
+    // Prefer opaque contributorKey (Stage 3.1A); accept legacy relationshipId.
     const relationshipId =
-      typeof item.relationshipId === "string"
-        ? item.relationshipId
-        : typeof item.relationship_id === "string"
-          ? item.relationship_id
-          : null;
+      typeof item.contributorKey === "string"
+        ? item.contributorKey
+        : typeof item.contributor_key === "string"
+          ? item.contributor_key
+          : typeof item.relationshipId === "string"
+            ? item.relationshipId
+            : typeof item.relationship_id === "string"
+              ? item.relationship_id
+              : null;
     if (!themeKey || !relationshipId) continue;
     rows.push({
       themeKey,
@@ -84,11 +90,15 @@ function asProgressSignals(value: unknown): ProgressSignalCandidate[] {
           ? item.signal_name
           : null;
     const relationshipId =
-      typeof item.relationshipId === "string"
-        ? item.relationshipId
-        : typeof item.relationship_id === "string"
-          ? item.relationship_id
-          : null;
+      typeof item.contributorKey === "string"
+        ? item.contributorKey
+        : typeof item.contributor_key === "string"
+          ? item.contributor_key
+          : typeof item.relationshipId === "string"
+            ? item.relationshipId
+            : typeof item.relationship_id === "string"
+              ? item.relationship_id
+              : null;
     if (!signalName || !relationshipId) continue;
     rows.push({
       signalName,
@@ -113,6 +123,9 @@ export function mapSourceAggregates(
     ),
     previousPeriodEnd: String(
       payload.previousPeriodEnd ?? payload.previous_period_end ?? ""
+    ),
+    selfDevelopmentExcluded: asBoolean(
+      payload.selfDevelopmentExcluded ?? payload.self_development_excluded
     ),
     activeRelationships: asNumber(payload.activeRelationships ?? payload.active_relationships),
     activePractitioners: asNumber(payload.activePractitioners ?? payload.active_practitioners),
@@ -197,7 +210,15 @@ export async function fetchOrganisationIntelligenceSources(
     throw new Error("Organisation intelligence aggregation returned no data.");
   }
 
-  return mapSourceAggregates(data as Record<string, unknown>);
+  const aggregates = mapSourceAggregates(data as Record<string, unknown>);
+
+  // Stage 3.1 — relationship OI must not include Manager self-development.
+  return sanitizeOrganisationIntelligenceAggregates({
+    supabase,
+    organisationId,
+    period,
+    aggregates,
+  });
 }
 
 export async function acquireGenerationLock(input: {

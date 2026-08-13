@@ -535,6 +535,107 @@ describe("organisation intelligence security and migration", () => {
     expect(sql).toContain("Never returns private identity");
   });
 
+  it("Stage 3.1A hardens relationship OI RPC against self-development", () => {
+    const sql = read(
+      "supabase/migrations/20260813120000_relationship_oi_self_development_boundary.sql"
+    );
+    expect(sql).toContain("is_self_development");
+    expect(sql).toContain("client_is_self_development");
+    expect(sql).toContain("selfDevelopmentExcluded");
+    expect(sql).toContain("contributorKey");
+    expect(sql).toContain("md5(");
+    expect(sql).toContain("not public.client_is_self_development");
+    expect(sql).toContain("lower(btrim(coalesce(c.role, ''))) <> 'self development'");
+    expect(sql).toContain("aggregate_organisation_intelligence_sources");
+    // Opaque contributors — not raw client UUID field name in candidate objects.
+    expect(sql).not.toMatch(
+      /jsonb_build_object\(\s*'themeKey'[\s\S]{0,200}'relationshipId'/
+    );
+    expect(sql).not.toMatch(/'occurredAt'\s*,/);
+    expect(sql).not.toContain("manager-development-intelligence");
+    expect(existsSync(join(root, "supabase/migrations/20260809140000_self_development_relationship.sql"))).toBe(
+      false
+    );
+  });
+
+  it("maps opaque contributorKey and skips app sanitize when RPC excluded self-dev", () => {
+    const mapped = mapSourceAggregates({
+      organisationId: "org-1",
+      periodStart: "2026-01-01",
+      periodEnd: "2026-03-31",
+      previousPeriodStart: "2025-10-01",
+      previousPeriodEnd: "2025-12-31",
+      selfDevelopmentExcluded: true,
+      activeRelationships: 3,
+      conversations: 4,
+      themeCandidates: [
+        {
+          themeKey: "confidence",
+          contributorKey: "abc123opaque",
+          sourceType: "intelligence_item",
+        },
+      ],
+      itemThemes: [
+        {
+          themeKey: "delegation",
+          contributorKey: "def456opaque",
+          sourceType: "client_item_theme",
+        },
+      ],
+      progressSignals: [
+        {
+          signalName: "accountability",
+          direction: "up",
+          contributorKey: "ghi789opaque",
+          coachValidated: true,
+        },
+      ],
+      hasEarlierPeriodActivity: false,
+    });
+    expect(mapped.selfDevelopmentExcluded).toBe(true);
+    expect(mapped.themeCandidates[0]?.relationshipId).toBe("abc123opaque");
+    expect(mapped.itemThemes[0]?.relationshipId).toBe("def456opaque");
+    expect(mapped.progressSignals[0]?.relationshipId).toBe("ghi789opaque");
+    expect(JSON.stringify(mapped)).not.toMatch(
+      /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
+    );
+  });
+
+  it("app sanitize does not double-subtract after RPC self-development exclusion", async () => {
+    const { sanitizeOrganisationIntelligenceAggregates } = await import(
+      "@/lib/organisation-intelligence/exclude-self-development"
+    );
+    const aggregates = makeAggregates({
+      selfDevelopmentExcluded: true,
+      activeRelationships: 10,
+      actionsTotal: 20,
+      itemThemes: [
+        {
+          themeKey: "delegation",
+          relationshipId: "person-1",
+          sourceType: "client_item_theme",
+        },
+      ],
+    });
+    const fakeSupabase = {
+      from() {
+        throw new Error("should not query when RPC already excluded self-dev");
+      },
+    };
+    const result = await sanitizeOrganisationIntelligenceAggregates({
+      supabase: fakeSupabase as never,
+      organisationId: "org-1",
+      period: resolveOrganisationIntelligencePeriod({
+        preset: "last_90_days",
+        now: new Date("2026-08-04T12:00:00.000Z"),
+      }),
+      aggregates,
+    });
+    expect(result).toEqual(aggregates);
+    expect(result.activeRelationships).toBe(10);
+    expect(result.actionsTotal).toBe(20);
+  });
+
   it("API derives organisation from auth context and never trusts browser org ids", () => {
     const generate = read(
       "app/api/organisations/intelligence/generate/route.ts"

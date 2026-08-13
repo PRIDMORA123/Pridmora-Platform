@@ -92,6 +92,13 @@ export {
   mapSourceAggregates,
 } from "@/lib/organisation-intelligence/repository";
 
+export {
+  excludeSelfDevelopmentFromAggregates,
+  listSelfDevelopmentClientIdsForOrganisation,
+  sanitizeOrganisationIntelligenceAggregates,
+  aggregatesContainSelfDevelopmentRelationship,
+} from "@/lib/organisation-intelligence/exclude-self-development";
+
 export { generateOrganisationIntelligence } from "@/lib/organisation-intelligence/generate";
 
 export { buildOrganisationIntelligenceExportHtml } from "@/lib/organisation-intelligence/export";
