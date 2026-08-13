@@ -207,7 +207,7 @@ describe("Manager Aurelia live chat UI", () => {
     expect(container.textContent).toContain("What’s on your mind?");
   });
 
-  it("keeps Take something forward disabled", async () => {
+  it("keeps Take something forward disabled until there is conversation", async () => {
     const container = await renderView(
       <ManagerAureliaView onBackHome={() => undefined} />
     );
@@ -215,5 +215,45 @@ describe("Manager Aurelia live chat UI", () => {
       '[data-testid="manager-aurelia-take-forward"]'
     ) as HTMLButtonElement;
     expect(takeForward.disabled).toBe(true);
+  });
+
+  it("opens capture choice and cancels without saving", async () => {
+    apiJson.mockResolvedValueOnce({ reply: "What would help most?" });
+    const container = await renderView(
+      <ManagerAureliaView onBackHome={() => undefined} />
+    );
+    const textarea = container.querySelector("textarea") as HTMLTextAreaElement;
+
+    await act(async () => {
+      setTextarea(textarea, "I keep checking everything.");
+    });
+    await act(async () => {
+      container.querySelector("form")?.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true })
+      );
+      await Promise.resolve();
+    });
+
+    const takeForward = container.querySelector(
+      '[data-testid="manager-aurelia-take-forward"]'
+    ) as HTMLButtonElement;
+    expect(takeForward.disabled).toBe(false);
+
+    await act(async () => {
+      takeForward.click();
+    });
+    expect(container.textContent).toContain("Capture a reflection");
+    expect(container.textContent).toContain("Create an action");
+    expect(container.textContent).not.toContain("Update development focus");
+
+    await act(async () => {
+      (
+        container.querySelector(
+          '[data-testid="manager-aurelia-capture-nothing"]'
+        ) as HTMLButtonElement
+      ).click();
+    });
+    expect(container.textContent).toContain("I keep checking everything.");
+    expect(apiJson).toHaveBeenCalledTimes(1);
   });
 });

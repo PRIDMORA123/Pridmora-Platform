@@ -14,9 +14,10 @@ import {
   type ManagerAureliaTurn,
 } from "@/lib/ai/manager-aurelia-conversation";
 import { BRAND } from "@/lib/brand";
+import { ManagerAureliaCapturePanel } from "@/components/aurelia/manager-aurelia-capture";
 
 /**
- * Stage 2.2.2 — live multi-turn Manager Aurelia.
+ * Stage 2.2 — live multi-turn Manager Aurelia with deliberate capture (2.2.4).
  * Conversation state is React memory only — never persisted.
  */
 export function ManagerAureliaView({ onBackHome }: { onBackHome: () => void }) {
@@ -30,6 +31,7 @@ export function ManagerAureliaView({ onBackHome }: { onBackHome: () => void }) {
   const [turns, setTurns] = useState<ManagerAureliaTurn[]>([]);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  const [captureOpen, setCaptureOpen] = useState(false);
 
   useEffect(() => {
     const node = logRef.current;
@@ -43,6 +45,7 @@ export function ManagerAureliaView({ onBackHome }: { onBackHome: () => void }) {
     setError("");
     sendingRef.current = false;
     setSending(false);
+    setCaptureOpen(false);
     inputRef.current?.focus();
   }
 
@@ -124,6 +127,7 @@ export function ManagerAureliaView({ onBackHome }: { onBackHome: () => void }) {
   }
 
   const canSend = Boolean(draft.trim()) && !sending;
+  const canCapture = turns.length > 0 && !sending;
 
   return (
     <section
@@ -236,9 +240,14 @@ export function ManagerAureliaView({ onBackHome }: { onBackHome: () => void }) {
         <button
           type="button"
           className="identity-button is-secondary"
-          disabled
-          aria-disabled="true"
-          title="Available in a later stage"
+          onClick={() => setCaptureOpen(true)}
+          disabled={!canCapture}
+          aria-disabled={!canCapture}
+          title={
+            canCapture
+              ? "Capture a reflection or action from this conversation"
+              : "Have a short conversation before capturing something"
+          }
           data-testid="manager-aurelia-take-forward"
         >
           Take something forward
@@ -260,6 +269,12 @@ export function ManagerAureliaView({ onBackHome }: { onBackHome: () => void }) {
           Back to Home
         </button>
       </footer>
+
+      <ManagerAureliaCapturePanel
+        open={captureOpen}
+        turns={turns}
+        onClose={() => setCaptureOpen(false)}
+      />
     </section>
   );
 }

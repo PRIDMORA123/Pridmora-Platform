@@ -147,6 +147,7 @@ describe("Manager Aurelia shell UI", () => {
     const takeForward = container.querySelector(
       '[data-testid="manager-aurelia-take-forward"]'
     ) as HTMLButtonElement;
+    // Enabled only after conversation turns exist.
     expect(takeForward.disabled).toBe(true);
 
     await act(async () => {

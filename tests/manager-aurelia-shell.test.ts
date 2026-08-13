@@ -47,7 +47,7 @@ describe("Stage 2.2.1 Manager Aurelia conversation shell", () => {
     expect(home).toContain('organisationRole !== "manager"');
   });
 
-  it("renders conversational shell with privacy notice and capture still disabled", () => {
+  it("renders conversational shell with privacy notice and deliberate capture entry", () => {
     const view = read("components/aurelia/manager-aurelia-view.tsx");
     expect(view).toContain("Talk something through");
     expect(view).toContain("What’s on your mind?");
@@ -60,10 +60,7 @@ describe("Stage 2.2.1 Manager Aurelia conversation shell", () => {
     expect(view).toContain("New conversation");
     expect(view).toContain("Back to Home");
     expect(view).toContain('data-testid="manager-aurelia-take-forward"');
-    expect(view).toContain("manager-aurelia-take-forward");
-    expect(view).toMatch(
-      /data-testid="manager-aurelia-take-forward"[\s\S]*?disabled/
-    );
+    expect(view).toContain("ManagerAureliaCapturePanel");
     expect(view).not.toContain("localStorage");
     expect(view).not.toContain("sessionStorage");
   });
