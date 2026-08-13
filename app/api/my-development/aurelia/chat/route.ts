@@ -6,17 +6,20 @@ import {
   boundManagerAureliaTurns,
   buildManagerAureliaInput,
   buildManagerAureliaInstructions,
+  rejectClientSuppliedDevelopmentContext,
   rejectPersonIdentifiers,
   validateManagerAureliaMessage,
 } from "@/lib/ai/manager-aurelia-conversation";
+import { loadManagerAureliaDevelopmentContext } from "@/lib/my-development/aurelia-context";
 import { checkManagerAureliaRateLimit } from "@/lib/my-development/aurelia-rate-limit";
 import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
 
 export const runtime = "nodejs";
 
 /**
- * Stage 2.2.2 — person-free Manager Aurelia multi-turn chat.
- * No transcript persistence. No portfolio context. No person IDs.
+ * Stage 2.2.3 — person-free Manager Aurelia multi-turn chat with optional
+ * minimised self-development focus/actions context (server-resolved, read-only).
+ * No transcript persistence. No person IDs.
  */
 export async function POST(request: Request) {
   const auth = await requireOrganisationContext();
@@ -66,6 +69,14 @@ export async function POST(request: Request) {
     );
   }
 
+  const portfolioCheck = rejectClientSuppliedDevelopmentContext(body);
+  if (!portfolioCheck.ok) {
+    return NextResponse.json(
+      { error: portfolioCheck.error },
+      { status: portfolioCheck.status }
+    );
+  }
+
   const messageResult = validateManagerAureliaMessage(body.message);
   if (!messageResult.ok) {
     return NextResponse.json(
@@ -90,10 +101,18 @@ export async function POST(request: Request) {
     );
   }
 
+  // Read-only. Empty if no self-development record. Never creates one.
+  const developmentContext = await loadManagerAureliaDevelopmentContext({
+    supabase: auth.context.supabase,
+    organisationId: auth.context.organisation.organisationId,
+    userId: auth.context.user.id,
+  });
+
   const openai = new OpenAI({ apiKey });
   const input = buildManagerAureliaInput(
     turnsResult.turns,
-    messageResult.message
+    messageResult.message,
+    developmentContext
   );
 
   try {
@@ -112,10 +131,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Guaranteed re-submittable as a prior Aurelia turn on the next request.
+    // Reply only — development context is never returned to the browser.
     return NextResponse.json({ reply });
   } catch {
-    // Do not log request bodies, prompts, turns or replies.
+    // Do not log request bodies, prompts, turns, context or replies.
     console.error("[manager-aurelia-chat]", {
       errorCode: "MANAGER_AURELIA_AI_FAILED",
     });

@@ -136,6 +136,7 @@ describe("Stage 2.2.2 / 2.2.2A Manager Aurelia chat helpers", () => {
       "They keep interrupting me."
     );
     expect(input).toContain("No person records");
+    expect(input).toContain("No development focus or action context");
     expect(input).toContain("I have a hard conversation tomorrow.");
     expect(input).toContain("They keep interrupting me.");
     expect(input).not.toContain("clientId");
@@ -162,6 +163,8 @@ describe("Stage 2.2.2 Manager Aurelia API contract", () => {
     expect(route).toContain('professionalRole !== "manager"');
     expect(route).toContain("aiEnabled");
     expect(route).toContain("rejectPersonIdentifiers");
+    expect(route).toContain("rejectClientSuppliedDevelopmentContext");
+    expect(route).toContain("loadManagerAureliaDevelopmentContext");
     expect(route).toContain("openai.responses.create");
     expect(route).toContain("buildManagerAureliaInstructions");
     expect(route).toContain("boundManagerAureliaReply");
@@ -171,6 +174,7 @@ describe("Stage 2.2.2 Manager Aurelia API contract", () => {
     expect(route).not.toContain("console.log(reply");
     expect(route).not.toContain("requireAssignedPersonInOrganisation");
     expect(route).not.toContain("loadMyDevelopmentWorkspace");
+    expect(route).not.toContain("ensureSelfDevelopmentRelationship");
     expect(route).not.toContain(".from(");
   });
 
@@ -215,6 +219,36 @@ describe("Stage 2.2.2 Manager Aurelia route behaviour", () => {
     vi.clearAllMocks();
   });
 
+  function mockEmptyDevelopmentContext() {
+    vi.doMock("@/lib/my-development/aurelia-context", async () => {
+      const actual = await vi.importActual<
+        typeof import("@/lib/my-development/aurelia-context")
+      >("@/lib/my-development/aurelia-context");
+      return {
+        ...actual,
+        loadManagerAureliaDevelopmentContext: vi.fn(async () => ({
+          focusTitles: [],
+          actions: [],
+        })),
+      };
+    });
+  }
+
+  function managerAuthContext() {
+    return {
+      ok: true as const,
+      context: {
+        user: { id: `u-${Math.random()}` },
+        supabase: {},
+        organisation: {
+          organisationId: `o-${Math.random()}`,
+          professionalRole: "manager",
+          organisation: { aiEnabled: true },
+        },
+      },
+    };
+  }
+
   it("rejects unauthenticated access", async () => {
     vi.doMock("@/lib/organisations/current-organisation", () => ({
       requireOrganisationContext: vi.fn(async () => ({
@@ -224,6 +258,7 @@ describe("Stage 2.2.2 Manager Aurelia route behaviour", () => {
         }),
       })),
     }));
+    mockEmptyDevelopmentContext();
     vi.doMock("openai", () => ({
       default: class {
         responses = { create: vi.fn() };
@@ -246,6 +281,7 @@ describe("Stage 2.2.2 Manager Aurelia route behaviour", () => {
         ok: true,
         context: {
           user: { id: "u1" },
+          supabase: {},
           organisation: {
             organisationId: "o1",
             professionalRole: "coach",
@@ -254,6 +290,7 @@ describe("Stage 2.2.2 Manager Aurelia route behaviour", () => {
         },
       })),
     }));
+    mockEmptyDevelopmentContext();
     const create = vi.fn();
     vi.doMock("openai", () => ({
       default: class {
@@ -274,18 +311,9 @@ describe("Stage 2.2.2 Manager Aurelia route behaviour", () => {
 
   it("rejects person identifiers and does not call OpenAI", async () => {
     vi.doMock("@/lib/organisations/current-organisation", () => ({
-      requireOrganisationContext: vi.fn(async () => ({
-        ok: true,
-        context: {
-          user: { id: "u1" },
-          organisation: {
-            organisationId: "o1",
-            professionalRole: "manager",
-            organisation: { aiEnabled: true },
-          },
-        },
-      })),
+      requireOrganisationContext: vi.fn(async () => managerAuthContext()),
     }));
+    mockEmptyDevelopmentContext();
     const create = vi.fn();
     vi.doMock("openai", () => ({
       default: class {
@@ -308,27 +336,58 @@ describe("Stage 2.2.2 Manager Aurelia route behaviour", () => {
     expect(create).not.toHaveBeenCalled();
   });
 
+  it("rejects client-supplied development context and identity fields", async () => {
+    vi.doMock("@/lib/organisations/current-organisation", () => ({
+      requireOrganisationContext: vi.fn(async () => managerAuthContext()),
+    }));
+    mockEmptyDevelopmentContext();
+    const create = vi.fn();
+    vi.doMock("openai", () => ({
+      default: class {
+        responses = { create };
+      },
+    }));
+
+    const { POST } = await import("@/app/api/my-development/aurelia/chat/route");
+    const response = await POST(
+      new Request("http://localhost/api/my-development/aurelia/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          turns: [],
+          message: "Hello",
+          focusTitles: ["Delegation"],
+        }),
+      })
+    );
+    expect(response.status).toBe(400);
+    expect(create).not.toHaveBeenCalled();
+  });
+
   it("returns Aurelia reply for a Manager and includes prior turns", async () => {
     process.env.OPENAI_API_KEY = "test-key";
     const create = vi.fn(async (args: { input: string }) => {
       expect(args.input).toContain("First message");
       expect(args.input).toContain("Second message");
+      expect(args.input).toContain("MANAGER DEVELOPMENT CONTEXT");
+      expect(args.input).toContain("Delegation");
       expect(args.input).not.toContain("clientId");
       return { output_text: "Here is a calm next step." };
     });
     vi.doMock("@/lib/organisations/current-organisation", () => ({
-      requireOrganisationContext: vi.fn(async () => ({
-        ok: true,
-        context: {
-          user: { id: `u-${Math.random()}` },
-          organisation: {
-            organisationId: `o-${Math.random()}`,
-            professionalRole: "manager",
-            organisation: { aiEnabled: true },
-          },
-        },
-      })),
+      requireOrganisationContext: vi.fn(async () => managerAuthContext()),
     }));
+    vi.doMock("@/lib/my-development/aurelia-context", async () => {
+      const actual = await vi.importActual<
+        typeof import("@/lib/my-development/aurelia-context")
+      >("@/lib/my-development/aurelia-context");
+      return {
+        ...actual,
+        loadManagerAureliaDevelopmentContext: vi.fn(async () => ({
+          focusTitles: ["Delegation"],
+          actions: [{ title: "Delegate one task", status: "Open" }],
+        })),
+      };
+    });
     vi.doMock("openai", () => ({
       default: class {
         responses = { create };
@@ -351,6 +410,8 @@ describe("Stage 2.2.2 Manager Aurelia route behaviour", () => {
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data.reply).toBe("Here is a calm next step.");
+    expect(data.developmentContext).toBeUndefined();
+    expect(data.focusTitles).toBeUndefined();
     expect(create).toHaveBeenCalledTimes(1);
   });
 
@@ -363,18 +424,9 @@ describe("Stage 2.2.2 Manager Aurelia route behaviour", () => {
     );
     const create = vi.fn(async () => ({ output_text: oversized }));
     vi.doMock("@/lib/organisations/current-organisation", () => ({
-      requireOrganisationContext: vi.fn(async () => ({
-        ok: true,
-        context: {
-          user: { id: `u-${Math.random()}` },
-          organisation: {
-            organisationId: `o-${Math.random()}`,
-            professionalRole: "manager",
-            organisation: { aiEnabled: true },
-          },
-        },
-      })),
+      requireOrganisationContext: vi.fn(async () => managerAuthContext()),
     }));
+    mockEmptyDevelopmentContext();
     vi.doMock("openai", () => ({
       default: class {
         responses = { create };
@@ -428,18 +480,9 @@ describe("Stage 2.2.2 Manager Aurelia route behaviour", () => {
       output_text: "Continue with one practical option.",
     }));
     vi.doMock("@/lib/organisations/current-organisation", () => ({
-      requireOrganisationContext: vi.fn(async () => ({
-        ok: true,
-        context: {
-          user: { id: `u-${Math.random()}` },
-          organisation: {
-            organisationId: `o-${Math.random()}`,
-            professionalRole: "manager",
-            organisation: { aiEnabled: true },
-          },
-        },
-      })),
+      requireOrganisationContext: vi.fn(async () => managerAuthContext()),
     }));
+    mockEmptyDevelopmentContext();
     vi.doMock("openai", () => ({
       default: class {
         responses = { create };
@@ -469,18 +512,9 @@ describe("Stage 2.2.2 Manager Aurelia route behaviour", () => {
     process.env.OPENAI_API_KEY = "test-key";
     const create = vi.fn();
     vi.doMock("@/lib/organisations/current-organisation", () => ({
-      requireOrganisationContext: vi.fn(async () => ({
-        ok: true,
-        context: {
-          user: { id: `u-${Math.random()}` },
-          organisation: {
-            organisationId: `o-${Math.random()}`,
-            professionalRole: "manager",
-            organisation: { aiEnabled: true },
-          },
-        },
-      })),
+      requireOrganisationContext: vi.fn(async () => managerAuthContext()),
     }));
+    mockEmptyDevelopmentContext();
     vi.doMock("openai", () => ({
       default: class {
         responses = { create };
@@ -505,18 +539,9 @@ describe("Stage 2.2.2 Manager Aurelia route behaviour", () => {
     process.env.OPENAI_API_KEY = "test-key";
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
     vi.doMock("@/lib/organisations/current-organisation", () => ({
-      requireOrganisationContext: vi.fn(async () => ({
-        ok: true,
-        context: {
-          user: { id: `u-${Math.random()}` },
-          organisation: {
-            organisationId: `o-${Math.random()}`,
-            professionalRole: "manager",
-            organisation: { aiEnabled: true },
-          },
-        },
-      })),
+      requireOrganisationContext: vi.fn(async () => managerAuthContext()),
     }));
+    mockEmptyDevelopmentContext();
     vi.doMock("openai", () => ({
       default: class {
         responses = {

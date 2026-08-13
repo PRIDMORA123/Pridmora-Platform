@@ -140,6 +140,9 @@ describe("Manager Aurelia shell UI", () => {
     expect(container.textContent).toContain("What’s on your mind?");
     expect(container.textContent).toContain("private working session");
     expect(container.textContent).toContain("It is not saved");
+    expect(container.textContent).toContain(
+      "current development focus and actions"
+    );
 
     const takeForward = container.querySelector(
       '[data-testid="manager-aurelia-take-forward"]'

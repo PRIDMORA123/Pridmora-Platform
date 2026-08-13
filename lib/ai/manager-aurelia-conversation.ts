@@ -1,10 +1,15 @@
 /**
- * Stage 2.2.2 / 2.2.2A — Manager Aurelia multi-turn conversation helpers.
- * Person-free, portfolio-free. No transcript persistence.
+ * Stage 2.2.2 / 2.2.2A / 2.2.3 — Manager Aurelia multi-turn conversation helpers.
+ * Person-free. Optional minimised development focus/actions context.
+ * No transcript persistence.
  */
 
 import { IDENTITY_SYSTEM_PROMPT } from "@/lib/ai/identity-system-prompt";
 import { BRAND } from "@/lib/brand";
+import {
+  formatManagerAureliaDevelopmentContext,
+  type ManagerAureliaDevelopmentContext,
+} from "@/lib/my-development/aurelia-context";
 
 /** Manager new message and prior Manager turns. */
 export const MANAGER_AURELIA_MAX_MESSAGE_CHARS = 2000;
@@ -49,10 +54,21 @@ Match the Manager’s request:
 - Asks what to say / for an opening → offer a short adaptable opening, not a speech.
 - Says “keep this short”, “I don’t want a long coaching conversation”, “just help me prepare”, or similar → honour that immediately with a short, direct reply.
 
+Manager development context (when supplied separately in the input):
+- A small amount of the Manager’s own development focus titles and incomplete actions may be available.
+- That context is AVAILABLE, NOT MANDATORY. Use it only when genuinely relevant to what the Manager is discussing now.
+- Do not mention a focus or action merely because it exists. Do not inventory the portfolio.
+- Avoid wording such as “According to your portfolio…”, “You have three actions…”, or “Your development record says…”.
+- Prefer natural connections when relevant, for example: “You’ve been working on delegation. Does what you’re describing here feel connected to that?”
+- Current conversation takes precedence over older development context. If the Manager’s current words conflict with an old focus or action, work with what they are saying now — do not correct them using the portfolio, and do not treat old context as current truth.
+- Never invent a focus or action that was not supplied.
+- Names appearing inside Manager-authored action titles do not grant person-record access. Do not look up, identify, or claim to know that person.
+- Do not claim access to reflections, evidence, assessments, strengths, values, team members, My People, or organisational intelligence.
+
 Always:
 - Keep Manager judgement central: propose, do not decide for them.
 - Follow Evidence before certainty: do not invent facts about people, teams or the organisation.
-- Do not claim access to person records, portfolios, evidence, assessments or organisational intelligence.
+- Do not claim access to person records, full portfolios, evidence, assessments or organisational intelligence.
 - Discuss “someone I manage” only from what the Manager has written — never attempt to identify or retrieve that person.
 - Do not diagnose employees; do not provide HR, legal, disciplinary or clinical advice.
 - Do not claim this conversation is saved or that it becomes organisational intelligence.
@@ -217,15 +233,67 @@ export function rejectPersonIdentifiers(
   return { ok: true };
 }
 
+/**
+ * Reject client-supplied portfolio/identity fields. Context is resolved
+ * server-side only from the authenticated Manager's self-development record.
+ */
+export function rejectClientSuppliedDevelopmentContext(
+  body: Record<string, unknown>
+): { ok: true } | { ok: false; error: string; status: number } {
+  const forbidden = [
+    "developmentContext",
+    "managerDevelopmentContext",
+    "focus",
+    "focuses",
+    "focusItems",
+    "focusTitles",
+    "actions",
+    "portfolio",
+    "workspace",
+    "selfClientId",
+    "organisationId",
+    "coachId",
+    "managerId",
+    "userId",
+  ] as const;
+  for (const key of forbidden) {
+    if (body[key] !== undefined && body[key] !== null && body[key] !== "") {
+      return {
+        ok: false,
+        error:
+          "Development context must be resolved server-side and cannot be supplied by the client.",
+        status: 400,
+      };
+    }
+  }
+  return { ok: true };
+}
+
 export function buildManagerAureliaInput(
   turns: ManagerAureliaTurn[],
-  message: string
+  message: string,
+  developmentContext?: ManagerAureliaDevelopmentContext | null
 ): string {
+  const contextBlock = developmentContext
+    ? formatManagerAureliaDevelopmentContext(developmentContext)
+    : "";
+
   const lines: string[] = [
     "Active private working session (not saved as history).",
-    "No person records or Manager portfolio context are available.",
-    "",
+    "No person records are available.",
   ];
+
+  if (contextBlock) {
+    lines.push(
+      "Selected Manager development focus/actions may be available below. Use only when relevant."
+    );
+    lines.push("");
+    lines.push(contextBlock);
+  } else {
+    lines.push("No development focus or action context is available for this session.");
+  }
+
+  lines.push("");
 
   if (turns.length > 0) {
     lines.push("Conversation so far:");

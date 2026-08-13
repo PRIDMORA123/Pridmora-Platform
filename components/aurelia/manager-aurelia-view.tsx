@@ -141,7 +141,8 @@ export function ManagerAureliaView({ onBackHome }: { onBackHome: () => void }) {
         <p className="manager-aurelia__privacy" id={noticeId}>
           This is a private working session with {BRAND.intelligenceName}. It is
           not saved. If you leave or refresh this page, the conversation will be
-          lost. Capture anything you want to keep.
+          lost. Capture anything you want to keep.{" "}
+          {`${BRAND.intelligenceName} can use your current development focus and actions to make this conversation more relevant.`}
         </p>
       </header>
 
