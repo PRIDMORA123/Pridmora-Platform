@@ -7,6 +7,10 @@ import {
   MetricGroup,
   MetricItem,
 } from "@/components/organisation/metric-group";
+import {
+  ManagerDevelopmentIntelligenceView,
+  type ManagerDevelopmentLeadPayload,
+} from "@/components/organisation/manager-development-intelligence-view";
 import { apiJson } from "@/lib/api-client";
 import type { SafeOversightMetrics } from "@/lib/organisations/types";
 
@@ -23,6 +27,10 @@ export default function OrganisationOverviewPage() {
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [development, setDevelopment] =
+    useState<ManagerDevelopmentLeadPayload | null>(null);
+  const [developmentError, setDevelopmentError] = useState("");
+  const [developmentLoading, setDevelopmentLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -49,6 +57,32 @@ export default function OrganisationOverviewPage() {
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const payload = await apiJson<ManagerDevelopmentLeadPayload>(
+          "/api/organisations/manager-development-intelligence"
+        );
+        if (!active) return;
+        setDevelopment(payload);
+      } catch (err) {
+        if (!active) return;
+        // Overview remains usable without development intelligence access.
+        setDevelopmentError(
+          err instanceof Error
+            ? err.message
+            : "Manager Development Intelligence is unavailable."
+        );
+      } finally {
+        if (active) setDevelopmentLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const isPersonal = metrics?.organisationType === "personal";
   const title = metrics?.organisationName || "Overview";
   const subtitle = metrics
@@ -64,6 +98,21 @@ export default function OrganisationOverviewPage() {
       ) : null}
       {error ? <p className="organisation-error">{error}</p> : null}
 
+      {developmentLoading ? (
+        <p className="organisation-muted">
+          Loading organisation development summary…
+        </p>
+      ) : null}
+      {developmentError && !development ? (
+        <p className="organisation-muted">{developmentError}</p>
+      ) : null}
+      {development ? (
+        <ManagerDevelopmentIntelligenceView
+          data={development}
+          variant="overview"
+        />
+      ) : null}
+
       {metrics ? (
         <>
           <OrganisationInfoBanner>{note}</OrganisationInfoBanner>
@@ -75,61 +124,74 @@ export default function OrganisationOverviewPage() {
             </div>
           ) : null}
 
-          <div className="organisation-metric-groups">
-            <MetricGroup title="People">
-              <MetricItem
-                value={metrics.activeMembers}
-                label={
-                  metrics.activeMembers === 1
-                    ? "Active member"
-                    : "Active members"
-                }
-              />
-              <MetricItem
-                value={metrics.practitioners}
-                label={
-                  metrics.practitioners === 1
-                    ? "Active practitioner"
-                    : "Active practitioners"
-                }
-              />
-              <MetricItem
-                value={metrics.activeRelationships}
-                label={
-                  metrics.activeRelationships === 1
-                    ? "Active relationship"
-                    : "Active relationships"
-                }
-              />
-            </MetricGroup>
+          <section
+            className="organisation-ops"
+            aria-labelledby="organisation-ops-heading"
+          >
+            <h2 id="organisation-ops-heading" className="organisation-section-title">
+              Operational overview
+            </h2>
+            <p className="organisation-muted organisation-ops__intro">
+              Administrative counts for organisation health. These are separate
+              from Manager Development Intelligence.
+            </p>
 
-            <MetricGroup title="Workflow">
-              <MetricItem
-                value={metrics.conversationsThisMonth}
-                label="Conversations this month"
-              />
-              <MetricItem
-                value={metrics.awaitingSessionNotes}
-                label="Awaiting session notes"
-              />
-              <MetricItem
-                value={metrics.summariesAwaitingReview}
-                label="Summaries awaiting review"
-              />
-            </MetricGroup>
+            <div className="organisation-metric-groups">
+              <MetricGroup title="People">
+                <MetricItem
+                  value={metrics.activeMembers}
+                  label={
+                    metrics.activeMembers === 1
+                      ? "Active member"
+                      : "Active members"
+                  }
+                />
+                <MetricItem
+                  value={metrics.practitioners}
+                  label={
+                    metrics.practitioners === 1
+                      ? "Active practitioner"
+                      : "Active practitioners"
+                  }
+                />
+                <MetricItem
+                  value={metrics.activeRelationships}
+                  label={
+                    metrics.activeRelationships === 1
+                      ? "Active relationship"
+                      : "Active relationships"
+                  }
+                />
+              </MetricGroup>
 
-            <MetricGroup title="Platform activity">
-              <MetricItem
-                value={metrics.preparationUsageThisMonth}
-                label="Preparations"
-              />
-              <MetricItem
-                value={metrics.developmentUpdatesCompleted}
-                label="Development updates"
-              />
-              <MetricItem value={metrics.reportsCount} label="Reports" />
-            </MetricGroup>
-          </div>
+              <MetricGroup title="Workflow">
+                <MetricItem
+                  value={metrics.conversationsThisMonth}
+                  label="Conversations this month"
+                />
+                <MetricItem
+                  value={metrics.awaitingSessionNotes}
+                  label="Awaiting session notes"
+                />
+                <MetricItem
+                  value={metrics.summariesAwaitingReview}
+                  label="Summaries awaiting review"
+                />
+              </MetricGroup>
+
+              <MetricGroup title="Platform activity">
+                <MetricItem
+                  value={metrics.preparationUsageThisMonth}
+                  label="Preparations"
+                />
+                <MetricItem
+                  value={metrics.developmentUpdatesCompleted}
+                  label="Development updates"
+                />
+                <MetricItem value={metrics.reportsCount} label="Reports" />
+              </MetricGroup>
+            </div>
+          </section>
         </>
       ) : null}
     </OrganisationShell>

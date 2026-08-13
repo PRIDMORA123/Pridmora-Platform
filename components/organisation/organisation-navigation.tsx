@@ -6,6 +6,10 @@ import { useCanManageSampleOrganisation } from "@/lib/organisations/use-can-mana
 
 const BASE_NAV: Array<{ href: string; label: string; exact?: boolean }> = [
   { href: "/organisation", label: "Overview", exact: true },
+  {
+    href: "/organisation/manager-development",
+    label: "Manager Development",
+  },
   { href: "/organisation/intelligence", label: "Intelligence" },
   { href: "/organisation/members", label: "Members" },
   { href: "/organisation/assignments", label: "Assignments" },

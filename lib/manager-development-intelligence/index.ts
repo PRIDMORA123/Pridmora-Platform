@@ -43,3 +43,11 @@ export {
   listEligibleManagerSelfDevelopmentClients,
   loadManagerDevelopmentDerivedSignals,
 } from "@/lib/manager-development-intelligence/load-signals";
+
+export {
+  LEAD_PRIVACY_BOUNDARY_COPY,
+  LEAD_LENS_SEPARATION_COPY,
+  STRENGTH_EXPLANATIONS,
+  strengthDisplayLabel,
+  themeDescriptionForKey,
+} from "@/lib/manager-development-intelligence/ui-copy";

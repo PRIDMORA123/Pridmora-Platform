@@ -11847,3 +11847,189 @@ button.coaching-moments-section__item:focus-visible {
     width: 100%;
   }
 }
+
+
+/* Stage 3.2 — Manager Development Intelligence (Organisation Lead) */
+.manager-dev-intel {
+  display: grid;
+  gap: var(--identity-space-5, 20px);
+  margin-bottom: var(--identity-space-7, 32px);
+  max-width: 46rem;
+}
+
+.manager-dev-intel--overview {
+  padding: var(--identity-space-5, 20px);
+  background: var(--identity-white, #ffffff);
+  border: 1px solid var(--identity-border-soft, #e7ecef);
+  border-radius: var(--identity-radius-lg, 14px);
+}
+
+.manager-dev-intel__eyebrow {
+  margin: 0 0 var(--identity-space-2, 8px);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--identity-text-secondary, #687b8a);
+}
+
+.manager-dev-intel__title {
+  margin: 0 0 var(--identity-space-3, 12px);
+  font-family: var(--font-poppins), Poppins, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--identity-navy);
+}
+
+.manager-dev-intel__lede,
+.manager-dev-intel__lens-note {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color: var(--identity-text-body, #344652);
+}
+
+.manager-dev-intel__privacy {
+  max-width: 42rem;
+  padding: var(--identity-space-3, 12px) var(--identity-space-4, 16px);
+  background: var(--identity-teal-50, #eff9f8);
+  border: 1px solid var(--identity-border-teal, #b9e1df);
+  border-left: 3px solid var(--identity-teal);
+  border-radius: var(--identity-radius-md, 10px);
+}
+
+.manager-dev-intel__privacy p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--identity-text-body, #344652);
+}
+
+.manager-dev-intel__panel {
+  display: grid;
+  gap: var(--identity-space-5, 20px);
+}
+
+.manager-dev-intel__section-label {
+  margin: 0 0 var(--identity-space-2, 8px);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--identity-text-secondary, #687b8a);
+}
+
+.manager-dev-intel__primary-message {
+  margin: 0 0 var(--identity-space-3, 12px);
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--identity-navy);
+}
+
+.manager-dev-intel__pattern-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--identity-space-4, 16px);
+}
+
+.manager-dev-intel__pattern {
+  padding: 0 0 var(--identity-space-4, 16px);
+  border-bottom: 1px solid var(--identity-border-soft, #e7ecef);
+}
+
+.manager-dev-intel__pattern:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.manager-dev-intel__pattern-title {
+  margin: 0 0 var(--identity-space-2, 8px);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--identity-navy);
+}
+
+.manager-dev-intel__strength {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0 0 var(--identity-space-2, 8px);
+}
+
+.manager-dev-intel__strength-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--identity-navy);
+}
+
+.manager-dev-intel__strength-copy {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--identity-text-secondary, #687b8a);
+}
+
+.manager-dev-intel__next {
+  padding-top: var(--identity-space-2, 8px);
+}
+
+.manager-dev-intel__next-title {
+  margin: 0 0 var(--identity-space-2, 8px);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--identity-navy);
+}
+
+.manager-dev-intel__cta-row {
+  margin: var(--identity-space-2, 8px) 0 0;
+}
+
+.manager-dev-intel__cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.65rem 1rem;
+  border-radius: var(--identity-radius-md, 10px);
+  background: var(--identity-navy);
+  color: var(--identity-white, #ffffff);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.manager-dev-intel__cta:hover {
+  filter: brightness(1.05);
+}
+
+.manager-dev-intel__cta:focus-visible {
+  outline: 2px solid var(--identity-teal);
+  outline-offset: 3px;
+}
+
+.organisation-ops {
+  margin-top: var(--identity-space-6, 24px);
+}
+
+.organisation-ops__intro {
+  margin: 0 0 var(--identity-space-4, 16px);
+  max-width: 42rem;
+}
+
+@media (max-width: 768px) {
+  .manager-dev-intel__title {
+    font-size: 1.2rem;
+  }
+
+  .manager-dev-intel__cta {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 390px) {
+  .manager-dev-intel--overview {
+    padding: var(--identity-space-4, 16px);
+  }
+}
