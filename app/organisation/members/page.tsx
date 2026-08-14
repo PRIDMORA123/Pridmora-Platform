@@ -103,25 +103,31 @@ export default function OrganisationMembersPage() {
     email: string;
     role: MembershipRole;
     professionalRole: ProfessionalRole | null;
-  }): Promise<{ acceptPath: string } | null> {
+  }): Promise<{ acceptPath?: string; authEmailSent?: boolean } | null> {
     setBusy(true);
     setError("");
     try {
       const role = isLeadAdmin ? "practitioner" : input.role;
       const professionalRole = isLeadAdmin ? "manager" : input.professionalRole;
-      const result = await apiJson<{ acceptPath: string }>(
-        "/api/organisations/invitations",
-        {
-          method: "POST",
-          body: JSON.stringify({
-            email: input.email,
-            role,
-            professionalRole,
-          }),
-        }
-      );
+      const result = await apiJson<{
+        acceptPath: string;
+        authEmailSent?: boolean;
+      }>("/api/organisations/invitations", {
+        method: "POST",
+        body: JSON.stringify({
+          email: input.email,
+          role,
+          professionalRole,
+        }),
+      });
       await load();
-      return { acceptPath: result.acceptPath };
+      if (!result.authEmailSent && !result.acceptPath) {
+        throw new Error("The invitation email could not be sent.");
+      }
+      return {
+        acceptPath: result.acceptPath,
+        authEmailSent: result.authEmailSent ?? true,
+      };
     } catch (err) {
       const message = err instanceof Error ? err.message : "Invite failed.";
       setError(message);

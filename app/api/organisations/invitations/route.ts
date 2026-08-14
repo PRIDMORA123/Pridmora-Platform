@@ -4,6 +4,7 @@ import {
   requireOrganisationContext,
   requireOrganisationPermission,
 } from "@/lib/organisations/current-organisation";
+import { deliverOrganisationInvitationAuthEmail } from "@/lib/organisations/invitation-auth-delivery";
 import {
   createOrganisationInvitation,
   revokeOrganisationInvitation,
@@ -12,6 +13,10 @@ import {
 } from "@/lib/organisations/invitations";
 import { parseMembershipRole } from "@/lib/organisations/permissions";
 import type { ProfessionalRole } from "@/lib/organisations/types";
+import {
+  getSupabaseServiceClient,
+  isSupabaseServerConfigured,
+} from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -118,9 +123,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true });
     }
 
-    // Create invitation
+    // Create invitation + Auth email delivery (Lead Manager / org admin invites).
     const denied = requireOrganisationPermission(auth.context, "members.invite");
     if (denied) return denied;
+
+    if (!isSupabaseServerConfigured()) {
+      return NextResponse.json(
+        {
+          error:
+            "Organisation invitation email requires server auth configuration (service role).",
+        },
+        { status: 503 }
+      );
+    }
 
     const email = typeof body.email === "string" ? body.email : "";
     const role = parseMembershipRole(body.role);
@@ -143,12 +158,27 @@ export async function POST(request: Request) {
       actorRole: auth.context.organisation.role,
     });
 
-    // Return token once for the inviter to share — never stored in plain text.
+    const service = getSupabaseServiceClient();
+    const professionalTitle =
+      professionalRole === "manager" ? "Manager" : professionalRole || undefined;
+
+    const delivered = await deliverOrganisationInvitationAuthEmail({
+      service,
+      email: email.trim().toLowerCase(),
+      invitationId: created.invitationId,
+      invitationToken: created.token,
+      userMetadata: {
+        professional_title: professionalTitle,
+      },
+    });
+
     return NextResponse.json(
       {
         invitationId: created.invitationId,
         expiresAt: created.expiresAt,
-        acceptPath: `/organisation/invitations/accept?token=${encodeURIComponent(created.token)}`,
+        acceptPath: delivered.acceptPath,
+        authEmailSent: true,
+        authDelivery: delivered.authDelivery,
       },
       { status: 201 }
     );

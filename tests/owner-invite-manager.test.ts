@@ -50,8 +50,7 @@ describe("Slice 2 — owner invite first manager", () => {
     expect(lib).toContain('role: "practitioner"');
     expect(lib).toContain('professionalRole: "manager"');
     expect(lib).toContain('professional_role: mapping.professionalRole');
-    expect(lib).toContain("inviteUserByEmail");
-    expect(lib).toContain("signInWithOtp");
+    expect(lib).toContain("deliverOrganisationInvitationAuthEmail");
     expect(lib).toContain("magiclink_existing_user");
     expect(lib).not.toContain("resetPasswordForEmail");
     expect(lib).toContain("assertPractitionerSeatAvailable");
@@ -61,6 +60,12 @@ describe("Slice 2 — owner invite first manager", () => {
     expect(lib).not.toContain("resolveAuthSiteOrigin");
     expect(lib).not.toContain('role: "owner"');
     expect(lib).not.toContain('role: "administrator"');
+
+    const delivery = read("lib/organisations/invitation-auth-delivery.ts");
+    expect(delivery).toContain("inviteUserByEmail");
+    expect(delivery).toContain("signInWithOtp");
+    expect(delivery).toContain("resolveCustomerInviteOrigin");
+    expect(delivery).not.toContain("resetPasswordForEmail");
 
     const facade = read("lib/owner/invite-manager.ts");
     expect(facade).toContain("inviteOrganisationManager");

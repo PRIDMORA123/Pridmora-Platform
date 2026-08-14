@@ -117,16 +117,16 @@ describe("organisation workspace UI", () => {
     expect(container.textContent).not.toContain("accept?token=");
   });
 
-  it("shows copy action after invitation without rendering token as page text", () => {
+  it("shows sent confirmation after invitation email without exposing tokens", () => {
     const modalSource = readFileSync(
       join(process.cwd(), "components/organisation/invite-member-modal.tsx"),
       "utf8"
     );
-    expect(modalSource).toContain("Invitation created");
-    expect(modalSource).toContain("The invitation can now be shared securely.");
-    expect(modalSource).toContain("Copy invitation link");
-    expect(modalSource).toContain("Invitation link copied");
-    expect(modalSource).toContain("navigator.clipboard");
+    expect(modalSource).toContain("Manager invitation sent");
+    expect(modalSource).toContain("Invitation sent");
+    expect(modalSource).toContain("An invitation email has been sent.");
+    expect(modalSource).not.toContain("Invitation created");
+    expect(modalSource).not.toContain("Copy invitation link");
     expect(modalSource).not.toContain("Share this single-use link:");
     expect(modalSource).not.toMatch(/<code>\{acceptPath\}<\/code>/);
   });

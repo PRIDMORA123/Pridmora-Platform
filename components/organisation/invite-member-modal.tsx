@@ -25,7 +25,7 @@ type InviteMemberModalProps = {
     email: string;
     role: MembershipRole;
     professionalRole: ProfessionalRole | null;
-  }) => Promise<{ acceptPath: string } | null>;
+  }) => Promise<{ acceptPath?: string; authEmailSent?: boolean } | null>;
 };
 
 export function InviteMemberModal({
@@ -52,16 +52,14 @@ export function InviteMemberModal({
     isManagerInvite ? "manager" : ""
   );
   const [error, setError] = useState("");
-  const [acceptPath, setAcceptPath] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [sent, setSent] = useState(false);
 
   function reset() {
     setEmail("");
     setRole(isManagerInvite ? "practitioner" : (roles[0] ?? "practitioner"));
     setProfessionalRole(isManagerInvite ? "manager" : "");
     setError("");
-    setAcceptPath(null);
-    setCopied(false);
+    setSent(false);
   }
 
   function handleClose() {
@@ -72,7 +70,6 @@ export function InviteMemberModal({
 
   async function handleSubmit() {
     setError("");
-    setCopied(false);
     try {
       const result = await onInvite({
         email,
@@ -81,8 +78,8 @@ export function InviteMemberModal({
           ? "manager"
           : professionalRole || null,
       });
-      if (result?.acceptPath) {
-        setAcceptPath(result.acceptPath);
+      if (result?.authEmailSent || result?.acceptPath) {
+        setSent(true);
         setEmail("");
       }
     } catch (err) {
@@ -92,39 +89,20 @@ export function InviteMemberModal({
     }
   }
 
-  async function copyLink() {
-    if (!acceptPath) return;
-    const absolute =
-      typeof window !== "undefined"
-        ? `${window.location.origin}${acceptPath}`
-        : acceptPath;
-    try {
-      await navigator.clipboard.writeText(absolute);
-      setCopied(true);
-    } catch {
-      setError("Unable to copy the invitation link. Please try again.");
-    }
-  }
-
   if (!open) return null;
 
-  if (acceptPath) {
+  if (sent) {
     return (
       <Modal
         isOpen={open}
-        title="Invitation created"
+        title={
+          isManagerInvite ? "Manager invitation sent" : "Invitation sent"
+        }
         onClose={handleClose}
         size="md"
         closeDisabled={busy}
         footer={
           <>
-            <IdentityButton
-              variant="secondary"
-              onClick={copyLink}
-              disabled={busy}
-            >
-              Copy invitation link
-            </IdentityButton>
             <IdentityButton variant="quiet" onClick={handleClose}>
               Close
             </IdentityButton>
@@ -132,17 +110,13 @@ export function InviteMemberModal({
         }
       >
         <p className="organisation-modal-copy">
-          The invitation can now be shared securely. Recipients are invited to
-          join on the {BRAND.productName}.
+          {isManagerInvite
+            ? "An invitation email has been sent. The Manager can use the email link to join this organisation."
+            : `An invitation email has been sent. Recipients can join on the ${BRAND.productName}.`}
         </p>
         <p id={liveId} className="organisation-sr-live" aria-live="polite">
-          {copied ? "Invitation link copied" : ""}
+          Invitation email sent
         </p>
-        {copied ? (
-          <p className="organisation-success-message" aria-hidden="true">
-            Invitation link copied
-          </p>
-        ) : null}
         {error ? <p className="organisation-error">{error}</p> : null}
       </Modal>
     );

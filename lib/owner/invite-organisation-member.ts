@@ -1,14 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { generateInvitationToken } from "@/lib/organisations/invitations";
 import { buildOrganisationInviteAcceptNext } from "@/lib/organisations/invitation-accept-auth";
+import { deliverOrganisationInvitationAuthEmail } from "@/lib/organisations/invitation-auth-delivery";
 import {
   assertPractitionerSeatAvailable,
   loadPractitionerSeatUsage,
 } from "@/lib/organisations/licence";
 import { writeOrganisationAudit } from "@/lib/organisations/repository";
-import {
-  resolveCustomerInviteOrigin,
-} from "@/lib/owner/customer-invite-origin";
+import { resolveCustomerInviteOrigin } from "@/lib/owner/customer-invite-origin";
 import type { InviteManagerInput } from "@/lib/owner/invite-manager-schema";
 
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -80,29 +79,10 @@ export type InviteOrganisationMemberResult = {
  */
 export { buildOrganisationInviteAcceptNext } from "@/lib/organisations/invitation-accept-auth";
 
-/**
- * Value passed as inviteUserByEmail `redirectTo` (appears as {{ .RedirectTo }}).
- * Absolute allowlisted accept URL — NOT /auth/callback (no PKCE for server invites).
- */
-export function buildOrganisationInviteRedirectTo(
-  siteOrigin: string,
-  token: string
-): string {
-  const origin = siteOrigin.trim().replace(/\/$/, "");
-  return `${origin}${buildOrganisationInviteAcceptNext(token)}`;
-}
+export { buildOrganisationInviteRedirectTo } from "@/lib/organisations/invitation-auth-delivery";
 
 export { resolveInvitationAcceptLanding } from "@/lib/organisations/invitation-landing";
 
-function isAlreadyRegisteredError(message: string): boolean {
-  const lower = message.toLowerCase();
-  return (
-    lower.includes("already been registered") ||
-    lower.includes("already registered") ||
-    lower.includes("user already exists") ||
-    lower.includes("email_exists")
-  );
-}
 
 /**
  * Count pending practitioner invitations that reserve seat capacity at invite time.
@@ -249,10 +229,6 @@ export async function inviteOrganisationMember(input: {
   const { token, tokenHash } = generateInvitationToken();
   const expiresAt = new Date(Date.now() + INVITE_TTL_MS).toISOString();
   const acceptPath = buildOrganisationInviteAcceptNext(token);
-  const redirectTo = buildOrganisationInviteRedirectTo(
-    inviteOrigin.origin,
-    token
-  );
 
   const { data: invitation, error: insertError } = await input.service
     .from("organisation_invitations")
@@ -293,52 +269,16 @@ export async function inviteOrganisationMember(input: {
     },
   });
 
-  let authEmailSent = false;
-  let authDelivery: InviteOrganisationMemberResult["authDelivery"] = "none";
-
-  const inviteResult = await input.service.auth.admin.inviteUserByEmail(email, {
-    data: {
+  const delivered = await deliverOrganisationInvitationAuthEmail({
+    service: input.service,
+    email,
+    invitationId,
+    invitationToken: token,
+    userMetadata: {
       full_name: fullName,
       professional_title: jobTitle || mapping.defaultProfessionalTitle,
     },
-    redirectTo,
   });
-
-  if (!inviteResult.error) {
-    authEmailSent = true;
-    authDelivery = "invite";
-  } else if (isAlreadyRegisteredError(inviteResult.error.message)) {
-    // Existing users must NOT enter the password-recovery contract.
-    // Magic-link email redirects to the invitation accept URL only.
-    const magic = await input.service.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: false,
-        emailRedirectTo: redirectTo,
-      },
-    });
-    if (magic.error) {
-      await input.service
-        .from("organisation_invitations")
-        .update({ status: "revoked" })
-        .eq("id", invitationId)
-        .eq("status", "pending");
-      throw new Error(
-        `The invitation email could not be sent: ${magic.error.message}`
-      );
-    }
-    authEmailSent = true;
-    authDelivery = "magiclink_existing_user";
-  } else {
-    await input.service
-      .from("organisation_invitations")
-      .update({ status: "revoked" })
-      .eq("id", invitationId)
-      .eq("status", "pending");
-    throw new Error(
-      `The invitation email could not be sent: ${inviteResult.error.message}`
-    );
-  }
 
   return {
     invitationId,
@@ -348,9 +288,9 @@ export async function inviteOrganisationMember(input: {
     role: mapping.role,
     professionalRole: mapping.professionalRole,
     expiresAt,
-    acceptPath,
-    authEmailSent,
-    authDelivery,
+    acceptPath: delivered.acceptPath || acceptPath,
+    authEmailSent: true,
+    authDelivery: delivered.authDelivery,
   };
 }
 

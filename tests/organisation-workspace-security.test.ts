@@ -30,8 +30,10 @@ describe("organisation premium UI security & permission regressions", () => {
     expect(invitations).not.toMatch(/console\.(log|info|debug).*token/i);
     expect(route).not.toMatch(/console\.(log|info|debug).*token/i);
     expect(members).not.toContain("<code>{inviteLink}</code>");
-    expect(modal).toContain("Copy invitation link");
+    expect(modal).toContain("Manager invitation sent");
+    expect(modal).not.toContain("Copy invitation link");
     expect(modal).not.toContain("Share this single-use link");
+    expect(modal).not.toMatch(/<code>\{acceptPath\}<\/code>/);
   });
 
   it("keeps invitation token hashed", () => {
