@@ -5,6 +5,7 @@ import type {
   RelationshipIsolationResult,
 } from "@/lib/relationship-scope";
 import {
+  joinAuthorisedEvidenceText,
   preparationOutputFieldTexts,
   validateRelationshipIsolation,
 } from "@/lib/relationship-scope";
@@ -65,10 +66,7 @@ export function buildPreparationAuthorisedEvidenceText(input: {
     parts.push(item.title, item.summary);
   }
 
-  return parts
-    .map(part => part.trim())
-    .filter(Boolean)
-    .join("\n");
+  return joinAuthorisedEvidenceText(parts);
 }
 
 /**

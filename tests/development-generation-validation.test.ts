@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  buildDevelopmentAuthorisedEvidenceText,
   buildDevelopmentRetryPromptAddon,
   developmentRejectionResponseBody,
   evaluateDevelopmentGenerationAttempt,
@@ -7,6 +8,7 @@ import {
   validateDevelopmentEvidenceReferences,
 } from "@/lib/development-updates/generate-validation";
 import { parseDevelopmentUpdateGeneration } from "@/lib/development-updates/schema";
+import { validateRelationshipIsolation } from "@/lib/relationship-scope";
 
 const meaningfulPayload = {
   conversationSummary: "Explored delegation and boundaries.",
@@ -228,8 +230,192 @@ describe("route contract", () => {
     );
     expect(source).toContain("DEVELOPMENT_SESSION_NOT_COMPLETE");
     expect(source).toContain("buildDevelopmentRetryPromptAddon");
+    expect(source).toContain("buildDevelopmentAuthorisedEvidenceText");
     expect(source).toContain("recordDevelopmentGenerationRejection");
     expect(source).not.toContain("markDevelopmentUpdateFailed");
+  });
+});
+
+describe("evidence-grounded development isolation", () => {
+  const sessionId = "55330765-5218-4130-bf29-46e252b586e5";
+  const allowedSessionIds = new Set([sessionId]);
+  const otherClientName = "Sarah Thompson";
+
+  it("A. allows uncommon surname grounded in current session notes/summary", () => {
+    const evidence = buildDevelopmentAuthorisedEvidenceText({
+      sessionNotes: "Discussed stakeholder feedback from Sarah Thompson.",
+      approvedSummary: "Alex and Sarah Thompson agreed next steps.",
+    });
+    const result = evaluateDevelopmentGenerationAttempt({
+      outputText: JSON.stringify({
+        ...noChangePayload,
+        conversationSummary:
+          "Conversation referenced Sarah Thompson as a stakeholder.",
+      }),
+      isolationContext: {
+        allowedClientName: "Alex Morgan",
+        knownOtherNames: [otherClientName],
+        authorisedNames: [evidence],
+      },
+      allowedSessionIds,
+      attempt: 1,
+    });
+    expect(result.ok).toBe(true);
+  });
+
+  it("B. allows uncommon surname grounded in prior same-relationship evidence", () => {
+    const evidence = buildDevelopmentAuthorisedEvidenceText({
+      previousSessions:
+        "Summary: Sarah Thompson attended the stakeholder review.",
+      developmentProfile: "Patterns: Working with Sarah Thompson on priorities.",
+    });
+    const result = evaluateDevelopmentGenerationAttempt({
+      outputText: JSON.stringify({
+        ...noChangePayload,
+        conversationSummary:
+          "Continued themes involving Sarah Thompson from earlier sessions.",
+      }),
+      isolationContext: {
+        allowedClientName: "Alex Morgan",
+        knownOtherNames: [otherClientName],
+        authorisedNames: [evidence],
+      },
+      allowedSessionIds,
+      attempt: 1,
+    });
+    expect(result.ok).toBe(true);
+  });
+
+  it("C. blocks other-client uncommon surname absent from evidence", () => {
+    const evidence = buildDevelopmentAuthorisedEvidenceText({
+      sessionNotes: "Alex explored prioritisation and boundaries.",
+      approvedSummary: "No stakeholder names beyond Alex.",
+    });
+    const result = evaluateDevelopmentGenerationAttempt({
+      outputText: JSON.stringify({
+        ...noChangePayload,
+        conversationSummary: "Thompson remains hesitant about delegation.",
+      }),
+      isolationContext: {
+        allowedClientName: "Alex Morgan",
+        knownOtherNames: [otherClientName],
+        authorisedNames: [evidence],
+      },
+      allowedSessionIds,
+      attempt: 1,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.rejection.code).toBe("DEVELOPMENT_CROSS_CLIENT");
+      expect(result.rejection.stage).toBe("relationship_isolation");
+      expect(result.rejection.isolation?.matchType).toBe("uncommon_surname");
+      expect(result.rejection.fieldName).toBe("conversationSummary");
+      expect(result.rejection.retryable).toBe(true);
+    }
+  });
+
+  it("D. blocks invented other-client name absent from evidence", () => {
+    const evidence = buildDevelopmentAuthorisedEvidenceText({
+      approvedSummary: "Alex focused on delivery ownership.",
+    });
+    const result = evaluateDevelopmentGenerationAttempt({
+      outputText: JSON.stringify({
+        ...noChangePayload,
+        conversationSummary:
+          "Sarah Thompson should keep focusing on ownership this week.",
+      }),
+      isolationContext: {
+        allowedClientName: "Alex Morgan",
+        knownOtherNames: [otherClientName],
+        authorisedNames: [evidence],
+      },
+      allowedSessionIds,
+      attempt: 1,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.rejection.code).toBe("DEVELOPMENT_CROSS_CLIENT");
+    }
+  });
+
+  it("E. retry remains fail-closed for genuine non-grounded hit", () => {
+    const evidence = buildDevelopmentAuthorisedEvidenceText({
+      sessionNotes: "Alex discussed workload.",
+    });
+    const context = {
+      allowedClientName: "Alex Morgan",
+      knownOtherNames: [otherClientName],
+      authorisedNames: [evidence],
+    };
+    const first = evaluateDevelopmentGenerationAttempt({
+      outputText: JSON.stringify({
+        ...noChangePayload,
+        conversationSummary: "Sarah Thompson remains the focus.",
+      }),
+      isolationContext: context,
+      allowedSessionIds,
+      attempt: 1,
+    });
+    expect(first.ok).toBe(false);
+    if (!first.ok) {
+      expect(first.rejection.retryable).toBe(true);
+    }
+
+    const second = evaluateDevelopmentGenerationAttempt({
+      outputText: JSON.stringify({
+        ...noChangePayload,
+        conversationSummary: "Thompson continues to dominate the narrative.",
+      }),
+      isolationContext: context,
+      allowedSessionIds,
+      attempt: 2,
+    });
+    expect(second.ok).toBe(false);
+    if (!second.ok) {
+      expect(second.rejection.code).toBe("DEVELOPMENT_CROSS_CLIENT");
+      expect(second.rejection.retryable).toBe(false);
+      expect(second.rejection.existingProfilePreserved).toBe(true);
+    }
+  });
+
+  it("F. successful isolation validation yields persistable generation", () => {
+    const evidence = buildDevelopmentAuthorisedEvidenceText({
+      sessionNotes: "Stakeholder Sarah Thompson was named in notes.",
+      approvedSummary: "Agreed actions with Sarah Thompson.",
+      commitments: "Follow up with Sarah Thompson next week.",
+    });
+    const result = evaluateDevelopmentGenerationAttempt({
+      outputText: JSON.stringify({
+        ...meaningfulPayload,
+        conversationSummary:
+          "Explored boundaries with stakeholder Sarah Thompson.",
+      }),
+      isolationContext: {
+        allowedClientName: "Alex Morgan",
+        knownOtherNames: [otherClientName],
+        authorisedNames: ["Customer One", evidence],
+      },
+      allowedSessionIds,
+      attempt: 1,
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    // Route persists only after evaluation.ok — assert generation is ready.
+    expect(result.generation.hasMeaningfulChanges).toBe(true);
+    expect(result.generation.conversationSummary).toMatch(/Sarah Thompson/);
+    expect(result.generation.evidence[0]?.sessionId).toBe(sessionId);
+  });
+
+  it("G. other isolation consumers unchanged without authorised evidence", () => {
+    const result = validateRelationshipIsolation(
+      "Thompson remains hesitant about delegation.",
+      {
+        allowedClientName: "Alex Morgan",
+        knownOtherNames: [otherClientName],
+      }
+    );
+    expect(result.status).toBe("definite_cross_client");
+    expect(result.matchType).toBe("uncommon_surname");
   });
 });
 

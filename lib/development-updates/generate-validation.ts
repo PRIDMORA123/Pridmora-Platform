@@ -7,12 +7,40 @@ import {
 import type { EvidenceSummaryItem } from "@/lib/development-updates/types";
 import {
   buildIsolationRetryPromptAddon,
+  joinAuthorisedEvidenceText,
   validateRelationshipIsolation,
   type RelationshipIsolationContext,
   type RelationshipIsolationResult,
 } from "@/lib/relationship-scope";
 
 export { normalizeDevelopmentModelText };
+
+/**
+ * Concatenate relationship-scoped Development Update generation sources used
+ * as authorised evidence for isolation. Only include text already supplied to
+ * this generation request — do not pull unrelated relationship data.
+ */
+export function buildDevelopmentAuthorisedEvidenceText(input: {
+  personContext?: string;
+  developmentProfile?: string;
+  previousSessions?: string;
+  sessionNotes?: string;
+  approvedSummary?: string;
+  commitments?: string;
+  coachReflection?: string;
+  approvedIntelligence?: string;
+}): string {
+  return joinAuthorisedEvidenceText([
+    input.personContext,
+    input.developmentProfile,
+    input.previousSessions,
+    input.sessionNotes,
+    input.approvedSummary,
+    input.commitments,
+    input.coachReflection,
+    input.approvedIntelligence,
+  ]);
+}
 
 export const DEVELOPMENT_REJECTION_CODES = [
   "DEVELOPMENT_CROSS_CLIENT",
@@ -285,6 +313,9 @@ export function logDevelopmentGenerationRejection(input: {
     responseId: input.responseId ?? null,
     isolationStatus: input.rejection.isolation?.status ?? null,
     isolationMatchType: input.rejection.isolation?.matchType ?? null,
+    // Rejection means the colliding token was not grounded in evidence.
+    // Never log token/name/PII values in production.
+    tokenInAuthorisedEvidence: false,
     sessionStatus: input.sessionStatus ?? null,
     sessionNumber: input.sessionNumber ?? null,
     completedAt: input.completedAt ?? null,

@@ -225,6 +225,21 @@ export type RelationshipIsolationContext = {
 };
 
 /**
+ * Shared join for relationship-scoped authorised evidence text used by
+ * Prepare, Development Update, and other isolation callers. Tokens present
+ * in the returned string may appear in AI output without being treated as
+ * cross-client hits when they collide with knownOtherNames.
+ */
+export function joinAuthorisedEvidenceText(
+  parts: Array<string | null | undefined>
+): string {
+  return parts
+    .map(part => (typeof part === "string" ? part.trim() : ""))
+    .filter(Boolean)
+    .join("\n");
+}
+
+/**
  * Normalise person-name / free text for token comparison:
  * lower case, Unicode NFKC, punctuation removed, possessives stripped,
  * repeated spaces collapsed.

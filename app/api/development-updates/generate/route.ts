@@ -9,6 +9,7 @@ import {
 import { developmentUpdateErrorResponse } from "@/lib/development-updates/api-response";
 import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import {
+  buildDevelopmentAuthorisedEvidenceText,
   buildDevelopmentRetryPromptAddon,
   developmentRejectionResponseBody,
   evaluateDevelopmentGenerationAttempt,
@@ -316,21 +317,42 @@ export async function POST(request: Request) {
       .map(row => String(row.name ?? "").trim())
       .filter(Boolean);
 
-    const isolationContext = {
-      allowedClientName: clientName,
-      knownOtherNames,
-      organisationName: client.organisation ? String(client.organisation) : undefined,
-      authorisedNames: [clientName],
-    };
+    const developmentProfileText = formatProfileForPrompt(profile);
+    const coachReflection = String(session.coach_reflection ?? "");
+    const organisationName = client.organisation
+      ? String(client.organisation)
+      : undefined;
 
-    const promptInput = buildDevelopmentUpdateInput({
+    // Organisation + current-relationship generation sources only. Other-client
+    // name tokens remain blocked unless they already appear in this evidence.
+    const authorisedEvidenceText = buildDevelopmentAuthorisedEvidenceText({
       personContext,
-      developmentProfile: formatProfileForPrompt(profile),
+      developmentProfile: developmentProfileText,
       previousSessions: previousSessionsText,
       sessionNotes: notes,
       approvedSummary: summary,
       commitments,
-      coachReflection: String(session.coach_reflection ?? ""),
+      coachReflection,
+      approvedIntelligence,
+    });
+
+    const isolationContext = {
+      allowedClientName: clientName,
+      knownOtherNames,
+      organisationName,
+      authorisedNames: [clientName, organisationName, authorisedEvidenceText].filter(
+        Boolean
+      ) as string[],
+    };
+
+    const promptInput = buildDevelopmentUpdateInput({
+      personContext,
+      developmentProfile: developmentProfileText,
+      previousSessions: previousSessionsText,
+      sessionNotes: notes,
+      approvedSummary: summary,
+      commitments,
+      coachReflection,
       approvedIntelligence,
     });
 
