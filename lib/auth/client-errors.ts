@@ -71,7 +71,13 @@ function publicCodeFor(kind: AuthClientErrorKind): string {
 
 export function mapAuthClientError(
   error: unknown,
-  context: "sign_in" | "sign_up" | "forgot_password" | "reset_password" | "verify_recovery"
+  context:
+    | "sign_in"
+    | "sign_up"
+    | "forgot_password"
+    | "reset_password"
+    | "verify_recovery"
+    | "setup_password"
 ): MappedAuthClientError {
   const { message, code, status, name } = readAuthErrorFields(error);
   const lower = message.toLowerCase();
@@ -185,7 +191,7 @@ export function mapAuthClientError(
 
   return wrap(
     "unknown",
-    context === "reset_password"
+    context === "reset_password" || context === "setup_password"
       ? "Unable to update your password. Please try again."
       : "Unable to sign in right now. Please try again shortly."
   );

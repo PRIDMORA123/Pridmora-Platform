@@ -56,7 +56,10 @@ describe("Lead → Manager invitation Auth email delivery", () => {
   });
 
   it("B. new Auth user uses invite email path", async () => {
-    const inviteUserByEmail = vi.fn().mockResolvedValue({ data: {}, error: null });
+    const inviteUserByEmail = vi.fn().mockResolvedValue({
+      data: { user: { id: "new-user-1" } },
+      error: null,
+    });
     const signInWithOtp = vi.fn();
     const update = vi.fn().mockReturnValue({
       eq: vi.fn().mockReturnValue({
@@ -80,6 +83,9 @@ describe("Lead → Manager invitation Auth email delivery", () => {
     expect(signInWithOtp).not.toHaveBeenCalled();
     expect(inviteUserByEmail.mock.calls[0][1].redirectTo).toContain(
       "token=token-abc"
+    );
+    expect(inviteUserByEmail.mock.calls[0][1].data.password_setup_required).toBe(
+      true
     );
   });
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { apiJson } from "@/lib/api-client";
 import { BRAND } from "@/lib/brand";
+import { resolvePostInvitationAcceptDestination } from "@/lib/auth/password-setup";
 import {
   buildInvitationAcceptSignInHref,
   ensureInvitationAcceptSession,
@@ -64,11 +65,17 @@ export default function AcceptInvitationPage() {
         setMessage(
           `You have joined ${orgLabel} on the ${BRAND.productName}. Opening your workspace…`
         );
-        const landing = resolveInvitationAcceptLanding({
+        const roleLanding = resolveInvitationAcceptLanding({
           role: result.role,
           professionalRole: result.professionalRole,
         });
-        window.location.assign(landing);
+        // Prefer freshly loaded user metadata so password_setup_required is current.
+        const { data: userData } = await supabase.auth.getUser();
+        const destination = resolvePostInvitationAcceptDestination({
+          user: userData.user ?? session.user,
+          roleLanding,
+        });
+        window.location.assign(destination);
       } catch (err) {
         if (!active) return;
         setStatus("error");

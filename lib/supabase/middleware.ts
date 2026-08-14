@@ -59,6 +59,7 @@ export function clearSupabaseAuthCookiesForProject(
 export async function updateSession(request: NextRequest): Promise<{
   response: NextResponse;
   userId: string | null;
+  passwordSetupRequired: boolean;
 }> {
   let response = NextResponse.next({
     request: {
@@ -70,7 +71,7 @@ export async function updateSession(request: NextRequest): Promise<{
   const anonKey = getSupabaseAnonKey();
 
   if (!url || !anonKey) {
-    return { response, userId: null };
+    return { response, userId: null, passwordSetupRequired: false };
   }
 
   const projectRef = extractSupabaseProjectRef(url);
@@ -119,8 +120,15 @@ export async function updateSession(request: NextRequest): Promise<{
         })
       );
     }
-    return { response, userId: null };
+    return { response, userId: null, passwordSetupRequired: false };
   }
 
-  return { response, userId: user?.id ?? null };
+  const passwordSetupRequired =
+    user?.user_metadata?.password_setup_required === true;
+
+  return {
+    response,
+    userId: user?.id ?? null,
+    passwordSetupRequired,
+  };
 }

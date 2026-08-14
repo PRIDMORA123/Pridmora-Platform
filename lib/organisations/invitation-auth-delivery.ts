@@ -81,6 +81,8 @@ export async function deliverOrganisationInvitationAuthEmail(input: {
       data: {
         full_name: input.userMetadata?.full_name,
         professional_title: input.userMetadata?.professional_title,
+        // Durable first-time setup flag — only stamped for genuinely new Auth users.
+        password_setup_required: true,
       },
       redirectTo,
     }
