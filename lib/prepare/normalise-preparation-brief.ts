@@ -277,27 +277,22 @@ function filterAgainst(
 }
 
 function defaultFirstSessionFocus(clientFirstName?: string | null): string {
-  const name = clientFirstName?.trim() || "the coachee";
-  return `Clarify what ${name} wants to change in their approach.`;
-}
-
-function defaultFirstSessionAreas(clientFirstName?: string | null): string[] {
   const name = clientFirstName?.trim();
-  const subject = name || "they";
-  const managers = name ? `${name}'s managers` : "their managers";
-  return [
-    `How ${subject} currently leads when performance is under pressure.`,
-    `Decisions that should increasingly remain with ${managers}.`,
-    "What makes stepping back difficult.",
-  ];
+  return name
+    ? `Clarify what would make this conversation with ${name} useful.`
+    : "Clarify what would make this conversation useful.";
 }
 
-function defaultFirstSessionQuestions(): string[] {
+/** Role-neutral prompts only — never invent management/delegation claims. */
+function defaultZeroEvidenceAreas(): string[] {
+  return [];
+}
+
+function defaultZeroEvidenceQuestions(): string[] {
   return [
-    "What would make this conversation useful today?",
-    "Where does your involvement currently add the most value?",
-    "Where might it unintentionally limit management ownership?",
-    "What would you like to do differently after this conversation?",
+    "What would make this conversation useful?",
+    "What do you want to understand better?",
+    "What would you like the person to leave clearer about?",
   ];
 }
 
@@ -314,7 +309,9 @@ export function normalisePreparationBrief(
 
   let primaryFocus = cleanSentence(
     input.primaryFocus ||
-      (input.isFirstSession ? defaultFirstSessionFocus(input.clientFirstName) : "") ||
+      (input.isFirstSession
+        ? defaultFirstSessionFocus(input.clientFirstName)
+        : "") ||
       purpose,
     { maxWords: PRIMARY_FOCUS_MAX_WORDS }
   );
@@ -342,7 +339,9 @@ export function normalisePreparationBrief(
   });
 
   if (areasToExplore.length === 0 && input.isFirstSession) {
-    areasToExplore = defaultFirstSessionAreas(input.clientFirstName);
+    // Never invent management/delegation themes. Leave areas empty until
+    // evidence or the Manager supplies them; questions carry neutral prompts.
+    areasToExplore = defaultZeroEvidenceAreas();
   }
 
   const rawQuestions = dedupeExact(
@@ -370,7 +369,7 @@ export function normalisePreparationBrief(
   );
 
   if (questions.length === 0 && input.isFirstSession) {
-    questions = defaultFirstSessionQuestions();
+    questions = defaultZeroEvidenceQuestions();
   }
 
   // Areas must not duplicate questions.

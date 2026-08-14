@@ -11,6 +11,7 @@ export type PreparationBriefProps = {
   mode?: "manual" | "assisted" | "comprehensive";
   refreshState?: PreparationRefreshState;
   hasApprovedEvidence?: boolean;
+  hasSavedPreparation?: boolean;
   onViewSources?: () => void;
   onViewEvidenceProvenance?: () => void;
   onContinueWithExisting?: () => void;
@@ -25,6 +26,7 @@ export function PreparationBrief({
   mode = "assisted",
   refreshState = "idle",
   hasApprovedEvidence = false,
+  hasSavedPreparation = false,
   onViewSources,
   onViewEvidenceProvenance,
   onContinueWithExisting,
@@ -47,6 +49,7 @@ export function PreparationBrief({
         <PreparationStatus
           refreshState={refreshState}
           hasApprovedEvidence={hasApprovedEvidence}
+          hasSavedPreparation={hasSavedPreparation}
           mode={mode}
           onViewSources={onViewSources}
           onContinueWithExisting={onContinueWithExisting}

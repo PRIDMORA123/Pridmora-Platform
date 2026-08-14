@@ -108,10 +108,15 @@ describe("PreparationStatus refresh state", () => {
     expect(container.querySelector("[aria-busy='true']")).not.toBeNull();
   });
 
-  it("preserves briefing messaging on failure", () => {
+  it("preserves briefing messaging on failure when saved preparation exists", () => {
     act(() => {
       root.render(
-        <PreparationStatus refreshState="failed" hasApprovedEvidence />
+        <PreparationStatus
+          refreshState="failed"
+          hasApprovedEvidence
+          hasSavedPreparation
+          onContinueWithExisting={() => undefined}
+        />
       );
     });
 
@@ -119,6 +124,21 @@ describe("PreparationStatus refresh state", () => {
       "Preparation could not be refreshed safely"
     );
     expect(container.textContent).toContain(
+      "existing preparation remains available"
+    );
+  });
+
+  it("does not claim existing preparation when none is saved", () => {
+    act(() => {
+      root.render(
+        <PreparationStatus refreshState="failed" hasSavedPreparation={false} />
+      );
+    });
+
+    expect(container.textContent).toContain(
+      "Preparation could not be generated right now."
+    );
+    expect(container.textContent).not.toContain(
       "existing preparation remains available"
     );
   });

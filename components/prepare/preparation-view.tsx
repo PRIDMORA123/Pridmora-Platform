@@ -58,6 +58,7 @@ export type PreparationViewProps = {
   suggestedQuestions?: string[];
   supportingInsight?: string | null;
   hasApprovedEvidence?: boolean;
+  hasSavedPreparation?: boolean;
   isFirstSession?: boolean;
   coachingPurpose?: string | null;
   developmentDirection?: string | null;
@@ -167,6 +168,7 @@ export function PreparationView({
   suggestedQuestions = [],
   supportingInsight = null,
   hasApprovedEvidence = false,
+  hasSavedPreparation = false,
   isFirstSession = false,
   coachingPurpose = null,
   developmentDirection = null,
@@ -301,6 +303,7 @@ export function PreparationView({
         mode={mode}
         refreshState={refreshState}
         hasApprovedEvidence={hasApprovedEvidence}
+        hasSavedPreparation={hasSavedPreparation}
         onViewSources={onViewSources}
         onViewEvidenceProvenance={
           hasApprovedEvidence
@@ -308,7 +311,9 @@ export function PreparationView({
             : undefined
         }
         onContinueWithExisting={
-          refreshState === "failed" ? onContinueWithExisting : undefined
+          refreshState === "failed" && hasSavedPreparation
+            ? onContinueWithExisting
+            : undefined
         }
       />
 

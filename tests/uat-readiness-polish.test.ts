@@ -22,8 +22,18 @@ describe("UAT readiness polish", () => {
       completedConversationCount: 1,
     });
     expect(early).toMatch(/Current evidence suggests/);
+    expect(early.toLowerCase()).not.toContain("management role");
     expect(early.toLowerCase()).not.toContain("team is beginning");
     expect(early.split(/\s+/).length).toBeLessThanOrEqual(120);
+
+    const empty = buildPersonSummary({
+      name: "Alex Morgan",
+      completedConversationCount: 0,
+    });
+    expect(empty).toContain(
+      "There isn’t enough development evidence yet to describe a pattern."
+    );
+    expect(empty.toLowerCase()).not.toContain("current evidence suggests");
 
     const established = buildPersonSummary({
       name: "Maria Lopez",

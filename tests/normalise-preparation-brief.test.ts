@@ -88,7 +88,7 @@ describe("normalisePreparationBrief", () => {
     ).toBe(true);
   });
 
-  it("provides first-session limited-evidence defaults", () => {
+  it("provides first-session zero-evidence neutral defaults", () => {
     const brief = normalisePreparationBrief({
       primaryFocus: "",
       areasToExplore: [],
@@ -99,9 +99,12 @@ describe("normalisePreparationBrief", () => {
       hasApprovedEvidence: false,
     });
 
-    expect(brief.primaryFocus.toLowerCase()).toContain("daniel");
-    expect(brief.areasToExplore).toHaveLength(3);
-    expect(brief.questions).toHaveLength(4);
+    expect(brief.primaryFocus.toLowerCase()).toContain("useful");
+    expect(brief.areasToExplore).toEqual([]);
+    expect(brief.questions).toHaveLength(3);
+    expect(brief.questions.join(" ").toLowerCase()).not.toContain(
+      "management ownership"
+    );
     expect(brief.previousCommitment ?? null).toBeNull();
   });
 

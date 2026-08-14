@@ -489,9 +489,12 @@ export function PrepareSessionView({
             );
             showToast({
               type: "error",
-              title: "Preparation could not be refreshed safely",
-              description:
-                "Your existing preparation remains available and has not been changed.",
+              title: hasPreparationAiContent(aiBrief)
+                ? "Preparation could not be refreshed safely"
+                : "Preparation could not be generated right now.",
+              description: hasPreparationAiContent(aiBrief)
+                ? "Your existing preparation remains available and has not been changed."
+                : "You can try again or continue without AI preparation.",
               durationMs: 5000,
             });
           },
@@ -874,6 +877,7 @@ export function PrepareSessionView({
                 intelligence.outstandingCommitments.length > 0
             )
           }
+          hasSavedPreparation={hasPreparationAiContent(aiBrief)}
           disabled={archived}
           showAiPreparation={showAiPreparation}
           insertedNotice={insertedNotice}

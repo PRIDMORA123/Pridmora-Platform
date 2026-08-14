@@ -165,7 +165,11 @@ describe("PreparationView", () => {
     act(() => {
       root.render(
         <ToastProvider>
-          <PreparationView {...baseProps} refreshState="failed" />
+          <PreparationView
+            {...baseProps}
+            refreshState="failed"
+            hasSavedPreparation
+          />
         </ToastProvider>
       );
     });

@@ -6,6 +6,8 @@ import { IdentityProcessingState } from "@/components/identity/identity-processi
 export type PreparationStatusProps = {
   refreshState?: PreparationRefreshState;
   hasApprovedEvidence?: boolean;
+  /** True when a persisted AI/saved preparation brief exists for this session. */
+  hasSavedPreparation?: boolean;
   mode?: "manual" | "assisted" | "comprehensive";
   onViewSources?: () => void;
   onContinueWithExisting?: () => void;
@@ -14,11 +16,13 @@ export type PreparationStatusProps = {
 function resolveCopy(input: {
   refreshState: PreparationRefreshState;
   hasApprovedEvidence: boolean;
+  hasSavedPreparation: boolean;
   isManual: boolean;
 }): {
   title: string;
   description: string;
   tone: "ready" | "update" | "busy" | "error";
+  showContinueExisting: boolean;
 } {
   if (input.refreshState === "refreshing") {
     return {
@@ -26,15 +30,26 @@ function resolveCopy(input: {
       description:
         "Reviewing the latest approved evidence and preparing a new briefing.",
       tone: "busy",
+      showContinueExisting: false,
     };
   }
 
   if (input.refreshState === "failed") {
+    if (input.hasSavedPreparation) {
+      return {
+        title: "Preparation could not be refreshed safely",
+        description:
+          "Your existing preparation remains available and has not been changed.",
+        tone: "error",
+        showContinueExisting: true,
+      };
+    }
     return {
-      title: "Preparation could not be refreshed safely",
+      title: "Preparation could not be generated right now.",
       description:
-        "Your existing preparation remains available and has not been changed.",
+        "You can try again or continue without AI preparation.",
       tone: "error",
+      showContinueExisting: false,
     };
   }
 
@@ -43,6 +58,7 @@ function resolveCopy(input: {
       title: "Update available",
       description: "Refresh the briefing to use the latest approved evidence.",
       tone: "update",
+      showContinueExisting: false,
     };
   }
 
@@ -52,6 +68,7 @@ function resolveCopy(input: {
       description:
         "No generated brief is active. Use your own notes and judgement.",
       tone: "ready",
+      showContinueExisting: false,
     };
   }
 
@@ -61,6 +78,7 @@ function resolveCopy(input: {
       ? "Prepared from approved development evidence."
       : "Prepared from the information currently available.",
     tone: "ready",
+    showContinueExisting: false,
   };
 }
 
@@ -70,6 +88,7 @@ function resolveCopy(input: {
 export function PreparationStatus({
   refreshState = "idle",
   hasApprovedEvidence = false,
+  hasSavedPreparation = false,
   mode = "assisted",
   onViewSources,
   onContinueWithExisting,
@@ -77,6 +96,7 @@ export function PreparationStatus({
   const copy = resolveCopy({
     refreshState,
     hasApprovedEvidence,
+    hasSavedPreparation,
     isManual: mode === "manual",
   });
 
@@ -112,7 +132,7 @@ export function PreparationStatus({
             View sources
           </button>
         ) : null}
-        {copy.tone === "error" && onContinueWithExisting ? (
+        {copy.showContinueExisting && onContinueWithExisting ? (
           <button
             type="button"
             className="identity-text-action preparation-status__sources"

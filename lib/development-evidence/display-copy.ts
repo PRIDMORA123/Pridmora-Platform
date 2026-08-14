@@ -20,8 +20,8 @@ export function limitToOneSentence(text: string): string {
 }
 
 /**
- * Person-centred overview: who this person is as a manager/professional,
- * not a paraphrase of the latest conversation event.
+ * Person-centred overview: who this person is as a professional in development,
+ * grounded in evidence — never inferred from existence alone.
  */
 export function buildPersonSummary(input: {
   name: string;
@@ -33,28 +33,6 @@ export function buildPersonSummary(input: {
 }): string {
   const firstName = input.name.trim().split(/\s+/)[0] || "This person";
   const count = input.completedConversationCount ?? 0;
-  const opener =
-    count >= 4
-      ? `Across the development history, a consistent picture of ${firstName} is emerging.`
-      : count >= 2
-        ? `Evidence from recent conversations indicates how ${firstName} is developing as a manager.`
-        : `Current evidence suggests how ${firstName} is approaching their management role.`;
-
-  const position = limitSentences(
-    input.currentPosition?.trim() ||
-      input.direction?.trim() ||
-      `${firstName} is building capability through an active development relationship.`,
-    2
-  );
-
-  // Avoid simply restating the opener if the position already starts similarly.
-  const positionLine =
-    position.toLowerCase().includes(firstName.toLowerCase()) ||
-    position.toLowerCase().startsWith("current evidence") ||
-    position.toLowerCase().startsWith("evidence from")
-      ? position
-      : position;
-
   const strengths = (input.strengths ?? [])
     .map(item => item.trim())
     .filter(Boolean)
@@ -63,6 +41,35 @@ export function buildPersonSummary(input: {
     .map(item => item.trim())
     .filter(Boolean)
     .slice(0, 2);
+  const hasPosition = Boolean(input.currentPosition?.trim());
+  const hasDirection = Boolean(input.direction?.trim());
+  const hasEvidenceSignals =
+    count > 0 ||
+    hasPosition ||
+    hasDirection ||
+    strengths.length > 0 ||
+    priorities.length > 0;
+
+  // NO EVIDENCE = NO CLAIMS
+  if (!hasEvidenceSignals) {
+    return "There isn’t enough development evidence yet to describe a pattern.";
+  }
+
+  const opener =
+    count >= 4
+      ? `Across the development history, a consistent picture of ${firstName} is emerging.`
+      : count >= 2
+        ? `Evidence from recent conversations indicates how ${firstName} is developing.`
+        : `Current evidence suggests how ${firstName} is developing.`;
+
+  const position = limitSentences(
+    input.currentPosition?.trim() ||
+      input.direction?.trim() ||
+      "",
+    2
+  );
+
+  const positionLine = position;
 
   const strengthLine =
     strengths.length > 0
