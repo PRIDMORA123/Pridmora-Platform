@@ -54,7 +54,10 @@ import {
   formatDisplayDateFromIso,
   nextSessionNumber,
 } from "@/lib/sessions";
-import { getFutureOrOpenSession } from "@/lib/session-workflow";
+import {
+  getFutureOrOpenSession,
+  getSessionForPrepare,
+} from "@/lib/session-workflow";
 import { getPrepareRoute, PREPARE_VIEW } from "@/lib/prepare-route";
 import { resolveAccountRoleTitle } from "@/lib/role-language";
 import { buildSessionModuleRoute } from "@/lib/session-module-route";
@@ -518,7 +521,7 @@ export function HomeApp() {
       );
       let next =
         (sessionId ? sessions.find(session => session.id === sessionId) : undefined) ??
-        getFutureOrOpenSession(sessions);
+        getSessionForPrepare(sessions);
 
       // Preparation can proceed without a scheduled future session by opening
       // an unscheduled planned conversation workspace.
@@ -545,6 +548,8 @@ export function HomeApp() {
       }
 
       setFocusSessionId(next.id);
+      // Never reuse a prior conversation's Summary/Actions stage for Prepare.
+      setFocusSessionStage(null);
       setSessionFlash("");
       navigate(destination.view);
     } catch (error) {
@@ -705,6 +710,7 @@ export function HomeApp() {
       });
       setSelectedId(input.clientId);
       setFocusSessionId(saved.id);
+      setFocusSessionStage(null);
       await refreshSessionsForClient(input.clientId);
     }
     return { id: saved.id };
@@ -830,6 +836,9 @@ export function HomeApp() {
     );
     setSelectedId(client.id);
     setFocusSessionId(saved.id);
+    // New planned sessions must derive Prepare/brief — never inherit the prior
+    // conversation's Summary / Actions / Capture Outcome stage.
+    setFocusSessionStage(null);
     setSessionFlash("");
     setClientFlash("Conversation created.");
     if (options?.openWorkspace !== false) {
@@ -1403,7 +1412,7 @@ export function HomeApp() {
             const prepSession =
               (focusSessionId
                 ? selected.sessions.find(session => session.id === focusSessionId)
-                : undefined) ?? getFutureOrOpenSession(selected.sessions);
+                : undefined) ?? getSessionForPrepare(selected.sessions);
             if (!prepSession) {
               return (
                 <section className="page">

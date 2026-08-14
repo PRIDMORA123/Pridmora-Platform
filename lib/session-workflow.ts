@@ -81,19 +81,12 @@ function parseSessionInstant(session: Pick<Session, "date" | "time">): number | 
   return Number.isNaN(parsed) ? null : parsed;
 }
 
-/** Next actionable session: in-progress / awaiting / prepared / soonest planned. */
-export function getNextOpenSession(sessions: Session[]): Session | undefined {
+function pickOpenSessionByPriority(
+  sessions: Session[],
+  priority: Record<SessionStatus, number>
+): Session | undefined {
   const open = sessions.filter(session => isOpenSessionStatus(session.status));
   if (open.length === 0) return undefined;
-
-  const priority: Record<SessionStatus, number> = {
-    in_progress: 0,
-    paused: 0,
-    awaiting_completion: 1,
-    prepared: 2,
-    planned: 3,
-    completed: 9,
-  };
 
   return [...open].sort((a, b) => {
     const byStatus = priority[a.status] - priority[b.status];
@@ -109,8 +102,41 @@ export function getNextOpenSession(sessions: Session[]): Session | undefined {
   })[0];
 }
 
+/**
+ * Next actionable session for general workspace / attention flows.
+ * Live work and awaiting completion remain ahead of future planned sessions
+ * so Managers can still finish Session N notes and Complete Session.
+ */
+export function getNextOpenSession(sessions: Session[]): Session | undefined {
+  return pickOpenSessionByPriority(sessions, {
+    in_progress: 0,
+    paused: 0,
+    awaiting_completion: 1,
+    prepared: 2,
+    planned: 3,
+    completed: 9,
+  });
+}
+
 export function getFutureOrOpenSession(sessions: Session[]): Session | undefined {
   return getNextOpenSession(sessions);
+}
+
+/**
+ * Session selection for Prepare with Aurelia.
+ * Prefer a future planned/prepared conversation over an earlier
+ * awaiting_completion session so Prepare does not reopen Session N-1.
+ * Live in-progress/paused sessions still win when present.
+ */
+export function getSessionForPrepare(sessions: Session[]): Session | undefined {
+  return pickOpenSessionByPriority(sessions, {
+    in_progress: 0,
+    paused: 0,
+    prepared: 1,
+    planned: 2,
+    awaiting_completion: 3,
+    completed: 9,
+  });
 }
 
 export function previousCompletedSession(
