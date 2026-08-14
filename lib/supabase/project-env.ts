@@ -38,6 +38,11 @@ export type CanonicalOriginResult =
 /**
  * Declared auth environment from PRIDMORA_ENV / expected ref / Supabase URL.
  * Never inferred from NODE_ENV alone.
+ *
+ * Client bundles: the Supabase URL fallback must use a *direct*
+ * `process.env.NEXT_PUBLIC_SUPABASE_URL` read so Next.js can inline it.
+ * Indirect `env.NEXT_PUBLIC_*` access via a `process.env` parameter is
+ * undefined in the browser and previously forced environment → "unknown".
  */
 export function resolveDeclaredAuthEnvironment(
   env: NodeJS.ProcessEnv = process.env
@@ -51,9 +56,14 @@ export function resolveDeclaredAuthEnvironment(
   if (explicit === PILOT_PROJECT_REF) return "pilot";
   if (explicit === IDENTITY_PROJECT_REF) return "identity";
 
-  return resolveAuthEnvironmentName(
-    extractSupabaseProjectRef(env.NEXT_PUBLIC_SUPABASE_URL)
-  );
+  // Prefer explicit env overrides (tests/server). Default path uses a direct
+  // NEXT_PUBLIC_* read for client-bundle inlining.
+  const supabaseUrl =
+    env !== process.env
+      ? env.NEXT_PUBLIC_SUPABASE_URL
+      : process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  return resolveAuthEnvironmentName(extractSupabaseProjectRef(supabaseUrl));
 }
 
 /**

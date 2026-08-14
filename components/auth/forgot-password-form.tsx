@@ -51,9 +51,41 @@ export function ForgotPasswordForm() {
       setMessage(
         "If an account exists for that email, you will receive a password reset link shortly."
       );
-    } catch {
+    } catch (error) {
       setStatus("error");
-      setMessage("Network error. Please check your connection and try again.");
+      // Config/origin validation throws Error — never mislabel as connectivity loss.
+      // Genuine fetch/network failures are typically TypeError / Failed to fetch.
+      const rawMessage =
+        error instanceof Error ? error.message.toLowerCase() : "";
+      const isNetworkFailure =
+        error instanceof TypeError ||
+        rawMessage.includes("failed to fetch") ||
+        rawMessage.includes("networkerror") ||
+        rawMessage.includes("load failed") ||
+        rawMessage.includes("network request failed");
+
+      if (isNetworkFailure) {
+        setMessage("Network error. Please check your connection and try again.");
+      } else {
+        setMessage(
+          "Unable to start password reset because authentication is not configured correctly for this environment. Please try again shortly."
+        );
+        logAuthClientDiagnostic(
+          "forgot_password",
+          {
+            kind: "unknown",
+            publicCode: "AUTH_CONFIG",
+            userMessage:
+              "Unable to start password reset because authentication is not configured correctly for this environment. Please try again shortly.",
+            code: null,
+            status: null,
+          },
+          // Pass a redacted Error — never include email/tokens/keys.
+          error instanceof Error
+            ? new Error(error.message.slice(0, 160))
+            : undefined
+        );
+      }
     } finally {
       setSubmitting(false);
     }

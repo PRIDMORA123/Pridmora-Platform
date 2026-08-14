@@ -1,4 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   PILOT_PROJECT_REF,
   IDENTITY_PROJECT_REF,
@@ -235,6 +237,57 @@ describe("Supabase environment isolation", () => {
     expect(() =>
       buildPasswordRecoveryRedirectTo(IDENTITY_PRODUCTION_ORIGIN)
     ).toThrow(/pilot\.pridmora\.com/i);
+  });
+
+  it("client-safe Pilot resolution works from NEXT_PUBLIC_SUPABASE_URL without PRIDMORA_ENV", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    Reflect.deleteProperty(process.env, "PRIDMORA_ENV");
+    Reflect.deleteProperty(process.env, "PRIDMORA_EXPECTED_SUPABASE_REF");
+    Reflect.deleteProperty(process.env, "AUTH_EXPECTED_PROJECT_REF");
+    vi.stubEnv(
+      "NEXT_PUBLIC_SUPABASE_URL",
+      `https://${PILOT_PROJECT_REF}.supabase.co`
+    );
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", PILOT_PRODUCTION_ORIGIN);
+
+    expect(resolveDeclaredAuthEnvironment()).toBe("pilot");
+    expect(resolveAuthSiteOrigin(PILOT_PRODUCTION_ORIGIN)).toBe(
+      PILOT_PRODUCTION_ORIGIN
+    );
+    expect(buildPasswordRecoveryRedirectTo(PILOT_PRODUCTION_ORIGIN)).toBe(
+      `${PILOT_PRODUCTION_ORIGIN}/auth/reset-password`
+    );
+  });
+
+  it("client-safe Identity resolution works from NEXT_PUBLIC_SUPABASE_URL without PRIDMORA_ENV", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    Reflect.deleteProperty(process.env, "PRIDMORA_ENV");
+    Reflect.deleteProperty(process.env, "PRIDMORA_EXPECTED_SUPABASE_REF");
+    Reflect.deleteProperty(process.env, "AUTH_EXPECTED_PROJECT_REF");
+    vi.stubEnv(
+      "NEXT_PUBLIC_SUPABASE_URL",
+      `https://${IDENTITY_PROJECT_REF}.supabase.co`
+    );
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", IDENTITY_PRODUCTION_ORIGIN);
+
+    expect(resolveDeclaredAuthEnvironment()).toBe("identity");
+    expect(resolveAuthSiteOrigin(IDENTITY_PRODUCTION_ORIGIN)).toBe(
+      IDENTITY_PRODUCTION_ORIGIN
+    );
+    expect(buildPasswordRecoveryRedirectTo(IDENTITY_PRODUCTION_ORIGIN)).toBe(
+      `${IDENTITY_PRODUCTION_ORIGIN}/auth/reset-password`
+    );
+  });
+
+  it("uses a direct process.env.NEXT_PUBLIC_SUPABASE_URL read for client inlining", () => {
+    const source = readFileSync(
+      join(process.cwd(), "lib/supabase/project-env.ts"),
+      "utf8"
+    );
+    expect(source).toContain("process.env.NEXT_PUBLIC_SUPABASE_URL");
+    expect(source).toMatch(
+      /env !== process\.env[\s\S]*process\.env\.NEXT_PUBLIC_SUPABASE_URL/
+    );
   });
 
   it("production Identity recovery redirectTo cannot resolve to localhost or Pilot host", () => {
