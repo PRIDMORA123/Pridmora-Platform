@@ -15,7 +15,10 @@ import {
 import { resolveIntelligenceSources } from "@/lib/coaching-intelligence/resolve-sources";
 import { buildSourceFingerprint } from "@/lib/preparation-brief";
 import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
-import { evaluatePreparationIsolationAttempt } from "@/lib/coaching-intelligence/preparation-isolation";
+import {
+  buildPreparationAuthorisedEvidenceText,
+  evaluatePreparationIsolationAttempt,
+} from "@/lib/coaching-intelligence/preparation-isolation";
 import {
   assertRelationshipOwnership,
   logRelationshipIsolationRejection,
@@ -438,11 +441,21 @@ export async function POST(request: Request) {
       });
     }
 
+    const authorisedEvidenceText = buildPreparationAuthorisedEvidenceText({
+      sources,
+      personContext,
+      coachingPurpose: String(client.current_focus ?? ""),
+    });
+
     const isolationContext = {
       allowedClientName: clientDisplayName,
       knownOtherNames,
       organisationName,
-      authorisedNames: [organisationName].filter(Boolean),
+      // Organisation + current-relationship evidence tokens. Other-client name
+      // tokens remain blocked unless they already appear in this evidence.
+      authorisedNames: [organisationName, authorisedEvidenceText].filter(
+        Boolean
+      ),
     };
 
     const firstIsolation = evaluatePreparationIsolationAttempt({
@@ -462,6 +475,8 @@ export async function POST(request: Request) {
         retryAttempted: false,
         requestId,
         diagnosticSnippet: firstIsolation.check.diagnosticSnippet,
+        // Rejection means the colliding token was not grounded in evidence.
+        tokenInAuthorisedEvidence: false,
       });
 
       // Do not save the first draft. Retry once with a stricter prompt.
@@ -534,6 +549,7 @@ export async function POST(request: Request) {
           retryAttempted: true,
           requestId,
           diagnosticSnippet: retryIsolation.check.diagnosticSnippet,
+          tokenInAuthorisedEvidence: false,
         });
         await markIntelligenceError(supabase, {
           conversationId,

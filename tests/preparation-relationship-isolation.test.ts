@@ -4,6 +4,7 @@ import {
   buildPreparationIntelligenceInstructions,
 } from "@/lib/coaching-intelligence/prompt";
 import {
+  buildPreparationAuthorisedEvidenceText,
   buildScopedPreparationRequestState,
   evaluatePreparationIsolationAttempt,
 } from "@/lib/coaching-intelligence/preparation-isolation";
@@ -194,6 +195,228 @@ describe("preparation relationship isolation matching", () => {
       knownOtherNames: others,
     });
     expect(result.status).toBe("pass");
+  });
+});
+
+describe("preparation isolation evidence-grounded tokens", () => {
+  const alexSources: ResolvedIntelligenceSources = {
+    ...emptySources,
+    previousConversations: [
+      {
+        id: "session-1",
+        sessionNumber: 1,
+        date: "2026-08-10",
+        focus: "Stakeholder alignment",
+        summary:
+          "Alex Morgan worked through pressure from Jordan Blake while keeping delivery ownership.",
+        commitments: "Follow up with Jordan Blake after the planning review.",
+        emergingThemes: "Ownership under stakeholder pressure",
+      },
+    ],
+    approvedSummaries: [
+      {
+        id: "session-1-summary",
+        summary:
+          "Approved summary notes support from Jordan Blake without losing accountability.",
+        focus: "Stakeholder alignment",
+      },
+    ],
+    usedSources: ["previous_conversations", "approved_summaries"],
+  };
+
+  it("A. other-client uncommon surname not in evidence → still blocked", () => {
+    const evidence = buildPreparationAuthorisedEvidenceText({
+      sources: alexSources,
+      personContext: "Name: Alex Morgan\nRole: Project Coordinator",
+      coachingPurpose: "Build delivery confidence",
+    });
+    expect(evidence.toLowerCase()).not.toContain("thompson");
+
+    const result = evaluatePreparationIsolationAttempt({
+      draftText: JSON.stringify({
+        previousConversation: "Thompson remains hesitant about delegation.",
+        suggestedQuestions: ["What would help next?"],
+      }),
+      context: {
+        allowedClientName: "Alex Morgan",
+        knownOtherNames: ["Sarah Thompson", "Jordan Blake"],
+        authorisedNames: [evidence],
+      },
+      attempt: 1,
+    });
+    expect(result.maySave).toBe(false);
+    expect(result.status).toBe("definite_cross_client");
+    expect(result.check.matchType).toBe("uncommon_surname");
+    expect(result.check.fieldName).toBe("previousConversation");
+  });
+
+  it("B. same token present in current relationship authorised evidence → allowed", () => {
+    const evidence = buildPreparationAuthorisedEvidenceText({
+      sources: alexSources,
+      personContext: "Name: Alex Morgan",
+      coachingPurpose: "Delivery ownership",
+    });
+    expect(evidence.toLowerCase()).toContain("blake");
+
+    const result = evaluatePreparationIsolationAttempt({
+      draftText: JSON.stringify({
+        previousConversation:
+          "Alex Morgan reviewed pressure from Jordan Blake and kept ownership clear.",
+        suggestedQuestions: ["What support is still useful?"],
+      }),
+      context: {
+        allowedClientName: "Alex Morgan",
+        knownOtherNames: ["Jordan Blake", "Sarah Thompson"],
+        authorisedNames: [evidence],
+      },
+      attempt: 1,
+    });
+    expect(result.maySave).toBe(true);
+    expect(result.status).toBe("pass");
+  });
+
+  it("C. invented other-client surname not in evidence → blocked", () => {
+    const evidence = buildPreparationAuthorisedEvidenceText({
+      sources: alexSources,
+    });
+    const result = evaluatePreparationIsolationAttempt({
+      draftText: JSON.stringify({
+        previousConversation: "Compare briefly with Reed before the next review.",
+      }),
+      context: {
+        allowedClientName: "Alex Morgan",
+        knownOtherNames: ["Daniel Reed"],
+        authorisedNames: [evidence],
+      },
+      attempt: 1,
+    });
+    // "reed" is ambiguous/common surname → possible; still not saveable.
+    expect(result.maySave).toBe(false);
+  });
+
+  it("C2. invented uncommon other-client surname not in evidence → definite block", () => {
+    const evidence = buildPreparationAuthorisedEvidenceText({
+      sources: alexSources,
+    });
+    const result = evaluatePreparationIsolationAttempt({
+      draftText: JSON.stringify({
+        previousConversation: "Thompson set the tone for last week's discussion.",
+      }),
+      context: {
+        allowedClientName: "Alex Morgan",
+        knownOtherNames: ["Sarah Thompson"],
+        authorisedNames: [evidence],
+      },
+      attempt: 1,
+    });
+    expect(result.maySave).toBe(false);
+    expect(result.check.matchType).toBe("uncommon_surname");
+  });
+
+  it("D. retry still fails closed for genuine non-grounded hit", () => {
+    const evidence = buildPreparationAuthorisedEvidenceText({
+      sources: alexSources,
+    });
+    const context = {
+      allowedClientName: "Alex Morgan",
+      knownOtherNames: ["Sarah Thompson"],
+      authorisedNames: [evidence],
+    };
+    const first = evaluatePreparationIsolationAttempt({
+      draftText: JSON.stringify({
+        previousConversation: "Thompson remains the comparison point.",
+      }),
+      context,
+      attempt: 1,
+    });
+    const second = evaluatePreparationIsolationAttempt({
+      draftText: JSON.stringify({
+        previousConversation: "Thompson still appears after the stricter retry.",
+      }),
+      context,
+      attempt: 2,
+    });
+    expect(first.maySave).toBe(false);
+    expect(first.shouldRetry).toBe(true);
+    expect(second.maySave).toBe(false);
+    expect(second.shouldRetry).toBe(false);
+  });
+
+  it("E. Session 2 Prepare with Alex-scoped sources allows stakeholder collision", () => {
+    const evidence = buildPreparationAuthorisedEvidenceText({
+      sources: alexSources,
+      personContext: "Name: Alex Morgan\nRole: Project Coordinator",
+      coachingPurpose: "Delivery ownership",
+    });
+    const draft = {
+      previousConversation:
+        "Session 1 focused on how Alex Morgan handled pressure from Jordan Blake while keeping ownership.",
+      outstandingActions: ["Follow up with Jordan Blake after planning."],
+      possibleFocus: "Keep delivery ownership clear with stakeholders.",
+      suggestedQuestions: [
+        "What support from Jordan Blake remains useful?",
+        "What would make the next conversation useful?",
+      ],
+    };
+    const result = evaluatePreparationIsolationAttempt({
+      draftText: JSON.stringify(draft),
+      context: {
+        allowedClientName: "Alex Morgan",
+        knownOtherNames: ["Jordan Blake", "Sarah Thompson"],
+        organisationName: "Customer One",
+        authorisedNames: ["Customer One", evidence],
+      },
+      attempt: 1,
+    });
+    expect(result.maySave).toBe(true);
+  });
+
+  it("F. cross-relationship name without evidence grounding remains blocked", () => {
+    const evidence = buildPreparationAuthorisedEvidenceText({
+      sources: {
+        ...emptySources,
+        previousConversations: [
+          {
+            id: "session-1",
+            sessionNumber: 1,
+            date: "2026-08-10",
+            focus: "Delegation",
+            summary: "Alex Morgan practised stepping back from delivery detail.",
+            commitments: "Ask one clarifying question before taking work back.",
+            emergingThemes: "Ownership",
+          },
+        ],
+      },
+    });
+    expect(evidence.toLowerCase()).not.toContain("thompson");
+    const result = validateRelationshipIsolation(
+      JSON.stringify({
+        previousConversation: "Sarah Thompson described feeling stuck.",
+      }),
+      {
+        allowedClientName: "Alex Morgan",
+        knownOtherNames: ["Sarah Thompson"],
+        authorisedNames: [evidence],
+        fieldTexts: {
+          previousConversation: "Sarah Thompson described feeling stuck.",
+        },
+      }
+    );
+    expect(result.status).toBe("definite_cross_client");
+    expect(result.fieldName).toBe("previousConversation");
+  });
+
+  it("G. shared validator without authorised evidence is unchanged", () => {
+    // Other consumers that omit evidence-grounded authorisedNames keep prior behaviour.
+    const result = validateRelationshipIsolation(
+      "Thompson remains hesitant about delegation.",
+      {
+        allowedClientName: "Alex Morgan",
+        knownOtherNames: ["Sarah Thompson"],
+      }
+    );
+    expect(result.status).toBe("definite_cross_client");
+    expect(result.matchType).toBe("uncommon_surname");
   });
 });
 

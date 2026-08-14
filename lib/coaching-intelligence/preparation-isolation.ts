@@ -1,3 +1,4 @@
+import type { ResolvedIntelligenceSources } from "@/lib/coaching-intelligence/resolve-sources";
 import type {
   IsolationStatus,
   RelationshipIsolationContext,
@@ -17,6 +18,58 @@ export type PreparationIsolationAttemptResult = {
   /** True when the draft is safe to persist. */
   maySave: boolean;
 };
+
+/**
+ * Concatenate relationship-scoped Prepare source text used as authorised
+ * evidence for isolation. Tokens present here may appear in AI output without
+ * being treated as cross-client hits when they collide with knownOtherNames.
+ */
+export function buildPreparationAuthorisedEvidenceText(input: {
+  sources: ResolvedIntelligenceSources;
+  personContext?: string;
+  coachingPurpose?: string;
+}): string {
+  const parts: string[] = [];
+
+  if (input.personContext?.trim()) {
+    parts.push(input.personContext.trim());
+  }
+  if (input.coachingPurpose?.trim()) {
+    parts.push(input.coachingPurpose.trim());
+  }
+
+  for (const item of input.sources.previousConversations) {
+    parts.push(
+      item.focus,
+      item.summary,
+      item.commitments,
+      item.emergingThemes
+    );
+  }
+  for (const item of input.sources.approvedSummaries) {
+    parts.push(item.summary, item.focus);
+  }
+  for (const item of input.sources.openCommitments) {
+    parts.push(item.statement);
+  }
+  for (const item of input.sources.approvedReflections) {
+    parts.push(item.summary);
+  }
+  for (const item of input.sources.journeyEvidence) {
+    parts.push(item.focus, item.summary);
+  }
+  if (input.sources.developmentThemes.length > 0) {
+    parts.push(input.sources.developmentThemes.join(" "));
+  }
+  for (const item of input.sources.approvedReports) {
+    parts.push(item.title, item.summary);
+  }
+
+  return parts
+    .map(part => part.trim())
+    .filter(Boolean)
+    .join("\n");
+}
 
 /**
  * Evaluate a preparation draft against relationship isolation rules.

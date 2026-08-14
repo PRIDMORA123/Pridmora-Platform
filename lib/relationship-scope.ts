@@ -390,6 +390,17 @@ export function validateRelationshipIsolation(
         candidateTokens.length >= 2 &&
         containsContiguousTokens(haystackTokens, candidateTokens)
       ) {
+        // Skip when every significant token is already authorised (e.g. grounded
+        // in current-relationship evidence). Preserve blocking when any
+        // significant token is not authorised.
+        const ungrounded = candidateTokens.filter(
+          token =>
+            token.length >= MIN_NAME_TOKEN_LENGTH &&
+            !authorisedTokens.has(token)
+        );
+        if (ungrounded.length === 0) {
+          continue;
+        }
         const matchType: IsolationMatchType =
           context.otherNameAliases?.includes(candidate) ? "alias" : "full_name";
         return {
@@ -539,6 +550,8 @@ export function logRelationshipIsolationRejection(input: {
   retryAttempted: boolean;
   requestId?: string | null;
   diagnosticSnippet?: string;
+  /** Safe ops flag — never log the token value itself in production. */
+  tokenInAuthorisedEvidence?: boolean;
 }): void {
   const payload: Record<string, unknown> = {
     event: "relationship_isolation_rejection",
@@ -551,6 +564,7 @@ export function logRelationshipIsolationRejection(input: {
     fieldName: input.fieldName ?? null,
     retryAttempted: input.retryAttempted,
     requestId: input.requestId ?? null,
+    tokenInAuthorisedEvidence: Boolean(input.tokenInAuthorisedEvidence),
   };
 
   if (process.env.NODE_ENV !== "production" && input.diagnosticSnippet) {
