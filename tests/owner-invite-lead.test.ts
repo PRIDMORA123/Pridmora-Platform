@@ -147,11 +147,14 @@ describe("Owner Console — Invite Organisation Lead", () => {
     expect(accept).not.toContain('"/owner"');
   });
 
-  it("Lead/oversight has intelligence read and cannot invite or see private coaching content", () => {
+  it("Lead/oversight has intelligence read and customer admin; cannot see private coaching content", () => {
     expect(canReadOrganisationIntelligence("oversight")).toBe(true);
-    expect(canInviteMembers("oversight")).toBe(false);
-    expect(permissionsForRole("oversight")).not.toContain("members.invite");
-    expect(permissionsForRole("oversight")).not.toContain("members.manage");
+    expect(canInviteMembers("oversight")).toBe(true);
+    expect(permissionsForRole("oversight")).toContain("members.invite");
+    expect(permissionsForRole("oversight")).toContain("members.manage");
+    expect(permissionsForRole("oversight")).toContain("assignments.manage");
+    expect(permissionsForRole("oversight")).not.toContain("coaching_content.view");
+    expect(permissionsForRole("oversight")).not.toContain("private_notes.view");
     expect(
       canAccessCoachingContent({ role: "oversight", assignmentRole: "primary" })
     ).toBe(false);

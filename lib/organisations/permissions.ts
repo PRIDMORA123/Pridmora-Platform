@@ -50,6 +50,12 @@ const ROLE_PERMISSIONS: Record<MembershipRole, readonly OrganisationPermission[]
     "organisation.view_usage",
     "organisation.view_safe_oversight",
     "intelligence.organisation.read",
+    // Customer Lead administration — membership/seats/assignments only.
+    // Never coaching_content.view / private_notes.view (see CONTENT_CAPABLE_ROLES).
+    "members.invite",
+    "members.manage",
+    "members.deactivate",
+    "assignments.manage",
     "relationships.view_assigned",
   ],
   practitioner: [
@@ -179,13 +185,21 @@ export function canAccessPrivateNotes(input: {
   return input.isOriginalPrivateNotesOwner || input.assignmentRole === "primary";
 }
 
-/** Roles an inviter may assign (never escalate above own role). */
+/**
+ * Roles an inviter may assign (never escalate above own role).
+ * Organisation Lead (oversight) may invite Managers only
+ * (membership role practitioner — professional_role manager is set at invite UX).
+ * Does not invite owner, administrator, oversight (Lead), or viewer (People).
+ */
 export function invitableRoles(actorRole: MembershipRole): MembershipRole[] {
   if (actorRole === "owner") {
     return ["administrator", "oversight", "practitioner", "viewer"];
   }
   if (actorRole === "administrator") {
     return ["oversight", "practitioner", "viewer"];
+  }
+  if (actorRole === "oversight") {
+    return ["practitioner"];
   }
   return [];
 }

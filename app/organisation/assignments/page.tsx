@@ -94,12 +94,12 @@ export default function OrganisationAssignmentsPage() {
   return (
     <OrganisationShell
       title="Assignments"
-      subtitle="Assign practitioners to developmental relationships."
+      subtitle="Assign Managers to developmental relationships for this organisation."
     >
       <OrganisationInfoBanner>
-        Transferring a primary practitioner preserves relationship history.
-        Previous practitioner-only private notes remain restricted to the
-        original owner.
+        Assignments control who may work with a Person. Organisation Leads can
+        manage assignments without gaining access to confidential coaching notes,
+        reflections, or preparation content.
       </OrganisationInfoBanner>
 
       {loading ? (

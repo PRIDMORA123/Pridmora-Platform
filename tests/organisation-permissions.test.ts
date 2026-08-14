@@ -110,7 +110,8 @@ describe("organisation permissions", () => {
     );
     expect(hasPermission("oversight", "private_notes.view")).toBe(false);
     expect(hasPermission("oversight", "coaching_content.view")).toBe(false);
-    expect(hasPermission("oversight", "members.invite")).toBe(false);
+    expect(hasPermission("oversight", "members.invite")).toBe(true);
+    expect(hasPermission("oversight", "assignments.manage")).toBe(true);
   });
 
   it("grants organisation intelligence to owner and administrator only among content roles", () => {

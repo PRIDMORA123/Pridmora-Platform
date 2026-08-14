@@ -31,6 +31,8 @@ function memberActions({
   canManage,
   busy,
   invitableRoles,
+  removeAccessLabel,
+  restoreAccessLabel,
   onChangeRole,
   onDeactivate,
   onReactivate,
@@ -39,6 +41,8 @@ function memberActions({
   canManage: boolean;
   busy: boolean;
   invitableRoles: MembershipRole[];
+  removeAccessLabel: string;
+  restoreAccessLabel: string;
   onChangeRole: (membershipId: string, role: MembershipRole) => void;
   onDeactivate: (membershipId: string) => void;
   onReactivate: (membershipId: string) => void;
@@ -48,7 +52,7 @@ function memberActions({
     if (member.status === "active") {
       actions.push({
         id: "deactivate",
-        label: "Deactivate member",
+        label: removeAccessLabel,
         danger: true,
         disabled: busy,
         onSelect: () => onDeactivate(member.id),
@@ -57,7 +61,7 @@ function memberActions({
     if (member.status === "deactivated") {
       actions.push({
         id: "reactivate",
-        label: "Reactivate member",
+        label: restoreAccessLabel,
         disabled: busy,
         onSelect: () => onReactivate(member.id),
       });
@@ -86,6 +90,8 @@ export function MemberRow({
   canManage,
   busy,
   invitableRoles,
+  removeAccessLabel = "Deactivate member",
+  restoreAccessLabel = "Reactivate member",
   onChangeRole,
   onDeactivate,
   onReactivate,
@@ -94,6 +100,8 @@ export function MemberRow({
   canManage: boolean;
   busy: boolean;
   invitableRoles: MembershipRole[];
+  removeAccessLabel?: string;
+  restoreAccessLabel?: string;
   onChangeRole: (membershipId: string, role: MembershipRole) => void;
   onDeactivate: (membershipId: string) => void;
   onReactivate: (membershipId: string) => void;
@@ -103,6 +111,8 @@ export function MemberRow({
     canManage,
     busy,
     invitableRoles,
+    removeAccessLabel,
+    restoreAccessLabel,
     onChangeRole,
     onDeactivate,
     onReactivate,
@@ -149,6 +159,8 @@ export function MemberCard({
   canManage,
   busy,
   invitableRoles,
+  removeAccessLabel = "Deactivate member",
+  restoreAccessLabel = "Reactivate member",
   onChangeRole,
   onDeactivate,
   onReactivate,
@@ -157,6 +169,8 @@ export function MemberCard({
   canManage: boolean;
   busy: boolean;
   invitableRoles: MembershipRole[];
+  removeAccessLabel?: string;
+  restoreAccessLabel?: string;
   onChangeRole: (membershipId: string, role: MembershipRole) => void;
   onDeactivate: (membershipId: string) => void;
   onReactivate: (membershipId: string) => void;
@@ -166,6 +180,8 @@ export function MemberCard({
     canManage,
     busy,
     invitableRoles,
+    removeAccessLabel,
+    restoreAccessLabel,
     onChangeRole,
     onDeactivate,
     onReactivate,
@@ -223,6 +239,8 @@ export function MemberList({
   canManage,
   busy,
   invitableRoles,
+  removeAccessLabel = "Deactivate member",
+  restoreAccessLabel = "Reactivate member",
   onChangeRole,
   onDeactivate,
   onReactivate,
@@ -231,6 +249,8 @@ export function MemberList({
   canManage: boolean;
   busy: boolean;
   invitableRoles: MembershipRole[];
+  removeAccessLabel?: string;
+  restoreAccessLabel?: string;
   onChangeRole: (membershipId: string, role: MembershipRole) => void;
   onDeactivate: (membershipId: string) => void;
   onReactivate: (membershipId: string) => void;
@@ -239,6 +259,8 @@ export function MemberList({
     canManage,
     busy,
     invitableRoles,
+    removeAccessLabel,
+    restoreAccessLabel,
     onChangeRole,
     onDeactivate,
     onReactivate,

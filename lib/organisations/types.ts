@@ -203,7 +203,7 @@ export const MEMBERSHIP_ROLE_DESCRIPTIONS: Record<MembershipRole, string> = {
   owner: "Full organisation administration and commercial control.",
   administrator: "Manages members, assignments and operational settings.",
   oversight:
-    "Views safe operational information without confidential coaching content.",
+    "Organisation Lead: manages Managers, seats and assignments, and views safe organisational intelligence — never confidential coaching content.",
   practitioner: "Manages assigned developmental relationships.",
   viewer: "Views explicitly shared organisation-level information.",
 };

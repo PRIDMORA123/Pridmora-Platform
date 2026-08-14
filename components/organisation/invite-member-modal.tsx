@@ -18,6 +18,8 @@ type InviteMemberModalProps = {
   roles: MembershipRole[];
   busy: boolean;
   seatsAvailable?: number | null;
+  /** Lead admin: Manager-only invite (practitioner + manager). */
+  variant?: "member" | "manager";
   onClose: () => void;
   onInvite: (input: {
     email: string;
@@ -31,6 +33,7 @@ export function InviteMemberModal({
   roles,
   busy,
   seatsAvailable = null,
+  variant = "member",
   onClose,
   onInvite,
 }: InviteMemberModalProps) {
@@ -39,13 +42,14 @@ export function InviteMemberModal({
   const professionalId = useId();
   const roleHelpId = useId();
   const liveId = useId();
+  const isManagerInvite = variant === "manager";
 
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<MembershipRole>(
-    roles[0] ?? "practitioner"
+    isManagerInvite ? "practitioner" : (roles[0] ?? "practitioner")
   );
   const [professionalRole, setProfessionalRole] = useState<ProfessionalRole | "">(
-    ""
+    isManagerInvite ? "manager" : ""
   );
   const [error, setError] = useState("");
   const [acceptPath, setAcceptPath] = useState<string | null>(null);
@@ -53,8 +57,8 @@ export function InviteMemberModal({
 
   function reset() {
     setEmail("");
-    setRole(roles[0] ?? "practitioner");
-    setProfessionalRole("");
+    setRole(isManagerInvite ? "practitioner" : (roles[0] ?? "practitioner"));
+    setProfessionalRole(isManagerInvite ? "manager" : "");
     setError("");
     setAcceptPath(null);
     setCopied(false);
@@ -72,8 +76,10 @@ export function InviteMemberModal({
     try {
       const result = await onInvite({
         email,
-        role,
-        professionalRole: professionalRole || null,
+        role: isManagerInvite ? "practitioner" : role,
+        professionalRole: isManagerInvite
+          ? "manager"
+          : professionalRole || null,
       });
       if (result?.acceptPath) {
         setAcceptPath(result.acceptPath);
@@ -145,7 +151,7 @@ export function InviteMemberModal({
   return (
     <Modal
       isOpen={open}
-      title="Invite member"
+      title={isManagerInvite ? "Invite Manager" : "Invite member"}
       onClose={handleClose}
       size="md"
       closeDisabled={busy}
@@ -161,12 +167,16 @@ export function InviteMemberModal({
             disabled={
               busy ||
               !email.trim() ||
-              (role === "practitioner" &&
+              ((isManagerInvite || role === "practitioner") &&
                 seatsAvailable != null &&
                 seatsAvailable < 1)
             }
           >
-            {busy ? "Sending…" : "Send invitation"}
+            {busy
+              ? "Sending…"
+              : isManagerInvite
+                ? "Send Manager invitation"
+                : "Send invitation"}
           </IdentityButton>
           <IdentityButton
             type="button"
@@ -193,54 +203,66 @@ export function InviteMemberModal({
           />
         </label>
 
-        <label className="organisation-field" htmlFor={roleId}>
-          <span>Membership role</span>
-          <select
-            id={roleId}
-            value={role}
-            disabled={busy}
-            aria-describedby={roleHelpId}
-            onChange={e => setRole(e.target.value as MembershipRole)}
-          >
-            {roles.map(option => (
-              <option key={option} value={option}>
-                {MEMBERSHIP_ROLE_LABELS[option]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <p id={roleHelpId} className="organisation-field-hint">
-          {MEMBERSHIP_ROLE_DESCRIPTIONS[role]}
-        </p>
-        {role === "practitioner" &&
+        {isManagerInvite ? (
+          <p className="organisation-field-hint" id={roleHelpId}>
+            Managers join as practitioners with a Manager professional role and
+            consume a licensed practitioner seat. They do not receive
+            Organisation Lead or confidential coaching access beyond their own
+            assigned relationships.
+          </p>
+        ) : (
+          <>
+            <label className="organisation-field" htmlFor={roleId}>
+              <span>Membership role</span>
+              <select
+                id={roleId}
+                value={role}
+                disabled={busy}
+                aria-describedby={roleHelpId}
+                onChange={e => setRole(e.target.value as MembershipRole)}
+              >
+                {roles.map(option => (
+                  <option key={option} value={option}>
+                    {MEMBERSHIP_ROLE_LABELS[option]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p id={roleHelpId} className="organisation-field-hint">
+              {MEMBERSHIP_ROLE_DESCRIPTIONS[role]}
+            </p>
+            <label className="organisation-field" htmlFor={professionalId}>
+              <span>Professional role, optional</span>
+              <select
+                id={professionalId}
+                value={professionalRole}
+                disabled={busy}
+                onChange={e =>
+                  setProfessionalRole(
+                    (e.target.value || "") as ProfessionalRole | ""
+                  )
+                }
+              >
+                <option value="">Not specified</option>
+                {PROFESSIONAL_ROLES.map(option => (
+                  <option key={option} value={option}>
+                    {PROFESSIONAL_ROLE_LABELS[option]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </>
+        )}
+
+        {(isManagerInvite || role === "practitioner") &&
         seatsAvailable != null &&
         seatsAvailable < 1 ? (
           <p className="organisation-error" role="status">
-            No practitioner seats available. Choose another role, or deactivate
-            an existing practitioner to free a seat.
+            No practitioner seats available. Remove Manager access for an
+            existing Manager, or contact your Platform Owner to adjust the
+            licence.
           </p>
         ) : null}
-
-        <label className="organisation-field" htmlFor={professionalId}>
-          <span>Professional role, optional</span>
-          <select
-            id={professionalId}
-            value={professionalRole}
-            disabled={busy}
-            onChange={e =>
-              setProfessionalRole(
-                (e.target.value || "") as ProfessionalRole | ""
-              )
-            }
-          >
-            <option value="">Not specified</option>
-            {PROFESSIONAL_ROLES.map(option => (
-              <option key={option} value={option}>
-                {PROFESSIONAL_ROLE_LABELS[option]}
-              </option>
-            ))}
-          </select>
-        </label>
 
         {error ? <p className="organisation-error">{error}</p> : null}
       </div>

@@ -43,13 +43,16 @@ describe("organisation premium UI security & permission regressions", () => {
   it("prevents unauthorised roles from inviting or changing settings/assignments", () => {
     expect(canInviteMembers("viewer")).toBe(false);
     expect(canInviteMembers("practitioner")).toBe(false);
-    expect(canInviteMembers("oversight")).toBe(false);
+    expect(canInviteMembers("oversight")).toBe(true);
     expect(canManageOrganisation("viewer")).toBe(false);
     expect(canManageOrganisation("practitioner")).toBe(false);
+    expect(canManageOrganisation("oversight")).toBe(false);
     expect(canManageAssignments("viewer")).toBe(false);
     expect(canManageAssignments("practitioner")).toBe(false);
+    expect(canManageAssignments("oversight")).toBe(true);
     expect(hasPermission("viewer", "organisation.manage")).toBe(false);
-    expect(hasPermission("oversight", "members.invite")).toBe(false);
+    expect(hasPermission("oversight", "members.invite")).toBe(true);
+    expect(hasPermission("oversight", "organisation.manage")).toBe(false);
   });
 
   it("does not expose confidential coaching content in organisation UI pages", () => {
