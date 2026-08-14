@@ -24,6 +24,11 @@ import {
   buildRelationshipAiContext,
   formatRelationshipAiPersonContext,
 } from "@/lib/relationship-identity";
+import {
+  extractSafeOpenAiErrorMetadata,
+  isOpenAiProviderError,
+  isPreparationRelationshipAccessError,
+} from "@/lib/coaching-intelligence/safe-openai-error";
 import { isUuid } from "@/lib/uuid";
 
 export const runtime = "nodejs";
@@ -49,7 +54,8 @@ type PreparationErrorCode =
   | "PREPARATION_CROSS_CLIENT"
   | "PREPARATION_JSON_INVALID"
   | "PREPARATION_SCHEMA_INVALID"
-  | "PREPARATION_SAVE_FAILED";
+  | "PREPARATION_SAVE_FAILED"
+  | "PREPARATION_UNEXPECTED";
 
 function isDev(): boolean {
   return process.env.NODE_ENV !== "production";
@@ -64,6 +70,25 @@ function logPreparationBoundary(
     return;
   }
   console.error("[preparation-refresh]", { errorCode: code, ...details });
+}
+
+/**
+ * Production-safe OpenAI failure log: status/code/type (+ short safe message).
+ * Never logs prompts, keys, person names, or relationship/session IDs.
+ */
+function logPreparationAiRequestFailed(
+  error: unknown,
+  extras?: { attempt?: number }
+) {
+  const provider = extractSafeOpenAiErrorMetadata(error);
+  console.error("[preparation-refresh]", {
+    errorCode: "PREPARATION_AI_REQUEST_FAILED" satisfies PreparationErrorCode,
+    status: provider.status,
+    code: provider.code,
+    type: provider.type,
+    message: provider.message,
+    ...(typeof extras?.attempt === "number" ? { attempt: extras.attempt } : {}),
+  });
 }
 
 function missingColumnName(message: string): string | null {
@@ -373,12 +398,7 @@ export async function POST(request: Request) {
       outputText = firstDraft.outputText;
       responseId = firstDraft.responseId;
     } catch (error) {
-      logPreparationBoundary("PREPARATION_AI_REQUEST_FAILED", {
-        relationshipId,
-        conversationId,
-        mode,
-        reason: error instanceof Error ? error.message : "openai_request_failed",
-      });
+      logPreparationAiRequestFailed(error, { attempt: 1 });
       await markIntelligenceError(supabase, {
         conversationId,
         relationshipId,
@@ -455,14 +475,7 @@ export async function POST(request: Request) {
         outputText = retryDraft.outputText;
         responseId = retryDraft.responseId;
       } catch (error) {
-        logPreparationBoundary("PREPARATION_AI_REQUEST_FAILED", {
-          relationshipId,
-          conversationId,
-          mode,
-          reason:
-            error instanceof Error ? error.message : "openai_retry_failed",
-          attempt: 2,
-        });
+        logPreparationAiRequestFailed(error, { attempt: 2 });
         await markIntelligenceError(supabase, {
           conversationId,
           relationshipId,
@@ -624,21 +637,46 @@ export async function POST(request: Request) {
       retryAttempted: isolationRetryAttempted,
     });
   } catch (error) {
-    logPreparationBoundary("PREPARATION_AI_REQUEST_FAILED", {
-      relationshipId,
-      conversationId,
-      mode,
-      reason: error instanceof Error ? error.message : "generation_failed",
+    // Do not mislabel ownership / assembly failures as OpenAI request failures.
+    if (isPreparationRelationshipAccessError(error)) {
+      logPreparationBoundary("PREPARATION_RELATIONSHIP_FORBIDDEN", {
+        reason: "relationship_access",
+      });
+      await markIntelligenceError(supabase, {
+        conversationId,
+        relationshipId,
+        coachId,
+        mode,
+        errorCode: "PREPARATION_RELATIONSHIP_FORBIDDEN",
+      }).catch(() => undefined);
+      return failureResponse("PREPARATION_RELATIONSHIP_FORBIDDEN", 404);
+    }
+
+    if (isOpenAiProviderError(error)) {
+      logPreparationAiRequestFailed(error);
+      await markIntelligenceError(supabase, {
+        conversationId,
+        relationshipId,
+        coachId,
+        mode,
+        errorCode: "PREPARATION_AI_REQUEST_FAILED",
+      }).catch(() => undefined);
+      return failureResponse("PREPARATION_AI_REQUEST_FAILED", 502);
+    }
+
+    console.error("[preparation-refresh]", {
+      errorCode: "PREPARATION_UNEXPECTED" satisfies PreparationErrorCode,
     });
     await markIntelligenceError(supabase, {
       conversationId,
       relationshipId,
       coachId,
       mode,
-      errorCode: "PREPARATION_AI_REQUEST_FAILED",
+      errorCode: "PREPARATION_UNEXPECTED",
     }).catch(() => undefined);
 
-    return failureResponse("PREPARATION_AI_REQUEST_FAILED", 502);
+    // Same Manager-facing copy as other refresh failures; distinct errorCode for ops.
+    return failureResponse("PREPARATION_UNEXPECTED", 502);
   }
 }
 
