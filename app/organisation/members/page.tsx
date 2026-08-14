@@ -36,12 +36,16 @@ export default function OrganisationMembersPage() {
   } | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [actorRole, setActorRole] = useState<MembershipRole>("administrator");
+  const [actorRole, setActorRole] = useState<MembershipRole | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [deactivateId, setDeactivateId] = useState<string | null>(null);
   const [revokeId, setRevokeId] = useState<string | null>(null);
 
+  // Wait for /api/organisations/current before choosing invite UX — never
+  // default to administrator (which would flash the generic role <select>).
+  const roleResolved = actorRole != null;
   const isLeadAdmin = actorRole === "oversight";
+  const canInvite = canManage && roleResolved;
 
   const load = useCallback(async () => {
     const [membersPayload, current] = await Promise.all([
@@ -180,7 +184,7 @@ export default function OrganisationMembersPage() {
     }
   }
 
-  const roles = invitableRoles(actorRole);
+  const roles = actorRole ? invitableRoles(actorRole) : [];
   const singleMember = members.length === 1;
   const deactivateTarget = members.find(member => member.id === deactivateId);
   const revokeTarget = invitations.find(invite => invite.id === revokeId);
@@ -211,7 +215,7 @@ export default function OrganisationMembersPage() {
         </div>
       ) : null}
 
-      {canManage ? (
+      {canInvite ? (
         <div className="organisation-members-toolbar">
           <IdentityButton
             variant="primary"
@@ -220,11 +224,11 @@ export default function OrganisationMembersPage() {
           >
             {inviteCta}
           </IdentityButton>
-          {!isLeadAdmin ? <MemberRoleExplainer /> : null}
+          {roleResolved && !isLeadAdmin ? <MemberRoleExplainer /> : null}
         </div>
       ) : null}
 
-      {canManage && singleMember ? (
+      {canInvite && singleMember ? (
         <section className="organisation-empty-state">
           <p>You are currently the only member of this workspace.</p>
           <p className="organisation-muted">
@@ -242,7 +246,7 @@ export default function OrganisationMembersPage() {
         </section>
       ) : null}
 
-      {canManage && invitations.length > 0 ? (
+      {canInvite && invitations.length > 0 ? (
         <section className="organisation-panel">
           <h2 className="organisation-section-title">Pending invitations</h2>
           <ul className="organisation-attention-list">
@@ -289,7 +293,7 @@ export default function OrganisationMembersPage() {
         />
       </section>
 
-      {canManage ? (
+      {canInvite ? (
         <InviteMemberModal
           open={inviteOpen}
           roles={roles}

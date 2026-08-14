@@ -204,12 +204,24 @@ export function InviteMemberModal({
         </label>
 
         {isManagerInvite ? (
-          <p className="organisation-field-hint" id={roleHelpId}>
-            Managers join as practitioners with a Manager professional role and
-            consume a licensed practitioner seat. They do not receive
-            Organisation Lead or confidential coaching access beyond their own
-            assigned relationships.
-          </p>
+          <>
+            <div className="organisation-field">
+              <span>Role</span>
+              <p
+                className="organisation-field-readonly"
+                id={roleHelpId}
+                aria-label="Role: Manager"
+              >
+                Role: Manager
+              </p>
+            </div>
+            <p className="organisation-field-hint">
+              Managers join as practitioners with a Manager professional role and
+              consume a licensed practitioner seat. They do not receive
+              Organisation Lead or confidential coaching access beyond their own
+              assigned relationships.
+            </p>
+          </>
         ) : (
           <>
             <label className="organisation-field" htmlFor={roleId}>

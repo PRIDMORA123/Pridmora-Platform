@@ -226,3 +226,71 @@ describe("Organisation Lead (oversight) customer administration", () => {
     expect(page).toContain("Auth account is not deleted");
   });
 });
+
+describe("Lead Invite Manager role control UX", () => {
+  it("Lead sees no Membership role <select> and a fixed Role: Manager label", () => {
+    const modal = read("components/organisation/invite-member-modal.tsx");
+    expect(modal).toContain('variant?: "member" | "manager"');
+    expect(modal).toContain("isManagerInvite");
+    expect(modal).toContain("Role: Manager");
+    expect(modal).toContain("organisation-field-readonly");
+    // Manager branch must not render the Membership role select.
+    const managerBranch = modal.slice(
+      modal.indexOf("{isManagerInvite ? ("),
+      modal.indexOf(") : (")
+    );
+    expect(managerBranch).toContain("Role: Manager");
+    expect(managerBranch).not.toContain("<select");
+    expect(managerBranch).not.toContain("Membership role");
+  });
+
+  it("Lead invite still submits practitioner + manager", () => {
+    const modal = read("components/organisation/invite-member-modal.tsx");
+    expect(modal).toContain('role: isManagerInvite ? "practitioner" : role');
+    expect(modal).toContain('? "manager"');
+    const page = read("app/organisation/members/page.tsx");
+    expect(page).toContain('const role = isLeadAdmin ? "practitioner" : input.role');
+    expect(page).toContain(
+      'const professionalRole = isLeadAdmin ? "manager" : input.professionalRole'
+    );
+  });
+
+  it("Lead cannot invite owner/admin/oversight/viewer", () => {
+    expect(invitableRoles("oversight")).toEqual(["practitioner"]);
+    expect(canAssignRole("oversight", "owner")).toBe(false);
+    expect(canAssignRole("oversight", "administrator")).toBe(false);
+    expect(canAssignRole("oversight", "oversight")).toBe(false);
+    expect(canAssignRole("oversight", "viewer")).toBe(false);
+  });
+
+  it("owner/admin generic invite behaviour retains Membership role <select>", () => {
+    const modal = read("components/organisation/invite-member-modal.tsx");
+    expect(modal).toContain("<span>Membership role</span>");
+    expect(modal).toContain("MEMBERSHIP_ROLE_LABELS[option]");
+    expect(invitableRoles("owner")).toEqual([
+      "administrator",
+      "oversight",
+      "practitioner",
+      "viewer",
+    ]);
+    expect(invitableRoles("administrator")).toEqual([
+      "oversight",
+      "practitioner",
+      "viewer",
+    ]);
+  });
+
+  it("loading state does not transiently expose generic role controls to Lead", () => {
+    const page = read("app/organisation/members/page.tsx");
+    expect(page).toContain("useState<MembershipRole | null>(null)");
+    expect(page).toContain("roleResolved");
+    expect(page).toContain("canInvite = canManage && roleResolved");
+    expect(page).toContain('variant={isLeadAdmin ? "manager" : "member"}');
+    // Invite UI gated until role is known — never default actorRole to administrator.
+    expect(page).not.toContain(
+      'useState<MembershipRole>("administrator")'
+    );
+    expect(page).toContain("{canInvite ? (");
+    expect(page).toContain("<InviteMemberModal");
+  });
+});
