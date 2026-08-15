@@ -21,6 +21,7 @@ import {
   recordDevelopmentGenerationRejection,
   upsertDevelopmentUpdateFromGeneration,
 } from "@/lib/development-updates/repository";
+import { refineDevelopmentUpdateGeneration } from "@/lib/development-updates/evidence-status";
 import { listApprovedIntelligenceForClient } from "@/lib/intelligence/repository";
 import { getApprovedRelationshipEvidence } from "@/lib/journey/load-journey-view-model";
 import { assertRelationshipOwnership } from "@/lib/relationship-scope";
@@ -435,7 +436,7 @@ export async function POST(request: Request) {
       coachId,
       clientId,
       sessionId,
-      evaluation.generation,
+      refineDevelopmentUpdateGeneration(evaluation.generation, profile),
       { forceRegenerateApplied: Boolean(body.forceRegenerateApplied) }
     );
 

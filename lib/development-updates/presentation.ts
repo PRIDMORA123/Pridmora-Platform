@@ -5,6 +5,7 @@ import type {
   ProfileEntryStatus,
 } from "@/lib/development-updates/types";
 import { profileEntryStatusLabel } from "@/lib/development-updates/types";
+import { stripBracketedEvidenceStatusMarkers } from "@/lib/development-updates/evidence-status";
 
 export type ChangeDisplayItem = {
   key: string;
@@ -49,7 +50,7 @@ function categoryItems(
       categoryKey,
       categoryLabel,
       title: categoryLabel,
-      body: entry.value,
+      body: stripBracketedEvidenceStatusMarkers(entry.value),
       statusLabel: statusFrom(entry.status),
       kind: "add",
     });
@@ -61,7 +62,7 @@ function categoryItems(
       categoryKey,
       categoryLabel,
       title: `Updated ${categoryLabel.toLowerCase()}`,
-      body: entry.value,
+      body: stripBracketedEvidenceStatusMarkers(entry.value),
       statusLabel: statusFrom(entry.status),
       kind: "update",
     });
@@ -75,7 +76,7 @@ function categoryItems(
       categoryKey,
       categoryLabel,
       title: `Remove ${categoryLabel.toLowerCase()}`,
-      body: value,
+      body: stripBracketedEvidenceStatusMarkers(value),
       kind: "remove",
     });
   });
@@ -94,7 +95,7 @@ export function buildChangeDisplayItems(
       categoryKey: "currentFocus",
       categoryLabel: "Recommended development position",
       title: "Recommended development position",
-      body: changes.currentFocus.value.trim(),
+      body: stripBracketedEvidenceStatusMarkers(changes.currentFocus.value.trim()),
       kind: "focus",
     });
   }
@@ -117,7 +118,7 @@ export function buildChangeDisplayItems(
         categoryKey: "commitments",
         categoryLabel: "Commitment",
         title: "Commitment",
-        body: entry.value,
+        body: stripBracketedEvidenceStatusMarkers(entry.value),
         kind: "add",
       });
     });
@@ -129,7 +130,7 @@ export function buildChangeDisplayItems(
         categoryKey: "commitments",
         categoryLabel: "Commitment",
         title: "Completed commitment",
-        body: value,
+        body: stripBracketedEvidenceStatusMarkers(value),
         kind: "complete",
       });
     });
@@ -141,7 +142,7 @@ export function buildChangeDisplayItems(
         categoryKey: "commitments",
         categoryLabel: "Commitment",
         title: "Remove commitment",
-        body: value,
+        body: stripBracketedEvidenceStatusMarkers(value),
         kind: "remove",
       });
     });

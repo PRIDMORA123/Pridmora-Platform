@@ -35,6 +35,11 @@ Rules:
 - Do not refer to any person not identified in the supplied relationship context.
 - Use UK English spelling (organisation, behaviour, prioritise, recognise, analyse).
 - Status values must be one of: emerging, supported, well_established.
+- Put evidence status only in the status field. Never write [emerging], [supported] or [well_established] inside value/reason prose.
+- emerging = early, single, or indirect evidence.
+- supported = repeated, direct behavioural evidence across more than one occasion.
+- well_established = sustained across conversations; do not downgrade it without clear contradictory evidence.
+- Beliefs and other inferred internal constructs are more cautious than observed behaviour. Prefer emerging when the belief is implied by behaviour rather than directly stated. Do not mark a belief supported solely because behaviour could imply it.
 - For proposedChanges add/update items use objects shaped as { "value": "...", "status": "emerging", "reason": "..." }.
 - Do not use { "from": "...", "to": "..." } for profile updates — put the new wording in "value".
 - Return valid JSON only.
@@ -146,7 +151,7 @@ export function formatProfileForPrompt(profile: {
     }
     lines.push(`${label}:`);
     for (const entry of entries) {
-      lines.push(`- ${entry.value} [${entry.status}]`);
+      lines.push(`- ${entry.value} (evidence status: ${entry.status})`);
     }
   }
 
@@ -156,7 +161,7 @@ export function formatProfileForPrompt(profile: {
     lines.push("Commitments:");
     for (const commitment of profile.commitments) {
       lines.push(
-        `- ${commitment.value} [${commitment.status}]${
+        `- ${commitment.value} (evidence status: ${commitment.status})${
           commitment.dueDate ? ` due ${commitment.dueDate}` : ""
         }`
       );

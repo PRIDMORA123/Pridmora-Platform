@@ -1,6 +1,10 @@
 import { z, type ZodError, type ZodIssue } from "zod";
 import { PROFILE_ENTRY_STATUSES } from "@/lib/development-updates/types";
 import { extractJsonObject } from "@/lib/intelligence/schema";
+import {
+  refineDevelopmentUpdateGeneration,
+  stripBracketedEvidenceStatusMarkers,
+} from "@/lib/development-updates/evidence-status";
 
 /** Strip markdown fences and trim before JSON extraction. */
 export function normalizeDevelopmentModelText(text: string): string {
@@ -233,12 +237,15 @@ export function parseDevelopmentUpdateGeneration(
 
   if (!parsed.hasMeaningfulChanges) {
     return {
-      conversationSummary: parsed.conversationSummary,
+      conversationSummary: stripBracketedEvidenceStatusMarkers(
+        parsed.conversationSummary
+      ),
       hasMeaningfulChanges: false,
       proposedChanges: {},
       evidence: [],
     };
   }
 
-  return parsed;
+  // Profile-aware well_established preservation runs in the generate route.
+  return refineDevelopmentUpdateGeneration(parsed, null);
 }
