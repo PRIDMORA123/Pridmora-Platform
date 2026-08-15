@@ -6,9 +6,8 @@ import { DevelopmentIntelligenceEvidencePanel } from "@/components/development-e
 import { MyDevelopmentSubnav } from "@/components/my-development-subnav";
 import { apiJson, errorMessage } from "@/lib/api-client";
 import type { MyDevelopmentWorkspace } from "@/lib/my-development/workspace";
+import type { DevelopmentProfile } from "@/lib/development-updates/types";
 import type { Client } from "@/lib/types";
-
-type ProfileEntryLike = { title?: string; summary?: string; description?: string };
 
 /**
  * Manager's own Development Intelligence — synthesis from the current
@@ -28,6 +27,7 @@ export function MyDevelopmentIntelligenceView({
   const [workspace, setWorkspace] = useState<MyDevelopmentWorkspace | null>(
     null
   );
+  const [profile, setProfile] = useState<DevelopmentProfile | null>(null);
   const [profileStrengths, setProfileStrengths] = useState<string[]>([]);
   const [profileThemes, setProfileThemes] = useState<string[]>([]);
   const [error, setError] = useState("");
@@ -40,27 +40,19 @@ export function MyDevelopmentIntelligenceView({
           "/api/my-development/workspace"
         ),
         apiJson<{
-          profile?: {
-            strengths?: Array<string | ProfileEntryLike>;
-            emergingThemes?: Array<string | ProfileEntryLike>;
-          };
+          profile?: DevelopmentProfile;
         }>(`/api/development-profiles/${client.id}`).catch(() => ({
           profile: undefined,
         })),
       ]);
       setWorkspace(workspaceData.workspace);
+      setProfile(profileData.profile ?? null);
 
-      const labelOf = (item: string | ProfileEntryLike) =>
-        typeof item === "string"
-          ? item
-          : item.title || item.summary || item.description || "";
       const strengths = (profileData.profile?.strengths ?? [])
-        .map(labelOf)
-        .map(item => item.trim())
+        .map(item => item.value.trim())
         .filter(Boolean);
       const themes = (profileData.profile?.emergingThemes ?? [])
-        .map(labelOf)
-        .map(item => item.trim())
+        .map(item => item.value.trim())
         .filter(Boolean);
       setProfileStrengths(strengths);
       setProfileThemes(themes);
@@ -188,6 +180,7 @@ export function MyDevelopmentIntelligenceView({
 
       <DevelopmentIntelligenceEvidencePanel
         clientId={client.id}
+        profile={profile}
         onOpenEvidence={onOpenEvidence}
         voice="self"
       />

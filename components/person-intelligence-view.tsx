@@ -280,6 +280,7 @@ export function PersonIntelligenceView({
 
       <DevelopmentIntelligenceEvidencePanel
         clientId={client.id}
+        profile={profile}
         onOpenEvidence={onOpenEvidence}
       />
 

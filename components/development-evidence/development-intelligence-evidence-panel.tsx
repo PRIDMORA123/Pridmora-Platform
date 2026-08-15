@@ -1,32 +1,37 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { EvidenceConfidencePanel } from "@/components/development-evidence/evidence-confidence-panel";
 import { EvidenceGraphPanel } from "@/components/development-evidence/evidence-graph-panel";
 import { EvidenceWhyDrawer } from "@/components/development-evidence/evidence-why-drawer";
 import { apiJson, errorMessage } from "@/lib/api-client";
 import {
+  composeDevelopmentHeadlineIntelligence,
   limitSentences,
   limitToOneSentence,
-} from "@/lib/development-evidence/display-copy";
+} from "@/lib/development-evidence";
 import type {
+  DevelopmentHeadlineIntelligence,
   DevelopmentIntelligenceEvidenceView,
   EvidenceWhyThisPayload,
 } from "@/lib/development-evidence";
+import type { DevelopmentProfile } from "@/lib/development-updates/types";
 
 export function DevelopmentIntelligenceEvidencePanel({
   clientId,
+  profile = null,
   onOpenEvidence,
   voice = "person",
 }: {
   clientId: string;
+  /** Living development profile — authoritative after Apply when evidence library is empty. */
+  profile?: DevelopmentProfile | null;
   onOpenEvidence?: () => void;
   /** Self voice softens copy for Manager My Development. */
   voice?: "person" | "self";
 }) {
-  const [view, setView] = useState<DevelopmentIntelligenceEvidenceView | null>(
-    null
-  );
+  const [evidenceView, setEvidenceView] =
+    useState<DevelopmentIntelligenceEvidenceView | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [whyThis, setWhyThis] = useState<EvidenceWhyThisPayload | null>(null);
@@ -39,7 +44,7 @@ export function DevelopmentIntelligenceEvidencePanel({
       const data = await apiJson<{ view: DevelopmentIntelligenceEvidenceView }>(
         `/api/development-evidence/${clientId}/intelligence`
       );
-      setView(data.view);
+      setEvidenceView(data.view);
     } catch (err) {
       setError(
         errorMessage(err, "Unable to load evidence-informed intelligence.")
@@ -52,6 +57,14 @@ export function DevelopmentIntelligenceEvidencePanel({
   useEffect(() => {
     void load();
   }, [load]);
+
+  const view: DevelopmentHeadlineIntelligence | null = useMemo(() => {
+    if (!evidenceView) return null;
+    return composeDevelopmentHeadlineIntelligence({
+      evidenceView,
+      profile,
+    });
+  }, [evidenceView, profile]);
 
   async function openWhyThis(insight: string, evidenceIds: string[]) {
     try {
@@ -83,6 +96,12 @@ export function DevelopmentIntelligenceEvidencePanel({
   if (!view) return null;
 
   const isSelf = voice === "self";
+  const fromProfile = view.headlineSource === "development_profile";
+  const sourceNote = fromProfile
+    ? isSelf
+      ? "Based on your reviewed development profile."
+      : "Based on the reviewed development profile."
+    : null;
 
   return (
     <div className="development-intelligence-evidence">
@@ -91,6 +110,7 @@ export function DevelopmentIntelligenceEvidencePanel({
           ? "What do we currently understand about your development?"
           : "What do we now understand about this person?"}
       </p>
+      {sourceNote ? <p className="muted">{sourceNote}</p> : null}
 
       <section className="development-section development-section--story">
         <h2>Current Position</h2>
@@ -98,18 +118,20 @@ export function DevelopmentIntelligenceEvidencePanel({
           {isSelf ? "Where are you now?" : "Where is this person now?"}
         </p>
         <p>{limitSentences(view.currentPosition, 3)}</p>
-        <button
-          type="button"
-          className="identity-text-action"
-          onClick={() =>
-            void openWhyThis(
-              "Current position",
-              view.recentEvidence.map(item => item.id)
-            )
-          }
-        >
-          Why this?
-        </button>
+        {view.headlineSource === "evidence_library" ? (
+          <button
+            type="button"
+            className="identity-text-action"
+            onClick={() =>
+              void openWhyThis(
+                "Current position",
+                view.recentEvidence.map(item => item.id)
+              )
+            }
+          >
+            Why this?
+          </button>
+        ) : null}
       </section>
 
       <section className="development-section development-section--story">
@@ -147,11 +169,7 @@ export function DevelopmentIntelligenceEvidencePanel({
             ? "What behaviours appear to be emerging or strengthening?"
             : "What management behaviours are emerging or strengthening?"}
         </p>
-        {view.capabilities.length === 0 ? (
-          <p className="muted">
-            Limited evidence is available for capability insights.
-          </p>
-        ) : (
+        {view.capabilities.length > 0 ? (
           <ul className="capability-insight-list">
             {view.capabilities.map(capability => (
               <li key={capability.capabilityKey} className="capability-insight-card">
@@ -189,6 +207,22 @@ export function DevelopmentIntelligenceEvidencePanel({
               </li>
             ))}
           </ul>
+        ) : view.profileBehaviouralPatterns.length > 0 ? (
+          <>
+            <p className="muted">
+              From the reviewed development profile — not uploaded evidence-library
+              signals.
+            </p>
+            <ul className="development-evidence-list">
+              {view.profileBehaviouralPatterns.map(item => (
+                <li key={item}>{limitToOneSentence(item)}</li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <p className="muted">
+            Limited evidence is available for capability insights.
+          </p>
         )}
       </section>
 

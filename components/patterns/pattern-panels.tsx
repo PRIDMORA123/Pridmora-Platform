@@ -158,7 +158,7 @@ export function PatternsOverTimeSection({
             disabled={refreshing}
             onClick={onRefresh}
           >
-            {refreshing ? "Refreshing…" : "Refresh development intelligence"}
+            {refreshing ? "Refreshing…" : "Refresh recognised patterns"}
           </button>
         ) : null}
       </div>
