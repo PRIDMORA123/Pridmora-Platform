@@ -11,6 +11,10 @@ import {
   parseSummaryInsightsFromModel,
   summaryContentToStructuredSections,
 } from "@/lib/summary-insights/parse-summary-json";
+import {
+  applyExplicitCommitmentSafeguard,
+  applyExplicitCommitmentSafeguardToAgreedActionsText,
+} from "@/lib/summary-insights/recover-explicit-commitments";
 
 type DraftSummaryRequest = {
   notes?: string;
@@ -80,8 +84,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const structuredContent = parseSummaryInsightsFromModel(rawDraft);
+    let structuredContent = parseSummaryInsightsFromModel(rawDraft);
     if (structuredContent) {
+      structuredContent = applyExplicitCommitmentSafeguard(
+        structuredContent,
+        notes
+      );
       structuredContent.depthMode = depthMode;
       if (depthMode === "standard") {
         structuredContent.comprehensive = null;
@@ -90,7 +98,16 @@ export async function POST(request: Request) {
 
     const sections = structuredContent
       ? summaryContentToStructuredSections(structuredContent)
-      : parseDraftSummary(rawDraft);
+      : (() => {
+          const legacy = parseDraftSummary(rawDraft);
+          return {
+            ...legacy,
+            agreedActions: applyExplicitCommitmentSafeguardToAgreedActionsText(
+              legacy.agreedActions,
+              notes
+            ),
+          };
+        })();
 
     return NextResponse.json({
       summary: sections.aiDraftSummary || rawDraft,

@@ -31,7 +31,10 @@ import {
   type CreateSummaryInsightsPhase,
 } from "@/lib/session/create-summary-insights-flow";
 import { parseDraftSummary } from "@/lib/sessions";
-import { buildDebriefEvidenceForSummary } from "@/lib/summary-insights/debrief-evidence-for-summary";
+import {
+  buildDebriefEvidenceForSummary,
+  commitmentTextForSummaryAi,
+} from "@/lib/summary-insights/debrief-evidence-for-summary";
 import { serialiseSummaryContent } from "@/lib/summary-insights/serialise-summary-content";
 import type { SummaryInsightsContent } from "@/lib/summary-insights/types";
 import {
@@ -548,7 +551,7 @@ export function SessionWorkspace({
         agreedActions:
           serialised?.agreedActions ||
           sections.agreedActions ||
-          sourceSession.commitments,
+          commitmentTextForSummaryAi(sourceSession.commitments),
         strengthsObserved:
           serialised?.strengthsObserved || sections.strengthsObserved,
         coachingContext:
