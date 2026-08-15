@@ -71,6 +71,35 @@ export function PreparationBrief({
             </PreparationBriefSection>
           ) : null}
 
+          {brief.developmentSinceLast ? (
+            <PreparationBriefSection title="Development since the last conversation">
+              <p>{brief.developmentSinceLast}</p>
+            </PreparationBriefSection>
+          ) : null}
+
+          {brief.whatToPayAttentionTo ? (
+            <PreparationBriefSection title="What to pay attention to">
+              <p>{brief.whatToPayAttentionTo}</p>
+            </PreparationBriefSection>
+          ) : null}
+
+          {brief.evidenceWorthExploring &&
+          brief.evidenceWorthExploring.length > 0 ? (
+            <PreparationBriefSection title="Evidence worth exploring">
+              <ul className="preparation-brief__list">
+                {brief.evidenceWorthExploring.map(item => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </PreparationBriefSection>
+          ) : null}
+
+          {brief.whatProgressCouldLookLike ? (
+            <PreparationBriefSection title="What progress could look like">
+              <p>{brief.whatProgressCouldLookLike}</p>
+            </PreparationBriefSection>
+          ) : null}
+
           {brief.areasToExplore.length > 0 ? (
             <PreparationBriefSection title="Areas to explore">
               <ul className="preparation-brief__list">
@@ -99,7 +128,9 @@ export function PreparationBrief({
             </p>
           </PreparationBriefSection>
 
-          {isComprehensive && brief.relevantPatterns.length > 0 ? (
+          {isComprehensive &&
+          brief.relevantPatterns.length > 0 &&
+          !brief.whatToPayAttentionTo ? (
             <PreparationBriefSection title="Relevant pattern">
               <ul className="preparation-brief__patterns">
                 {brief.relevantPatterns.map(pattern => (

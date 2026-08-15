@@ -122,24 +122,26 @@ describe("stale first-session boilerplate vs continuing preparation", () => {
 
   it("stale boilerplate does not override bounded continuing preparation", () => {
     const adapterFocus =
-      "Revisit the open commitment: State a clear recommendation in the next project discussion.";
+      "Strengthen Alex’s confidence in using their project judgement in meetings.";
     const brief = normalisePreparationBrief({
       primaryFocus: adapterFocus,
-      areasToExplore: ["Progress on the open commitment", "Earlier escalation"],
-      questions: [
-        "What progress has been possible on the open commitment since it was agreed?",
+      areasToExplore: [
+        "What has moved since the last reviewed conversation",
+        "Earlier escalation with senior colleagues",
       ],
+      questions: [
+        "Where does the current development edge feel most alive in day-to-day work?",
+      ],
+      previousCommitment:
+        "State a clear recommendation in the next project discussion.",
       mode: "assisted",
       isFirstSession: false,
       clientFirstName: "Alex",
     });
-    expect(brief.primaryFocus).toMatch(/open commitment|recommendation/i);
+    expect(brief.primaryFocus).toMatch(/judgement|confidence/i);
+    expect(brief.primaryFocus).not.toMatch(/^Revisit the open commitment/i);
     expect(brief.primaryFocus).not.toMatch(/define a clear coaching purpose/i);
-    expect(
-      looksLikeFirstSessionBoilerplate(
-        "Support Alex to define a clear coaching purpose, identify current priorities, and agree how progress will be recognised."
-      )
-    ).toBe(true);
+    expect(brief.previousCommitment).toMatch(/recommendation/i);
   });
 
   it("genuine Session 1 contracting still works", () => {

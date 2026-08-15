@@ -16,6 +16,7 @@ import { StageOrientation } from "@/components/coaching-journey/stage-orientatio
 import { SessionSaveStatus } from "@/components/session/session-save-status";
 import { STAGE_ORIENTATION_COPY } from "@/lib/coaching-journey";
 import { getSessionDisplayTitle } from "@/lib/session/session-display";
+import { looksLikeCommitmentRevisitTitle } from "@/lib/prepare/derive-longitudinal-brief-sections";
 import type {
   DevelopmentProfile,
   DevelopmentUpdate,
@@ -785,10 +786,26 @@ export function PrepareSessionView({
   ]);
 
   const orientation = STAGE_ORIENTATION_COPY.prepare;
+  const aiDisplayFocus =
+    preparationBrief?.themes[0]?.title?.trim() ||
+    generatedBrief.possibleFocus?.trim() ||
+    "";
+  const adapterDisplayFocus = looksLikeCommitmentRevisitTitle(
+    preparationAdapter.primaryFocusSuggestion
+  )
+    ? ""
+    : preparationAdapter.primaryFocusSuggestion;
+  const prepareDisplayFocus =
+    draft.prepPurpose.trim() ||
+    draft.focus.trim() ||
+    aiDisplayFocus ||
+    intelligence.suggestedFocus?.trim() ||
+    adapterDisplayFocus ||
+    "";
   const prepareSessionTitle = getSessionDisplayTitle({
     title: draft.title,
-    focus: draft.focus,
-    purpose: draft.prepPurpose || intelligence.suggestedFocus,
+    focus: prepareDisplayFocus,
+    purpose: prepareDisplayFocus,
     sessionNumber: draft.sessionNumber,
   });
 
@@ -897,6 +914,27 @@ export function PrepareSessionView({
           adapterPrimaryFocus={preparationAdapter.primaryFocusSuggestion}
           adapterAreas={preparationAdapter.areasToExplore}
           adapterQuestions={preparationAdapter.questions}
+          aiPrimaryFocus={
+            preparationBrief?.themes[0]?.title ||
+            generatedBrief.possibleFocus ||
+            null
+          }
+          exploration={
+            preparationBrief?.exploration ||
+            generatedBrief.previousConversation ||
+            null
+          }
+          reflectionPrompt={
+            preparationBrief?.reflectionPrompt ||
+            generatedBrief.desiredOutcomeSuggestion ||
+            null
+          }
+          movementSummary={
+            preparationAdapter.movementSummary ||
+            intelligence.approachSummary ||
+            null
+          }
+          aiThemes={preparationBrief?.themes ?? null}
           hasApprovedEvidence={
             usedSources.length > 0 ||
             Boolean(

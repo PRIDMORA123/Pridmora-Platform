@@ -318,8 +318,9 @@ export function resolvePreparationIntelligence(input: {
   });
 
   const suggestedFocus =
-    (!adapter.isFirstSession && adapter.primaryFocusSuggestion) ||
-    aiGuidance.suggestedFocus;
+    aiGuidance.suggestedFocus ||
+    (!adapter.isFirstSession ? adapter.primaryFocusSuggestion : null) ||
+    null;
 
   const suggestedQuestions =
     !adapter.isFirstSession && (!input.brief || input.brief.questions.length === 0)

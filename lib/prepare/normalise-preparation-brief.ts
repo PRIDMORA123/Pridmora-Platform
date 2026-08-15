@@ -5,6 +5,14 @@
 
 export type NormalisedPreparationBrief = {
   primaryFocus: string;
+  /** Longitudinal: what moved since the last reviewed conversation. */
+  developmentSinceLast?: string | null;
+  /** Longitudinal: developmental tension / pattern to hold lightly. */
+  whatToPayAttentionTo?: string | null;
+  /** Longitudinal: evidence that would confirm, challenge or deepen the picture. */
+  evidenceWorthExploring?: string[];
+  /** Longitudinal: behavioural indicators of useful progress (not a rating). */
+  whatProgressCouldLookLike?: string | null;
   areasToExplore: string[];
   questions: string[];
   previousCommitment?: string | null;
@@ -41,6 +49,10 @@ export type NormalisePreparationBriefInput = {
   mode?: "manual" | "assisted" | "comprehensive";
   isFirstSession?: boolean;
   hasApprovedEvidence?: boolean;
+  developmentSinceLast?: string | null;
+  whatToPayAttentionTo?: string | null;
+  evidenceWorthExploring?: string[] | string | null;
+  whatProgressCouldLookLike?: string | null;
 };
 
 const PRIMARY_FOCUS_MAX_WORDS = 70;
@@ -463,6 +475,10 @@ export function normalisePreparationBrief(
   if (mode === "manual") {
     return {
       primaryFocus: "",
+      developmentSinceLast: null,
+      whatToPayAttentionTo: null,
+      evidenceWorthExploring: [],
+      whatProgressCouldLookLike: null,
       areasToExplore: [],
       questions: [],
       previousCommitment: previousCommitment,
@@ -472,14 +488,81 @@ export function normalisePreparationBrief(
     };
   }
 
+  const developmentSinceLast = input.developmentSinceLast?.trim()
+    ? cleanSentence(input.developmentSinceLast, {
+        maxWords: DEVELOPMENT_MAX_WORDS,
+        stripPurposePreamble: true,
+      })
+    : null;
+  const whatToPayAttentionTo = input.whatToPayAttentionTo?.trim()
+    ? cleanSentence(input.whatToPayAttentionTo, {
+        maxWords: DEVELOPMENT_MAX_WORDS,
+        stripPurposePreamble: true,
+      })
+    : null;
+  const whatProgressCouldLookLike = input.whatProgressCouldLookLike?.trim()
+    ? cleanSentence(input.whatProgressCouldLookLike, {
+        maxWords: DEVELOPMENT_MAX_WORDS,
+        stripPurposePreamble: true,
+      })
+    : null;
+  const evidenceWorthExploring = filterAgainst(
+    dedupeExact(
+      splitItems(input.evidenceWorthExploring).map(item =>
+        replaceClientPlaceholder(
+          cleanSentence(item, { stripPurposePreamble: true }),
+          input.clientFirstName
+        )
+      )
+    ).filter(Boolean),
+    [
+      primaryFocus,
+      purpose,
+      developmentSinceLast ?? "",
+      whatToPayAttentionTo ?? "",
+      whatProgressCouldLookLike ?? "",
+      ...areasToExplore,
+    ],
+    { max: 3 }
+  );
+
+  // Prefer longitudinal "what to pay attention to" over duplicating the same
+  // content in relevantPatterns when both would say the same thing.
+  const patternsForDisplay =
+    whatToPayAttentionTo &&
+    relevantPatterns.some(pattern =>
+      isStrongDuplicate(
+        pattern.description || pattern.title,
+        whatToPayAttentionTo
+      )
+    )
+      ? []
+      : relevantPatterns;
+
   return {
     primaryFocus,
+    developmentSinceLast:
+      developmentSinceLast &&
+      !isStrongDuplicate(developmentSinceLast, primaryFocus)
+        ? developmentSinceLast
+        : null,
+    whatToPayAttentionTo:
+      whatToPayAttentionTo &&
+      !isStrongDuplicate(whatToPayAttentionTo, primaryFocus)
+        ? whatToPayAttentionTo
+        : null,
+    evidenceWorthExploring,
+    whatProgressCouldLookLike:
+      whatProgressCouldLookLike &&
+      !isStrongDuplicate(whatProgressCouldLookLike, primaryFocus)
+        ? whatProgressCouldLookLike
+        : null,
     areasToExplore,
     questions,
     previousCommitment: previousCommitment || null,
-    relevantPatterns: mode === "comprehensive" ? relevantPatterns : [],
+    relevantPatterns: mode === "comprehensive" ? patternsForDisplay : [],
     developmentDirection:
       mode === "comprehensive" ? developmentDirection : null,
-    historicalContext: mode === "comprehensive" ? historicalContext : [],
+    historicalContext,
   };
 }

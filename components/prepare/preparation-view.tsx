@@ -23,6 +23,10 @@ import {
   normalisePreparationBrief,
   type NormalisedPreparationBrief,
 } from "@/lib/prepare/normalise-preparation-brief";
+import {
+  deriveLongitudinalPreparationSections,
+  looksLikeCommitmentRevisitTitle,
+} from "@/lib/prepare/derive-longitudinal-brief-sections";
 import { selectPrimaryPreviousCommitment } from "@/lib/preparation/commitment-selection";
 import {
   PreparationApproachControl,
@@ -72,6 +76,11 @@ export type PreparationViewProps = {
   adapterPrimaryFocus?: string | null;
   adapterAreas?: string[];
   adapterQuestions?: string[];
+  aiPrimaryFocus?: string | null;
+  exploration?: string | null;
+  reflectionPrompt?: string | null;
+  movementSummary?: string | null;
+  aiThemes?: Array<{ title?: string | null; basis?: string | null }> | null;
   disabled?: boolean;
   showAiPreparation?: boolean;
   insertedNotice?: string;
@@ -134,10 +143,16 @@ function buildNormalisedBrief(input: {
   mode: "manual" | "assisted" | "comprehensive";
   isFirstSession: boolean;
   hasApprovedEvidence: boolean;
-  /** Adapter seeds used when coach-authored fields are empty. */
+  /** Adapter seeds used when coach-authored fields and AI brief are empty. */
   adapterPrimaryFocus?: string | null;
   adapterAreas?: string[];
   adapterQuestions?: string[];
+  /** Richer AI brief focus when coach fields are empty. */
+  aiPrimaryFocus?: string | null;
+  exploration?: string | null;
+  reflectionPrompt?: string | null;
+  movementSummary?: string | null;
+  aiThemes?: Array<{ title?: string | null; basis?: string | null }> | null;
 }): NormalisedPreparationBrief {
   const coachPurpose = input.initialPreparation.prepPurpose.trim();
   const coachFocus = input.initialPreparation.focus.trim();
@@ -147,17 +162,24 @@ function buildNormalisedBrief(input: {
     storedFocus && (input.isFirstSession || !focusIsBoilerplate)
   );
 
-  // Continuing relationships: do not let leftover first-session boilerplate
-  // override the bounded Preparation adapter.
+  const aiFocus = (input.aiPrimaryFocus || "").trim();
+  const adapterFocusRaw = (input.adapterPrimaryFocus || "").trim();
+  const adapterFocus = looksLikeCommitmentRevisitTitle(adapterFocusRaw)
+    ? ""
+    : adapterFocusRaw;
+
+  // Continuing: coach > AI brief > developmental adapter.
+  // Never let first-session boilerplate or commitment-revisit templates win.
   const purposeSource = coachAuthoredFocus
     ? storedFocus
     : input.isFirstSession
       ? storedFocus ||
-        input.adapterPrimaryFocus ||
+        adapterFocus ||
         input.intelligence.suggestedFocus ||
         input.briefSummary
-      : input.adapterPrimaryFocus ||
+      : aiFocus ||
         input.intelligence.suggestedFocus ||
+        adapterFocus ||
         (focusIsBoilerplate ? "" : storedFocus) ||
         input.briefSummary;
 
@@ -171,11 +193,11 @@ function buildNormalisedBrief(input: {
   const topicsSource =
     storedTopics && (input.isFirstSession || !topicsAreBoilerplate)
       ? storedTopics
-      : (input.adapterAreas && input.adapterAreas.length > 0
+      : input.focusTags.join("\n") ||
+        input.suggestedTopics.join("\n") ||
+        (input.adapterAreas && input.adapterAreas.length > 0
           ? input.adapterAreas.join("\n")
-          : "") ||
-        input.focusTags.join("\n") ||
-        input.suggestedTopics.join("\n");
+          : "");
 
   const storedQuestions = input.initialPreparation.prepQuestions.trim();
   const questionLines = storedQuestions
@@ -187,11 +209,23 @@ function buildNormalisedBrief(input: {
   const questionsSource =
     storedQuestions && (input.isFirstSession || !questionsAreBoilerplate)
       ? storedQuestions
-      : (input.adapterQuestions && input.adapterQuestions.length > 0
+      : input.suggestedQuestions.join("\n\n") ||
+        input.intelligence.suggestedQuestions.join("\n\n") ||
+        (input.adapterQuestions && input.adapterQuestions.length > 0
           ? input.adapterQuestions.join("\n\n")
-          : "") ||
-        input.suggestedQuestions.join("\n\n") ||
-        input.intelligence.suggestedQuestions.join("\n\n");
+          : "");
+
+  const longitudinal = deriveLongitudinalPreparationSections({
+    isFirstSession: input.isFirstSession,
+    primaryFocus: purposeSource,
+    exploration: input.exploration || input.supportingInsight,
+    reflectionPrompt: input.reflectionPrompt,
+    movementSummary: input.movementSummary || input.intelligence.approachSummary,
+    previousConversationSummary:
+      input.intelligence.previousConversation?.summary || null,
+    themes: input.aiThemes,
+    patterns: input.relevantPatterns,
+  });
 
   return normalisePreparationBrief({
     primaryFocus: purposeSource,
@@ -212,6 +246,10 @@ function buildNormalisedBrief(input: {
     mode: input.mode,
     isFirstSession: input.isFirstSession,
     hasApprovedEvidence: input.hasApprovedEvidence,
+    developmentSinceLast: longitudinal.developmentSinceLast,
+    whatToPayAttentionTo: longitudinal.whatToPayAttentionTo,
+    evidenceWorthExploring: longitudinal.evidenceWorthExploring,
+    whatProgressCouldLookLike: longitudinal.whatProgressCouldLookLike,
   });
 }
 
@@ -243,6 +281,11 @@ export function PreparationView({
   adapterPrimaryFocus = null,
   adapterAreas = [],
   adapterQuestions = [],
+  aiPrimaryFocus = null,
+  exploration = null,
+  reflectionPrompt = null,
+  movementSummary = null,
+  aiThemes = null,
   disabled = false,
   showAiPreparation = true,
   insertedNotice,
@@ -310,6 +353,11 @@ export function PreparationView({
         adapterPrimaryFocus,
         adapterAreas,
         adapterQuestions,
+        aiPrimaryFocus,
+        exploration,
+        reflectionPrompt,
+        movementSummary,
+        aiThemes,
       }),
     [
       initialPreparation,
@@ -331,6 +379,11 @@ export function PreparationView({
       adapterPrimaryFocus,
       adapterAreas,
       adapterQuestions,
+      aiPrimaryFocus,
+      exploration,
+      reflectionPrompt,
+      movementSummary,
+      aiThemes,
     ]
   );
 

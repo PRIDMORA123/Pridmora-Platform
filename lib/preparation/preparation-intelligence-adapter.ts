@@ -241,8 +241,14 @@ function conciseFocusFromSignals(input: {
   priority: string | null;
   movement: string | null;
 }): string {
-  if (input.commitment) {
-    return `Revisit the open commitment: ${input.commitment.replace(/\.$/, "")}.`;
+  // Continuing relationships: developmental edge first. Open commitment is
+  // supporting context (shown separately), not the automatic primary frame.
+  if (input.nextFocus) {
+    const focus = input.nextFocus.trim();
+    const sentence = focus.match(/^(.+?[.!?])(?:\s|$)/);
+    const first = (sentence?.[1] ?? focus).trim();
+    if (first.length <= 140) return first;
+    return `${first.slice(0, 137).trim()}…`;
   }
   if (input.priority) {
     const text = input.priority.trim();
@@ -251,17 +257,15 @@ function conciseFocusFromSignals(input: {
     }
     return text.length > 140 ? `${text.slice(0, 137).trim()}…` : text;
   }
-  if (input.nextFocus) {
-    const focus = input.nextFocus.trim();
-    // Prefer a shorter framing than copying a long Next Focus sentence wholesale.
-    const sentence = focus.match(/^(.+?[.!?])(?:\s|$)/);
-    const first = (sentence?.[1] ?? focus).trim();
-    if (first.length <= 140) return first;
-    return `${first.slice(0, 137).trim()}…`;
-  }
   if (input.movement) {
     const sentence = input.movement.match(/^(.+?[.!?])(?:\s|$)/);
     return (sentence?.[1] ?? input.movement).trim();
+  }
+  if (input.commitment) {
+    // Last resort only — use the practice itself, never "Revisit the open commitment:".
+    const text = input.commitment.replace(/\.$/, "").trim();
+    if (text.length <= 140) return text;
+    return `${text.slice(0, 137).trim()}…`;
   }
   return "Attend to the most useful developmental edge supported by reviewed evidence before this conversation.";
 }
@@ -272,9 +276,9 @@ function continuingQuestions(input: {
   nextFocus: string | null;
 }): string[] {
   const questions: string[] = [];
-  if (input.commitment) {
+  if (input.nextFocus || input.priority) {
     questions.push(
-      "What progress has been possible on the open commitment since it was agreed?"
+      "Where does the current development edge feel most alive in day-to-day work?"
     );
   }
   if (input.priority) {
@@ -282,9 +286,9 @@ function continuingQuestions(input: {
       "What would be most useful to clarify about the current development priority?"
     );
   }
-  if (input.nextFocus) {
+  if (input.commitment) {
     questions.push(
-      "Where does the next development focus feel most alive in day-to-day work?"
+      "What progress has been possible on the open commitment since it was agreed?"
     );
   }
   questions.push(
@@ -455,13 +459,16 @@ export function buildPreparationAdapterContext(input: {
       movement: movementSummary,
     });
     areasToExplore = [
-      previousCommitment
-        ? `Progress on: ${previousCommitment}`
-        : "",
-      movementSummary
-        ? "Recent developmental movement"
-        : "",
       priority || "",
+      nextFocus && priority && nextFocus !== priority
+        ? (() => {
+            const focus = nextFocus.trim();
+            const sentence = focus.match(/^(.+?[.!?])(?:\s|$)/);
+            const first = (sentence?.[1] ?? focus).trim();
+            return first.length <= 120 ? first : `${first.slice(0, 117).trim()}…`;
+          })()
+        : "",
+      movementSummary ? "What has moved since the last reviewed conversation" : "",
       reviewedPatterns[0]?.title
         ? `Pattern in view: ${reviewedPatterns[0].title}`
         : "",
