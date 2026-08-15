@@ -570,6 +570,64 @@ export function HomeApp() {
     await refreshSessionsForClient(selected.id);
   }
 
+  /**
+   * Explicit Record conversation — starts planned/prepared sessions,
+   * then opens live notes. Does not auto-start merely by opening prepare.
+   */
+  async function recordConversation(sessionId: string) {
+    if (!selected || !isUuid(selected.id) || !authReady || !profile) return;
+    const session = selected.sessions.find(item => item.id === sessionId);
+    if (!session) return;
+
+    if (session.status === "planned" || session.status === "prepared") {
+      const now = new Date().toISOString();
+      try {
+        const started = await saveSession({
+          ...session,
+          status: "in_progress",
+          sessionStartedAt: session.sessionStartedAt || now,
+          timerStartedAt: session.timerStartedAt || now,
+        });
+        setClients(current =>
+          current.map(client => {
+            if (client.id !== selected.id) return client;
+            return {
+              ...client,
+              sessions: client.sessions.map(item =>
+                item.id === started.id ? started : item
+              ),
+            };
+          })
+        );
+        setFocusSessionId(started.id);
+        setFocusSessionStage("coach");
+        setSessionFlash("");
+        navigate("session");
+        return;
+      } catch (error) {
+        if (error instanceof AuthRequiredError) {
+          handleAuthFailure(error);
+          return;
+        }
+        setStorageError(
+          error instanceof Error
+            ? error.message
+            : "Unable to start the conversation. Please try again."
+        );
+        return;
+      }
+    }
+
+    setFocusSessionId(sessionId);
+    setFocusSessionStage(
+      session.status === "in_progress" || session.status === "paused"
+        ? "coach"
+        : null
+    );
+    setSessionFlash("");
+    navigate("session");
+  }
+
   async function openSessionFromJourney(sessionId: string) {
     await openSessionWorkspace(sessionId);
   }
@@ -1348,6 +1406,9 @@ export function HomeApp() {
               onOpenSession={sessionId => {
                 setFocusSessionStage(null);
                 void openSessionWorkspace(sessionId);
+              }}
+              onRecordSession={sessionId => {
+                void recordConversation(sessionId);
               }}
               onOpenSessionModule={(sessionId, moduleId) => {
                 const route = buildSessionModuleRoute({

@@ -161,7 +161,13 @@ export function LiveSessionWorkspace({
   }, []);
 
   async function ensureStarted(): Promise<Session | null> {
-    if (isLive || isEnded) return sessionRef.current;
+    if (isEnded) return sessionRef.current;
+    // Already live with a start timestamp — nothing to do.
+    if (isLive && sessionRef.current.sessionStartedAt) {
+      return sessionRef.current;
+    }
+    // Planned/prepared must not auto-start; only explicit Start or
+    // in_progress timestamp recovery reaches here from callers.
     if (startLockRef.current) return null;
     startLockRef.current = true;
     setStarting(true);
@@ -195,19 +201,21 @@ export function LiveSessionWorkspace({
     }
   }
 
+  // Lifecycle integrity only: fill missing timestamps for sessions already
+  // marked in_progress. Do NOT start planned/prepared on mount.
   useEffect(() => {
-    if (
-      session.status === "planned" ||
-      session.status === "prepared" ||
-      (session.status === "in_progress" && !session.sessionStartedAt)
-    ) {
+    if (session.status === "in_progress" && !session.sessionStartedAt) {
       void ensureStarted();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session.id, session.status, session.sessionStartedAt]);
 
+  async function handleExplicitStart() {
+    await ensureStarted();
+  }
+
   async function handleEndSession() {
-    if (endLockRef.current || ending || isEnded) return;
+    if (endLockRef.current || ending || isEnded || !isLive) return;
 
     const confirmed = window.confirm(
       "Finish this conversation and capture what changed or mattered?"
@@ -298,6 +306,53 @@ export function LiveSessionWorkspace({
             onClick={onEnded}
           >
             Capture the outcome
+          </button>
+        </StagePrimaryAction>
+      </div>
+    );
+  }
+
+  // Planned/prepared: require an explicit Start before lifecycle advances.
+  if (!isLive) {
+    return (
+      <div
+        className="live-session-workspace live-session-workspace--minimal"
+        data-testid="live-session-awaiting-start"
+      >
+        <header className="live-session-workspace__person">
+          <p className="eyebrow">Ready to begin</p>
+          <h2>{clientName}</h2>
+          {commitment ? (
+            <p className="live-session-workspace__commitment-line">
+              Previous commitment to revisit · {commitment}
+            </p>
+          ) : focus ? (
+            <p className="muted">{focus}</p>
+          ) : null}
+          <p className="muted" style={{ marginTop: "0.75rem" }}>
+            Start the conversation when you are ready. Opening this view does
+            not begin the session on its own.
+          </p>
+        </header>
+
+        <div className="live-session-workspace__save" aria-live="polite">
+          {starting ? (
+            <p className="live-session-workspace__starting">Starting…</p>
+          ) : null}
+          <SessionSaveStatus feedback={actionFeedback.feedback} />
+        </div>
+
+        <StagePrimaryAction>
+          <button
+            type="button"
+            className="identity-button primary"
+            data-testid="live-session-explicit-start"
+            disabled={starting}
+            onClick={() => {
+              void handleExplicitStart();
+            }}
+          >
+            {starting ? "Starting…" : "Start conversation"}
           </button>
         </StagePrimaryAction>
       </div>

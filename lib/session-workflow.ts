@@ -1,4 +1,5 @@
 import { extractVisibleCoachNotes } from "@/lib/coach-notes";
+import { hasPreparationAiContent } from "@/lib/preparation-brief";
 import type { Client, CoachingAction, Session, SessionStatus, SummaryStatus } from "@/lib/types";
 
 export type SessionWorkspaceStage =
@@ -231,15 +232,20 @@ export function unresolvedActionsBeforeSession(
 }
 
 export function hasPreparationContent(session: Session): boolean {
-  return [
-    session.prepPurpose,
-    session.prepTopics,
-    session.prepQuestions,
-    session.prepCommitmentsReview,
-    session.prepRisks,
-    session.prepPrivateNotes,
-    session.preparation,
-  ].some(value => value.trim().length > 0);
+  if (
+    [
+      session.prepPurpose,
+      session.prepTopics,
+      session.prepQuestions,
+      session.prepCommitmentsReview,
+      session.prepRisks,
+      session.prepPrivateNotes,
+      session.preparation,
+    ].some(value => value.trim().length > 0)
+  ) {
+    return true;
+  }
+  return hasPreparationAiContent(session.prepAiBrief);
 }
 
 export function preparationCompletionLabel(session: Session): string {

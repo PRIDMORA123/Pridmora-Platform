@@ -49,6 +49,7 @@ export function CoachSpaceView({
   preferredSessionId = null,
   onBack,
   onOpenSession,
+  onRecordSession,
   onOpenSessionModule,
   onScheduleSession,
   onPrepare,
@@ -72,6 +73,8 @@ export function CoachSpaceView({
   preferredSessionId?: string | null;
   onBack: () => void;
   onOpenSession: (sessionId: string) => void;
+  /** Explicit Record — starts planned/prepared then opens live notes. */
+  onRecordSession?: (sessionId: string) => void;
   onOpenSessionModule?: (
     sessionId: string,
     moduleId: SessionModuleId
@@ -459,11 +462,15 @@ export function CoachSpaceView({
               onPrepare(sessionId);
             }}
             onRecordConversation={sessionId => {
-              if (sessionId) {
-                onOpenSession(sessionId);
+              if (!sessionId) {
+                onPrepare();
                 return;
               }
-              onPrepare();
+              if (onRecordSession) {
+                onRecordSession(sessionId);
+                return;
+              }
+              onOpenSession(sessionId);
             }}
             onViewReports={() => onTabChange?.("reports")}
             onCreateSession={handleCreateSession}

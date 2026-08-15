@@ -401,6 +401,26 @@ export function SessionWorkspace({
 
   async function handleStartOrContinue() {
     if (isLoading) return;
+    // Explicit Start from overview: advance lifecycle for planned/prepared.
+    if (
+      session.status === "planned" ||
+      session.status === "prepared"
+    ) {
+      const now = new Date().toISOString();
+      const started = await persist(
+        {
+          ...session,
+          status: "in_progress",
+          sessionStartedAt: session.sessionStartedAt || now,
+          timerStartedAt: session.timerStartedAt || now,
+        },
+        {
+          silent: true,
+          errorMessage: "Unable to start the conversation",
+        }
+      );
+      if (!started) return;
+    }
     setStage("coach");
   }
 
