@@ -23,6 +23,7 @@ import {
   normalisePreparationBrief,
   type NormalisedPreparationBrief,
 } from "@/lib/prepare/normalise-preparation-brief";
+import { selectPrimaryPreviousCommitment } from "@/lib/preparation/commitment-selection";
 import {
   PreparationApproachControl,
   type PreparationRefreshState,
@@ -197,8 +198,10 @@ function buildNormalisedBrief(input: {
     areasToExplore: topicsSource,
     questions: questionsSource,
     previousCommitment:
-      input.commitmentStatements[0] ||
-      input.intelligence.outstandingCommitments[0]?.statement ||
+      selectPrimaryPreviousCommitment(input.commitmentStatements) ||
+      selectPrimaryPreviousCommitment(
+        input.intelligence.outstandingCommitments.map(item => item.statement)
+      ) ||
       null,
     relevantPatterns: input.relevantPatterns,
     developmentDirection:

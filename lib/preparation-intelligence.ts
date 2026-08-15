@@ -7,11 +7,11 @@ import type { PreparationAiBrief } from "@/lib/preparation-brief";
 import { extractVisibleCoachNotes } from "@/lib/coach-notes";
 import {
   previousCompletedSession,
-  unresolvedActionsBeforeSession,
 } from "@/lib/session-workflow";
 import {
   buildPreparationAdapterContext,
   isHistoricalSessionPreparation,
+  selectOpenActionsForPrepare,
 } from "@/lib/preparation/preparation-intelligence-adapter";
 import type { CoachPreparationDraft } from "@/lib/preparation/derive-coach-preparation";
 
@@ -140,7 +140,11 @@ function getOutstandingCommitments(
   conversation: Pick<Session, "id" | "sessionNumber">
 ) {
   const historical = isHistoricalSessionPreparation(client.sessions, conversation);
-  return unresolvedActionsBeforeSession(client, conversation, {
+  return selectOpenActionsForPrepare({
+    actions: client.actions ?? [],
+    sessions: client.sessions,
+    currentSessionId: conversation.id,
+    beforeSessionNumber: conversation.sessionNumber,
     allowUndatedOpenActions: !historical,
   }).map(action => ({
     id: action.id,

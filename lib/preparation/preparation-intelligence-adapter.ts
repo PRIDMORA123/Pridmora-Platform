@@ -22,7 +22,20 @@ import type {
 } from "@/lib/development-updates/types";
 import type { CoachingPattern } from "@/lib/patterns/types";
 import { distinctSessionIds } from "@/lib/patterns/evidence";
-import type { Client, CoachingAction, Session } from "@/lib/types";
+import {
+  selectCommitmentsForPrepare,
+  selectPrimaryPreviousCommitment,
+} from "@/lib/preparation/commitment-selection";
+import type { Client, Session } from "@/lib/types";
+
+export {
+  selectCommitmentsForPrepare,
+  selectOpenActionsForPrepare,
+  selectPrimaryPreviousCommitment,
+  areNearDuplicateCommitments,
+  preferCommitmentWording,
+  hasNearDuplicateOpenAction,
+} from "@/lib/preparation/commitment-selection";
 
 const DEMONSTRATED: ReadonlySet<ProfileEntryStatus> = new Set([
   "supported",
@@ -204,49 +217,6 @@ export function isReviewedPatternForPrepare(pattern: CoachingPattern): boolean {
   return pattern.coachAccepted === true && pattern.coachReviewed === true;
 }
 
-/**
- * Open commitments originating before Session N.
- * Session-linked actions must map to sessionNumber < N.
- * Undated actions are only allowed when this is not a historical regenerate
- * (no later approved sessions), to avoid leaking later work backwards.
- */
-export function selectCommitmentsForPrepare(input: {
-  actions: CoachingAction[];
-  sessions: Session[];
-  currentSessionId: string;
-  beforeSessionNumber: number;
-  allowUndatedOpenActions?: boolean;
-}): string[] {
-  const sessionNumbers = buildSessionNumberMap(input.sessions);
-  const allowUndated = input.allowUndatedOpenActions !== false;
-  const result: string[] = [];
-  const seen = new Set<string>();
-
-  const openActions = input.actions.filter(
-    action => action.status !== "Complete" && action.title.trim()
-  );
-
-  for (const action of openActions) {
-    if (action.sessionId === input.currentSessionId) continue;
-    const sessionId = action.sessionId?.trim() || "";
-    if (sessionId) {
-      const number = sessionNumbers.get(sessionId);
-      if (typeof number !== "number" || number >= input.beforeSessionNumber) {
-        continue;
-      }
-    } else if (!allowUndated) {
-      continue;
-    }
-
-    const key = action.title.trim().toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    result.push(action.title.trim());
-  }
-
-  return result.slice(0, 5);
-}
-
 function formatSessionBlock(session: Session): string {
   return [
     `Conversation ${session.sessionNumber}`,
@@ -393,7 +363,7 @@ export function buildPreparationAdapterContext(input: {
     commitmentsFromActions.length > 0
       ? commitmentsFromActions
       : commitmentsFromSessions;
-  const previousCommitment = commitments[0] ?? null;
+  const previousCommitment = selectPrimaryPreviousCommitment(commitments);
 
   const reviewedPatterns = (input.patterns ?? input.profile?.coachingPatterns ?? [])
     .filter(isReviewedPatternForPrepare)

@@ -5,6 +5,7 @@ import type {
   CommitmentChanges,
   ProposedProfileChanges,
 } from "@/lib/development-updates/types";
+import { hasNearDuplicateOpenAction } from "@/lib/preparation/commitment-selection";
 
 function normaliseTitle(value: string): string {
   return value.trim().toLowerCase();
@@ -67,12 +68,14 @@ export async function syncCommitmentActionsAfterApply(
     mapActionRow(row as Record<string, unknown>, clientId)
   );
   const openActions = actions.filter(action => action.status !== "Complete");
-  const openTitles = new Set(openActions.map(action => normaliseTitle(action.title)));
+  const openTitles = openActions.map(action => action.title);
 
   let created = 0;
   for (const add of adds) {
     const value = add.value?.trim();
-    if (!value || openTitles.has(normaliseTitle(value))) continue;
+    if (!value) continue;
+    // Exact or semantic near-duplicate → reuse existing open action.
+    if (hasNearDuplicateOpenAction(openTitles, value)) continue;
 
     await upsertActionInDb(supabase, coachId, {
       id: crypto.randomUUID(),
@@ -82,7 +85,7 @@ export async function syncCommitmentActionsAfterApply(
       status: "Open",
       due: add.dueDate ?? undefined,
     });
-    openTitles.add(normaliseTitle(value));
+    openTitles.push(value);
     created += 1;
   }
 
@@ -92,7 +95,9 @@ export async function syncCommitmentActionsAfterApply(
     if (!value) continue;
 
     const match = openActions.find(
-      action => normaliseTitle(action.title) === normaliseTitle(value)
+      action =>
+        normaliseTitle(action.title) === normaliseTitle(value) ||
+        hasNearDuplicateOpenAction([action.title], value)
     );
     if (!match) continue;
 

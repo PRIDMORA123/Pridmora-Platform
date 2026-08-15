@@ -13,8 +13,11 @@ import {
   SESSION_STATUS_LABELS,
   SUMMARY_STATUS_LABELS,
   type SessionWorkspaceStage,
-  unresolvedActionsForPreparation,
 } from "@/lib/session-workflow";
+import {
+  selectOpenActionsForPrepare,
+  selectPrimaryPreviousCommitment,
+} from "@/lib/preparation/commitment-selection";
 import {
   deriveCurrentWorkflowStage,
   deriveSessionStageCompletion,
@@ -252,7 +255,13 @@ export function SessionWorkspace({
   }, [dirty, stage]);
 
   const previous = previousCompletedSession(client.sessions, session);
-  const outstanding = unresolvedActionsForPreparation(client, session.id);
+  const outstanding = selectOpenActionsForPrepare({
+    actions: client.actions ?? [],
+    sessions: client.sessions,
+    currentSessionId: session.id,
+    beforeSessionNumber: session.sessionNumber,
+    allowUndatedOpenActions: true,
+  });
   const sessionActions = client.actions.filter(action => action.sessionId === session.id);
   const primary = overviewPrimaryAction(session);
 
@@ -838,7 +847,7 @@ export function SessionWorkspace({
   );
 
   const previousCommitment =
-    outstanding[0]?.title ||
+    selectPrimaryPreviousCommitment(outstanding.map(action => action.title)) ||
     previous?.agreedActions?.trim() ||
     previous?.commitments?.trim() ||
     "";
