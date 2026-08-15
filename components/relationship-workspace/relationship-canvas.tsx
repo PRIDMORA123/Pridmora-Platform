@@ -46,6 +46,8 @@ export type RelationshipCanvasProps = {
   narrative?: string | null;
   outstandingCommitment?: string | null;
   developmentDirection?: string | null;
+  /** Present-state developmental picture for “Who is …?” — not a forward focus. */
+  presentDevelopmentalState?: string | null;
   developmentStrengths?: string[];
   developmentPriorities?: string[];
   developmentPattern?: string | null;
@@ -96,6 +98,7 @@ export function RelationshipCanvas({
   narrative = null,
   outstandingCommitment = null,
   developmentDirection = null,
+  presentDevelopmentalState = null,
   developmentStrengths = [],
   developmentPriorities = [],
   relationshipDetails,
@@ -202,15 +205,17 @@ export function RelationshipCanvas({
 
   const personSummary = buildPersonSummary({
     name: relationship.name,
-    // Prefer longitudinal identity summary over latest session narrative.
-    currentPosition:
-      relationship.identitySummary || developmentDirection || narrative,
+    // Present-state intelligence first — never use forward focus as “who”.
+    presentDevelopmentalState,
+    currentPosition: presentDevelopmentalState
+      ? null
+      : relationship.identitySummary || narrative,
     strengths: strengthModels.map(item => item.name),
     priorities:
       developmentPriorities.length > 0
         ? developmentPriorities
         : relationship.themes.slice(0, 3),
-    direction: developmentDirection,
+    direction: presentDevelopmentalState ? null : developmentDirection,
     completedConversationCount: completed.length,
   });
 

@@ -127,16 +127,56 @@ export function getFutureOrOpenSession(sessions: Session[]): Session | undefined
  * Prefer a future planned/prepared conversation over an earlier
  * awaiting_completion session so Prepare does not reopen Session N-1.
  * Live in-progress/paused sessions still win when present.
+ *
+ * For established relationships (completed sessions exist), prefer an open
+ * session after the latest completed session rather than a stale historical
+ * Session 1 prepared/planned row.
  */
 export function getSessionForPrepare(sessions: Session[]): Session | undefined {
-  return pickOpenSessionByPriority(sessions, {
+  const preparePriority: Record<SessionStatus, number> = {
     in_progress: 0,
     paused: 0,
     prepared: 1,
     planned: 2,
     awaiting_completion: 3,
     completed: 9,
-  });
+  };
+
+  const inFlight = sessions.filter(
+    session => session.status === "in_progress" || session.status === "paused"
+  );
+  if (inFlight.length > 0) {
+    return pickOpenSessionByPriority(inFlight, preparePriority);
+  }
+
+  const completedNumbers = sessions
+    .filter(session => session.status === "completed")
+    .map(session => session.sessionNumber)
+    .filter(number => number > 0);
+  const maxCompleted =
+    completedNumbers.length > 0 ? Math.max(...completedNumbers) : 0;
+
+  if (maxCompleted > 0) {
+    const nextOpen = sessions.filter(
+      session =>
+        isOpenSessionStatus(session.status) &&
+        session.sessionNumber > maxCompleted
+    );
+    if (nextOpen.length > 0) {
+      return pickOpenSessionByPriority(nextOpen, preparePriority);
+    }
+    // Established relationship with no next open session — do not reopen a
+    // stale historical prepared/planned row at or before the latest completed.
+    const open = sessions.filter(session => isOpenSessionStatus(session.status));
+    if (
+      open.length > 0 &&
+      open.every(session => session.sessionNumber <= maxCompleted)
+    ) {
+      return undefined;
+    }
+  }
+
+  return pickOpenSessionByPriority(sessions, preparePriority);
 }
 
 export function previousCompletedSession(

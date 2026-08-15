@@ -22,10 +22,15 @@ export function limitToOneSentence(text: string): string {
 /**
  * Person-centred overview: who this person is as a professional in development,
  * grounded in evidence — never inferred from existence alone.
+ *
+ * Prefer presentDevelopmentalState (present-state intelligence) over direction/
+ * focus objectives when both are supplied.
  */
 export function buildPersonSummary(input: {
   name: string;
   currentPosition?: string | null;
+  /** Trusted present-state developmental picture — not a forward objective. */
+  presentDevelopmentalState?: string | null;
   strengths?: string[];
   priorities?: string[];
   direction?: string | null;
@@ -41,7 +46,10 @@ export function buildPersonSummary(input: {
     .map(item => item.trim())
     .filter(Boolean)
     .slice(0, 2);
-  const hasPosition = Boolean(input.currentPosition?.trim());
+  const presentState = input.presentDevelopmentalState?.trim() || "";
+  const hasPosition = Boolean(
+    presentState || input.currentPosition?.trim()
+  );
   const hasDirection = Boolean(input.direction?.trim());
   const hasEvidenceSignals =
     count > 0 ||
@@ -63,7 +71,8 @@ export function buildPersonSummary(input: {
         : `Current evidence suggests how ${firstName} is developing.`;
 
   const position = limitSentences(
-    input.currentPosition?.trim() ||
+    presentState ||
+      input.currentPosition?.trim() ||
       input.direction?.trim() ||
       "",
     2
@@ -75,8 +84,10 @@ export function buildPersonSummary(input: {
     strengths.length > 0
       ? `Notable strengths include ${joinUk(strengths)}.`
       : "";
+  // When present-state already carries the developmental picture, skip
+  // priority lines that often duplicate forward focus/objectives.
   const priorityLine =
-    priorities.length > 0
+    !presentState && priorities.length > 0
       ? `Development attention is currently useful around ${joinUk(priorities)}.`
       : "";
 

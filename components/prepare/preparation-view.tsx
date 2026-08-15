@@ -94,6 +94,24 @@ export type PreparationViewProps = {
   onStartSession: () => void;
 };
 
+/** Leftover first-session intake copy — not treated as deliberate coach authorship. */
+export function looksLikeFirstSessionBoilerplate(value: string): boolean {
+  const text = value.trim();
+  if (!text) return false;
+  return (
+    /define a clear coaching purpose/i.test(text) ||
+    /agree how progress will be recognised/i.test(text) ||
+    /identify current (work-related )?priorities/i.test(text) ||
+    /preferred ways of working/i.test(text) ||
+    /immediate opportunities, challenges or decisions/i.test(text) ||
+    /current responsibilities and priorities/i.test(text) ||
+    /what would you most like this coaching space/i.test(text) ||
+    /if this coaching relationship were valuable/i.test(text) ||
+    /how would you like us to work together/i.test(text) ||
+    /clarify what would make this conversation/i.test(text)
+  );
+}
+
 function buildNormalisedBrief(input: {
   initialPreparation: PreparationViewProps["initialPreparation"];
   intelligence: PreparationIntelligenceViewModel;
@@ -122,39 +140,57 @@ function buildNormalisedBrief(input: {
 }): NormalisedPreparationBrief {
   const coachPurpose = input.initialPreparation.prepPurpose.trim();
   const coachFocus = input.initialPreparation.focus.trim();
-  const coachAuthoredFocus = Boolean(coachPurpose || coachFocus);
+  const storedFocus = coachPurpose || coachFocus;
+  const focusIsBoilerplate = looksLikeFirstSessionBoilerplate(storedFocus);
+  const coachAuthoredFocus = Boolean(
+    storedFocus && (input.isFirstSession || !focusIsBoilerplate)
+  );
 
-  // Continuing relationships: do not default to stale session intake text when
-  // the coach has not authored preparation and the adapter has a better focus.
+  // Continuing relationships: do not let leftover first-session boilerplate
+  // override the bounded Preparation adapter.
   const purposeSource = coachAuthoredFocus
-    ? coachPurpose || coachFocus
+    ? storedFocus
     : input.isFirstSession
-      ? coachPurpose ||
-        coachFocus ||
+      ? storedFocus ||
         input.adapterPrimaryFocus ||
         input.intelligence.suggestedFocus ||
         input.briefSummary
       : input.adapterPrimaryFocus ||
         input.intelligence.suggestedFocus ||
-        coachPurpose ||
-        coachFocus ||
+        (focusIsBoilerplate ? "" : storedFocus) ||
         input.briefSummary;
 
+  const storedTopics = input.initialPreparation.prepTopics.trim();
+  const topicLines = storedTopics
+    ? storedTopics.split(/\n|;/).map(item => item.trim()).filter(Boolean)
+    : [];
+  const topicsAreBoilerplate =
+    topicLines.length > 0 &&
+    topicLines.every(line => looksLikeFirstSessionBoilerplate(line));
   const topicsSource =
-    input.initialPreparation.prepTopics.trim() ||
-    (input.adapterAreas && input.adapterAreas.length > 0
-      ? input.adapterAreas.join("\n")
-      : "") ||
-    input.focusTags.join("\n") ||
-    input.suggestedTopics.join("\n");
+    storedTopics && (input.isFirstSession || !topicsAreBoilerplate)
+      ? storedTopics
+      : (input.adapterAreas && input.adapterAreas.length > 0
+          ? input.adapterAreas.join("\n")
+          : "") ||
+        input.focusTags.join("\n") ||
+        input.suggestedTopics.join("\n");
 
+  const storedQuestions = input.initialPreparation.prepQuestions.trim();
+  const questionLines = storedQuestions
+    ? storedQuestions.split(/\n\s*\n|\n/).map(item => item.trim()).filter(Boolean)
+    : [];
+  const questionsAreBoilerplate =
+    questionLines.length > 0 &&
+    questionLines.every(line => looksLikeFirstSessionBoilerplate(line));
   const questionsSource =
-    input.initialPreparation.prepQuestions.trim() ||
-    (input.adapterQuestions && input.adapterQuestions.length > 0
-      ? input.adapterQuestions.join("\n\n")
-      : "") ||
-    input.suggestedQuestions.join("\n\n") ||
-    input.intelligence.suggestedQuestions.join("\n\n");
+    storedQuestions && (input.isFirstSession || !questionsAreBoilerplate)
+      ? storedQuestions
+      : (input.adapterQuestions && input.adapterQuestions.length > 0
+          ? input.adapterQuestions.join("\n\n")
+          : "") ||
+        input.suggestedQuestions.join("\n\n") ||
+        input.intelligence.suggestedQuestions.join("\n\n");
 
   return normalisePreparationBrief({
     primaryFocus: purposeSource,

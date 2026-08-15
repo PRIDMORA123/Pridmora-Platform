@@ -38,10 +38,11 @@ import {
 } from "@/lib/coaching-journey";
 import type { CoachingMoment } from "@/lib/coaching-moments/coaching-moment";
 import { getFutureOrOpenSession } from "@/lib/session-workflow";
+import { buildProfileCurrentPosition } from "@/lib/development-evidence/compose-headline-intelligence";
+import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 import { RelationshipCanvas } from "@/components/relationship-workspace";
 import type { AddSessionFormValues } from "@/lib/relationship-workspace";
 import type { SessionModuleId } from "@/lib/relationship-workspace";
-import { getRelationshipDisplayName } from "@/lib/relationship-identity";
 
 export function CoachSpaceView({
   client,
@@ -265,6 +266,40 @@ export function CoachSpaceView({
     return getCurrentPositionSnapshot(source, { clientName: getRelationshipDisplayName(client) });
   }, [page, client]);
 
+  const presentDevelopmentalState = useMemo(() => {
+    if (!profile) return null;
+    const demonstrated = (profile.strengths ?? [])
+      .filter(
+        entry =>
+          entry.status === "supported" || entry.status === "well_established"
+      )
+      .map(entry => entry.value.trim())
+      .filter(Boolean);
+    const themes = (profile.emergingThemes ?? [])
+      .map(entry => entry.value.trim())
+      .filter(Boolean);
+    const behaviouralPatterns = (profile.patterns ?? [])
+      .map(entry => entry.value.trim())
+      .filter(Boolean);
+    const growthAreas = (profile.growthAreas ?? [])
+      .map(entry => entry.value.trim())
+      .filter(Boolean);
+    if (
+      demonstrated.length === 0 &&
+      themes.length === 0 &&
+      behaviouralPatterns.length === 0 &&
+      growthAreas.length === 0
+    ) {
+      return null;
+    }
+    return buildProfileCurrentPosition({
+      demonstratedStrengths: demonstrated,
+      themes,
+      behaviouralPatterns,
+      growthAreas,
+    });
+  }, [profile]);
+
   function handlePrimaryAction(action: RelationshipPrimaryAction) {
     switch (action.kind) {
       case "prepare_session":
@@ -376,6 +411,7 @@ export function CoachSpaceView({
               developmentSnapshotText ||
               page.lookingAhead.nextFocus
             }
+            presentDevelopmentalState={presentDevelopmentalState}
             developmentStrengths={client.strengths.map(item => item.name)}
             developmentPriorities={
               client.themes.length > 0
