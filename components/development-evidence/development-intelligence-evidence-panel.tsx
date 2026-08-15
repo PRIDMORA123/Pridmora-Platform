@@ -99,9 +99,24 @@ export function DevelopmentIntelligenceEvidencePanel({
   const fromProfile = view.headlineSource === "development_profile";
   const sourceNote = fromProfile
     ? isSelf
-      ? "Based on your reviewed development profile."
-      : "Based on the reviewed development profile."
+      ? "From your coaching conversations."
+      : "From coaching conversations."
     : null;
+  const hasCapabilityInsights = view.capabilities.length > 0;
+  const hasProfilePatterns =
+    !hasCapabilityInsights && view.profileBehaviouralPatterns.length > 0;
+  const patternsHeading = hasCapabilityInsights
+    ? "Capabilities & Behavioural Patterns"
+    : hasProfilePatterns
+      ? "Behavioural Patterns"
+      : "Capabilities & Behavioural Patterns";
+  const patternsPurpose = hasCapabilityInsights
+    ? isSelf
+      ? "What behaviours appear to be emerging or strengthening?"
+      : "What management behaviours are emerging or strengthening?"
+    : isSelf
+      ? "What behavioural patterns are emerging or strengthening?"
+      : "What behavioural patterns are emerging or strengthening?";
 
   return (
     <div className="development-intelligence-evidence">
@@ -163,13 +178,9 @@ export function DevelopmentIntelligenceEvidencePanel({
       </section>
 
       <section className="development-section development-section--story">
-        <h2>Capabilities &amp; Behavioural Patterns</h2>
-        <p className="development-section__purpose">
-          {isSelf
-            ? "What behaviours appear to be emerging or strengthening?"
-            : "What management behaviours are emerging or strengthening?"}
-        </p>
-        {view.capabilities.length > 0 ? (
+        <h2>{patternsHeading}</h2>
+        <p className="development-section__purpose">{patternsPurpose}</p>
+        {hasCapabilityInsights ? (
           <ul className="capability-insight-list">
             {view.capabilities.map(capability => (
               <li key={capability.capabilityKey} className="capability-insight-card">
@@ -207,21 +218,17 @@ export function DevelopmentIntelligenceEvidencePanel({
               </li>
             ))}
           </ul>
-        ) : view.profileBehaviouralPatterns.length > 0 ? (
-          <>
-            <p className="muted">
-              From the reviewed development profile — not uploaded evidence-library
-              signals.
-            </p>
-            <ul className="development-evidence-list">
-              {view.profileBehaviouralPatterns.map(item => (
-                <li key={item}>{limitToOneSentence(item)}</li>
-              ))}
-            </ul>
-          </>
+        ) : hasProfilePatterns ? (
+          <ul className="development-evidence-list">
+            {view.profileBehaviouralPatterns.map(item => (
+              <li key={item}>{limitToOneSentence(item)}</li>
+            ))}
+          </ul>
         ) : (
           <p className="muted">
-            Limited evidence is available for capability insights.
+            {isSelf
+              ? "Limited evidence is available for behavioural patterns yet."
+              : "Limited evidence is available for capability insights."}
           </p>
         )}
       </section>

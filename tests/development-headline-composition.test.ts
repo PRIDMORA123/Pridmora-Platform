@@ -7,6 +7,7 @@ import {
   buildProfileDevelopmentTrajectory,
   composeDevelopmentHeadlineIntelligence,
   evidenceLibraryHasMeaningfulSignals,
+  isCompleteStatement,
 } from "@/lib/development-evidence";
 import type { DevelopmentEvidenceRecord } from "@/lib/development-evidence";
 import type { DevelopmentProfile } from "@/lib/development-updates/types";
@@ -420,7 +421,7 @@ describe("profile-backed headline semantic mapping", () => {
       }),
     });
     expect(composed.strengthsBeingDemonstrated).toEqual([
-      "Delegating under time pressure (emerging — not yet firmly demonstrated)",
+      "Delegating under time pressure — still emerging",
     ]);
   });
 
@@ -430,7 +431,7 @@ describe("profile-backed headline semantic mapping", () => {
       profile: alexProfile(),
     });
     expect(composed.developmentTrajectory).toMatch(
-      /strengthening|emerging|movement|progress|intention|established/i
+      /established|emerging|movement|practice/i
     );
     expect(composed.developmentTrajectory).not.toBe(
       "Project judgement under pressure · Clearer stakeholder updates · Holding standards calmly"
@@ -443,7 +444,7 @@ describe("profile-backed headline semantic mapping", () => {
       establishedPatterns: 0,
       emergingPatterns: 0,
     });
-    expect(helper).toMatch(/strengthening|emerging/i);
+    expect(helper).toMatch(/established|emerging/i);
   });
 
   it("G. profile-backed Current Position describes present state", () => {
@@ -452,10 +453,10 @@ describe("profile-backed headline semantic mapping", () => {
       profile: alexProfile(),
     });
     expect(composed.currentPosition).toMatch(
-      /currently|demonstrated|centres on|shows/i
+      /development theme|coming through as|strength/i
     );
     expect(composed.currentPosition).not.toMatch(
-      /should|next|continue exploring|focus on strengthening/i
+      /Reviewed development currently|centres on|should|continue exploring/i
     );
     expect(composed.currentPosition).not.toBe(composed.nextDevelopmentFocus);
     expect(composed.profileBehaviouralPatterns).toContain(
@@ -468,7 +469,8 @@ describe("profile-backed headline semantic mapping", () => {
       behaviouralPatterns: ["Over-preparing before senior meetings"],
       growthAreas: ["Earlier escalation conversations"],
     });
-    expect(position).toMatch(/currently centres on/i);
+    expect(position).toMatch(/current development theme/i);
+    expect(position).not.toMatch(/centres on/i);
   });
 
   it("H. evidence-library precedence unchanged", () => {
@@ -578,7 +580,10 @@ describe("post-apply consistency contracts", () => {
       "utf8"
     );
     expect(panel).toContain("composeDevelopmentHeadlineIntelligence");
-    expect(panel).toContain("Based on the reviewed development profile");
+    expect(panel).toContain("From coaching conversations.");
+    expect(panel).not.toContain("not uploaded evidence-library signals");
+    expect(panel).toContain("Behavioural Patterns");
+    expect(panel).toContain('voice === "self"');
   });
 
   it("intelligence API composes evidence view with living profile", () => {
@@ -595,5 +600,112 @@ describe("post-apply consistency contracts", () => {
     expect(route).toMatch(
       /composeDevelopmentHeadlineIntelligence\(\{[\s\S]*evidenceView[\s\S]*profile/
     );
+  });
+});
+
+describe("profile-backed narrative quality", () => {
+  it("never embeds complete sentences mid-template in Current Position", () => {
+    const theme =
+      "Confidence in judgement remains a central development theme, with evidence of progress through action rather than only reflection.";
+    const strength =
+      "Alex is beginning to act with greater confidence in their project judgement.";
+    const position = buildProfileCurrentPosition({
+      demonstratedStrengths: [strength],
+      themes: [theme],
+      behaviouralPatterns: [],
+      growthAreas: [],
+    });
+    expect(position).toContain(theme);
+    expect(position).toContain(strength);
+    expect(position).not.toMatch(/centres on Confidence/i);
+    expect(position).not.toMatch(/Reviewed development currently/i);
+    expect(position).not.toMatch(/\. and /i);
+    expect(isCompleteStatement(theme)).toBe(true);
+    expect(isCompleteStatement(strength)).toBe(true);
+  });
+
+  it("never embeds complete sentences mid-template in Trajectory", () => {
+    const strength =
+      "Alex is beginning to act with greater confidence in their project judgement.";
+    const edge =
+      "The next stage of influencing is moving from raising concerns to making clear recommendations.";
+    const trajectory = buildProfileDevelopmentTrajectory({
+      demonstratedStrengths: [strength],
+      emergingStrengths: [],
+      themes: [],
+      growthAreas: [edge],
+      establishedPatterns: 0,
+      emergingPatterns: 0,
+    });
+    expect(trajectory).toContain(strength);
+    expect(trajectory).toContain(edge);
+    expect(trajectory).not.toMatch(/evidence around Alex/i);
+    expect(trajectory).not.toMatch(/Reviewed signals show/i);
+    expect(trajectory).not.toMatch(/\. and /i);
+  });
+
+  it("phrase-shaped values remain grammatical", () => {
+    const position = buildProfileCurrentPosition({
+      demonstratedStrengths: ["Clearer stakeholder updates"],
+      themes: ["Project judgement under pressure"],
+      behaviouralPatterns: [],
+      growthAreas: ["Earlier escalation conversations"],
+    });
+    expect(position).toMatch(
+      /Project judgement under pressure is a current development theme/i
+    );
+    expect(position).toMatch(
+      /Clearer stakeholder updates is coming through as a demonstrated strength/i
+    );
+    expect(isCompleteStatement("Project judgement under pressure")).toBe(false);
+  });
+
+  it("trajectory uses established vs emerging movement language for phrases", () => {
+    const trajectory = buildProfileDevelopmentTrajectory({
+      demonstratedStrengths: [
+        "Clearer stakeholder updates",
+        "Holding standards calmly",
+      ],
+      emergingStrengths: ["Delegating under time pressure"],
+      themes: ["Project judgement under pressure"],
+      growthAreas: ["Earlier escalation conversations"],
+      establishedPatterns: 0,
+      emergingPatterns: 0,
+    });
+    expect(trajectory).toMatch(/becoming more established in practice/i);
+    expect(trajectory).toMatch(/still emerging/i);
+    expect(trajectory).not.toMatch(/Reviewed signals/i);
+  });
+
+  it("conditional Behavioural Patterns heading and manager-appropriate provenance", () => {
+    const panel = readFileSync(
+      resolve(
+        process.cwd(),
+        "components/development-evidence/development-intelligence-evidence-panel.tsx"
+      ),
+      "utf8"
+    );
+    expect(panel).toContain('? "Behavioural Patterns"');
+    expect(panel).toContain("From coaching conversations.");
+    expect(panel).toContain("From your coaching conversations.");
+    expect(panel).not.toContain("evidence-library signals");
+    expect(panel).toContain('voice === "self"');
+  });
+
+  it("My Development voice remains first-person appropriate in the panel", () => {
+    const panel = readFileSync(
+      resolve(
+        process.cwd(),
+        "components/development-evidence/development-intelligence-evidence-panel.tsx"
+      ),
+      "utf8"
+    );
+    const myDev = readFileSync(
+      resolve(process.cwd(), "components/my-development-intelligence-view.tsx"),
+      "utf8"
+    );
+    expect(myDev).toContain('voice="self"');
+    expect(panel).toContain("Where are you now?");
+    expect(panel).toContain("From your coaching conversations.");
   });
 });
