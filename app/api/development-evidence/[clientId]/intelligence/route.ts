@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { notFoundOrForbidden } from "@/lib/auth/session";
-import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import {
   buildDevelopmentIntelligenceEvidenceView,
   buildWhyThisPayload,
+  composeDevelopmentHeadlineIntelligence,
   listEvidenceForClient,
   writeEvidenceAudit,
 } from "@/lib/development-evidence";
+import { ensureProfileOrEmpty } from "@/lib/development-updates/repository";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 
 type Params = { params: Promise<{ clientId: string }> };
 
@@ -53,10 +55,24 @@ export async function GET(request: Request, { params }: Params) {
       }
     }
 
-    const view = buildDevelopmentIntelligenceEvidenceView({
+    const evidenceView = buildDevelopmentIntelligenceEvidenceView({
       records,
       currentFocus: (client.current_focus as string | null) ?? null,
       organisationFrameworkLabelsByCapability: frameworkLabels,
+    });
+
+    // Living development profile is authoritative when the evidence library
+    // has no meaningful included signals. Compose at the API boundary so all
+    // Development headline consumers receive one coherent view.
+    const profile = await ensureProfileOrEmpty(
+      access.context.supabase,
+      access.context.coachId,
+      clientId,
+      String(client.current_focus ?? "")
+    );
+    const view = composeDevelopmentHeadlineIntelligence({
+      evidenceView,
+      profile,
     });
 
     if (insight && whyEvidenceIds) {

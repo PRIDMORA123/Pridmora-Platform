@@ -154,12 +154,27 @@ function buildProfileBackedHeadline(
  * Compose headline cards for the Development page.
  * Prefer meaningful evidence-library signals; otherwise fall back to the
  * living development profile; otherwise keep true empty evidence states.
+ *
+ * Idempotent: if the view was already composed (e.g. at the API boundary),
+ * return it unchanged so client-side defence-in-depth cannot relabel
+ * profile-backed headlines as evidence-library intelligence.
  */
 export function composeDevelopmentHeadlineIntelligence(input: {
-  evidenceView: DevelopmentIntelligenceEvidenceView;
+  evidenceView: DevelopmentIntelligenceEvidenceView | DevelopmentHeadlineIntelligence;
   profile?: DevelopmentProfile | null;
 }): DevelopmentHeadlineIntelligence {
   const { evidenceView, profile = null } = input;
+  const alreadyComposed = evidenceView as DevelopmentHeadlineIntelligence;
+  if (
+    alreadyComposed.headlineSource === "development_profile" ||
+    alreadyComposed.headlineSource === "evidence_library" ||
+    alreadyComposed.headlineSource === "empty"
+  ) {
+    return {
+      ...alreadyComposed,
+      profileBehaviouralPatterns: alreadyComposed.profileBehaviouralPatterns ?? [],
+    };
+  }
 
   if (evidenceLibraryHasMeaningfulSignals(evidenceView)) {
     return {

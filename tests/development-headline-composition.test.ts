@@ -222,10 +222,84 @@ describe("composeDevelopmentHeadlineIntelligence", () => {
       true
     );
   });
+
+  it("D-api. current-focus-only evidence state is not meaningful evidence-library intelligence", () => {
+    const evidenceView = buildDevelopmentIntelligenceEvidenceView({
+      records: [],
+      currentFocus: "Strengthen Alex's confidence in using their project judgement",
+    });
+    expect(evidenceView.currentPosition).toMatch(/Strengthen Alex/i);
+    expect(evidenceView.developmentTrajectory).toMatch(
+      /not yet enough reviewed evidence/i
+    );
+    expect(evidenceLibraryHasMeaningfulSignals(evidenceView)).toBe(false);
+
+    const composed = composeDevelopmentHeadlineIntelligence({
+      evidenceView,
+      profile: makeProfile({
+        currentFocus:
+          "Strengthen Alex's confidence in using their project judgement",
+        emergingThemes: [
+          { id: "t1", value: "Project judgement under pressure", status: "supported" },
+        ],
+        growthAreas: [
+          { id: "g1", value: "Earlier escalation conversations", status: "emerging" },
+        ],
+        strengths: [
+          { id: "s1", value: "Clearer stakeholder updates", status: "supported" },
+        ],
+      }),
+    });
+    expect(composed.headlineSource).toBe("development_profile");
+    expect(composed.developmentTrajectory).not.toMatch(
+      /not yet enough reviewed evidence/i
+    );
+    expect(composed.developmentPriorities.length).toBeGreaterThan(0);
+    expect(composed.strengthsBeingDemonstrated).toContain(
+      "Clearer stakeholder updates"
+    );
+  });
+
+  it("G-api. profile fallback response carries explicit attribution", () => {
+    const composed = composeDevelopmentHeadlineIntelligence({
+      evidenceView: emptyEvidenceView(),
+      profile: makeProfile({
+        strengths: [
+          { id: "s1", value: "Naming priorities early", status: "supported" },
+        ],
+      }),
+    });
+    expect(composed.headlineSource).toBe("development_profile");
+  });
+
+  it("idempotent compose does not relabel API profile-backed headlines", () => {
+    const first = composeDevelopmentHeadlineIntelligence({
+      evidenceView: emptyEvidenceView(),
+      profile: makeProfile({
+        emergingThemes: [
+          { id: "t1", value: "Delegation under pressure", status: "supported" },
+        ],
+        strengths: [
+          { id: "s1", value: "Naming priorities early", status: "supported" },
+        ],
+      }),
+    });
+    expect(first.headlineSource).toBe("development_profile");
+
+    const second = composeDevelopmentHeadlineIntelligence({
+      evidenceView: first,
+      profile: null,
+    });
+    expect(second.headlineSource).toBe("development_profile");
+    expect(second.developmentTrajectory).toBe(first.developmentTrajectory);
+    expect(second.strengthsBeingDemonstrated).toEqual(
+      first.strengthsBeingDemonstrated
+    );
+  });
 });
 
 describe("post-apply consistency contracts", () => {
-  it("G. Apply route remains unchanged (no evidence bridge)", () => {
+  it("Apply route remains unchanged (no evidence bridge)", () => {
     const apply = readFileSync(
       resolve(process.cwd(), "app/api/development-updates/[updateId]/apply/route.ts"),
       "utf8"
@@ -235,7 +309,7 @@ describe("post-apply consistency contracts", () => {
     expect(apply).not.toContain("composeDevelopmentHeadlineIntelligence");
   });
 
-  it("H. patterns refresh label and behaviour remain pattern-scoped", () => {
+  it("patterns refresh label and behaviour remain pattern-scoped", () => {
     const panels = readFileSync(
       resolve(process.cwd(), "components/patterns/pattern-panels.tsx"),
       "utf8"
@@ -266,5 +340,21 @@ describe("post-apply consistency contracts", () => {
     );
     expect(panel).toContain("composeDevelopmentHeadlineIntelligence");
     expect(panel).toContain("Based on the reviewed development profile");
+  });
+
+  it("intelligence API composes evidence view with living profile", () => {
+    const route = readFileSync(
+      resolve(
+        process.cwd(),
+        "app/api/development-evidence/[clientId]/intelligence/route.ts"
+      ),
+      "utf8"
+    );
+    expect(route).toContain("ensureProfileOrEmpty");
+    expect(route).toContain("buildDevelopmentIntelligenceEvidenceView");
+    expect(route).toContain("composeDevelopmentHeadlineIntelligence");
+    expect(route).toMatch(
+      /composeDevelopmentHeadlineIntelligence\(\{[\s\S]*evidenceView[\s\S]*profile/
+    );
   });
 });
