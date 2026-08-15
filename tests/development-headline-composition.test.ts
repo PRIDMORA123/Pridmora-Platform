@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import {
   buildDevelopmentIntelligenceEvidenceView,
+  buildProfileCurrentPosition,
+  buildProfileDevelopmentTrajectory,
   composeDevelopmentHeadlineIntelligence,
   evidenceLibraryHasMeaningfulSignals,
 } from "@/lib/development-evidence";
@@ -149,9 +151,15 @@ describe("composeDevelopmentHeadlineIntelligence", () => {
         ],
       }),
     });
-    expect(composed.developmentTrajectory).toMatch(/Holding boundaries|Clearer follow-through/i);
+    expect(composed.developmentTrajectory).toMatch(
+      /Holding boundaries|Clearer follow-through|emerging|progress|becoming clearer|intention|strengthening/i
+    );
     expect(composed.developmentTrajectory).not.toBe(
       "There is not yet enough reviewed evidence to describe a development trajectory."
+    );
+    // Not a raw concatenation of theme + strength values.
+    expect(composed.developmentTrajectory).not.toBe(
+      "Holding boundaries · Clearer follow-through"
     );
   });
 
@@ -295,6 +303,237 @@ describe("composeDevelopmentHeadlineIntelligence", () => {
     expect(second.strengthsBeingDemonstrated).toEqual(
       first.strengthsBeingDemonstrated
     );
+  });
+});
+
+describe("profile-backed headline semantic mapping", () => {
+  const focus =
+    "Strengthen Alex's confidence in using their project judgement";
+
+  function alexProfile() {
+    return makeProfile({
+      currentFocus: focus,
+      emergingThemes: [
+        {
+          id: "t1",
+          value: "Project judgement under pressure",
+          status: "supported",
+        },
+      ],
+      growthAreas: [
+        {
+          id: "g1",
+          value: "Earlier escalation conversations",
+          status: "emerging",
+        },
+        { id: "g2", value: focus, status: "emerging" },
+      ],
+      strengths: [
+        {
+          id: "s1",
+          value: "Clearer stakeholder updates",
+          status: "supported",
+        },
+        {
+          id: "s2",
+          value: "Delegating under time pressure",
+          status: "emerging",
+        },
+        {
+          id: "s3",
+          value: "Holding standards calmly",
+          status: "well_established",
+        },
+      ],
+      patterns: [
+        {
+          id: "p1",
+          value: "Over-preparing before senior meetings",
+          status: "supported",
+        },
+      ],
+    });
+  }
+
+  it("A. currentFocus populated → Current Position does not equal currentFocus", () => {
+    const composed = composeDevelopmentHeadlineIntelligence({
+      evidenceView: emptyEvidenceView(),
+      profile: alexProfile(),
+    });
+    expect(composed.currentPosition.trim()).not.toBe(focus);
+    expect(composed.currentPosition).not.toMatch(
+      /Strengthen Alex's confidence/i
+    );
+  });
+
+  it("B. Next Development Focus = currentFocus when available", () => {
+    const composed = composeDevelopmentHeadlineIntelligence({
+      evidenceView: emptyEvidenceView(),
+      profile: alexProfile(),
+    });
+    expect(composed.nextDevelopmentFocus).toBe(focus);
+  });
+
+  it("C. Current Priorities do not duplicate Next Focus verbatim", () => {
+    const composed = composeDevelopmentHeadlineIntelligence({
+      evidenceView: emptyEvidenceView(),
+      profile: alexProfile(),
+    });
+    expect(composed.developmentPriorities).toContain(
+      "Earlier escalation conversations"
+    );
+    expect(composed.developmentPriorities).not.toContain(focus);
+    expect(
+      composed.developmentPriorities.some(p =>
+        /Continue exploring:\s*Strengthen Alex/i.test(p)
+      )
+    ).toBe(false);
+  });
+
+  it("D. supported/well-established strengths preferred over emerging", () => {
+    const composed = composeDevelopmentHeadlineIntelligence({
+      evidenceView: emptyEvidenceView(),
+      profile: alexProfile(),
+    });
+    expect(composed.strengthsBeingDemonstrated).toContain(
+      "Clearer stakeholder updates"
+    );
+    expect(composed.strengthsBeingDemonstrated).toContain(
+      "Holding standards calmly"
+    );
+    expect(composed.strengthsBeingDemonstrated.join(" ")).not.toMatch(
+      /Delegating under time pressure/i
+    );
+  });
+
+  it("E. only-emerging strength state uses cautious wording", () => {
+    const composed = composeDevelopmentHeadlineIntelligence({
+      evidenceView: emptyEvidenceView(),
+      profile: makeProfile({
+        strengths: [
+          {
+            id: "s1",
+            value: "Delegating under time pressure",
+            status: "emerging",
+          },
+        ],
+      }),
+    });
+    expect(composed.strengthsBeingDemonstrated).toEqual([
+      "Delegating under time pressure (emerging — not yet firmly demonstrated)",
+    ]);
+  });
+
+  it("F. Trajectory expresses progression, not raw concatenation", () => {
+    const composed = composeDevelopmentHeadlineIntelligence({
+      evidenceView: emptyEvidenceView(),
+      profile: alexProfile(),
+    });
+    expect(composed.developmentTrajectory).toMatch(
+      /strengthening|emerging|movement|progress|intention|established/i
+    );
+    expect(composed.developmentTrajectory).not.toBe(
+      "Project judgement under pressure · Clearer stakeholder updates · Holding standards calmly"
+    );
+    const helper = buildProfileDevelopmentTrajectory({
+      demonstratedStrengths: ["Clearer stakeholder updates"],
+      emergingStrengths: ["Delegating under time pressure"],
+      themes: ["Project judgement under pressure"],
+      growthAreas: ["Earlier escalation conversations"],
+      establishedPatterns: 0,
+      emergingPatterns: 0,
+    });
+    expect(helper).toMatch(/strengthening|emerging/i);
+  });
+
+  it("G. profile-backed Current Position describes present state", () => {
+    const composed = composeDevelopmentHeadlineIntelligence({
+      evidenceView: emptyEvidenceView(),
+      profile: alexProfile(),
+    });
+    expect(composed.currentPosition).toMatch(
+      /currently|demonstrated|centres on|shows/i
+    );
+    expect(composed.currentPosition).not.toMatch(
+      /should|next|continue exploring|focus on strengthening/i
+    );
+    expect(composed.currentPosition).not.toBe(composed.nextDevelopmentFocus);
+    expect(composed.profileBehaviouralPatterns).toContain(
+      "Over-preparing before senior meetings"
+    );
+    expect(composed.capabilities).toEqual([]);
+    const position = buildProfileCurrentPosition({
+      demonstratedStrengths: ["Clearer stakeholder updates"],
+      themes: ["Project judgement under pressure"],
+      behaviouralPatterns: ["Over-preparing before senior meetings"],
+      growthAreas: ["Earlier escalation conversations"],
+    });
+    expect(position).toMatch(/currently centres on/i);
+  });
+
+  it("H. evidence-library precedence unchanged", () => {
+    const evidenceView = buildDevelopmentIntelligenceEvidenceView({
+      records: [makeEvidence()],
+      currentFocus: "Lead former peers with clear expectations",
+    });
+    const composed = composeDevelopmentHeadlineIntelligence({
+      evidenceView,
+      profile: alexProfile(),
+    });
+    expect(composed.headlineSource).toBe("evidence_library");
+    expect(composed.strengthsBeingDemonstrated).toContain(
+      "Clearer expectation-setting"
+    );
+    expect(composed.strengthsBeingDemonstrated).not.toContain(
+      "Clearer stakeholder updates"
+    );
+  });
+
+  it("I. empty-state behaviour unchanged", () => {
+    const composed = composeDevelopmentHeadlineIntelligence({
+      evidenceView: emptyEvidenceView(),
+      profile: makeProfile(),
+    });
+    expect(composed.headlineSource).toBe("empty");
+    expect(composed.developmentTrajectory).toMatch(
+      /not yet enough reviewed evidence/i
+    );
+  });
+
+  it("J. API/client composition remains idempotent", () => {
+    const first = composeDevelopmentHeadlineIntelligence({
+      evidenceView: emptyEvidenceView(),
+      profile: alexProfile(),
+    });
+    const second = composeDevelopmentHeadlineIntelligence({
+      evidenceView: first,
+      profile: makeProfile({ currentFocus: "Different focus that must not apply" }),
+    });
+    expect(second).toEqual(first);
+    expect(second.nextDevelopmentFocus).toBe(focus);
+  });
+
+  it("K. My Development receives the same corrected semantic mapping", () => {
+    const panel = readFileSync(
+      resolve(
+        process.cwd(),
+        "components/development-evidence/development-intelligence-evidence-panel.tsx"
+      ),
+      "utf8"
+    );
+    const myDevIntel = readFileSync(
+      resolve(process.cwd(), "components/my-development-intelligence-view.tsx"),
+      "utf8"
+    );
+    expect(panel).toContain("composeDevelopmentHeadlineIntelligence");
+    expect(myDevIntel).toContain("DevelopmentIntelligenceEvidencePanel");
+    // Same compose path → same semantic mapping for coach Development and My Development.
+    const composed = composeDevelopmentHeadlineIntelligence({
+      evidenceView: emptyEvidenceView(),
+      profile: alexProfile(),
+    });
+    expect(composed.nextDevelopmentFocus).toBe(focus);
+    expect(composed.currentPosition).not.toBe(focus);
   });
 });
 
