@@ -85,6 +85,8 @@ sessionSummary:
 - Context only.
 - ${isComprehensive ? "Richer contextual summary up to 220 words." : "100–150 words."}
 - Do not repeat detailed development interpretation already shown in later sections.
+- When the notes contain explicit agreement language (for example "agreed to", "committed to", "decided to", "it was agreed that"), do not write that no explicitly agreed actions were recorded.
+- Do not claim "No explicitly agreed actions are recorded" or similar when such language is present in the supplied notes.
 
 keyInsights:
 - Question: What did we learn?
@@ -108,11 +110,24 @@ coachingContext:
 - Forward-looking management context only.
 
 commitments:
-- Only explicitly agreed actions.
+- Only explicitly agreed behavioural actions from the notes.
+- Positively extract explicit agreement language into this array — do not leave commitments empty when the notes record an agreement.
+- Commitments are explicitly agreed actions only — not inferred development priorities, not suggested next-focus items, and not possible ideas.
+- Eligible phrasing includes: "agreed to", "committed to", "decided to", "it was agreed that".
+- Positive example — MUST appear in commitments:
+  Notes: "Alex agreed to practise stating a clear recommendation in the next relevant discussion."
+  → commitments: ["Alex agreed to practise stating a clear recommendation in the next relevant discussion."]
+- Negative examples — MUST NOT appear in commitments (use possibleNextFocus only if useful):
+  "Alex could practise stating recommendations more clearly."
+  "Alex might try leaving the decision with the team."
+  "A possible next step is to practise clearer recommendations."
+  "It may be useful to explore ownership under pressure."
+- Do not invent actions. Preserve all existing evidence-discipline rules.
 
 possibleNextFocus:
 - Question: What would be useful to explore next?
 - Do not prescribe solutions.
+- Keep suggested or tentative next steps here — never move them into commitments.
 
 ${
   isComprehensive

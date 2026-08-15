@@ -371,6 +371,12 @@ Distinguish clearly between:
 
 Only explicitly agreed actions belong in this section.
 
+When the notes explicitly record agreement language such as "agreed to", "committed to", "decided to", or "it was agreed that", include that action in Agreed Commitments / Agreed Actions.
+
+Do not treat tentative wording such as "might", "could", "a possible next step", or "it may be useful to" as an agreed action.
+
+Do not state that no explicitly agreed actions were recorded when such explicit agreement language is present in the notes.
+
 7. Possible Next Focus / Suggested Focus for the Next Session
 
 Provide up to three possible areas for exploration.
