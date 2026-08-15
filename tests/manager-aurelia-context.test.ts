@@ -355,6 +355,7 @@ describe("Stage 2.2.3 Manager Aurelia development context", () => {
     );
     expect(prepare).not.toContain("MANAGER_AURELIA_CONVERSATION_ADDENDUM");
     expect(prepare).not.toContain("loadManagerAureliaDevelopmentContext");
-    expect(canvas).toContain("Prepare with {BRAND.intelligenceName}");
+    expect(canvas).toContain("onPrepareConversation");
+    expect(canvas).toContain("buildPersonNextConversationModel");
   });
 });

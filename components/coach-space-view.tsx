@@ -455,14 +455,12 @@ export function CoachSpaceView({
             onOpenSession={onOpenSession}
             onViewDevelopment={() => onTabChange?.("intelligence")}
             onAddEvidence={() => onTabChange?.("evidence")}
-            onPrepareConversation={() => {
-              const session = currentSession ?? getFutureOrOpenSession(client.sessions);
-              onPrepare(session?.id);
+            onPrepareConversation={sessionId => {
+              onPrepare(sessionId);
             }}
-            onRecordConversation={() => {
-              const session = currentSession ?? getFutureOrOpenSession(client.sessions);
-              if (session) {
-                onOpenSession(session.id);
+            onRecordConversation={sessionId => {
+              if (sessionId) {
+                onOpenSession(sessionId);
                 return;
               }
               onPrepare();

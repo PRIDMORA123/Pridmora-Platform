@@ -207,7 +207,8 @@ describe("Stage 2.2.2 Manager Aurelia API contract", () => {
       "components/relationship-workspace/relationship-canvas.tsx"
     );
     const home = read("components/home-app.tsx");
-    expect(canvas).toContain("Prepare with {BRAND.intelligenceName}");
+    expect(canvas).toContain("onPrepareConversation");
+    expect(canvas).toContain("buildPersonNextConversationModel");
     expect(home).toContain("PrepareSessionView");
     expect(home).toContain('navigate("manager-aurelia")');
   });

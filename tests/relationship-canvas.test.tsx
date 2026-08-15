@@ -331,9 +331,15 @@ describe("RelationshipCanvas", () => {
     expect(container.textContent).toContain("Current Development");
     expect(container.textContent).toContain("Building leadership confidence");
     expect(container.textContent).toContain("Session 3");
-    expect(container.textContent).toContain("Prepare with Aurelia");
+    expect(container.textContent).toContain("Next conversation");
+    expect(container.textContent).toMatch(
+      /Prepare for conversation|Review preparation|Continue conversation/
+    );
     expect(container.textContent).toContain("Summary & Insights");
     expect(container.querySelector(".current-conversation-card")).toBeTruthy();
+    expect(
+      container.querySelector('[data-testid="person-next-conversation"]')
+    ).toBeTruthy();
   });
 
   it("places Coaching Moments after Reports and before Relationship Details", async () => {
@@ -429,8 +435,8 @@ describe("RelationshipCanvas", () => {
       />
     );
 
-    expect(container.textContent).toContain("Prepare with Aurelia");
-    expect(container.textContent).toMatch(/Prepare conversation|Prepare/);
+    expect(container.textContent).toContain("Next conversation");
+    expect(container.textContent).toContain("Prepare for conversation");
     expect(
       container.querySelectorAll(".relationship-workspace__primary-action .identity-button.is-primary")
         .length
@@ -921,13 +927,256 @@ describe("RelationshipCanvas", () => {
       container.querySelector(".current-conversation-card--empty")
     ).not.toBeNull();
     expect(
-      container.querySelector(".add-session-control--prominent")
+      container.querySelector(
+        '[data-testid="person-next-conversation"] .add-session-control--prominent'
+      )
     ).not.toBeNull();
     expect(
       container.querySelector(
-        ".add-session-control--prominent .identity-button.is-primary"
+        '[data-testid="person-next-conversation"] .add-session-control--prominent .identity-button.is-primary'
       )
     ).not.toBeNull();
+    root.unmount();
+    container.remove();
+  });
+
+  it("shows contextual next conversation for planned Session 4 and routes CTAs by id", async () => {
+    const session4 = makeSession({
+      id: "session-4",
+      sessionNumber: 4,
+      status: "planned",
+      date: "2026-08-30",
+      time: "10:00",
+    });
+    const onPrepareConversation = vi.fn();
+    const onRecordConversation = vi.fn();
+    const onAddEvidence = vi.fn();
+    const { container, root } = await renderNode(
+      <RelationshipCanvas
+        relationship={makeClient([
+          makeSession({
+            id: "session-3",
+            sessionNumber: 3,
+            status: "completed",
+            date: "2026-08-01",
+          }),
+          session4,
+        ])}
+        relationshipDetails={details}
+        onPrimaryAction={() => undefined}
+        onModuleAction={() => undefined}
+        onOpenSession={() => undefined}
+        onViewDevelopment={() => undefined}
+        onAddEvidence={onAddEvidence}
+        onPrepareConversation={onPrepareConversation}
+        onRecordConversation={onRecordConversation}
+        onViewReports={() => undefined}
+        onCreateSession={async () => undefined}
+        onSaveAgreement={async () => undefined}
+        onSaveInitialConversation={async () => undefined}
+      />
+    );
+
+    const strip = container.querySelector(
+      '[data-testid="person-next-conversation"]'
+    );
+    expect(strip?.getAttribute("data-next-session-id")).toBe("session-4");
+    expect(strip?.textContent).toContain("Conversation 4");
+    expect(strip?.textContent).toContain("30 August 2026");
+    expect(strip?.textContent).toContain("Prepare for conversation");
+
+    await act(async () => {
+      container
+        .querySelector('[data-testid="person-next-primary"]')
+        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    expect(onPrepareConversation).toHaveBeenCalledWith("session-4");
+
+    await act(async () => {
+      container
+        .querySelector('[data-testid="person-next-secondary"]')
+        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    expect(onRecordConversation).toHaveBeenCalledWith("session-4");
+
+    await act(async () => {
+      container
+        .querySelector('[data-testid="person-add-development-evidence"]')
+        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    expect(onAddEvidence).toHaveBeenCalledOnce();
+
+    root.unmount();
+    container.remove();
+  });
+
+  it("shows Review preparation when Session 4 is prepared", async () => {
+    const session4 = makeSession({
+      id: "session-4",
+      sessionNumber: 4,
+      status: "prepared",
+      date: "2026-08-30",
+      time: "10:00",
+      prepPurpose: "Enable supervisors",
+    });
+    const { container, root } = await renderNode(
+      <RelationshipCanvas
+        relationship={makeClient([session4])}
+        relationshipDetails={details}
+        onPrimaryAction={() => undefined}
+        onModuleAction={() => undefined}
+        onOpenSession={() => undefined}
+        onViewDevelopment={() => undefined}
+        onViewReports={() => undefined}
+        onCreateSession={async () => undefined}
+        onSaveAgreement={async () => undefined}
+        onSaveInitialConversation={async () => undefined}
+      />
+    );
+
+    const strip = container.querySelector(
+      '[data-testid="person-next-conversation"]'
+    );
+    expect(strip?.getAttribute("data-next-kind")).toBe("review_preparation");
+    expect(strip?.textContent).toContain("Review preparation");
+    expect(strip?.textContent).toMatch(/ready to review/i);
+    root.unmount();
+    container.remove();
+  });
+
+  it("shows Continue conversation as primary for in-progress sessions", async () => {
+    const live = makeSession({
+      id: "session-4",
+      sessionNumber: 4,
+      status: "in_progress",
+      date: "2026-08-30",
+      time: "10:00",
+    });
+    const onRecordConversation = vi.fn();
+    const { container, root } = await renderNode(
+      <RelationshipCanvas
+        relationship={makeClient([live])}
+        currentSession={live}
+        relationshipDetails={details}
+        onPrimaryAction={() => undefined}
+        onModuleAction={() => undefined}
+        onOpenSession={() => undefined}
+        onRecordConversation={onRecordConversation}
+        onViewDevelopment={() => undefined}
+        onViewReports={() => undefined}
+        onCreateSession={async () => undefined}
+        onSaveAgreement={async () => undefined}
+        onSaveInitialConversation={async () => undefined}
+      />
+    );
+
+    const strip = container.querySelector(
+      '[data-testid="person-next-conversation"]'
+    );
+    expect(strip?.getAttribute("data-next-kind")).toBe("continue");
+    expect(strip?.textContent).toContain("Continue conversation");
+    expect(
+      container.querySelector('[data-testid="person-next-secondary"]')
+    ).toBeNull();
+
+    await act(async () => {
+      container
+        .querySelector('[data-testid="person-next-primary"]')
+        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    expect(onRecordConversation).toHaveBeenCalledWith("session-4");
+    root.unmount();
+    container.remove();
+  });
+
+  it("surfaces plan action when no next session without fabricating a number", async () => {
+    const { container, root } = await renderNode(
+      <RelationshipCanvas
+        relationship={makeClient([
+          makeSession({
+            id: "session-3",
+            sessionNumber: 3,
+            status: "completed",
+            date: "2026-08-01",
+          }),
+        ])}
+        relationshipDetails={details}
+        onPrimaryAction={() => undefined}
+        onModuleAction={() => undefined}
+        onOpenSession={() => undefined}
+        onViewDevelopment={() => undefined}
+        onViewReports={() => undefined}
+        onCreateSession={async () => undefined}
+        onSaveAgreement={async () => undefined}
+        onSaveInitialConversation={async () => undefined}
+      />
+    );
+
+    const strip = container.querySelector(
+      '[data-testid="person-next-conversation"]'
+    );
+    expect(strip?.getAttribute("data-next-kind")).toBe("plan");
+    expect(strip?.getAttribute("data-next-session-id")).toBe("");
+    expect(strip?.textContent).toContain("Plan next conversation");
+    expect(strip?.textContent).not.toContain("Conversation 4");
+    root.unmount();
+    container.remove();
+  });
+
+  it("keeps next-conversation identity and Prepare destination aligned when awaiting Session 3 and planned Session 4", async () => {
+    const session3 = makeSession({
+      id: "session-3",
+      sessionNumber: 3,
+      status: "awaiting_completion",
+      date: "2026-08-01",
+    });
+    const session4 = makeSession({
+      id: "session-4",
+      sessionNumber: 4,
+      status: "planned",
+      date: "2026-08-30",
+      time: "10:00",
+    });
+    const onPrepareConversation = vi.fn();
+    const { container, root } = await renderNode(
+      <RelationshipCanvas
+        relationship={makeClient([
+          makeSession({
+            id: "session-2",
+            sessionNumber: 2,
+            status: "completed",
+            date: "2026-07-15",
+          }),
+          session3,
+          session4,
+        ])}
+        currentSession={session3}
+        relationshipDetails={details}
+        onPrimaryAction={() => undefined}
+        onModuleAction={() => undefined}
+        onOpenSession={() => undefined}
+        onPrepareConversation={onPrepareConversation}
+        onViewDevelopment={() => undefined}
+        onViewReports={() => undefined}
+        onCreateSession={async () => undefined}
+        onSaveAgreement={async () => undefined}
+        onSaveInitialConversation={async () => undefined}
+      />
+    );
+
+    const strip = container.querySelector(
+      '[data-testid="person-next-conversation"]'
+    );
+    expect(strip?.getAttribute("data-next-session-id")).toBe("session-4");
+    expect(strip?.textContent).toContain("Conversation 4");
+    expect(strip?.textContent).not.toMatch(/Conversation 3 ·/);
+
+    await act(async () => {
+      container
+        .querySelector('[data-testid="person-next-primary"]')
+        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    expect(onPrepareConversation).toHaveBeenCalledWith("session-4");
     root.unmount();
     container.remove();
   });

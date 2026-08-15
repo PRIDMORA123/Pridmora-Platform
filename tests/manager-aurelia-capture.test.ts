@@ -147,7 +147,8 @@ describe("Stage 2.2.4 capture API and UI contracts", () => {
     );
     expect(prepare).not.toContain("propose-capture");
     expect(prepare).not.toContain("MANAGER_AURELIA_PROPOSE");
-    expect(canvas).toContain("Prepare with {BRAND.intelligenceName}");
+    expect(canvas).toContain("onPrepareConversation");
+    expect(canvas).toContain("buildPersonNextConversationModel");
   });
 
   it("keeps reflection excluded from Aurelia context helper", () => {

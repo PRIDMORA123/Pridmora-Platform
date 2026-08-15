@@ -27,6 +27,7 @@ import {
   getPrimaryRelationshipAction,
   primaryActionToModuleId,
 } from "@/lib/relationship-workspace/get-primary-relationship-action";
+import { buildPersonNextConversationModel } from "@/lib/relationship-workspace/person-next-conversation";
 import type {
   InitialConversation,
   RelationshipAgreement,
@@ -38,7 +39,6 @@ import {
 import { getFutureOrOpenSession } from "@/lib/session-workflow";
 import { isSessionCompleted } from "@/lib/client-journey";
 import type { Client, Session } from "@/lib/types";
-import { BRAND } from "@/lib/brand";
 
 export type RelationshipCanvasProps = {
   relationship: Client;
@@ -68,8 +68,10 @@ export type RelationshipCanvasProps = {
   onOpenSession: (sessionId: string) => void;
   onViewDevelopment: () => void;
   onAddEvidence?: () => void;
-  onPrepareConversation?: () => void;
-  onRecordConversation?: () => void;
+  /** Prepare for the given session id (canonical next-conversation session). */
+  onPrepareConversation?: (sessionId?: string) => void;
+  /** Open/record the given session id without requiring Aurelia preparation. */
+  onRecordConversation?: (sessionId?: string) => void;
   onViewReports: () => void;
   onViewSupportingContext?: () => void;
   onCreateSession: (values: AddSessionFormValues) => Promise<void>;
@@ -130,10 +132,18 @@ export function RelationshipCanvas({
 }: RelationshipCanvasProps) {
   const organisation = useOrganisation();
   const language = resolveProductLanguage(organisation?.professionalRole);
+  const clientFirstName = relationship.name.trim().split(/\s+/)[0] || undefined;
+  // Lower-page current conversation detail may still surface awaiting work.
   const activeSession =
     currentSession ?? getFutureOrOpenSession(relationship.sessions) ?? null;
+  // Top next-conversation strip uses prepare-canonical selection so identity
+  // and Prepare/Record destinations cannot disagree.
+  const nextConversation = buildPersonNextConversationModel(
+    relationship.sessions,
+    { clientFirstName }
+  );
+  const nextSession = nextConversation.session;
 
-  const clientFirstName = relationship.name.trim().split(/\s+/)[0] || undefined;
   const resolvedStarted =
     startedLabel ?? formatStartedLabel(relationship.createdAt);
 
@@ -264,43 +274,101 @@ export function RelationshipCanvas({
       />
 
       {!archived ? (
-        <div className="person-overview-actions" role="group" aria-label="Primary actions">
-          <button
-            type="button"
-            className="identity-button is-primary"
-            onClick={() => {
-              if (onPrepareConversation) {
-                onPrepareConversation();
-                return;
-              }
-              handleSpinePrimary();
-            }}
-          >
-            Prepare with {BRAND.intelligenceName}
-          </button>
-          <button
-            type="button"
-            className="secondary"
-            onClick={() => {
-              if (onRecordConversation) {
-                onRecordConversation();
-                return;
-              }
-              if (activeSession) {
-                onOpenSession(activeSession.id);
-                return;
-              }
-              handleSpinePrimary();
-            }}
-          >
-            Record Conversation
-          </button>
-          {onAddEvidence ? (
-            <button type="button" className="secondary" onClick={onAddEvidence}>
-              + Add Development Evidence
-            </button>
+        <section
+          className="person-next-conversation"
+          aria-labelledby="person-next-conversation-title"
+          data-testid="person-next-conversation"
+          data-next-session-id={nextSession?.id ?? ""}
+          data-next-kind={nextConversation.kind}
+        >
+          <p className="person-next-conversation__eyebrow" id="person-next-conversation-title">
+            Next conversation
+          </p>
+          {nextConversation.headline ? (
+            <h2 className="person-next-conversation__headline">
+              {nextConversation.headline}
+            </h2>
+          ) : (
+            <h2 className="person-next-conversation__headline">
+              No conversation is planned yet
+            </h2>
+          )}
+          {nextConversation.supportingCopy ? (
+            <p className="person-next-conversation__copy">
+              {nextConversation.supportingCopy}
+            </p>
           ) : null}
-        </div>
+
+          <div
+            className="person-overview-actions person-next-conversation__actions"
+            role="group"
+            aria-label="Next conversation actions"
+          >
+            {nextConversation.primaryAction === "plan" ? (
+              <AddSessionControl
+                sessions={relationship.sessions}
+                clientName={relationship.name}
+                clientId={relationship.id}
+                archived={archived}
+                busy={busy}
+                showProminent
+                label={nextConversation.primaryLabel}
+                onCreate={onCreateSession}
+                onContinueSession={onOpenSession}
+              />
+            ) : (
+              <button
+                type="button"
+                className="identity-button is-primary"
+                data-testid="person-next-primary"
+                onClick={() => {
+                  if (!nextSession) return;
+                  if (nextConversation.primaryAction === "prepare") {
+                    if (onPrepareConversation) {
+                      onPrepareConversation(nextSession.id);
+                      return;
+                    }
+                    onModuleAction(nextSession.id, "prepare");
+                    return;
+                  }
+                  if (onRecordConversation) {
+                    onRecordConversation(nextSession.id);
+                    return;
+                  }
+                  onOpenSession(nextSession.id);
+                }}
+              >
+                {nextConversation.primaryLabel}
+              </button>
+            )}
+            {nextConversation.secondaryAction === "open" && nextSession ? (
+              <button
+                type="button"
+                className="secondary"
+                data-testid="person-next-secondary"
+                onClick={() => {
+                  if (onRecordConversation) {
+                    onRecordConversation(nextSession.id);
+                    return;
+                  }
+                  onOpenSession(nextSession.id);
+                }}
+              >
+                {nextConversation.secondaryLabel}
+              </button>
+            ) : null}
+            {onAddEvidence ? (
+              <button
+                type="button"
+                className="secondary person-next-conversation__evidence"
+                data-testid="person-add-development-evidence"
+                onClick={onAddEvidence}
+              >
+                + Add Development Evidence
+              </button>
+            ) : null}
+          </div>
+        </section>
       ) : null}
 
       {/* B. Who is this person? — longitudinal, not latest event */}
@@ -447,7 +515,7 @@ export function RelationshipCanvas({
             Create the next conversation when you are ready to continue the
             relationship.
           </p>
-          {!archived ? (
+          {!archived && nextConversation.kind !== "plan" ? (
             <div className="current-conversation-card__primary">
               <AddSessionControl
                 sessions={relationship.sessions}
@@ -461,11 +529,11 @@ export function RelationshipCanvas({
                 onContinueSession={onOpenSession}
               />
             </div>
-          ) : (
+          ) : archived ? (
             <p className="muted">
               Restore this relationship to plan the next conversation.
             </p>
-          )}
+          ) : null}
         </section>
       )}
 
