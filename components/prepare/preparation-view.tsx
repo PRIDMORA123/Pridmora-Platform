@@ -68,6 +68,9 @@ export type PreparationViewProps = {
     description: string;
     evidenceLabel?: string | null;
   }>;
+  adapterPrimaryFocus?: string | null;
+  adapterAreas?: string[];
+  adapterQuestions?: string[];
   disabled?: boolean;
   showAiPreparation?: boolean;
   insertedNotice?: string;
@@ -112,22 +115,46 @@ function buildNormalisedBrief(input: {
   mode: "manual" | "assisted" | "comprehensive";
   isFirstSession: boolean;
   hasApprovedEvidence: boolean;
+  /** Adapter seeds used when coach-authored fields are empty. */
+  adapterPrimaryFocus?: string | null;
+  adapterAreas?: string[];
+  adapterQuestions?: string[];
 }): NormalisedPreparationBrief {
+  const coachPurpose = input.initialPreparation.prepPurpose.trim();
+  const coachFocus = input.initialPreparation.focus.trim();
+  const coachAuthoredFocus = Boolean(coachPurpose || coachFocus);
+
+  // Continuing relationships: do not default to stale session intake text when
+  // the coach has not authored preparation and the adapter has a better focus.
+  const purposeSource = coachAuthoredFocus
+    ? coachPurpose || coachFocus
+    : input.isFirstSession
+      ? coachPurpose ||
+        coachFocus ||
+        input.adapterPrimaryFocus ||
+        input.intelligence.suggestedFocus ||
+        input.briefSummary
+      : input.adapterPrimaryFocus ||
+        input.intelligence.suggestedFocus ||
+        coachPurpose ||
+        coachFocus ||
+        input.briefSummary;
+
   const topicsSource =
     input.initialPreparation.prepTopics.trim() ||
+    (input.adapterAreas && input.adapterAreas.length > 0
+      ? input.adapterAreas.join("\n")
+      : "") ||
     input.focusTags.join("\n") ||
     input.suggestedTopics.join("\n");
 
   const questionsSource =
     input.initialPreparation.prepQuestions.trim() ||
+    (input.adapterQuestions && input.adapterQuestions.length > 0
+      ? input.adapterQuestions.join("\n\n")
+      : "") ||
     input.suggestedQuestions.join("\n\n") ||
     input.intelligence.suggestedQuestions.join("\n\n");
-
-  const purposeSource =
-    input.initialPreparation.prepPurpose.trim() ||
-    input.initialPreparation.focus.trim() ||
-    input.intelligence.suggestedFocus ||
-    input.briefSummary;
 
   return normalisePreparationBrief({
     primaryFocus: purposeSource,
@@ -174,6 +201,9 @@ export function PreparationView({
   developmentDirection = null,
   historicalContext = [],
   relevantPatterns = [],
+  adapterPrimaryFocus = null,
+  adapterAreas = [],
+  adapterQuestions = [],
   disabled = false,
   showAiPreparation = true,
   insertedNotice,
@@ -238,6 +268,9 @@ export function PreparationView({
         mode,
         isFirstSession,
         hasApprovedEvidence,
+        adapterPrimaryFocus,
+        adapterAreas,
+        adapterQuestions,
       }),
     [
       initialPreparation,
@@ -256,6 +289,9 @@ export function PreparationView({
       mode,
       isFirstSession,
       hasApprovedEvidence,
+      adapterPrimaryFocus,
+      adapterAreas,
+      adapterQuestions,
     ]
   );
 

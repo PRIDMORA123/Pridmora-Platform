@@ -64,6 +64,10 @@ import type { PreparationRefreshState } from "@/components/prepare/preparation-a
 import { useToast } from "@/components/feedback/toast-provider";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
 import { selectPatternsForPrepare } from "@/lib/patterns/prioritise";
+import {
+  buildPreparationAdapterContext,
+  buildSessionNumberMap,
+} from "@/lib/preparation/preparation-intelligence-adapter";
 import type {
   CoachingIntelligenceMode,
   CoachingIntelligenceStatus,
@@ -741,24 +745,44 @@ export function PrepareSessionView({
     item => item.statement
   );
 
-  const relevantPatterns = useMemo(
+  const preparationAdapter = useMemo(
     () =>
-      selectPatternsForPrepare(profile?.coachingPatterns ?? [], {
-        focusText:
-          draft.prepPurpose ||
-          draft.focus ||
-          intelligence.suggestedFocus ||
-          client.currentFocus,
-        limit: 2,
+      buildPreparationAdapterContext({
+        client,
+        currentSession: draft,
+        profile,
+        patterns: profile?.coachingPatterns ?? [],
       }),
-    [
-      profile?.coachingPatterns,
-      draft.prepPurpose,
-      draft.focus,
-      intelligence.suggestedFocus,
-      client.currentFocus,
-    ]
+    [client, draft, profile]
   );
+
+  const relevantPatterns = useMemo(() => {
+    if (preparationAdapter.relevantPatterns.length > 0) {
+      return preparationAdapter.relevantPatterns.map(pattern => ({
+        title: pattern.title,
+        description: pattern.description,
+      }));
+    }
+    return selectPatternsForPrepare(profile?.coachingPatterns ?? [], {
+      focusText:
+        draft.prepPurpose ||
+        draft.focus ||
+        intelligence.suggestedFocus ||
+        client.currentFocus,
+      limit: 2,
+      beforeSessionNumber: draft.sessionNumber,
+      sessionNumbers: buildSessionNumberMap(client.sessions),
+    });
+  }, [
+    preparationAdapter,
+    profile?.coachingPatterns,
+    draft.prepPurpose,
+    draft.focus,
+    draft.sessionNumber,
+    intelligence.suggestedFocus,
+    client.currentFocus,
+    client.sessions,
+  ]);
 
   const orientation = STAGE_ORIENTATION_COPY.prepare;
   const prepareSessionTitle = getSessionDisplayTitle({
@@ -869,13 +893,17 @@ export function PrepareSessionView({
             evidenceLabel: null,
           }))}
           coachingPurpose={getCoachingPurpose(client)}
-          isFirstSession={draft.sessionNumber <= 1}
+          isFirstSession={preparationAdapter.isFirstSession}
+          adapterPrimaryFocus={preparationAdapter.primaryFocusSuggestion}
+          adapterAreas={preparationAdapter.areasToExplore}
+          adapterQuestions={preparationAdapter.questions}
           hasApprovedEvidence={
             usedSources.length > 0 ||
             Boolean(
               intelligence.previousConversation?.summary ||
                 intelligence.outstandingCommitments.length > 0
-            )
+            ) ||
+            !preparationAdapter.isFirstSession
           }
           hasSavedPreparation={hasPreparationAiContent(aiBrief)}
           disabled={archived}

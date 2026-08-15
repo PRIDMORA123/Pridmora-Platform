@@ -539,6 +539,8 @@ export function buildPreparationBriefInput(input: {
   coachNotes: string;
   /** Only coach-opted supporting context items — never auto-included from upload alone. */
   supportingContext?: string;
+  /** Bounded Preparation adapter context (temporal + first/continuing mode). */
+  preparationContext?: string;
 }): string {
   const approachName =
     input.style === "minimal"
@@ -567,6 +569,12 @@ export function buildPreparationBriefInput(input: {
     "Current journey stage:",
     input.journeyStage || "Not recorded.",
     "",
+    "BOUNDED PREPARATION CONTEXT",
+    "",
+    "Use only this adapter context and the authorised evidence below.",
+    "Do not invent later-session evidence. Prefer conversation-ready focus over intake contracting once the relationship is established.",
+    input.preparationContext?.trim() || "No adapter context supplied.",
+    "",
     "AUTHORISED RECENT EVIDENCE",
     "",
     "Latest development conversation:",
@@ -583,7 +591,7 @@ export function buildPreparationBriefInput(input: {
     "Current development profile — approved or applied evidence only:",
     input.developmentProfile || "No approved development profile yet.",
     "",
-    "Earlier conversations — approved fields only:",
+    "Earlier conversations — approved fields only (before this session):",
     input.previousSessions || "No authorised earlier conversations.",
     "",
     "Supporting context — coach opted in for AI preparation only:",

@@ -7,8 +7,12 @@ import type { PreparationAiBrief } from "@/lib/preparation-brief";
 import { extractVisibleCoachNotes } from "@/lib/coach-notes";
 import {
   previousCompletedSession,
-  unresolvedActionsForPreparation,
+  unresolvedActionsBeforeSession,
 } from "@/lib/session-workflow";
+import {
+  buildPreparationAdapterContext,
+  isHistoricalSessionPreparation,
+} from "@/lib/preparation/preparation-intelligence-adapter";
 import type { CoachPreparationDraft } from "@/lib/preparation/derive-coach-preparation";
 
 export type {
@@ -131,8 +135,14 @@ function getPreviousApprovedConversation(
   };
 }
 
-function getOutstandingCommitments(client: Client, conversationId: string) {
-  return unresolvedActionsForPreparation(client, conversationId).map(action => ({
+function getOutstandingCommitments(
+  client: Client,
+  conversation: Pick<Session, "id" | "sessionNumber">
+) {
+  const historical = isHistoricalSessionPreparation(client.sessions, conversation);
+  return unresolvedActionsBeforeSession(client, conversation, {
+    allowUndatedOpenActions: !historical,
+  }).map(action => ({
     id: action.id,
     statement: action.title,
     dueDate: action.due ?? null,
@@ -260,17 +270,39 @@ export function resolvePreparationIntelligence(input: {
   );
   const outstandingCommitments = getOutstandingCommitments(
     input.client,
-    input.conversation.id
+    input.conversation
   );
   const recentReflection = getLatestApprovedReflection(
     input.client,
     input.conversation.id
   );
-  const developmentUpdates = getApprovedDevelopmentUpdates(input.updates);
-  const coachingPurpose =
-    input.profile?.currentFocus?.trim() ||
-    input.client.currentFocus.trim() ||
-    "";
+  const developmentUpdates = getApprovedDevelopmentUpdates(
+    input.updates.filter(update => {
+      const session = input.client.sessions.find(
+        item => item.id === update.sessionId
+      );
+      if (!session) {
+        return !isHistoricalSessionPreparation(
+          input.client.sessions,
+          input.conversation
+        );
+      }
+      return session.sessionNumber < input.conversation.sessionNumber;
+    })
+  );
+  const adapter = buildPreparationAdapterContext({
+    client: input.client,
+    currentSession: input.conversation,
+    profile: input.profile,
+    patterns: input.profile?.coachingPatterns ?? [],
+  });
+  const coachingPurpose = adapter.isFirstSession
+    ? input.profile?.currentFocus?.trim() ||
+      input.client.currentFocus.trim() ||
+      ""
+    : adapter.prompt.currentFocus ||
+      adapter.nextFocus ||
+      "";
 
   const aiGuidance = generatePreparationGuidance({
     previousConversation,
@@ -281,15 +313,28 @@ export function resolvePreparationIntelligence(input: {
     coachingPurpose,
   });
 
+  const suggestedFocus =
+    (!adapter.isFirstSession && adapter.primaryFocusSuggestion) ||
+    aiGuidance.suggestedFocus;
+
+  const suggestedQuestions =
+    !adapter.isFirstSession && (!input.brief || input.brief.questions.length === 0)
+      ? adapter.questions
+      : aiGuidance.suggestedQuestions.length > 0
+        ? aiGuidance.suggestedQuestions
+        : adapter.questions;
+
   return {
     previousConversation,
     outstandingCommitments,
-    suggestedFocus: aiGuidance.suggestedFocus,
+    suggestedFocus: suggestedFocus ? truncate(suggestedFocus, 140) : null,
     recentReflection,
     developmentUpdates,
-    suggestedQuestions: aiGuidance.suggestedQuestions,
+    suggestedQuestions,
     suggestedFramework: aiGuidance.suggestedFramework,
-    approachSummary: aiGuidance.approachSummary,
+    approachSummary: adapter.movementSummary
+      ? truncate(adapter.movementSummary, 280)
+      : aiGuidance.approachSummary,
   };
 }
 

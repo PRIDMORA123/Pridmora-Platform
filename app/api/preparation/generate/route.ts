@@ -5,7 +5,6 @@ import {
   buildPreparationBriefInput,
   PREPARATION_BRIEF_SYSTEM_PROMPT,
 } from "@/lib/ai/preparation-brief-prompt";
-import { formatProfileForPrompt } from "@/lib/ai/development-update-prompt";
 import { getCoachProfile } from "@/lib/auth/session";
 import {
   requireAssignedClientAccess,
@@ -40,6 +39,9 @@ import {
   supportingContextForAi,
   SUPPORTING_CONTEXT_SOURCE_LABELS,
 } from "@/lib/relationship-meta";
+import {
+  buildPreparationAdapterContext,
+} from "@/lib/preparation/preparation-intelligence-adapter";
 import { isUuid } from "@/lib/uuid";
 
 export const runtime = "nodejs";
@@ -234,7 +236,8 @@ export async function POST(request: Request) {
         item =>
           item.id !== sessionId &&
           (item.status === "completed" || item.aiSummaryApproved) &&
-          item.summaryStatus === "approved"
+          item.summaryStatus === "approved" &&
+          item.sessionNumber < currentSession.sessionNumber
       )
       .sort((a, b) => b.sessionNumber - a.sessionNumber);
 
@@ -245,6 +248,19 @@ export async function POST(request: Request) {
       clientId,
       String(client.current_focus ?? "")
     );
+
+    const adapter = buildPreparationAdapterContext({
+      client: {
+        name: aiContext.aiDisplayName,
+        role: String(client.role ?? ""),
+        currentFocus: String(client.current_focus ?? ""),
+        actions: [],
+        sessions,
+      },
+      currentSession,
+      profile,
+      patterns: profile.coachingPatterns ?? [],
+    });
 
     const evidence = await getApprovedRelationshipEvidence(supabase, {
       coachId,
@@ -273,38 +289,8 @@ export async function POST(request: Request) {
 
     const personContext = formatRelationshipAiPersonContext(aiContext).join("\n");
 
-    const latestConversation = latest
-      ? [
-          `Date: ${latest.date || latest.completedAt || "unknown"}`,
-          latest.focus ? `Focus: ${latest.focus}` : "",
-          latest.summary ? `Approved summary: ${latest.summary}` : "",
-          latest.professionalIdentityDevelopment
-            ? `Key learning: ${latest.professionalIdentityDevelopment}`
-            : "",
-          latest.commitments || latest.agreedActions
-            ? `Commitments: ${latest.commitments || latest.agreedActions}`
-            : "",
-        ]
-          .filter(Boolean)
-          .join("\n")
-      : "";
-
-    const previousSessionsText = previous
-      .slice(0, 6)
-      .map(item =>
-        [
-          `Conversation ${item.sessionNumber}`,
-          `Date: ${item.date || item.completedAt || "unknown"}`,
-          item.summary ? `Approved summary: ${item.summary}` : "",
-          item.emergingThemes ? `Themes: ${item.emergingThemes}` : "",
-          item.commitments || item.agreedActions
-            ? `Commitments: ${item.commitments || item.agreedActions}`
-            : "",
-        ]
-          .filter(Boolean)
-          .join("\n")
-      )
-      .join("\n\n");
+    const latestConversation = adapter.prompt.latestConversation;
+    const previousSessionsText = adapter.prompt.previousSessions;
 
     const sourceFingerprint = buildSourceFingerprint([
       client.updated_at,
@@ -314,6 +300,8 @@ export async function POST(request: Request) {
       // Fingerprint whether private notes exist without sending their contents to AI.
       currentSession.prepPrivateNotes ? "notes:present" : "notes:absent",
       String(client.current_focus ?? ""),
+      `session:${currentSession.sessionNumber}`,
+      adapter.isFirstSession ? "mode:first" : adapter.isHistoricalPreparation ? "mode:historical" : "mode:continuing",
     ]);
 
     const openai = new OpenAI({ apiKey });
@@ -340,21 +328,18 @@ export async function POST(request: Request) {
       input: buildPreparationBriefInput({
         style: requestedStyle,
         personContext,
-        coachingPurpose: String(client.current_focus ?? ""),
-        currentFocus: profile.currentFocus || String(client.current_focus ?? ""),
+        coachingPurpose: adapter.prompt.coachingPurpose,
+        currentFocus: adapter.prompt.currentFocus,
         journeyStage: journey.stage.label,
         latestConversation,
         approvedSummary: latest?.summary ?? "",
-        commitments:
-          latest?.commitments ||
-          latest?.agreedActions ||
-          currentSession.prepCommitmentsReview ||
-          "",
-        developmentProfile: formatProfileForPrompt(profile),
+        commitments: adapter.prompt.commitments,
+        developmentProfile: adapter.prompt.developmentProfile,
         previousSessions: previousSessionsText,
         // Private preparation notes are never sent to AI models.
         coachNotes: "",
         supportingContext: supportingContextText,
+        preparationContext: adapter.prompt.preparationContext,
       }),
     });
 

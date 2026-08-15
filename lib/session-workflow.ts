@@ -168,6 +168,28 @@ export function unresolvedActionsForPreparation(
   });
 }
 
+/**
+ * Temporally coherent open actions for Prepare Session N:
+ * only unresolved actions originating from sessions before N.
+ */
+export function unresolvedActionsBeforeSession(
+  client: Pick<Client, "actions" | "sessions">,
+  current: Pick<Session, "id" | "sessionNumber">,
+  options?: { allowUndatedOpenActions?: boolean }
+): CoachingAction[] {
+  const sessionNumbers = new Map(
+    client.sessions.map(session => [session.id, session.sessionNumber] as const)
+  );
+  const allowUndated = options?.allowUndatedOpenActions !== false;
+  return unresolvedActions(client.actions).filter(action => {
+    if (action.sessionId === current.id) return false;
+    const linked = action.sessionId?.trim() || "";
+    if (!linked) return allowUndated;
+    const number = sessionNumbers.get(linked);
+    return typeof number === "number" && number < current.sessionNumber;
+  });
+}
+
 export function hasPreparationContent(session: Session): boolean {
   return [
     session.prepPurpose,

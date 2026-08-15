@@ -1,5 +1,9 @@
 import type { CoachingPattern } from "@/lib/patterns/types";
 import { isDisplayablePattern } from "@/lib/patterns/classify";
+import {
+  isReviewedPatternForPrepare,
+  patternEvidenceIsBeforeSession,
+} from "@/lib/preparation/preparation-intelligence-adapter";
 
 export const PREPARE_PATTERN_LIMIT = 2;
 export const DEVELOPMENT_PATTERN_LIMIT = 3;
@@ -37,20 +41,10 @@ function relevanceScore(
     }
   }
 
-  // Deprioritise stable low-value patterns when stronger recent evidence exists
-  if (
-    pattern.status === "active" &&
-    pattern.strength === "emerging" &&
-    pattern.evidenceCount <= 2 &&
-    !pattern.coachAccepted
-  ) {
-    score -= 1;
-  }
-
   return score;
 }
 
-function eligibleForSurfacing(pattern: CoachingPattern): boolean {
+function eligibleForDevelopmentSurfacing(pattern: CoachingPattern): boolean {
   if (!isDisplayablePattern(pattern.strength)) return false;
   if (pattern.suppressed) return false;
   if (pattern.coachAccepted === false) return false;
@@ -59,13 +53,16 @@ function eligibleForSurfacing(pattern: CoachingPattern): boolean {
 }
 
 /**
- * Prioritise patterns for Prepare — max two, relevant to session focus.
+ * Prioritise patterns for Prepare — max two, reviewed only, temporally bounded.
  */
 export function selectPatternsForPrepare(
   patterns: CoachingPattern[],
   options?: {
     focusText?: string | null;
     limit?: number;
+    /** Session number of the preparation session (exclusive upper bound). */
+    beforeSessionNumber?: number;
+    sessionNumbers?: Map<string, number>;
   }
 ): CoachingPattern[] {
   const limit = options?.limit ?? PREPARE_PATTERN_LIMIT;
@@ -73,16 +70,33 @@ export function selectPatternsForPrepare(
     .split(/[\s,;/|]+/)
     .map(part => part.trim())
     .filter(part => part.length >= 3);
+  const beforeSessionNumber = options?.beforeSessionNumber;
+  const sessionNumbers = options?.sessionNumbers;
 
   return patterns
-    .filter(eligibleForSurfacing)
+    .filter(isReviewedPatternForPrepare)
+    .filter(pattern => {
+      if (
+        typeof beforeSessionNumber === "number" &&
+        sessionNumbers &&
+        beforeSessionNumber > 0
+      ) {
+        return patternEvidenceIsBeforeSession(
+          pattern,
+          sessionNumbers,
+          beforeSessionNumber
+        );
+      }
+      // Without temporal context, still require reviewed acceptance and
+      // refuse patterns that have no session-linked evidence.
+      return distinctSessionIdsSafe(pattern).length > 0;
+    })
     .map(pattern => ({
       pattern,
       score: relevanceScore(pattern, focusTerms),
     }))
     .filter(item => {
       if (focusTerms.length === 0) return true;
-      // Prefer focus-relevant; still allow high-value accepted patterns
       return (
         item.score >= 10 ||
         focusTerms.some(term =>
@@ -97,8 +111,18 @@ export function selectPatternsForPrepare(
     .map(item => item.pattern);
 }
 
+function distinctSessionIdsSafe(pattern: CoachingPattern): string[] {
+  const ids = new Set<string>();
+  for (const item of pattern.evidence ?? []) {
+    const id = item.sessionId?.trim();
+    if (id) ids.add(id);
+  }
+  return [...ids];
+}
+
 /**
  * Development primary view — max three high-value patterns by default.
+ * Unchanged eligibility relative to prior Development behaviour (not Prepare).
  */
 export function selectPatternsForDevelopment(
   patterns: CoachingPattern[],
@@ -106,7 +130,7 @@ export function selectPatternsForDevelopment(
 ): CoachingPattern[] {
   const limit = options?.limit ?? DEVELOPMENT_PATTERN_LIMIT;
   return patterns
-    .filter(eligibleForSurfacing)
+    .filter(eligibleForDevelopmentSurfacing)
     .map(pattern => ({
       pattern,
       score: relevanceScore(pattern, []),
