@@ -539,6 +539,13 @@ export function normalisePreparationBrief(
       ? []
       : relevantPatterns;
 
+  // Areas should stay investigative — not a restatement of development-since-last.
+  const areasForDisplay = filterAgainst(
+    areasToExplore,
+    [developmentSinceLast ?? "", whatToPayAttentionTo ?? ""],
+    { max: MAX_AREAS }
+  );
+
   return {
     primaryFocus,
     developmentSinceLast:
@@ -557,7 +564,7 @@ export function normalisePreparationBrief(
       !isStrongDuplicate(whatProgressCouldLookLike, primaryFocus)
         ? whatProgressCouldLookLike
         : null,
-    areasToExplore,
+    areasToExplore: areasForDisplay,
     questions,
     previousCommitment: previousCommitment || null,
     relevantPatterns: mode === "comprehensive" ? patternsForDisplay : [],

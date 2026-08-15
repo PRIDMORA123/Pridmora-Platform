@@ -15,8 +15,7 @@ import { RelationshipIdentityBar } from "@/components/coaching-journey/relations
 import { StageOrientation } from "@/components/coaching-journey/stage-orientation";
 import { SessionSaveStatus } from "@/components/session/session-save-status";
 import { STAGE_ORIENTATION_COPY } from "@/lib/coaching-journey";
-import { getSessionDisplayTitle } from "@/lib/session/session-display";
-import { looksLikeCommitmentRevisitTitle } from "@/lib/prepare/derive-longitudinal-brief-sections";
+import { getDevelopmentConversationIdentityTitle } from "@/lib/prepare/derive-longitudinal-brief-sections";
 import type {
   DevelopmentProfile,
   DevelopmentUpdate,
@@ -786,28 +785,7 @@ export function PrepareSessionView({
   ]);
 
   const orientation = STAGE_ORIENTATION_COPY.prepare;
-  const aiDisplayFocus =
-    preparationBrief?.themes[0]?.title?.trim() ||
-    generatedBrief.possibleFocus?.trim() ||
-    "";
-  const adapterDisplayFocus = looksLikeCommitmentRevisitTitle(
-    preparationAdapter.primaryFocusSuggestion
-  )
-    ? ""
-    : preparationAdapter.primaryFocusSuggestion;
-  const prepareDisplayFocus =
-    draft.prepPurpose.trim() ||
-    draft.focus.trim() ||
-    aiDisplayFocus ||
-    intelligence.suggestedFocus?.trim() ||
-    adapterDisplayFocus ||
-    "";
-  const prepareSessionTitle = getSessionDisplayTitle({
-    title: draft.title,
-    focus: prepareDisplayFocus,
-    purpose: prepareDisplayFocus,
-    sessionNumber: draft.sessionNumber,
-  });
+  const prepareSessionTitle = getDevelopmentConversationIdentityTitle();
 
   const personName = getRelationshipDisplayName(client);
 
@@ -935,6 +913,37 @@ export function PrepareSessionView({
             null
           }
           aiThemes={preparationBrief?.themes ?? null}
+          supportedEvidence={(profile
+            ? [
+                ...(profile.strengths ?? []),
+                ...(profile.emergingThemes ?? []),
+                ...(profile.growthAreas ?? []),
+              ]
+            : []
+          )
+            .filter(
+              entry =>
+                entry.status === "supported" ||
+                entry.status === "well_established"
+            )
+            .map(entry => entry.value.trim())
+            .filter(Boolean)
+            .slice(0, 4)}
+          emergingEdges={(profile
+            ? [
+                ...(profile.growthAreas ?? []),
+                ...(profile.emergingThemes ?? []),
+              ]
+            : []
+          )
+            .filter(entry => entry.status === "emerging")
+            .map(entry => entry.value.trim())
+            .filter(Boolean)
+            .slice(0, 4)}
+          contextualTensions={(profile?.patterns ?? [])
+            .map(entry => entry.value.trim())
+            .filter(Boolean)
+            .slice(0, 2)}
           hasApprovedEvidence={
             usedSources.length > 0 ||
             Boolean(

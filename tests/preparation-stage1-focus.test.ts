@@ -5,10 +5,10 @@ import { resolvePreparationIntelligence } from "@/lib/preparation-intelligence";
 import { normalisePreparationBrief } from "@/lib/prepare/normalise-preparation-brief";
 import {
   deriveLongitudinalPreparationSections,
+  getDevelopmentConversationIdentityTitle,
   looksLikeCommitmentRevisitTitle,
 } from "@/lib/prepare/derive-longitudinal-brief-sections";
 import { looksLikeFirstSessionBoilerplate } from "@/components/prepare/preparation-view";
-import { getSessionDisplayTitle } from "@/lib/session/session-display";
 import { selectCommitmentsForPrepare } from "@/lib/preparation/commitment-selection";
 import type { DevelopmentProfile } from "@/lib/development-updates/types";
 import type { PreparationAiBrief } from "@/lib/preparation-brief";
@@ -263,22 +263,23 @@ describe("Stage 1 preparation focus hierarchy", () => {
     expect(brief.primaryFocus).toMatch(/Thursday/i);
   });
 
-  it("Prepare header is not automatically Revisit the open commitment", () => {
+  it("Prepare header uses stable session identity rather than preparation focus", () => {
     expect(
       looksLikeCommitmentRevisitTitle(
         "Revisit the open commitment: State a clear recommendation."
       )
     ).toBe(true);
 
-    const title = getSessionDisplayTitle({
-      title: "",
-      focus:
-        "Strengthen Alex’s confidence in using their project judgement in meetings.",
-      purpose: "",
-      sessionNumber: 4,
-    });
-    expect(title).not.toMatch(/^Revisit the open commitment/i);
-    expect(title).toMatch(/judgement|confidence/i);
+    const identityTitle = getDevelopmentConversationIdentityTitle();
+    expect(identityTitle).toBe("Development conversation");
+    expect(identityTitle).not.toMatch(/judgement|confidence|recommendation/i);
+    expect(identityTitle).not.toMatch(/^Revisit the open commitment/i);
+
+    // Display identity must not adopt the rich Primary Focus sentence.
+    const preparationFocus =
+      "Strengthen confidence in using project judgement by speaking up early and stating a clear recommendation.";
+    expect(identityTitle).not.toBe(preparationFocus);
+    expect(identityTitle).not.toContain(preparationFocus.slice(0, 24));
   });
 
   it("Previous commitment remains available separately from primary focus", () => {
@@ -385,6 +386,8 @@ describe("Stage 1 preparation focus hierarchy", () => {
     });
     expect(empty.developmentSinceLast).toBeNull();
     expect(empty.evidenceWorthExploring).toEqual([]);
+    expect(empty.whatProgressCouldLookLike).toBeNull();
+    expect(empty.investigativeAreas ?? []).toEqual([]);
 
     const rich = deriveLongitudinalPreparationSections({
       isFirstSession: false,
@@ -396,13 +399,61 @@ describe("Stage 1 preparation focus hierarchy", () => {
         title: p.title,
         basis: p.basis,
       })),
+      supportedEvidence: [
+        "Beginning to act earlier and clarifying ownership on project issues.",
+      ],
+      emergingEdges: [
+        "Needs to practise stating recommendations clearly, rather than only raising delivery concerns.",
+      ],
+      contextualTensions: [
+        "When senior colleagues are involved, hesitation before speaking up still appears.",
+      ],
     });
     expect(rich.developmentSinceLast).toMatch(/judgement|confidence|hesitation/i);
-    expect(rich.whatProgressCouldLookLike).toMatch(/recommendation|situation/i);
-    expect(rich.evidenceWorthExploring.length).toBeGreaterThan(0);
+
+    // Evidence boundary: supported vs unresolved edge — not the developmental objective.
+    expect(rich.evidenceWorthExploring.join(" ")).toMatch(
+      /There is evidence that/i
+    );
+    expect(rich.evidenceWorthExploring.join(" ")).toMatch(/less evidence yet/i);
     expect(rich.evidenceWorthExploring.join(" ")).not.toMatch(
       /consolidate early progress/i
     );
+    expect(rich.evidenceWorthExploring.join(" ")).not.toMatch(
+      /Help .+ consolidate/i
+    );
+
+    // Progress = observable behaviour, not conversation completion.
+    expect(rich.whatProgressCouldLookLike).toMatch(/states?|recommend/i);
+    expect(rich.whatProgressCouldLookLike).not.toMatch(
+      /by the end of the conversation|leaves with|has reviewed/i
+    );
+
+    // Areas are investigative themes, not a restatement of development-since-last.
+    const areas = rich.investigativeAreas ?? [];
+    expect(areas.length).toBeGreaterThan(0);
+    expect(areas.join(" ")).toMatch(
+      /enabled the progress|gets in the way|next developmental/i
+    );
+    if (rich.developmentSinceLast) {
+      for (const area of areas) {
+        expect(area.toLowerCase()).not.toBe(
+          rich.developmentSinceLast.toLowerCase()
+        );
+        expect(area).not.toMatch(/judgement earlier\. Confidence is emerging/i);
+      }
+    }
+  });
+
+  it("omits what-progress when only conversation-completion reflection exists", () => {
+    const sections = deriveLongitudinalPreparationSections({
+      isFirstSession: false,
+      primaryFocus: "Help consolidate progress on influence.",
+      reflectionPrompt:
+        "By the end of the conversation, they have reviewed last week's actions and leave with a phrase prepared.",
+    });
+    expect(sections.whatProgressCouldLookLike).toBeNull();
+    expect(sections.evidenceWorthExploring).toEqual([]);
   });
 
   it("first-session longitudinal sections stay empty", () => {
@@ -410,8 +461,12 @@ describe("Stage 1 preparation focus hierarchy", () => {
       isFirstSession: true,
       exploration: "Should not appear",
       reflectionPrompt: "Should not appear",
+      supportedEvidence: ["Supported strength"],
+      emergingEdges: ["Emerging edge"],
     });
     expect(sections.developmentSinceLast).toBeNull();
     expect(sections.whatProgressCouldLookLike).toBeNull();
+    expect(sections.evidenceWorthExploring).toEqual([]);
+    expect(sections.investigativeAreas ?? []).toEqual([]);
   });
 });

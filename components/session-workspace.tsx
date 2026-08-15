@@ -73,6 +73,7 @@ import {
 import { SessionSummaryReview } from "@/components/summary/session-summary-review";
 import { SessionNextSteps } from "@/components/actions/session-next-steps";
 import { JourneyStagePage } from "@/components/coaching-journey/journey-stage-page";
+import { getDevelopmentConversationIdentityTitle } from "@/lib/prepare/derive-longitudinal-brief-sections";
 import { RelationshipIdentityBar } from "@/components/coaching-journey/relationship-identity-bar";
 import { StageOrientation } from "@/components/coaching-journey/stage-orientation";
 import { JourneyNextStep } from "@/components/coaching-journey/journey-next-step";
@@ -87,7 +88,6 @@ import {
   SESSION_NOTES_OUTCOME_COPY,
   STAGE_ORIENTATION_COPY,
 } from "@/lib/coaching-journey";
-import { getSessionDisplayTitle } from "@/lib/session/session-display";
 import type { SessionModuleId } from "@/lib/relationship-workspace";
 import "@/components/coach/coach-workspace.css";
 
@@ -872,12 +872,7 @@ export function SessionWorkspace({
     previous?.commitments?.trim() ||
     "";
 
-  const sessionTitle = getSessionDisplayTitle({
-    title: session.title,
-    focus: session.focus,
-    purpose: session.prepPurpose,
-    sessionNumber: session.sessionNumber,
-  });
+  const sessionTitle = getDevelopmentConversationIdentityTitle();
 
   const isLiveNotes = stage === "coach";
   const isOutcomeNotes = stage === "reflect";

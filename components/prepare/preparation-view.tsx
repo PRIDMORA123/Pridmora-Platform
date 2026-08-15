@@ -81,6 +81,9 @@ export type PreparationViewProps = {
   reflectionPrompt?: string | null;
   movementSummary?: string | null;
   aiThemes?: Array<{ title?: string | null; basis?: string | null }> | null;
+  supportedEvidence?: string[] | null;
+  emergingEdges?: string[] | null;
+  contextualTensions?: string[] | null;
   disabled?: boolean;
   showAiPreparation?: boolean;
   insertedNotice?: string;
@@ -153,6 +156,9 @@ function buildNormalisedBrief(input: {
   reflectionPrompt?: string | null;
   movementSummary?: string | null;
   aiThemes?: Array<{ title?: string | null; basis?: string | null }> | null;
+  supportedEvidence?: string[] | null;
+  emergingEdges?: string[] | null;
+  contextualTensions?: string[] | null;
 }): NormalisedPreparationBrief {
   const coachPurpose = input.initialPreparation.prepPurpose.trim();
   const coachFocus = input.initialPreparation.focus.trim();
@@ -193,11 +199,7 @@ function buildNormalisedBrief(input: {
   const topicsSource =
     storedTopics && (input.isFirstSession || !topicsAreBoilerplate)
       ? storedTopics
-      : input.focusTags.join("\n") ||
-        input.suggestedTopics.join("\n") ||
-        (input.adapterAreas && input.adapterAreas.length > 0
-          ? input.adapterAreas.join("\n")
-          : "");
+      : "";
 
   const storedQuestions = input.initialPreparation.prepQuestions.trim();
   const questionLines = storedQuestions
@@ -225,11 +227,27 @@ function buildNormalisedBrief(input: {
       input.intelligence.previousConversation?.summary || null,
     themes: input.aiThemes,
     patterns: input.relevantPatterns,
+    supportedEvidence: input.supportedEvidence,
+    emergingEdges: input.emergingEdges,
+    contextualTensions: input.contextualTensions,
   });
+
+  // Prefer investigative areas over evidence-summary style tags.
+  const areasSource =
+    topicsSource ||
+    (longitudinal.investigativeAreas &&
+    longitudinal.investigativeAreas.length > 0
+      ? longitudinal.investigativeAreas.join("\n")
+      : "") ||
+    (input.adapterAreas && input.adapterAreas.length > 0
+      ? input.adapterAreas.join("\n")
+      : "") ||
+    input.focusTags.join("\n") ||
+    input.suggestedTopics.join("\n");
 
   return normalisePreparationBrief({
     primaryFocus: purposeSource,
-    areasToExplore: topicsSource,
+    areasToExplore: areasSource,
     questions: questionsSource,
     previousCommitment:
       selectPrimaryPreviousCommitment(input.commitmentStatements) ||
@@ -286,6 +304,9 @@ export function PreparationView({
   reflectionPrompt = null,
   movementSummary = null,
   aiThemes = null,
+  supportedEvidence = null,
+  emergingEdges = null,
+  contextualTensions = null,
   disabled = false,
   showAiPreparation = true,
   insertedNotice,
@@ -358,6 +379,9 @@ export function PreparationView({
         reflectionPrompt,
         movementSummary,
         aiThemes,
+        supportedEvidence,
+        emergingEdges,
+        contextualTensions,
       }),
     [
       initialPreparation,
@@ -384,6 +408,9 @@ export function PreparationView({
       reflectionPrompt,
       movementSummary,
       aiThemes,
+      supportedEvidence,
+      emergingEdges,
+      contextualTensions,
     ]
   );
 

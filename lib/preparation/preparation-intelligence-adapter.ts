@@ -459,25 +459,23 @@ export function buildPreparationAdapterContext(input: {
       movement: movementSummary,
     });
     areasToExplore = [
-      priority || "",
-      nextFocus && priority && nextFocus !== priority
-        ? (() => {
-            const focus = nextFocus.trim();
-            const sentence = focus.match(/^(.+?[.!?])(?:\s|$)/);
-            const first = (sentence?.[1] ?? focus).trim();
-            return first.length <= 120 ? first : `${first.slice(0, 117).trim()}…`;
-          })()
+      movementSummary
+        ? "What enabled the progress visible since the last conversation"
         : "",
-      movementSummary ? "What has moved since the last reviewed conversation" : "",
-      reviewedPatterns[0]?.title
-        ? `Pattern in view: ${reviewedPatterns[0].title}`
+      reviewedPatterns[0]?.title || behaviouralPatterns[0]
+        ? "What gets in the way in the contexts that still feel harder"
+        : "",
+      priority || nextFocus
+        ? "What would enable the next developmental step in a live work situation"
         : "",
     ]
       .map(item => item.trim())
       .filter(Boolean)
       .slice(0, 3);
-    if (areasToExplore.length === 0 && nextFocus) {
-      areasToExplore = [nextFocus];
+    if (areasToExplore.length === 0) {
+      areasToExplore = [
+        "What would make the next developmental step more consistent in day-to-day work",
+      ];
     }
     questions = continuingQuestions({
       commitment: previousCommitment,
