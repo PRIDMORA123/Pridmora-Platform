@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { ActionsWorkspace } from "@/components/actions/actions-workspace";
+import { StagePrimaryAction } from "@/components/coaching-journey/stage-primary-action";
 import type { CoachingAction, Session } from "@/lib/types";
 import { formatSessionDateLabel } from "@/lib/session/session-display";
 import { useOrganisation } from "@/lib/organisations/organisation-context";
@@ -249,7 +250,10 @@ export function SessionNextSteps({
           />
         </div>
 
-        <footer className="identity-session-completion-actions session-next-steps__actions">
+        <StagePrimaryAction
+          sticky={session.status === "awaiting_completion"}
+          className="identity-session-completion-actions session-next-steps__actions"
+        >
           {session.status === "awaiting_completion" && onCompleteSession ? (
             <button
               type="button"
@@ -257,7 +261,7 @@ export function SessionNextSteps({
               disabled={readOnly}
               onClick={onCompleteSession}
             >
-              Complete session
+              Complete conversation
             </button>
           ) : null}
 
@@ -281,7 +285,7 @@ export function SessionNextSteps({
               Return to Current Position
             </button>
           ) : null}
-        </footer>
+        </StagePrimaryAction>
       </div>
     </div>
   );

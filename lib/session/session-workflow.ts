@@ -471,6 +471,6 @@ export function nextLogicalActionLabel(
     case "summary":
       return completion.summary ? "Continue to next steps" : "Approve summary";
     case "next_steps":
-      return "Complete session";
+      return "Complete conversation";
   }
 }

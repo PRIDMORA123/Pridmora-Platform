@@ -266,7 +266,7 @@ export function overviewPrimaryAction(session: Session): {
     case "paused":
       return { label: "Continue conversation", stage: "coach" };
     case "awaiting_completion":
-      return { label: "Complete session", stage: "actions", action: "complete" };
+      return { label: "Complete conversation", stage: "actions", action: "complete" };
     case "completed":
       return { label: "View session summary", stage: "summary" };
   }

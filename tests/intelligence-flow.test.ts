@@ -143,7 +143,7 @@ describe("session and preparation workflow", () => {
     const unfinished = baseSession({ status: "awaiting_completion", notes: "" });
     expect(canEnterIntelligenceReview(unfinished).ok).toBe(false);
     expect(canCompleteSession(unfinished).ok).toBe(false);
-    expect(overviewPrimaryAction(unfinished).label).toBe("Complete session");
+    expect(overviewPrimaryAction(unfinished).label).toBe("Complete conversation");
 
     const ready = baseSession({
       status: "awaiting_completion",

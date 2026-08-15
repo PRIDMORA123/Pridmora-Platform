@@ -184,7 +184,6 @@ export function SessionWorkspace({
   const [readOnlyOverride, setReadOnlyOverride] = useState(false);
   const [completeOpen, setCompleteOpen] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
-  const [schedulePromptOpen, setSchedulePromptOpen] = useState(false);
   const [completionOpen, setCompletionOpen] = useState(false);
   const [generatingUpdate, setGeneratingUpdate] = useState(false);
   const [generatedUpdateId, setGeneratedUpdateId] = useState<string | null>(null);
@@ -896,7 +895,7 @@ export function SessionWorkspace({
         eyebrow: "After the session",
         title: "Carry forward what matters",
         description:
-          "Confirm commitments and the focus for next time. AI may suggest; you decide.",
+          "Confirm commitments and the focus for next time, then complete this conversation. Scheduling another session stays optional.",
         optional: false,
       }
     : isSummaryStage
@@ -1064,7 +1063,7 @@ export function SessionWorkspace({
                   disabled={archived}
                   onClick={() => setCompleteOpen(true)}
                 >
-                  Complete session
+                  Complete conversation
                 </button>
               ) : session.status === "prepared" || session.status === "planned" ? (
                 <ActionButton
@@ -1275,7 +1274,12 @@ export function SessionWorkspace({
         />
       }
       nextStep={
-        isSummaryStage ? (
+        isActionsStage && session.status === "awaiting_completion" ? (
+          <JourneyNextStep
+            now="Confirming commitments and next focus"
+            next="Complete conversation — scheduling another session is optional."
+          />
+        ) : isSummaryStage ? (
           <JourneyNextStep
             now="Reviewing Summary & Insights"
             next="Approve the summary or skip it and continue to Development."
@@ -1300,7 +1304,7 @@ export function SessionWorkspace({
     <>
       <ConfirmDialog
         open={completeOpen}
-        title="Complete this session?"
+        title="Complete this conversation?"
         onClose={() => setCompleteOpen(false)}
         footer={
           <>
@@ -1310,7 +1314,7 @@ export function SessionWorkspace({
             <ActionButton
               variant="primary"
               status={toActionButtonStatus(feedback.status)}
-              idleLabel="Complete session"
+              idleLabel="Complete conversation"
               loadingLabel="Completing…"
               successLabel="Completed"
               errorLabel="Try again"
@@ -1323,8 +1327,9 @@ export function SessionWorkspace({
         }
       >
         <p>
-          Completing marks the session as finished and read-only. You can still
-          edit later with Edit.
+          Completing marks this conversation as finished and read-only. Notes,
+          reflection, and commitments stay as captured. You can still edit later
+          with Edit. Scheduling another session is optional and separate.
         </p>
       </ConfirmDialog>
 
@@ -1346,10 +1351,11 @@ export function SessionWorkspace({
                   className="secondary"
                   onClick={() => {
                     setCompletionOpen(false);
-                    setSchedulePromptOpen(true);
+                    if (onReturnOverview) onReturnOverview();
+                    else onBack();
                   }}
                 >
-                  Continue
+                  Return to person
                 </button>
                 <button
                   type="button"
@@ -1368,29 +1374,77 @@ export function SessionWorkspace({
                   className="secondary"
                   onClick={() => {
                     setCompletionOpen(false);
-                    if (onTabChange) onTabChange("intelligence");
-                    else if (onReturnOverview) onReturnOverview();
-                    else onBack();
+                    setScheduleOpen(true);
                   }}
                 >
-                  View development
+                  Schedule next session
                 </button>
                 <button
                   type="button"
                   className="primary"
                   onClick={() => {
                     setCompletionOpen(false);
-                    setSchedulePromptOpen(true);
+                    if (onTabChange) onTabChange("intelligence");
+                    else if (onReturnOverview) onReturnOverview();
+                    else onBack();
                   }}
                 >
-                  Continue
+                  Return to person
+                </button>
+              </>
+            ) : updateReady &&
+              generatedUpdateId &&
+              updateOutcome === "ready_for_review" &&
+              onReviewDevelopmentUpdate ? (
+              <>
+                <button
+                  type="button"
+                  className="identity-text-action"
+                  onClick={() => {
+                    setCompletionOpen(false);
+                    setScheduleOpen(true);
+                  }}
+                >
+                  Schedule next session
+                </button>
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => {
+                    setCompletionOpen(false);
+                    if (onReturnOverview) onReturnOverview();
+                    else onBack();
+                  }}
+                >
+                  Return to person
+                </button>
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={() => {
+                    setCompletionOpen(false);
+                    onReviewDevelopmentUpdate(generatedUpdateId);
+                  }}
+                >
+                  Review development update
                 </button>
               </>
             ) : (
               <>
                 <button
                   type="button"
-                  className="secondary"
+                  className="identity-text-action"
+                  disabled={generatingUpdate}
+                  onClick={() => {
+                    setCompletionOpen(false);
+                    setScheduleOpen(true);
+                  }}
+                >
+                  Schedule next session
+                </button>
+                <button
+                  type="button"
+                  className="primary"
                   disabled={generatingUpdate}
                   title={
                     generatingUpdate
@@ -1403,36 +1457,8 @@ export function SessionWorkspace({
                     else onBack();
                   }}
                 >
-                  Return to person
+                  {generatingUpdate ? "Updating…" : "Return to person"}
                 </button>
-                {updateReady &&
-                generatedUpdateId &&
-                updateOutcome === "ready_for_review" &&
-                onReviewDevelopmentUpdate ? (
-                  <button
-                    type="button"
-                    className="primary"
-                    disabled={generatingUpdate}
-                    onClick={() => {
-                      setCompletionOpen(false);
-                      onReviewDevelopmentUpdate(generatedUpdateId);
-                    }}
-                  >
-                    Review development update
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="primary"
-                    disabled={generatingUpdate}
-                    onClick={() => {
-                      setCompletionOpen(false);
-                      setSchedulePromptOpen(true);
-                    }}
-                  >
-                    {generatingUpdate ? "Updating…" : "Continue"}
-                  </button>
-                )}
               </>
             )}
           </>
@@ -1486,46 +1512,10 @@ export function SessionWorkspace({
         )}
         {generatingUpdate ? (
           <p className="muted" style={{ marginTop: 8 }}>
-            {BRAND.intelligenceName} is completing the update. Continue will be
-            available when this finishes.
+            {BRAND.intelligenceName} is completing the update. Return to person
+            will be available when this finishes. Scheduling remains optional.
           </p>
         ) : null}
-      </ConfirmDialog>
-
-      <ConfirmDialog
-        open={schedulePromptOpen}
-        title="Schedule next session"
-        onClose={() => {
-          setSchedulePromptOpen(false);
-          if (onReturnOverview) onReturnOverview();
-        }}
-        footer={
-          <>
-            <button
-              type="button"
-              className="secondary"
-              onClick={() => {
-                setSchedulePromptOpen(false);
-                if (onReturnOverview) onReturnOverview();
-                else onBack();
-              }}
-            >
-              Not now
-            </button>
-            <button
-              type="button"
-              className="primary"
-              onClick={() => {
-                setSchedulePromptOpen(false);
-                setScheduleOpen(true);
-              }}
-            >
-              Schedule next session
-            </button>
-          </>
-        }
-      >
-        <p>This session is complete. Schedule the next session to continue the coaching journey.</p>
       </ConfirmDialog>
 
       <ScheduleSessionDialog
