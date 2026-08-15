@@ -1,7 +1,9 @@
 import { ZodError } from "zod";
 import {
+  buildDevelopmentSchemaValidationDiagnostic,
   normalizeDevelopmentModelText,
   parseDevelopmentUpdateGeneration,
+  type DevelopmentSchemaValidationDiagnostic,
   type DevelopmentUpdateGenerationParsed,
 } from "@/lib/development-updates/schema";
 import type { EvidenceSummaryItem } from "@/lib/development-updates/types";
@@ -14,6 +16,7 @@ import {
 } from "@/lib/relationship-scope";
 
 export { normalizeDevelopmentModelText };
+export type { DevelopmentSchemaValidationDiagnostic };
 
 /**
  * Concatenate relationship-scoped Development Update generation sources used
@@ -67,6 +70,8 @@ export type DevelopmentRejection = {
   stage: DevelopmentRejectionStage;
   validator: string;
   fieldName?: string;
+  /** Safe Zod metadata only — never model/coaching text. */
+  validationDiagnostic?: DevelopmentSchemaValidationDiagnostic;
   retryable: boolean;
   isolation?: RelationshipIsolationResult;
   existingProfilePreserved: true;
@@ -84,10 +89,13 @@ export type DevelopmentAttemptEvaluation =
     };
 
 const SAFE_MESSAGE = "Development could not be updated safely.";
+const SCHEMA_SAFE_MESSAGE =
+  "Aurelia returned an update that did not meet the required development-evidence format.";
 
 export function developmentRejectionResponseBody(rejection: DevelopmentRejection) {
-  return {
+  const body: Record<string, unknown> = {
     code: rejection.code,
+    rejectionCode: rejection.code,
     error: SAFE_MESSAGE,
     message: SAFE_MESSAGE,
     stage: rejection.stage,
@@ -95,6 +103,19 @@ export function developmentRejectionResponseBody(rejection: DevelopmentRejection
     retryable: rejection.retryable,
     recoverable: rejection.retryable,
   };
+
+  if (rejection.code === "DEVELOPMENT_SCHEMA_INVALID") {
+    body.error = SCHEMA_SAFE_MESSAGE;
+    body.message = SCHEMA_SAFE_MESSAGE;
+    body.fieldPath =
+      rejection.validationDiagnostic?.fieldPath ?? rejection.fieldName ?? null;
+    body.issueCode = rejection.validationDiagnostic?.issueCode ?? null;
+    if (rejection.validationDiagnostic) {
+      body.validationDiagnostic = rejection.validationDiagnostic;
+    }
+  }
+
+  return body;
 }
 
 export function developmentOutputFieldTexts(
@@ -172,6 +193,7 @@ export function buildDevelopmentRetryPromptAddon(clientDisplayName: string): str
     "Do not reuse any prior draft wording.",
     "Use only the authorised relationship evidence supplied in this request.",
     `The only client name permitted is: ${clientDisplayName}.`,
+    "For proposedChanges add/update items use { \"value\", \"status?\", \"reason?\" } — never { \"from\", \"to\" }.",
   ].join("\n");
 }
 
@@ -245,14 +267,16 @@ export function evaluateDevelopmentGenerationAttempt(input: {
     generation = parseDevelopmentUpdateGeneration(normalised);
   } catch (error) {
     if (error instanceof ZodError) {
-      const fieldName = error.issues[0]?.path?.join(".") || undefined;
+      const validationDiagnostic =
+        buildDevelopmentSchemaValidationDiagnostic(error);
       return {
         ok: false,
         rejection: {
           code: "DEVELOPMENT_SCHEMA_INVALID",
           stage: "schema_validation",
           validator: "developmentUpdateGenerationSchema",
-          fieldName,
+          fieldName: validationDiagnostic.fieldPath ?? undefined,
+          validationDiagnostic,
           retryable: input.attempt === 1,
           existingProfilePreserved: true,
         },
@@ -309,6 +333,7 @@ export function logDevelopmentGenerationRejection(input: {
     rejectionStage: input.rejection.stage,
     validator: input.rejection.validator,
     fieldName: input.rejection.fieldName ?? null,
+    validationDiagnostic: input.rejection.validationDiagnostic ?? null,
     attempt: input.attempt,
     responseId: input.responseId ?? null,
     isolationStatus: input.rejection.isolation?.status ?? null,

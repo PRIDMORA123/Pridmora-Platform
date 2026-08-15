@@ -72,6 +72,16 @@ export async function recordDevelopmentGenerationRejection(
     rejectionStage: string;
     attempt: number;
     responseId?: string | null;
+    fieldPath?: string | null;
+    issueCode?: string | null;
+    validationDiagnostic?: {
+      fieldPath: string | null;
+      issueCode: string | null;
+      expectedType: string | null;
+      receivedType: string | null;
+      minimum: number | null;
+      maximum: number | null;
+    } | null;
   }
 ): Promise<void> {
   await writeAudit(supabase, coachId, input.sessionId, "development_generation_rejected", null, {
@@ -83,6 +93,11 @@ export async function recordDevelopmentGenerationRejection(
     rejectionStage: input.rejectionStage,
     attempt: input.attempt,
     responseId: input.responseId ?? null,
+    fieldPath:
+      input.validationDiagnostic?.fieldPath ?? input.fieldPath ?? null,
+    issueCode:
+      input.validationDiagnostic?.issueCode ?? input.issueCode ?? null,
+    validationDiagnostic: input.validationDiagnostic ?? null,
     createdAt: new Date().toISOString(),
   });
 }

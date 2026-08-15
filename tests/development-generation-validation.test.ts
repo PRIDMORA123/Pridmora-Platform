@@ -134,6 +134,11 @@ describe("evaluateDevelopmentGenerationAttempt", () => {
     if (!result.ok) {
       expect(result.rejection.code).toBe("DEVELOPMENT_SCHEMA_INVALID");
       expect(result.rejection.stage).toBe("schema_validation");
+      expect(result.rejection.fieldName).toBe("conversationSummary");
+      expect(result.rejection.validationDiagnostic?.fieldPath).toBe(
+        "conversationSummary"
+      );
+      expect(result.rejection.retryable).toBe(true);
     }
   });
 

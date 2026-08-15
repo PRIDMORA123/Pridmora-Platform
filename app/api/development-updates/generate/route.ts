@@ -77,6 +77,9 @@ async function persistRejection(
     rejectionStage: meta.rejection.stage,
     attempt: meta.attempt,
     responseId: meta.responseId,
+    fieldPath: meta.rejection.fieldName ?? null,
+    issueCode: meta.rejection.validationDiagnostic?.issueCode ?? null,
+    validationDiagnostic: meta.rejection.validationDiagnostic ?? null,
   });
 }
 

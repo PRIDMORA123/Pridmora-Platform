@@ -190,7 +190,12 @@ export function SessionWorkspace({
   const [updateReady, setUpdateReady] = useState(false);
   const [updateFailed, setUpdateFailed] = useState(false);
   const [updateOutcome, setUpdateOutcome] = useState<
-    "idle" | "ready_for_review" | "no_meaningful_change" | "failed" | "network"
+    | "idle"
+    | "ready_for_review"
+    | "no_meaningful_change"
+    | "failed"
+    | "schema_invalid"
+    | "network"
   >("idle");
   const [updateNotice, setUpdateNotice] = useState("");
   const [retryUpdateKey, setRetryUpdateKey] = useState(0);
@@ -822,6 +827,29 @@ export function SessionWorkspace({
       setUpdateNotice(NETWORK_ERROR_MESSAGE);
       return;
     }
+
+    const body =
+      err instanceof ApiRequestError &&
+      err.responseBody &&
+      typeof err.responseBody === "object"
+        ? (err.responseBody as Record<string, unknown>)
+        : null;
+    const rejectionCode =
+      (typeof body?.rejectionCode === "string" && body.rejectionCode) ||
+      (typeof body?.code === "string" && body.code) ||
+      (err instanceof ApiRequestError ? err.code : null);
+
+    if (
+      rejectionCode === "DEVELOPMENT_SCHEMA_INVALID" ||
+      (typeof body?.stage === "string" && body.stage === "schema_validation")
+    ) {
+      setUpdateOutcome("schema_invalid");
+      setUpdateNotice(
+        "Your conversation is safely saved. Aurelia returned an update that did not meet the required development-evidence format."
+      );
+      return;
+    }
+
     setUpdateOutcome("failed");
     setUpdateNotice(
       "Your conversation notes and summary remain saved. The existing development profile has not been changed."
@@ -1344,7 +1372,9 @@ export function SessionWorkspace({
         }}
         footer={
           <>
-            {updateOutcome === "failed" || updateOutcome === "network" ? (
+            {updateOutcome === "failed" ||
+            updateOutcome === "schema_invalid" ||
+            updateOutcome === "network" ? (
               <>
                 <button
                   type="button"
@@ -1479,6 +1509,16 @@ export function SessionWorkspace({
               Unable to reach the server
             </p>
             <p className="muted">{updateNotice || NETWORK_ERROR_MESSAGE}</p>
+          </div>
+        ) : updateOutcome === "schema_invalid" ? (
+          <div role="status" aria-live="polite" aria-busy="false">
+            <p className="identity-processing-state__title">
+              Development update could not be prepared
+            </p>
+            <p className="muted">
+              {updateNotice ||
+                "Your conversation is safely saved. Aurelia returned an update that did not meet the required development-evidence format."}
+            </p>
           </div>
         ) : updateOutcome === "failed" || updateFailed ? (
           <div role="status" aria-live="polite" aria-busy="false">

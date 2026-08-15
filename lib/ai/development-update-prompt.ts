@@ -35,6 +35,8 @@ Rules:
 - Do not refer to any person not identified in the supplied relationship context.
 - Use UK English spelling (organisation, behaviour, prioritise, recognise, analyse).
 - Status values must be one of: emerging, supported, well_established.
+- For proposedChanges add/update items use objects shaped as { "value": "...", "status": "emerging", "reason": "..." }.
+- Do not use { "from": "...", "to": "..." } for profile updates — put the new wording in "value".
 - Return valid JSON only.
 
 Return ONLY valid JSON matching this shape:
