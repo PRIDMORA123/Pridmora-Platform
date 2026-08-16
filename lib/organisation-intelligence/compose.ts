@@ -20,20 +20,20 @@ export function buildRecommendations(input: {
 }): RecommendationView[] {
   const recommendations: RecommendationView[] = [];
 
-  const attentionThemes = input.themes
+  const risingThemes = input.themes
     .filter(
       theme =>
-        !theme.suppressed && theme.direction === "requiring_attention"
+        !theme.suppressed && theme.direction === "increasing_prevalence"
     )
     .slice(0, 2);
 
-  for (const theme of attentionThemes) {
+  for (const theme of risingThemes) {
     recommendations.push({
       priority: recommendations.length + 1,
-      title: `${theme.themeLabel} needs focused attention`,
-      rationale: `Evidence across ${theme.relationshipCount} relationships indicates ${theme.themeLabel.toLowerCase()} is requiring attention.`,
+      title: `${theme.themeLabel} is appearing more widely`,
+      rationale: `Authorised signals associated with ${theme.themeLabel.toLowerCase()} appear across more relationships than in the previous comparable period (${theme.relationshipCount} relationships). This is prevalence, not proof of behavioural change.`,
       recommendation:
-        "Provide targeted development support and continue gathering evidence before drawing firmer conclusions.",
+        "Consider whether targeted development support or continued monitoring is appropriate. Gather further authorised evidence before changing organisational practice.",
       confidenceLevel: theme.confidenceLevel,
       evidenceCount: theme.evidenceCount,
       relationshipCount: theme.relationshipCount,
@@ -41,21 +41,19 @@ export function buildRecommendations(input: {
     });
   }
 
-  const weakCapability = input.capabilities.find(
-    capability =>
-      !capability.suppressed &&
-      capability.direction === "requiring_attention"
+  const recurringTheme = input.themes.find(
+    theme => !theme.suppressed && theme.metadata.recurring === true
   );
-  if (weakCapability && recommendations.length < 3) {
+  if (recurringTheme && recommendations.length < 3) {
     recommendations.push({
       priority: recommendations.length + 1,
-      title: `${weakCapability.label} warrants review`,
-      rationale: `Available evidence indicates ${weakCapability.label.toLowerCase()} is requiring attention across contributing relationships.`,
+      title: `Continue monitoring ${recurringTheme.themeLabel.toLowerCase()}`,
+      rationale: `${recurringTheme.themeLabel} recurs across enough relationships in successive periods to watch carefully.`,
       recommendation:
-        "Use manager conversation guidance and facilitated group learning where the pattern is organisational rather than isolated.",
-      confidenceLevel: weakCapability.confidenceLevel,
-      evidenceCount: weakCapability.evidenceCount,
-      relationshipCount: weakCapability.relationshipCount,
+        "Continue monitoring and gather additional authorised evidence before changing organisational practice.",
+      confidenceLevel: recurringTheme.confidenceLevel,
+      evidenceCount: recurringTheme.evidenceCount,
+      relationshipCount: recurringTheme.relationshipCount,
       status: "proposed",
     });
   }
@@ -71,11 +69,11 @@ export function buildRecommendations(input: {
   ) {
     recommendations.push({
       priority: recommendations.length + 1,
-      title: "Sustain development momentum",
+      title: "Sustain development activity",
       rationale:
-        "Development Momentum suggests activity, action and recorded development need continued attention across the selected period.",
+        "Development Activity Momentum suggests conversations, actions and recorded development activity need continued attention across the selected period. This is an activity signal, not capability progress.",
       recommendation:
-        "Continue monitoring coaching activity and encourage completion of actions, reflections and development updates.",
+        "Continue monitoring development activity and encourage completion of actions, reflections and development updates.",
       confidenceLevel: momentum.confidenceLevel,
       evidenceCount: momentum.evidenceCount,
       relationshipCount: momentum.relationshipCount,
@@ -89,9 +87,9 @@ export function buildRecommendations(input: {
       recommendations.push({
         priority: 1,
         title: `Continue monitoring ${topTheme.themeLabel.toLowerCase()}`,
-        rationale: `A recurring pattern is emerging around ${topTheme.themeLabel.toLowerCase()} with enough anonymised evidence to watch carefully.`,
+        rationale: `A recurring authorised theme is observable around ${topTheme.themeLabel.toLowerCase()} with enough anonymised evidence to watch carefully.`,
         recommendation:
-          "Continue monitoring and gather additional evidence before changing organisational practice.",
+          "Continue monitoring and gather additional authorised evidence before changing organisational practice.",
         confidenceLevel: topTheme.confidenceLevel,
         evidenceCount: topTheme.evidenceCount,
         relationshipCount: topTheme.relationshipCount,
@@ -110,24 +108,29 @@ export function buildAttentionAreas(input: {
   const fromThemes = input.themes
     .filter(
       theme =>
-        !theme.suppressed && theme.direction === "requiring_attention"
+        !theme.suppressed &&
+        (theme.direction === "increasing_prevalence" ||
+          theme.metadata.recurring === true)
     )
     .map(theme => ({
       key: theme.themeKey,
       label: theme.themeLabel,
       kind: "theme" as const,
-      direction: theme.direction ?? "requiring_attention",
+      direction: theme.direction ?? "unchanged_prevalence",
       confidenceLevel: theme.confidenceLevel,
-      reason: `Evidence suggests ${theme.themeLabel.toLowerCase()} is requiring attention across ${theme.relationshipCount} relationships.`,
+      reason:
+        theme.direction === "increasing_prevalence"
+          ? `${theme.themeLabel} is appearing across more relationships than previously (${theme.relationshipCount}). This is prevalence, not behavioural diagnosis.`
+          : `${theme.themeLabel} recurs across ${theme.relationshipCount} relationships with enough evidence to monitor.`,
       recommendedReview:
-        "Review aggregated theme evidence and decide whether targeted support or continued monitoring is appropriate.",
+        "Review aggregated theme evidence and decide whether targeted support or continued monitoring is appropriate. Do not treat this as an individual assessment.",
     }));
 
   const fromCapabilities = input.capabilities
     .filter(
       capability =>
         !capability.suppressed &&
-        capability.direction === "requiring_attention"
+        capability.direction === "increasing_prevalence"
     )
     .map(capability => ({
       key: capability.key,
@@ -135,9 +138,9 @@ export function buildAttentionAreas(input: {
       kind: "capability" as const,
       direction: capability.direction,
       confidenceLevel: capability.confidenceLevel,
-      reason: `The available evidence indicates ${capability.label.toLowerCase()} is requiring attention.`,
+      reason: `Related authorised themes mapped to ${capability.label.toLowerCase()} show increasing prevalence across contributing relationships.`,
       recommendedReview:
-        "Review capability trends with authorised leaders and avoid individual assessment from this view.",
+        "Review foundation trends with authorised leaders and avoid individual assessment from this view.",
     }));
 
   return [...fromThemes, ...fromCapabilities].slice(0, 5);
@@ -205,30 +208,26 @@ export function buildCoachingImpact(input: {
   if (evidence && !evidence.suppressed) {
     impact.push({
       key: "evidence_progression",
-      label: "Evidence progression",
-      statement: `Evidence indicates ${evidence.metricValue ?? 0} approved evidence items were recorded during the period.`,
+      label: "Authorised evidence volume",
+      statement: `${evidence.metricValue ?? 0} authorised development evidence items were recorded during the period. This is evidence volume, not proof of behavioural progress.`,
       direction: evidence.direction,
       confidenceLevel: evidence.confidenceLevel,
       evidenceCount: evidence.evidenceCount,
     });
   }
 
-  const reducing = input.themes.filter(
+  const rising = input.themes.filter(
     theme =>
-      !theme.suppressed &&
-      theme.direction === "strengthening" &&
-      typeof theme.metadata.previousRelationshipCount === "number" &&
-      (theme.metadata.previousRelationshipCount as number) >
-        theme.relationshipCount
+      !theme.suppressed && theme.direction === "increasing_prevalence"
   );
-  if (reducing.length > 0) {
+  if (rising.length > 0) {
     impact.push({
-      key: "recurring_issues_reducing",
-      label: "Recurring issues",
-      statement: `Evidence associated with ${reducing[0].themeLabel.toLowerCase()} shows a lower contributing relationship count than the previous comparable period.`,
-      direction: "strengthening",
-      confidenceLevel: reducing[0].confidenceLevel,
-      evidenceCount: reducing[0].evidenceCount,
+      key: "theme_prevalence_increasing",
+      label: "Theme prevalence",
+      statement: `Authorised signals associated with ${rising[0].themeLabel.toLowerCase()} appear across more relationships than in the previous comparable period.`,
+      direction: "increasing_prevalence",
+      confidenceLevel: rising[0].confidenceLevel,
+      evidenceCount: rising[0].evidenceCount,
     });
   }
 
@@ -334,7 +333,7 @@ function sourceTypesForMetric(metricKey: string): string[] {
     case "development_conversations":
       return ["sessions"];
     case "evidence_items":
-      return ["approved_intelligence"];
+      return ["authorised_development_evidence"];
     case "action_completion_rate":
       return ["actions"];
     case "reflection_completion_rate":
@@ -347,7 +346,7 @@ function sourceTypesForMetric(metricKey: string): string[] {
         "actions",
         "reflections",
         "development_updates",
-        "approved_intelligence",
+        "authorised_development_evidence",
       ];
     default:
       return ["aggregated_evidence"];
@@ -370,21 +369,24 @@ export function buildDeterministicExecutiveBrief(input: {
   const improving = input.capabilities
     .filter(
       capability =>
-        !capability.suppressed && capability.direction === "strengthening"
+        !capability.suppressed &&
+        capability.direction === "increasing_prevalence"
     )
     .map(capability => capability.label);
   const attention = input.capabilities
     .filter(
       capability =>
         !capability.suppressed &&
-        capability.direction === "requiring_attention"
+        capability.direction === "decreasing_prevalence"
     )
     .map(capability => capability.label);
 
   const attentionThemeLabels = input.themes
     .filter(
       theme =>
-        !theme.suppressed && theme.direction === "requiring_attention"
+        !theme.suppressed &&
+        (theme.direction === "increasing_prevalence" ||
+          theme.metadata.recurring === true)
     )
     .map(theme => theme.themeLabel);
 
@@ -394,7 +396,8 @@ export function buildDeterministicExecutiveBrief(input: {
         !capability.suppressed &&
         (capability.confidenceLevel === "high" ||
           capability.confidenceLevel === "moderate") &&
-        capability.direction === "strengthening"
+        (capability.direction === "increasing_prevalence" ||
+          capability.direction === "unchanged_prevalence")
     )
     .map(capability => capability.label);
 
@@ -458,7 +461,8 @@ export function buildPremiumExecutiveBriefSections(input: {
   const improving = input.capabilities
     .filter(
       capability =>
-        !capability.suppressed && capability.direction === "strengthening"
+        !capability.suppressed &&
+        capability.direction === "increasing_prevalence"
     )
     .map(capability => capability.label);
   const attention = Array.from(
@@ -467,13 +471,15 @@ export function buildPremiumExecutiveBriefSections(input: {
         .filter(
           capability =>
             !capability.suppressed &&
-            capability.direction === "requiring_attention"
+            capability.direction === "decreasing_prevalence"
         )
         .map(capability => capability.label),
       ...input.themes
         .filter(
           theme =>
-            !theme.suppressed && theme.direction === "requiring_attention"
+            !theme.suppressed &&
+            (theme.direction === "increasing_prevalence" ||
+              theme.metadata.recurring === true)
         )
         .map(theme => theme.themeLabel),
     ])
@@ -519,4 +525,62 @@ export function hasEnoughEvidenceForOrganisationView(
     aggregates.contributingRelationships >= threshold &&
     aggregates.conversations > 0
   );
+}
+
+export type OrganisationEvidenceSufficiency =
+  | "no_activity"
+  | "activity_without_authorised_themes"
+  | "below_theme_threshold"
+  | "reportable";
+
+/**
+ * Honest sufficiency classification for People Development.
+ * Does not expose suppressed subgroup counts.
+ */
+export function classifyOrganisationEvidenceSufficiency(
+  aggregates: OrganisationIntelligenceSourceAggregates,
+  themeResult: { themes: ThemeView[] },
+  threshold: number = ORGANISATION_INTELLIGENCE_PRIVACY_THRESHOLD
+): OrganisationEvidenceSufficiency {
+  const hasActivity =
+    aggregates.conversations > 0 ||
+    aggregates.developmentUpdatesCompleted > 0 ||
+    aggregates.actionsTotal > 0 ||
+    aggregates.evidenceItems > 0;
+
+  if (!hasActivity && aggregates.contributingRelationships === 0) {
+    return "no_activity";
+  }
+
+  const knownCandidates =
+    aggregates.themeCandidates.length +
+    aggregates.itemThemes.length +
+    (aggregates.authorisedEvidenceCapabilities?.length ?? 0) +
+    (aggregates.previousAuthorisedEvidenceCapabilities?.length ?? 0);
+
+  const visibleThemes = themeResult.themes.filter(theme => !theme.suppressed);
+  if (visibleThemes.length > 0 && hasEnoughEvidenceForOrganisationView(aggregates, threshold)) {
+    return "reportable";
+  }
+
+  if (
+    hasActivity &&
+    knownCandidates === 0 &&
+    themeResult.themes.length === 0
+  ) {
+    return "activity_without_authorised_themes";
+  }
+
+  if (
+    themeResult.themes.some(theme => theme.suppressed) ||
+    (hasActivity && visibleThemes.length === 0)
+  ) {
+    return "below_theme_threshold";
+  }
+
+  if (!hasEnoughEvidenceForOrganisationView(aggregates, threshold)) {
+    return "below_theme_threshold";
+  }
+
+  return "activity_without_authorised_themes";
 }

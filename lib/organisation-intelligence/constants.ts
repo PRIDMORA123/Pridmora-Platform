@@ -19,11 +19,22 @@ export type PeriodPreset = (typeof PERIOD_PRESETS)[number];
 
 export const DEFAULT_PERIOD_PRESET: PeriodPreset = "last_90_days";
 
+/**
+ * Organisational trend labels.
+ * Theme prevalence uses increasing/decreasing/unchanged_prevalence.
+ * Legacy strengthening/requiring_attention may still appear on old snapshots —
+ * UI labels must not present them as behavioural progress.
+ */
 export const TREND_DIRECTIONS = [
   "up",
   "down",
   "stable",
+  "increasing_prevalence",
+  "decreasing_prevalence",
+  "unchanged_prevalence",
+  /** @deprecated Do not emit for new theme aggregation — prevalence ≠ progress */
   "strengthening",
+  /** @deprecated Do not emit for new theme aggregation — prevalence ≠ progress */
   "requiring_attention",
   "insufficient_evidence",
   "unavailable",
@@ -54,16 +65,23 @@ export const GENERATION_STAGE_LABELS: Record<GenerationStage, string> = {
 };
 
 export const MOMENTUM_METHODOLOGY = [
-  "Development Momentum is a directional measure of sustained coaching activity, action and recorded development.",
-  "It is weighted from completed conversations, completed actions, completed reflections, development updates and evidence progression in the selected period.",
+  "Development Activity Momentum is a directional measure of sustained development activity — conversations, actions, reflections, development updates and authorised evidence volume.",
+  "It is weighted from those activity counts in the selected period.",
+  "It is not a measure of behavioural progress, capability improvement or coaching effectiveness.",
   "It is not a scientific or validated psychological score.",
 ].join(" ");
 
 export const PRIVACY_NOTE =
-  "Organisation Intelligence uses anonymised aggregated coaching evidence only. Private identity, session notes and confidential relationship details are never shown.";
+  "People Development Intelligence uses anonymised aggregated authorised development signals only. Private identity, session notes, evidence wording and confidential relationship details are never shown.";
 
 export const INSUFFICIENT_EVIDENCE_COPY =
   "Not enough evidence to report safely.";
+
+export const ACTIVITY_WITHOUT_AUTHORISED_THEMES_COPY =
+  "Development activity is recorded, but there is not yet enough authorised, mapped development evidence to report recurring themes safely.";
+
+export const BELOW_THEME_THRESHOLD_COPY =
+  "Authorised development signals exist, but not enough distinct relationships contribute to any single theme to report safely.";
 
 export const NO_COMPARISON_COPY = "No earlier comparison is available.";
 

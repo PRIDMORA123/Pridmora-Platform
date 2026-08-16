@@ -1,17 +1,24 @@
 import { mapCapabilityTrends } from "@/lib/organisation-intelligence/capabilities";
 import {
+  ACTIVITY_WITHOUT_AUTHORISED_THEMES_COPY,
+  BELOW_THEME_THRESHOLD_COPY,
+  ORGANISATION_INTELLIGENCE_PRIVACY_THRESHOLD,
+  type ConfidenceLevel,
+} from "@/lib/organisation-intelligence/constants";
+import {
   buildAttentionAreas,
   buildCoachingImpact,
   buildDeterministicExecutiveBrief,
   buildEvidenceTraces,
   buildRecommendations,
+  classifyOrganisationEvidenceSufficiency,
   hasEnoughEvidenceForOrganisationView,
 } from "@/lib/organisation-intelligence/compose";
 import { calculateConfidenceLevel } from "@/lib/organisation-intelligence/confidence";
 import {
-  ORGANISATION_INTELLIGENCE_PRIVACY_THRESHOLD,
-  type ConfidenceLevel,
-} from "@/lib/organisation-intelligence/constants";
+  filterToKnownCatalogueThemeCandidates,
+  mapAuthorisedCapabilitiesToThemeCandidates,
+} from "@/lib/organisation-intelligence/living-theme-signals";
 import { buildOrganisationMetrics } from "@/lib/organisation-intelligence/metrics";
 import { aggregateThemes } from "@/lib/organisation-intelligence/themes";
 import type {
@@ -19,6 +26,34 @@ import type {
   OrganisationIntelligenceSnapshotView,
   OrganisationIntelligenceSourceAggregates,
 } from "@/lib/organisation-intelligence/types";
+
+function resolveLivingThemeCandidates(
+  aggregates: OrganisationIntelligenceSourceAggregates
+): {
+  current: ReturnType<typeof mapAuthorisedCapabilitiesToThemeCandidates>;
+  previous: ReturnType<typeof mapAuthorisedCapabilitiesToThemeCandidates>;
+} {
+  const livingCurrent = mapAuthorisedCapabilitiesToThemeCandidates(
+    aggregates.authorisedEvidenceCapabilities ?? []
+  );
+  const livingPrevious = mapAuthorisedCapabilitiesToThemeCandidates(
+    aggregates.previousAuthorisedEvidenceCapabilities ?? []
+  );
+
+  // Legacy intelligence_items + client_items themes: known catalogue keys only.
+  const legacyCurrent = filterToKnownCatalogueThemeCandidates([
+    ...aggregates.themeCandidates,
+    ...aggregates.itemThemes,
+  ]);
+  const legacyPrevious = filterToKnownCatalogueThemeCandidates(
+    aggregates.previousThemeCandidates
+  );
+
+  return {
+    current: [...livingCurrent, ...legacyCurrent],
+    previous: [...livingPrevious, ...legacyPrevious],
+  };
+}
 
 export function buildOrganisationIntelligenceSnapshotView(input: {
   id: string;
@@ -34,22 +69,27 @@ export function buildOrganisationIntelligenceSnapshotView(input: {
 }): OrganisationIntelligenceSnapshotView {
   const threshold =
     input.privacyThreshold ?? ORGANISATION_INTELLIGENCE_PRIVACY_THRESHOLD;
-  const emptyState = !hasEnoughEvidenceForOrganisationView(
+  const activityReady = hasEnoughEvidenceForOrganisationView(
     input.aggregates,
     threshold
   );
 
+  const livingThemes = resolveLivingThemeCandidates(input.aggregates);
   const metrics = buildOrganisationMetrics(input.aggregates, threshold);
   const themeResult = aggregateThemes({
-    current: [
-      ...input.aggregates.themeCandidates,
-      ...input.aggregates.itemThemes,
-    ],
-    previous: input.aggregates.previousThemeCandidates,
+    current: livingThemes.current,
+    previous: livingThemes.previous,
     hasEarlierPeriodActivity: input.aggregates.hasEarlierPeriodActivity,
     threshold,
   });
+  const sufficiency = classifyOrganisationEvidenceSufficiency(
+    input.aggregates,
+    themeResult,
+    threshold
+  );
   const visibleThemes = themeResult.themes.filter(theme => !theme.suppressed);
+  const emptyState = !activityReady;
+
   const capabilities = mapCapabilityTrends({
     themes: themeResult.themes,
     progressSignals: input.aggregates.progressSignals,
@@ -90,8 +130,9 @@ export function buildOrganisationIntelligenceSnapshotView(input: {
         consistentDirection: capabilities.some(
           capability =>
             !capability.suppressed &&
-            (capability.direction === "strengthening" ||
-              capability.direction === "stable")
+            (capability.direction === "increasing_prevalence" ||
+              capability.direction === "unchanged_prevalence" ||
+              capability.direction === "decreasing_prevalence")
         ),
         threshold,
       });
@@ -109,6 +150,19 @@ export function buildOrganisationIntelligenceSnapshotView(input: {
           recommendations,
           restrictedEvidenceExcluded: themeResult.restrictedEvidenceExcluded,
         }));
+
+  let insufficientEvidenceMessage: string | null = null;
+  if (emptyState) {
+    insufficientEvidenceMessage =
+      "People Development Intelligence becomes available when enough anonymised authorised development evidence has been recorded to report safely.";
+  } else if (sufficiency === "activity_without_authorised_themes") {
+    insufficientEvidenceMessage = ACTIVITY_WITHOUT_AUTHORISED_THEMES_COPY;
+  } else if (
+    sufficiency === "below_theme_threshold" &&
+    visibleThemes.length === 0
+  ) {
+    insufficientEvidenceMessage = BELOW_THEME_THRESHOLD_COPY;
+  }
 
   return {
     id: input.id,
@@ -148,8 +202,6 @@ export function buildOrganisationIntelligenceSnapshotView(input: {
           threshold,
         }),
     emptyState,
-    insufficientEvidenceMessage: emptyState
-      ? "Organisation Intelligence becomes available when enough anonymised coaching evidence has been recorded to report safely."
-      : null,
+    insufficientEvidenceMessage,
   };
 }

@@ -4,6 +4,8 @@ export {
   MOMENTUM_METHODOLOGY,
   PRIVACY_NOTE,
   INSUFFICIENT_EVIDENCE_COPY,
+  ACTIVITY_WITHOUT_AUTHORISED_THEMES_COPY,
+  BELOW_THEME_THRESHOLD_COPY,
   NO_COMPARISON_COPY,
   SIX_FOUNDATIONS,
   GENERATION_STAGE_LABELS,
@@ -76,6 +78,7 @@ export {
   buildDeterministicExecutiveBrief,
   buildPremiumExecutiveBriefSections,
   hasEnoughEvidenceForOrganisationView,
+  classifyOrganisationEvidenceSufficiency,
 } from "@/lib/organisation-intelligence/compose";
 
 export { buildOrganisationIntelligenceSnapshotView } from "@/lib/organisation-intelligence/build-snapshot";
@@ -102,3 +105,11 @@ export {
 export { generateOrganisationIntelligence } from "@/lib/organisation-intelligence/generate";
 
 export { buildOrganisationIntelligenceExportHtml } from "@/lib/organisation-intelligence/export";
+
+export {
+  mapAuthorisedCapabilitiesToThemeCandidates,
+  filterToKnownCatalogueThemeCandidates,
+  evidencePostureFromSourceTypes,
+} from "@/lib/organisation-intelligence/living-theme-signals";
+
+export { prevalenceDirectionFromCounts } from "@/lib/organisation-intelligence/themes";

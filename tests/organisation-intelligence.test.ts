@@ -274,7 +274,7 @@ describe("organisation intelligence privacy", () => {
     expect(html).not.toContain("client_private_identities");
     expect(html).not.toMatch(/\bprivate_notes\b/);
     expect(html).toContain("Methodology and privacy");
-    expect(html).toContain("anonymised aggregated coaching evidence only");
+    expect(html).toMatch(/anonymised aggregated authorised development signals only/i);
   });
 });
 
@@ -460,7 +460,8 @@ describe("organisation intelligence UI and navigation", () => {
     expect(page).toContain("Capability trends");
     expect(page).toContain("Emerging themes");
     expect(page).toContain("Priority areas");
-    expect(page).toContain("Areas requiring attention");
+    expect(page).toContain("Themes to monitor");
+    expect(page).toContain("Development Activity Momentum");
     expect(page).toContain("org-intelligence-sr-only");
   });
 

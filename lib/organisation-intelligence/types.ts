@@ -69,7 +69,17 @@ export type OrganisationIntelligenceSourceAggregates = {
   previousThemeCandidates: ThemeCandidate[];
   progressSignals: ProgressSignalCandidate[];
   itemThemes: ThemeCandidate[];
+  /** Gate 3.2B — capability keys from authorised living development evidence (server-side). */
+  authorisedEvidenceCapabilities?: AuthorisedCapabilityAggregateRow[];
+  previousAuthorisedEvidenceCapabilities?: AuthorisedCapabilityAggregateRow[];
   hasEarlierPeriodActivity: boolean;
+};
+
+export type AuthorisedCapabilityAggregateRow = {
+  capabilityKey: string;
+  contributorKey: string;
+  sourceType: string;
+  occurredAt?: string | null;
 };
 
 export type MetricView = {

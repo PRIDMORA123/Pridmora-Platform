@@ -134,7 +134,7 @@ export function buildOrganisationMetrics(
     }),
     countMetric({
       key: "evidence_items",
-      label: "Evidence items",
+      label: "Authorised development evidence",
       value: aggregates.evidenceItems,
       previous: aggregates.previousEvidenceItems,
       comparisonAvailable,
@@ -216,7 +216,7 @@ export function buildOrganisationMetrics(
     }),
     {
       metricKey: "development_momentum",
-      metricLabel: "Development Momentum",
+      metricLabel: "Development Activity Momentum",
       metricValue: momentum.value,
       previousValue: momentum.previousValue,
       direction: momentum.direction,
@@ -255,7 +255,7 @@ export function buildOrganisationMetrics(
             }
           : null,
         supportingCopy:
-          "A directional measure of sustained coaching activity, action and recorded development.",
+          "A directional measure of sustained development activity — not behavioural progress or capability improvement.",
         noComparisonCopy: momentum.comparisonAvailable
           ? null
           : NO_COMPARISON_COPY,

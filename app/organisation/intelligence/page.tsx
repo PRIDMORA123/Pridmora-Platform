@@ -636,7 +636,7 @@ export default function OrganisationIntelligencePage() {
                 {snapshot?.emptyState
                   ? snapshot.insufficientEvidenceMessage ||
                     "Organisation Intelligence becomes available when enough anonymised coaching evidence has been recorded to report safely."
-                  : "As coaching evidence grows, Pridmora will identify recurring development themes, patterns and areas requiring attention while protecting individual confidentiality."}
+                  : "As authorised development evidence grows, Pridmora will identify recurring privacy-safe development themes and prevalence changes while protecting individual confidentiality."}
               </p>
 
               <div className="org-intelligence-evidence-indicators">
@@ -741,7 +741,7 @@ export default function OrganisationIntelligencePage() {
                         <dd>{briefScanSummary.overallPosition}</dd>
                       </div>
                       <div>
-                        <dt>What is strengthening</dt>
+                        <dt>Themes with increasing prevalence</dt>
                         <dd>
                           {briefScanSummary.strengthening.length > 0 ? (
                             <ul>
@@ -750,12 +750,12 @@ export default function OrganisationIntelligencePage() {
                               ))}
                             </ul>
                           ) : (
-                            "No clear strengthening signal yet."
+                            "No theme shows increasing prevalence yet."
                           )}
                         </dd>
                       </div>
                       <div>
-                        <dt>What needs attention</dt>
+                        <dt>Themes to monitor</dt>
                         <dd>
                           {briefScanSummary.needsAttention.length > 0 ? (
                             <ul>
@@ -764,12 +764,12 @@ export default function OrganisationIntelligencePage() {
                               ))}
                             </ul>
                           ) : (
-                            "No strong attention signal yet."
+                            "No additional themes flagged for monitoring."
                           )}
                         </dd>
                       </div>
                       <div>
-                        <dt>Development health / momentum</dt>
+                        <dt>Development activity momentum</dt>
                         <dd>
                           {briefScanSummary.momentumValue ?? "Not available"} ·{" "}
                           <span className="org-intelligence-sr-only">
@@ -857,7 +857,7 @@ export default function OrganisationIntelligencePage() {
               aria-labelledby="org-intel-momentum"
             >
               <div className="org-intelligence-section__header">
-                <h2 id="org-intel-momentum">Development Momentum</h2>
+                <h2 id="org-intel-momentum">Development Activity Momentum</h2>
                 <button
                   type="button"
                   className="organisation-text-link"
@@ -1171,7 +1171,7 @@ export default function OrganisationIntelligencePage() {
               className="org-intelligence-section"
               aria-labelledby="org-intel-attention"
             >
-              <h2 id="org-intel-attention">Areas requiring attention</h2>
+              <h2 id="org-intel-attention">Themes to monitor</h2>
               {snapshot.attentionAreas.length === 0 ? (
                 <p className="organisation-muted">
                   No attention areas identified from the available evidence.

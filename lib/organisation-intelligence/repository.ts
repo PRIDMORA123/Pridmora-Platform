@@ -182,10 +182,60 @@ export function mapSourceAggregates(
       payload.progressSignals ?? payload.progress_signals
     ),
     itemThemes: asThemeCandidates(payload.itemThemes ?? payload.item_themes),
+    authorisedEvidenceCapabilities: asCapabilityCandidates(
+      payload.authorisedEvidenceCapabilities ??
+        payload.authorised_evidence_capabilities
+    ),
+    previousAuthorisedEvidenceCapabilities: asCapabilityCandidates(
+      payload.previousAuthorisedEvidenceCapabilities ??
+        payload.previous_authorised_evidence_capabilities
+    ),
     hasEarlierPeriodActivity: asBoolean(
       payload.hasEarlierPeriodActivity ?? payload.has_earlier_period_activity
     ),
   };
+}
+
+function asCapabilityCandidates(
+  value: unknown
+): import("@/lib/organisation-intelligence/types").AuthorisedCapabilityAggregateRow[] {
+  if (!Array.isArray(value)) return [];
+  const rows: import("@/lib/organisation-intelligence/types").AuthorisedCapabilityAggregateRow[] =
+    [];
+  for (const row of value) {
+    if (!row || typeof row !== "object") continue;
+    const item = row as Record<string, unknown>;
+    const capabilityKey =
+      typeof item.capabilityKey === "string"
+        ? item.capabilityKey
+        : typeof item.capability_key === "string"
+          ? item.capability_key
+          : null;
+    const contributorKey =
+      typeof item.contributorKey === "string"
+        ? item.contributorKey
+        : typeof item.contributor_key === "string"
+          ? item.contributor_key
+          : null;
+    if (!capabilityKey || !contributorKey) continue;
+    rows.push({
+      capabilityKey,
+      contributorKey,
+      sourceType:
+        typeof item.sourceType === "string"
+          ? item.sourceType
+          : typeof item.source_type === "string"
+            ? item.source_type
+            : "development_evidence",
+      occurredAt:
+        typeof item.occurredAt === "string"
+          ? item.occurredAt
+          : typeof item.occurred_at === "string"
+            ? item.occurred_at
+            : null,
+    });
+  }
+  return rows;
 }
 
 export async function fetchOrganisationIntelligenceSources(

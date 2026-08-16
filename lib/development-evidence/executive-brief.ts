@@ -191,14 +191,18 @@ export function buildExecutiveBriefScanSummary(input: {
       ...input.capabilities
         .filter(
           capability =>
-            !capability.suppressed && capability.direction === "strengthening"
+            !capability.suppressed &&
+            (capability.direction === "increasing_prevalence" ||
+              capability.direction === "strengthening")
         )
         .map(capability => capability.label),
       ...input.themes
         .filter(
           theme =>
             !theme.suppressed &&
-            (theme.direction === "up" || theme.direction === "strengthening")
+            (theme.direction === "up" ||
+              theme.direction === "increasing_prevalence" ||
+              theme.direction === "strengthening")
         )
         .map(theme => theme.themeLabel),
     ])
@@ -211,13 +215,17 @@ export function buildExecutiveBriefScanSummary(input: {
         .filter(
           capability =>
             !capability.suppressed &&
-            capability.direction === "requiring_attention"
+            (capability.direction === "decreasing_prevalence" ||
+              capability.direction === "requiring_attention")
         )
         .map(capability => capability.label),
       ...input.themes
         .filter(
           theme =>
-            !theme.suppressed && theme.direction === "requiring_attention"
+            !theme.suppressed &&
+            (theme.direction === "decreasing_prevalence" ||
+              theme.direction === "requiring_attention" ||
+              theme.direction === "increasing_prevalence")
         )
         .map(theme => theme.themeLabel),
     ])

@@ -4,6 +4,7 @@ import {
   type TrendDirection,
 } from "@/lib/organisation-intelligence/constants";
 import { calculateConfidenceLevel } from "@/lib/organisation-intelligence/confidence";
+import { evidencePostureFromSourceTypes } from "@/lib/organisation-intelligence/living-theme-signals";
 import { isRestrictedSensitiveTheme } from "@/lib/organisation-intelligence/suppression";
 import { meetsPrivacyThreshold } from "@/lib/organisation-intelligence/suppression";
 import type {
@@ -90,6 +91,11 @@ function buildBuckets(candidates: ThemeCandidate[]): {
       restrictedExcluded += 1;
       continue;
     }
+    // Gate 3.2B — organisational themes require known catalogue keys only.
+    // Unmapped free text must not become an organisational signal.
+    if (!normalised.known) {
+      continue;
+    }
 
     const existing = buckets.get(normalised.key);
     if (existing) {
@@ -113,7 +119,11 @@ function buildBuckets(candidates: ThemeCandidate[]): {
   return { buckets, restrictedExcluded };
 }
 
-function directionFromCounts(
+/**
+ * Prevalence only — never behavioural progress.
+ * increasing/decreasing/unchanged_prevalence replace legacy strengthening labels.
+ */
+export function prevalenceDirectionFromCounts(
   currentRelationships: number,
   previousRelationships: number,
   comparisonAvailable: boolean
@@ -123,8 +133,8 @@ function directionFromCounts(
     return "insufficient_evidence";
   }
   const delta = currentRelationships - previousRelationships;
-  if (Math.abs(delta) <= 1) return "stable";
-  return delta > 1 ? "strengthening" : "requiring_attention";
+  if (Math.abs(delta) <= 1) return "unchanged_prevalence";
+  return delta > 1 ? "increasing_prevalence" : "decreasing_prevalence";
 }
 
 export function aggregateThemes(input: {
@@ -147,17 +157,27 @@ export function aggregateThemes(input: {
     );
     const direction = suppressed
       ? "insufficient_evidence"
-      : directionFromCounts(
+      : prevalenceDirectionFromCounts(
           relationshipCount,
           previousRelationships,
           input.hasEarlierPeriodActivity
         );
 
+    const evidencePosture = evidencePostureFromSourceTypes(bucket.sourceTypes);
+    const recurring =
+      !suppressed &&
+      input.hasEarlierPeriodActivity &&
+      previousRelationships >= input.threshold &&
+      relationshipCount >= input.threshold;
+
     const confidenceLevel = calculateConfidenceLevel({
       evidenceCount: bucket.evidenceCount,
       relationshipCount,
       sourceTypeCount: bucket.sourceTypes.size,
-      consistentDirection: direction === "strengthening" || direction === "stable",
+      consistentDirection:
+        direction === "unchanged_prevalence" ||
+        direction === "increasing_prevalence" ||
+        direction === "decreasing_prevalence",
       multiPeriod: input.hasEarlierPeriodActivity && previousRelationships > 0,
       threshold: input.threshold,
     });
@@ -171,13 +191,16 @@ export function aggregateThemes(input: {
       confidenceLevel,
       summary: suppressed
         ? null
-        : `Evidence suggests ${bucket.themeLabel.toLowerCase()} is appearing across ${relationshipCount} relationships.`,
+        : `Authorised development signals associated with ${bucket.themeLabel.toLowerCase()} appear across ${relationshipCount} relationships.`,
       suppressed,
       relatedCapabilities: bucket.foundations,
       evidenceTypes: Array.from(bucket.sourceTypes).sort(),
       metadata: {
         known: bucket.known,
         previousRelationshipCount: previousRelationships,
+        evidencePosture,
+        recurring,
+        observed: !suppressed,
       },
     });
   }

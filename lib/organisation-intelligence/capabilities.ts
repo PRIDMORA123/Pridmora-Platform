@@ -12,8 +12,8 @@ import type {
 } from "@/lib/organisation-intelligence/types";
 
 /**
- * Map known theme foundations and validated progress signals onto the
- * Pridmora Six Foundations. Qualitative only — no invented percentages.
+ * Map known theme foundations onto the Pridmora Six Foundations.
+ * Direction reflects theme prevalence only — not behavioural progress.
  */
 export function mapCapabilityTrends(input: {
   themes: ThemeView[];
@@ -38,7 +38,6 @@ export function mapCapabilityTrends(input: {
 
     for (const theme of relatedThemes) {
       evidenceCount += theme.evidenceCount;
-      // Approximate distinct relationships from theme counts without IDs.
       for (let i = 0; i < theme.relationshipCount; i += 1) {
         relationshipIds.add(`${theme.themeKey}:${i}`);
       }
@@ -63,14 +62,17 @@ export function mapCapabilityTrends(input: {
 
     const direction = suppressed
       ? "insufficient_evidence"
-      : deriveCapabilityDirection(relatedThemes, signalRows);
+      : deriveCapabilityPrevalenceDirection(relatedThemes);
 
     const confidenceLevel = calculateConfidenceLevel({
       evidenceCount,
       relationshipCount,
       sourceTypeCount: Math.max(sourceTypes.size, relatedThemes.length > 0 ? 1 : 0),
       consistentDirection:
-        direction === "strengthening" || direction === "stable",
+        direction === "unchanged_prevalence" ||
+        direction === "increasing_prevalence" ||
+        direction === "decreasing_prevalence" ||
+        direction === "stable",
       multiPeriod: input.hasEarlierPeriodActivity,
       threshold: input.threshold,
     });
@@ -124,45 +126,56 @@ function signalMapsToFoundation(
   return map[foundation].some(token => name.includes(token));
 }
 
-function deriveCapabilityDirection(
-  themes: ThemeView[],
-  signals: ProgressSignalCandidate[]
+/** Prevalence roll-up from related themes — never behavioural strengthening. */
+function deriveCapabilityPrevalenceDirection(
+  themes: ThemeView[]
 ): TrendDirection {
   const themeDirections = themes
     .map(theme => theme.direction)
     .filter(Boolean) as TrendDirection[];
 
-  const improvingSignals = signals.filter(
-    signal => signal.direction === "improving"
-  ).length;
-  const decliningSignals = signals.filter(
-    signal => signal.direction === "declining"
-  ).length;
-
-  if (decliningSignals > improvingSignals) return "requiring_attention";
-  if (improvingSignals > decliningSignals) return "strengthening";
-
-  if (themeDirections.includes("requiring_attention")) {
-    return "requiring_attention";
+  if (themeDirections.includes("increasing_prevalence")) {
+    return "increasing_prevalence";
   }
-  if (themeDirections.includes("strengthening")) return "strengthening";
-  if (themeDirections.includes("stable")) return "stable";
-  if (themeDirections.length === 0 && signals.length === 0) {
+  if (themeDirections.includes("decreasing_prevalence")) {
+    return "decreasing_prevalence";
+  }
+  if (
+    themeDirections.includes("unchanged_prevalence") ||
+    themeDirections.includes("stable")
+  ) {
+    return "unchanged_prevalence";
+  }
+  // Legacy snapshot directions — treat as unchanged prevalence, not progress.
+  if (themeDirections.includes("strengthening")) {
+    return "increasing_prevalence";
+  }
+  if (themeDirections.includes("requiring_attention")) {
+    return "decreasing_prevalence";
+  }
+  if (themeDirections.length === 0) {
     return "insufficient_evidence";
   }
-  return "stable";
+  return "unchanged_prevalence";
 }
 
 export function directionLabel(direction: TrendDirection): string {
   switch (direction) {
-    case "strengthening":
-    case "up":
-      return "Strengthening";
-    case "requiring_attention":
-    case "down":
-      return "Requiring attention";
+    case "increasing_prevalence":
+      return "Increasing prevalence";
+    case "decreasing_prevalence":
+      return "Decreasing prevalence";
+    case "unchanged_prevalence":
     case "stable":
-      return "Stable";
+      return "Unchanged prevalence";
+    case "up":
+      return "Higher activity";
+    case "down":
+      return "Lower activity";
+    case "strengthening":
+      return "Increasing prevalence";
+    case "requiring_attention":
+      return "Decreasing prevalence";
     case "unavailable":
       return "No earlier comparison is available";
     default:
@@ -172,14 +185,17 @@ export function directionLabel(direction: TrendDirection): string {
 
 export function directionScreenReaderLabel(direction: TrendDirection): string {
   switch (direction) {
+    case "increasing_prevalence":
     case "strengthening":
     case "up":
-      return "Trend direction: strengthening";
+      return "Trend direction: increasing prevalence";
+    case "decreasing_prevalence":
     case "requiring_attention":
     case "down":
-      return "Trend direction: requiring attention";
+      return "Trend direction: decreasing prevalence";
+    case "unchanged_prevalence":
     case "stable":
-      return "Trend direction: stable";
+      return "Trend direction: unchanged prevalence";
     case "unavailable":
       return "Trend direction: no earlier comparison is available";
     default:
