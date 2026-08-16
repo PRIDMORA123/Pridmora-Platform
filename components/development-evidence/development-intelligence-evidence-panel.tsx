@@ -279,15 +279,28 @@ export function DevelopmentIntelligenceEvidencePanel({
           Supporting Evidence
         </summary>
         <div className="supporting-evidence-disclosure__body">
-          <EvidenceConfidencePanel
-            confidence={view.evidenceConfidence}
-            coverage={view.evidenceCoverage}
-          />
+          {fromProfile && view.evidenceConfidence.independentSourceCount === 0 ? (
+            <p className="muted">
+              Current Development Intelligence is based on reviewed coaching
+              conversations and the living development profile. No Development
+              Evidence library items are currently included, so library
+              confidence and coverage meters are not shown.
+            </p>
+          ) : (
+            <EvidenceConfidencePanel
+              confidence={view.evidenceConfidence}
+              coverage={view.evidenceCoverage}
+            />
+          )}
 
           <section className="development-section">
             <h3>Recent Development Evidence</h3>
             {view.recentEvidence.length === 0 ? (
-              <p className="muted">Not enough evidence yet.</p>
+              <p className="muted">
+                {fromProfile
+                  ? "No Development Evidence library items are included yet."
+                  : "Not enough evidence yet."}
+              </p>
             ) : (
               <ul className="development-evidence-list">
                 {view.recentEvidence.map(item => (

@@ -275,6 +275,16 @@ describe("Psychometric handling", () => {
 });
 
 describe("Evidence Confidence", () => {
+  it("scopes the empty-library basis to Development Evidence items", () => {
+    const empty = calculateEvidenceConfidence({ evidence: [] });
+    expect(empty.level).toBe("low");
+    expect(empty.independentSourceCount).toBe(0);
+    expect(empty.basis).toBe(
+      "No reviewed Development Evidence items are currently included."
+    );
+    expect(empty.basis).not.toMatch(/Development Intelligence/i);
+  });
+
   it("strengthens with independent sources and stays low for duplicates", () => {
     const independent = calculateEvidenceConfidence({
       evidence: [

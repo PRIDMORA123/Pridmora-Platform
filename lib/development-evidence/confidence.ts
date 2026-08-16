@@ -214,7 +214,7 @@ function confidenceBasis(input: {
   recentSources: number;
 }): string {
   if (input.independentSources === 0) {
-    return "No reviewed evidence is currently included in Development Intelligence.";
+    return "No reviewed Development Evidence items are currently included.";
   }
 
   if (input.level === "strong") {
