@@ -9119,13 +9119,13 @@ button.coaching-moments-section__item:focus-visible {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .identity-evidence-list__item {
   display: grid;
-  gap: 0.35rem;
-  padding: 0.75rem 0 0;
+  gap: 0.28rem;
+  padding: 0.85rem 0 0;
   border-top: 1px solid color-mix(in srgb, var(--identity-border, #d7e0dc) 80%, transparent);
 }
 
@@ -9134,32 +9134,56 @@ button.coaching-moments-section__item:focus-visible {
   padding-top: 0;
 }
 
-.identity-evidence-list__excerpt {
+.identity-evidence-list__classification {
   margin: 0;
-  padding: 0;
-  border: none;
-  color: var(--identity-text-primary, #10231c);
-  font-size: 1rem;
-  font-weight: 500;
-  line-height: 1.55;
+  color: var(--identity-teal-700, #0f5c4c);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.35;
+  text-transform: uppercase;
 }
 
-.identity-evidence-list__source {
-  margin: 0;
+.identity-evidence-list__item[data-evidence-class="commitment"]
+  .identity-evidence-list__classification {
   color: var(--identity-text-muted, #5b6b64);
-  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.identity-evidence-list__session {
+  margin: 0;
+  color: var(--identity-text-body, #2a3b34);
+  font-size: 0.88rem;
+  font-weight: 500;
   line-height: 1.4;
 }
 
-.identity-evidence-list__type,
 .identity-evidence-list__meta {
+  margin: 0;
+  color: var(--identity-text-muted, #5b6b64);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.identity-evidence-list__excerpt {
+  margin: 0.35rem 0 0;
+  padding: 0;
+  border: none;
+  color: var(--identity-text-body, #2a3b34);
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1.65;
+}
+
+.identity-evidence-list__type,
+.identity-evidence-list__source {
   margin: 0;
   color: var(--identity-text-muted, #5b6b64);
   font-size: 0.82rem;
 }
 
 .identity-evidence-list__full {
-  margin-top: 0.25rem;
+  margin-top: 0.35rem;
   padding: 0.65rem 0.75rem;
   border-radius: 0.4rem;
   background: color-mix(in srgb, var(--identity-surface-muted, #eef3f0) 88%, white);
@@ -9176,15 +9200,16 @@ button.coaching-moments-section__item:focus-visible {
 
 .identity-evidence-list__full-body {
   margin: 0;
-  color: var(--identity-text-primary, #10231c);
+  color: var(--identity-text-body, #2a3b34);
   font-size: 0.95rem;
-  line-height: 1.6;
+  font-weight: 400;
+  line-height: 1.65;
   white-space: pre-wrap;
 }
 
 .identity-evidence-list__action {
   justify-self: start;
-  margin-top: 0.1rem;
+  margin-top: 0.2rem;
 }
 
 .patterns-over-time__item {

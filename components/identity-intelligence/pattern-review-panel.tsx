@@ -32,10 +32,12 @@ function buildEvidenceItems(
       ref.sessionId && sessionNumbers?.get(ref.sessionId);
     return {
       id: `${ref.sourceType}-${ref.sourceId}-${index}`,
+      sourceType: ref.sourceType,
       typeLabel: evidenceTypeLabel(ref.sourceType),
       sessionLabel:
         sessionNumber != null ? `Session ${sessionNumber}` : undefined,
       dateLabel: formatEvidenceDateLabel(ref.sourceDate),
+      sortKey: ref.sourceDate ?? null,
       excerpt: ref.excerpt ?? null,
     };
   });
@@ -117,7 +119,7 @@ export function PatternReviewPanel({
 
         <div className="pattern-review-panel__evidence">
           <h4 className="pattern-review-panel__eyebrow">Supporting evidence</h4>
-          <IdentityEvidenceList items={evidenceItems} />
+          <IdentityEvidenceList items={evidenceItems} chronological />
         </div>
 
         <label className="pattern-review-panel__decision">

@@ -4,12 +4,16 @@ import { useState } from "react";
 
 export type IdentityEvidenceItem = {
   id: string;
+  /** Underlying source type — drives classification hierarchy. */
+  sourceType?: PatternEvidenceSourceType | string;
   /** Human-readable evidence type, e.g. "Approved summary". */
   typeLabel?: string;
   /** e.g. "Session 1" */
   sessionLabel?: string;
   /** UK display date — never a raw ISO timestamp. */
   dateLabel?: string;
+  /** ISO/sortable date for chronological presentation only. */
+  sortKey?: string | null;
   /** Verbatim authorised excerpt for Manager judgement. */
   excerpt?: string | null;
   href?: string;
@@ -40,6 +44,24 @@ export function evidenceTypeLabel(
     .replace(/\b\w/g, char => char.toUpperCase());
 }
 
+/**
+ * Presentation classification for Pattern Review hierarchy.
+ * Distinguishes intention from reported/observed behavioural evidence.
+ */
+export function evidenceClassificationLabel(
+  sourceType?: string | null,
+  typeLabel?: string | null
+): string {
+  const type = (sourceType ?? "").trim();
+  if (type === "commitment") return "Commitment / intention";
+  if (type === "supporting_context") return "Supporting context";
+  if (type === "coaching_moment") return "Development moment";
+  if (/commitment/i.test(typeLabel ?? "")) return "Commitment / intention";
+  if (/supporting context/i.test(typeLabel ?? "")) return "Supporting context";
+  if (/development moment/i.test(typeLabel ?? "")) return "Development moment";
+  return "Reported behaviour";
+}
+
 /** Format evidence dates for display — UK long form, never raw ISO. */
 export function formatEvidenceDateLabel(
   value?: string | null
@@ -51,6 +73,15 @@ export function formatEvidenceDateLabel(
   if (!label || label === "Date not set") return undefined;
   // Strip time portion if present (evidence rows show date only)
   return label.split(" · ")[0];
+}
+
+/**
+ * Display-only: strip a leading list marker so a dash/bullet from list
+ * formatting is not shown as meaningful evidence content.
+ * Does not rewrite or paraphrase the remainder of the excerpt.
+ */
+export function stripLeadingListMarker(excerpt: string): string {
+  return excerpt.replace(/^\s*[-–—*•·]\s+/, "").trimStart();
 }
 
 export function dedupeEvidenceItems(
@@ -74,44 +105,92 @@ export function dedupeEvidenceItems(
   return result;
 }
 
-function formatSourceLine(item: IdentityEvidenceItem): string | null {
-  const typeLabel = item.typeLabel || item.title || "Evidence";
-  const parts = [item.sessionLabel, typeLabel].filter(Boolean);
-  if (parts.length === 0) return null;
-  if (item.sessionLabel && typeLabel) {
-    return `Source: ${item.sessionLabel} · ${typeLabel}`;
+/**
+ * Presentation-only chronological order for Pattern Review scanning.
+ * Does not mutate underlying evidence arrays or session numbering.
+ */
+export function sortEvidenceItemsChronologically(
+  items: IdentityEvidenceItem[]
+): IdentityEvidenceItem[] {
+  return [...items].sort((left, right) => {
+    const leftTime = parseSortTime(left);
+    const rightTime = parseSortTime(right);
+    if (leftTime !== rightTime) return leftTime - rightTime;
+    const leftSession = parseSessionNumber(left.sessionLabel);
+    const rightSession = parseSessionNumber(right.sessionLabel);
+    if (leftSession !== rightSession) return leftSession - rightSession;
+    return left.id.localeCompare(right.id);
+  });
+}
+
+function parseSortTime(item: IdentityEvidenceItem): number {
+  const raw = (item.sortKey || item.dateLabel || "").trim();
+  if (!raw) return Number.POSITIVE_INFINITY;
+  const parsed = Date.parse(raw);
+  if (!Number.isNaN(parsed)) return parsed;
+  // UK long dates from formatEvidenceDateLabel are not reliably Date.parse-able;
+  // fall through to session number / id.
+  return Number.POSITIVE_INFINITY;
+}
+
+function parseSessionNumber(label?: string): number {
+  const match = (label ?? "").match(/(\d+)/);
+  return match ? Number(match[1]) : Number.POSITIVE_INFINITY;
+}
+
+function formatSessionLine(item: IdentityEvidenceItem): string | null {
+  const typeLabel = item.typeLabel || item.title || "";
+  const classification = evidenceClassificationLabel(
+    item.sourceType,
+    typeLabel
+  );
+  const isCommitment = /commitment/i.test(classification);
+
+  if (item.sessionLabel && typeLabel && !isCommitment) {
+    return `${item.sessionLabel} · ${typeLabel}`;
   }
-  if (item.dateLabel) {
-    return `Source: ${typeLabel} · ${item.dateLabel}`;
-  }
-  return `Source: ${typeLabel}`;
+  if (item.sessionLabel) return item.sessionLabel;
+  if (typeLabel && !isCommitment) return typeLabel;
+  return null;
 }
 
 function EvidenceListItem({ item }: { item: IdentityEvidenceItem }) {
   const [expanded, setExpanded] = useState(false);
-  const excerpt = (item.excerpt ?? "").trim();
-  const sourceLine = formatSourceLine(item);
+  const rawExcerpt = (item.excerpt ?? "").trim();
+  const excerpt = rawExcerpt ? stripLeadingListMarker(rawExcerpt) : "";
+  const classification = evidenceClassificationLabel(
+    item.sourceType,
+    item.typeLabel || item.title
+  );
+  const sessionLine = formatSessionLine(item);
   const hasExpandableExcerpt = excerpt.length > 0;
   const hasAction = Boolean(item.onView || item.href || hasExpandableExcerpt);
 
   return (
-    <li className="identity-evidence-list__item">
-      {excerpt ? (
-        <blockquote className="identity-evidence-list__excerpt">
-          {excerpt}
-        </blockquote>
+    <li
+      className="identity-evidence-list__item"
+      data-evidence-class={
+        /commitment/i.test(classification)
+          ? "commitment"
+          : /supporting context/i.test(classification)
+            ? "supporting-context"
+            : /development moment/i.test(classification)
+              ? "development-moment"
+              : "reported-behaviour"
+      }
+    >
+      <p className="identity-evidence-list__classification">{classification}</p>
+
+      {sessionLine ? (
+        <p className="identity-evidence-list__session">{sessionLine}</p>
       ) : null}
 
-      {sourceLine ? (
-        <p className="identity-evidence-list__source">{sourceLine}</p>
-      ) : (
-        <p className="identity-evidence-list__type">
-          {item.typeLabel || item.title || "Evidence"}
-        </p>
-      )}
-
-      {item.dateLabel && item.sessionLabel ? (
+      {item.dateLabel ? (
         <p className="identity-evidence-list__meta">{item.dateLabel}</p>
+      ) : null}
+
+      {excerpt ? (
+        <p className="identity-evidence-list__excerpt">{excerpt}</p>
       ) : null}
 
       {expanded && excerpt ? (
@@ -155,20 +234,26 @@ function EvidenceListItem({ item }: { item: IdentityEvidenceItem }) {
 }
 
 /**
- * Structured evidence list for Pridmora Intelligence panels.
- * Excerpt first; source metadata secondary; View full evidence for context.
+ * Structured evidence list for Pattern Review and related panels.
+ * Hierarchy: classification → session/date → body excerpt → view action.
  */
 export function IdentityEvidenceList({
   items,
+  chronological = false,
 }: {
   items: IdentityEvidenceItem[];
+  /** When true, present items oldest→newest for review scanning. */
+  chronological?: boolean;
 }) {
   const unique = dedupeEvidenceItems(items);
-  if (unique.length === 0) return null;
+  const ordered = chronological
+    ? sortEvidenceItemsChronologically(unique)
+    : unique;
+  if (ordered.length === 0) return null;
 
   return (
     <ul className="identity-evidence-list" role="list">
-      {unique.map(item => (
+      {ordered.map(item => (
         <EvidenceListItem key={item.id} item={item} />
       ))}
     </ul>

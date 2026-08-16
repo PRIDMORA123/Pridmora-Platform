@@ -16,8 +16,11 @@ export { IdentityEvidenceStrength } from "@/components/identity-intelligence/ide
 export {
   IdentityEvidenceList,
   evidenceTypeLabel,
+  evidenceClassificationLabel,
   formatEvidenceDateLabel,
   dedupeEvidenceItems,
+  sortEvidenceItemsChronologically,
+  stripLeadingListMarker,
   type IdentityEvidenceItem,
 } from "@/components/identity-intelligence/identity-evidence-list";
 export { PatternReviewPanel } from "@/components/identity-intelligence/pattern-review-panel";

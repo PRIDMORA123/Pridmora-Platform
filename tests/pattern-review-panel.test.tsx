@@ -90,15 +90,19 @@ describe("PatternReviewPanel", () => {
 
     expect(container.textContent).toContain("Review pattern");
     expect(container.textContent).toContain("Delegation under pressure");
+    expect(container.textContent).toContain("Reported behaviour");
+    expect(container.textContent).toContain("Session 1 · Session notes");
     expect(container.textContent).toContain(
       "She left the final call with her manager and clarified the outcome."
     );
-    expect(container.textContent).toContain("Source: Session 1 · Session notes");
     expect(container.textContent).toContain("View full evidence");
     expect(container.textContent).not.toContain("2026-08-01T09:23:57");
     expect(container.textContent).toContain("Accept pattern");
     expect(container.textContent).toContain("Not relevant");
     expect(container.textContent).toContain("Close review");
+    expect(
+      container.querySelector(".identity-evidence-list__excerpt")?.tagName
+    ).toBe("P");
   });
 
   it("labels commitment evidence as Commitment / intention", () => {
@@ -126,12 +130,50 @@ describe("PatternReviewPanel", () => {
     expect(container.textContent).toContain(
       "Will leave one decision with the manager this week."
     );
-    expect(container.textContent).toContain(
-      "Source: Session 2 · Commitment / intention"
-    );
-    expect(container.textContent).not.toMatch(/Source: Session 2 · Commitment$/);
+    expect(container.textContent).toContain("Commitment / intention");
+    expect(container.textContent).toContain("Session 2");
+    expect(container.textContent).not.toContain("Session 2 · Commitment");
   });
 
+  it("presents supporting evidence chronologically", () => {
+    act(() => {
+      root.render(
+        <PatternReviewPanel
+          pattern={makePattern({
+            evidence: [
+              {
+                sourceType: "session_notes",
+                sourceId: "session-4:notes",
+                sessionId: "session-4",
+                sourceDate: "2026-08-30",
+                excerpt: "Later ownership note.",
+              },
+              {
+                sourceType: "commitment",
+                sourceId: "session-1:commitments",
+                sessionId: "session-1",
+                sourceDate: "2026-08-15",
+                excerpt: "Earlier ownership commitment.",
+              },
+            ],
+          })}
+          sessionNumbers={
+            new Map([
+              ["session-1", 1],
+              ["session-4", 4],
+            ])
+          }
+          onClose={() => undefined}
+          onSubmit={async () => undefined}
+        />
+      );
+    });
+
+    const text = container.textContent || "";
+    expect(text.indexOf("Earlier ownership commitment.")).toBeLessThan(
+      text.indexOf("Later ownership note.")
+    );
+  });
   it("expands View full evidence to show the authorised excerpt", () => {
     act(() => {
       root.render(

@@ -44,10 +44,12 @@ function evidenceItemsForPattern(
       ref.sessionId && sessionNumbers?.get(ref.sessionId);
     return {
       id: `${ref.sourceType}-${ref.sourceId}-${index}`,
+      sourceType: ref.sourceType,
       typeLabel: evidenceTypeLabel(ref.sourceType),
       sessionLabel:
         sessionNumber != null ? `Session ${sessionNumber}` : undefined,
       dateLabel: formatEvidenceDateLabel(ref.sourceDate),
+      sortKey: ref.sourceDate ?? null,
       excerpt: ref.excerpt ?? null,
     };
   });
