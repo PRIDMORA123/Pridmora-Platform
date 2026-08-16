@@ -206,6 +206,7 @@ export async function listReadyDevelopmentUpdates(
     .select("*")
     .eq("coach_id", coachId)
     .eq("status", "ready_for_review")
+    .eq("has_meaningful_changes", true)
     .order("generated_at", { ascending: false })
     .limit(40);
 

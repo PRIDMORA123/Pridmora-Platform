@@ -182,6 +182,16 @@ export function hasAnyProposedChanges(changes: ProposedProfileChanges | null | u
   return false;
 }
 
+/**
+ * Substantive pending review: ready_for_review with meaningful proposed changes.
+ * Zero-change ready_for_review rows must not drive primary review CTAs.
+ */
+export function isSubstantivePendingDevelopmentUpdate(
+  update: Pick<DevelopmentUpdate, "status" | "hasMeaningfulChanges">
+): boolean {
+  return update.status === "ready_for_review" && update.hasMeaningfulChanges === true;
+}
+
 export function effectiveChanges(update: DevelopmentUpdate): ProposedProfileChanges {
   return update.editedChanges ?? update.proposedChanges ?? {};
 }

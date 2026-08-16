@@ -1,9 +1,10 @@
 import type { Client, Session } from "@/lib/types";
-import type {
-  CommitmentEntry,
-  DevelopmentProfile,
-  DevelopmentUpdate,
-  ProfileEntry,
+import {
+  isSubstantivePendingDevelopmentUpdate,
+  type CommitmentEntry,
+  type DevelopmentProfile,
+  type DevelopmentUpdate,
+  type ProfileEntry,
 } from "@/lib/development-updates/types";
 import {
   getFutureOrOpenSession,
@@ -103,7 +104,7 @@ export function latestAppliedUpdate(
 export function pendingDevelopmentUpdate(
   updates: DevelopmentUpdate[]
 ): DevelopmentUpdate | undefined {
-  return updates.find(update => update.status === "ready_for_review");
+  return updates.find(isSubstantivePendingDevelopmentUpdate);
 }
 
 function formatDisplayDate(value: string): string {
@@ -931,7 +932,7 @@ function developmentUpdatePendingForSession(
   if (!session || !isSessionReviewComplete(session)) return undefined;
   const update = developmentUpdateForSession(updates, session.id);
   if (!update) return undefined;
-  if (update.status === "ready_for_review" || update.status === "draft") return update;
+  if (isSubstantivePendingDevelopmentUpdate(update)) return update;
   return undefined;
 }
 
@@ -1013,7 +1014,10 @@ export function deriveJourneyStage(
   if (mostRecent && isSessionReviewComplete(mostRecent)) {
     const update = developmentUpdateForSession(updates, mostRecent.id);
     const appliedOrNone =
-      !update || update.status === "applied" || update.status === "discarded";
+      !update ||
+      update.status === "applied" ||
+      update.status === "discarded" ||
+      (update.status === "ready_for_review" && !update.hasMeaningfulChanges);
     if (appliedOrNone) {
       return {
         id: "reflecting_between_sessions",
@@ -1182,7 +1186,7 @@ export function buildFullJourneyHistory(
           label: `Development update — Session ${session.sessionNumber}`,
           status: "Complete",
         });
-      } else if (update?.status === "ready_for_review" || update?.status === "draft") {
+      } else if (update && isSubstantivePendingDevelopmentUpdate(update)) {
         items.push({
           id: `dev-${session.id}`,
           label: `Development update — Session ${session.sessionNumber}`,

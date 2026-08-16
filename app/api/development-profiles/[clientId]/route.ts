@@ -5,6 +5,7 @@ import {
   ensureProfileOrEmpty,
   listDevelopmentUpdatesForClient,
 } from "@/lib/development-updates/repository";
+import { isSubstantivePendingDevelopmentUpdate } from "@/lib/development-updates/types";
 import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import { assertRelationshipOwnership } from "@/lib/relationship-scope";
 import { getRelationshipDisplayName } from "@/lib/relationship-identity";
@@ -48,7 +49,7 @@ export async function GET(_request: Request, { params }: Params) {
     assertRelationshipOwnership(access.clientId, [profile, ...updates]);
 
     const pendingUpdate =
-      updates.find(update => update.status === "ready_for_review") ?? null;
+      updates.find(isSubstantivePendingDevelopmentUpdate) ?? null;
 
     return NextResponse.json({
       profile,
