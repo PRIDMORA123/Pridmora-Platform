@@ -5,7 +5,6 @@ import type { RelationshipPrimaryAction } from "@/lib/coaching-journey";
 import {
   buildCurrentPositionPanelModel,
   getLatestApprovedNextFocus,
-  getLatestApprovedSessionCommitments,
   getLatestApprovedSessionEvidence,
 } from "@/lib/relationship-workspace/current-position-display";
 import type { Session } from "@/lib/types";
@@ -18,6 +17,7 @@ export function CurrentPositionPanel({
   approvedNextFocus,
   clientName,
   outstandingCommitment,
+  openCommitments = [],
   sessions = [],
   primaryAction,
   onPrimaryAction,
@@ -30,6 +30,8 @@ export function CurrentPositionPanel({
   approvedNextFocus?: string | null;
   clientName: string;
   outstandingCommitment?: string | null;
+  /** Canonical open commitments only — never historical session text. */
+  openCommitments?: string[];
   sessions?: Session[];
   /** Intentionally unused for primary CTA — owned by the workspace spine. */
   primaryAction?: RelationshipPrimaryAction | null;
@@ -43,9 +45,15 @@ export function CurrentPositionPanel({
   void onPrimaryAction;
 
   const approvedSessionEvidence = getLatestApprovedSessionEvidence(sessions);
-  const sessionCommitments = getLatestApprovedSessionCommitments(sessions);
   const sessionNextFocus =
     approvedNextFocus || getLatestApprovedNextFocus(sessions);
+
+  const canonicalOpen =
+    openCommitments.length > 0
+      ? openCommitments
+      : outstandingCommitment?.trim()
+        ? [outstandingCommitment.trim()]
+        : [];
 
   const model = buildCurrentPositionPanelModel({
     approvedCurrentPosition: narrative,
@@ -56,8 +64,8 @@ export function CurrentPositionPanel({
     approvedNextFocus: sessionNextFocus,
     coachingPurpose: currentFocus,
     clientName,
-    outstandingCommitment,
-    commitments: sessionCommitments,
+    outstandingCommitment: null,
+    commitments: canonicalOpen,
   });
 
   return (
@@ -111,9 +119,9 @@ export function CurrentPositionPanel({
                 : "View all commitments"}
             </button>
           ) : null}
-          {commitmentsOpen && sessionCommitments.length > 1 ? (
+          {commitmentsOpen && canonicalOpen.length > 1 ? (
             <ul className="current-position-panel__commitments">
-              {sessionCommitments.slice(1).map((item, index) => (
+              {canonicalOpen.slice(1).map((item, index) => (
                 <li key={`${index}-${item.slice(0, 24)}`}>{item}</li>
               ))}
             </ul>

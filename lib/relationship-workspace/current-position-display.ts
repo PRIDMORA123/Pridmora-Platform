@@ -363,7 +363,9 @@ export function getLatestApprovedSessionEvidence(
   return approved[0] ? normaliseDisplayText(approved[0].summary) : null;
 }
 
-/** Explicit commitments from the latest approved session only. */
+/** Explicit commitments from the latest approved session only.
+ * Historical evidence — must not be used alone as “outstanding / currently open”.
+ */
 export function getLatestApprovedSessionCommitments(
   sessions: Session[] | null | undefined
 ): string[] {

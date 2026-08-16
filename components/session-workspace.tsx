@@ -1267,6 +1267,7 @@ export function SessionWorkspace({
           clientId={client.id}
           session={session}
           actions={sessionActions}
+          priorOpenCommitmentCount={outstanding.length}
           nextSessionDate={nextSessionDateLabel}
           readOnly={readOnly}
           hideStageHeader={usesJourneyComposition}

@@ -284,13 +284,19 @@ describe("Sarah regression", () => {
       }),
     ];
 
+    const openCommitments = [
+      "Continue asking supervisors to propose solutions before offering advice.",
+      "Introduce short reflective discussions after significant incidents.",
+    ];
+
     const model = buildCurrentPositionPanelModel({
       identitySummary: null,
       approvedSessionEvidence: getLatestApprovedSessionEvidence(sessions),
       currentFocus: SARAH_PURPOSE,
       coachingPurpose: SARAH_PURPOSE,
       clientName: "Sarah Thompson",
-      commitments: getLatestApprovedSessionCommitments(sessions),
+      // Outstanding must come from canonical open state, not session history alone.
+      commitments: openCommitments,
     });
 
     expect(normaliseDisplayText(model.statement)).not.toBe(
@@ -303,6 +309,55 @@ describe("Sarah regression", () => {
     expect(model.currentFocus.toLowerCase()).toContain("delegation");
     expect(model.outstandingCommitment.toLowerCase()).toContain("supervisors");
     expect(model.commitmentHasMore).toBe(true);
+  });
+
+  it("does not treat historical session commitment text as outstanding by itself", () => {
+    const sessions = [
+      makeSession({
+        sessionNumber: 4,
+        summaryStatus: "approved",
+        aiSummaryApproved: true,
+        summary: SARAH_APPROVED_SUMMARY,
+        commitments:
+          "Alex agreed to deliberately state their recommendation in the next discussion.",
+      }),
+      makeSession({
+        sessionNumber: 5,
+        summaryStatus: "approved",
+        aiSummaryApproved: true,
+        summary: "Later approved summary with no new commitment.",
+        commitments: "",
+        agreedActions: "",
+      }),
+    ];
+
+    const historicalOnly = getLatestApprovedSessionCommitments(sessions);
+    expect(historicalOnly).toEqual([]);
+
+    const model = buildCurrentPositionPanelModel({
+      approvedSessionEvidence: getLatestApprovedSessionEvidence(sessions),
+      currentFocus: SARAH_PURPOSE,
+      coachingPurpose: SARAH_PURPOSE,
+      clientName: "Alex Morgan",
+      outstandingCommitment: null,
+      commitments: historicalOnly,
+    });
+
+    expect(model.outstandingCommitment).toBe("No outstanding commitment.");
+  });
+
+  it("still surfaces a genuine prior open commitment as outstanding", () => {
+    const open =
+      "Alex agreed to deliberately state their recommendation and the reasoning behind it in the next relevant project discussion.";
+
+    const model = buildCurrentPositionPanelModel({
+      currentFocus: SARAH_PURPOSE,
+      coachingPurpose: SARAH_PURPOSE,
+      clientName: "Alex Morgan",
+      commitments: [open],
+    });
+
+    expect(model.outstandingCommitment).toContain("deliberately state");
   });
 
   it("uses identity summary as present-state when available", () => {

@@ -366,10 +366,21 @@ export function buildPreparationAdapterContext(input: {
     allowUndatedOpenActions: allowUndated,
   });
 
-  // When actions are not loaded (e.g. API generate path), fall back to
-  // commitment text recorded on approved sessions before N.
+  // Prefer living-profile open commitments over historical session text when
+  // actions are unavailable (e.g. API generate path). Do not use later profile
+  // opens when preparing a historical session.
+  const commitmentsFromProfile =
+    !isHistorical && input.profile
+      ? (input.profile.commitments ?? [])
+          .filter(item => item.status === "open")
+          .map(item => item.value.trim())
+          .filter(Boolean)
+      : [];
+
+  // When actions and profile opens are unavailable, fall back to commitment
+  // text recorded on approved sessions before N (historical evidence only).
   const commitmentsFromSessions =
-    commitmentsFromActions.length > 0
+    commitmentsFromActions.length > 0 || commitmentsFromProfile.length > 0
       ? []
       : priorSessions
           .map(session =>
@@ -380,7 +391,9 @@ export function buildPreparationAdapterContext(input: {
   const commitments =
     commitmentsFromActions.length > 0
       ? commitmentsFromActions
-      : commitmentsFromSessions;
+      : commitmentsFromProfile.length > 0
+        ? commitmentsFromProfile
+        : commitmentsFromSessions;
   const previousCommitment = selectPrimaryPreviousCommitment(commitments);
 
   const reviewedPatterns = (input.patterns ?? input.profile?.coachingPatterns ?? [])

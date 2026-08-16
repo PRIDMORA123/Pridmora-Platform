@@ -404,11 +404,8 @@ export function CoachSpaceView({
             relationship={client}
             currentSession={currentSession}
             narrative={page.currentPosition.narrative || client.identitySummary}
-            outstandingCommitment={
-              page.lookingAhead.commitments[0] ||
-              page.currentPosition.commitment ||
-              null
-            }
+            outstandingCommitment={page.lookingAhead.commitments[0] || null}
+            openCommitments={page.lookingAhead.commitments}
             developmentDirection={
               page.currentPosition.emergingDirection ||
               developmentSnapshotText ||

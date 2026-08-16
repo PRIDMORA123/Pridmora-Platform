@@ -45,6 +45,8 @@ export type RelationshipCanvasProps = {
   currentSession?: Session | null;
   narrative?: string | null;
   outstandingCommitment?: string | null;
+  /** Canonical open commitments (profile open + open actions). Not session history. */
+  openCommitments?: string[];
   developmentDirection?: string | null;
   /** Present-state developmental picture for “Who is …?” — not a forward focus. */
   presentDevelopmentalState?: string | null;
@@ -99,6 +101,7 @@ export function RelationshipCanvas({
   currentSession = null,
   narrative = null,
   outstandingCommitment = null,
+  openCommitments = [],
   developmentDirection = null,
   presentDevelopmentalState = null,
   developmentStrengths = [],
@@ -441,6 +444,7 @@ export function RelationshipCanvas({
             currentFocus={relationship.currentFocus}
             clientName={relationship.name}
             outstandingCommitment={outstandingCommitment}
+            openCommitments={openCommitments}
             sessions={relationship.sessions}
           />
         </details>

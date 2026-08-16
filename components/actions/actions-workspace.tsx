@@ -9,7 +9,10 @@ import { EmergingEvidenceState } from "@/components/journey/emerging-evidence-st
 import { PageSectionHeading } from "@/components/layout/page-section-heading";
 import { Modal } from "@/components/ui/modal";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
-import { IDENTITY_EMPTY_STATES } from "@/lib/identity-empty-states";
+import {
+  IDENTITY_EMPTY_STATES,
+  priorOpenCommitmentsHint,
+} from "@/lib/identity-empty-states";
 import { toActionButtonStatus } from "@/types/action-feedback";
 import type { ClientAction } from "@/types/client-action";
 import "@/components/edit-client-dialog.css";
@@ -52,6 +55,8 @@ export function ActionsWorkspace({
   completionSlot,
   embedded = false,
   suppressOpenEmptyState = false,
+  sessionScoped = false,
+  priorOpenCommitmentCount = 0,
 }: {
   clientName: string;
   clientId: string;
@@ -64,6 +69,13 @@ export function ActionsWorkspace({
   embedded?: boolean;
   /** Hide the open-commitments empty state when commitments are listed elsewhere. */
   suppressOpenEmptyState?: boolean;
+  /**
+   * When true, empty copy describes this conversation only (not relationship-wide
+   * open commitments).
+   */
+  sessionScoped?: boolean;
+  /** Open commitments from earlier conversations (session-scoped Actions only). */
+  priorOpenCommitmentCount?: number;
 }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -215,10 +227,26 @@ export function ActionsWorkspace({
 
         {openActions.length === 0 ? (
           suppressOpenEmptyState ? null : (
-            <EmergingEvidenceState
-              title={IDENTITY_EMPTY_STATES.noCommitments.title}
-              description={IDENTITY_EMPTY_STATES.noCommitments.description}
-            />
+            <>
+              <EmergingEvidenceState
+                title={
+                  sessionScoped
+                    ? IDENTITY_EMPTY_STATES.noCommitmentsFromConversation.title
+                    : IDENTITY_EMPTY_STATES.noCommitments.title
+                }
+                description={
+                  sessionScoped
+                    ? IDENTITY_EMPTY_STATES.noCommitmentsFromConversation
+                        .description
+                    : IDENTITY_EMPTY_STATES.noCommitments.description
+                }
+              />
+              {sessionScoped && priorOpenCommitmentCount > 0 ? (
+                <p className="identity-empty-copy">
+                  {priorOpenCommitmentsHint(priorOpenCommitmentCount)}
+                </p>
+              ) : null}
+            </>
           )
         ) : (
           <div className="actions-workspace-list">

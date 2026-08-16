@@ -5,6 +5,10 @@ import { ActionsWorkspace } from "@/components/actions/actions-workspace";
 import { StagePrimaryAction } from "@/components/coaching-journey/stage-primary-action";
 import type { CoachingAction, Session } from "@/lib/types";
 import { formatSessionDateLabel } from "@/lib/session/session-display";
+import {
+  IDENTITY_EMPTY_STATES,
+  priorOpenCommitmentsHint,
+} from "@/lib/identity-empty-states";
 import { useOrganisation } from "@/lib/organisations/organisation-context";
 import type { ProfessionalRole } from "@/lib/organisations/types";
 
@@ -13,6 +17,8 @@ export type SessionNextStepsProps = {
   clientId: string;
   session: Session;
   actions: CoachingAction[];
+  /** Open commitments from earlier conversations (relationship-wide). */
+  priorOpenCommitmentCount?: number;
   nextSessionDate?: string | null;
   readOnly?: boolean;
   /** When true, stage orientation is rendered by the page chrome. */
@@ -84,6 +90,7 @@ export function SessionNextSteps({
   clientId,
   session,
   actions,
+  priorOpenCommitmentCount = 0,
   nextSessionDate,
   readOnly = false,
   hideStageHeader = false,
@@ -169,11 +176,28 @@ export function SessionNextSteps({
         <section className="identity-session-surface session-next-steps__card">
           <h3>{commitmentsHeading}</h3>
           {commitmentLines.length === 0 ? (
-            <p className="session-next-steps__empty">
-              {noNextSteps
-                ? "No next steps recorded for this session."
-                : "No open commitments yet."}
-            </p>
+            <div className="session-next-steps__empty">
+              <p>
+                {noNextSteps
+                  ? "No next steps recorded for this session."
+                  : IDENTITY_EMPTY_STATES.noCommitmentsFromConversation.title}
+              </p>
+              {!noNextSteps ? (
+                <>
+                  <p className="organisation-muted">
+                    {
+                      IDENTITY_EMPTY_STATES.noCommitmentsFromConversation
+                        .description
+                    }
+                  </p>
+                  {priorOpenCommitmentCount > 0 ? (
+                    <p className="organisation-muted">
+                      {priorOpenCommitmentsHint(priorOpenCommitmentCount)}
+                    </p>
+                  ) : null}
+                </>
+              ) : null}
+            </div>
           ) : (
             <>
               <ul className="session-next-steps__list">
@@ -246,6 +270,8 @@ export function SessionNextSteps({
             readOnly={readOnly}
             onSaveAction={onSaveAction}
             embedded
+            sessionScoped
+            priorOpenCommitmentCount={priorOpenCommitmentCount}
             suppressOpenEmptyState={sessionOnlyCommitments}
           />
         </div>

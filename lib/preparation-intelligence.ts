@@ -137,10 +137,11 @@ function getPreviousApprovedConversation(
 
 function getOutstandingCommitments(
   client: Client,
-  conversation: Pick<Session, "id" | "sessionNumber">
+  conversation: Pick<Session, "id" | "sessionNumber">,
+  profile: DevelopmentProfile | null
 ) {
   const historical = isHistoricalSessionPreparation(client.sessions, conversation);
-  return selectOpenActionsForPrepare({
+  const fromActions = selectOpenActionsForPrepare({
     actions: client.actions ?? [],
     sessions: client.sessions,
     currentSessionId: conversation.id,
@@ -151,6 +152,19 @@ function getOutstandingCommitments(
     statement: action.title,
     dueDate: action.due ?? null,
   }));
+
+  if (fromActions.length > 0) return fromActions;
+
+  if (historical || !profile) return [];
+
+  return (profile.commitments ?? [])
+    .filter(item => item.status === "open")
+    .map(item => ({
+      id: item.id,
+      statement: item.value.trim(),
+      dueDate: item.dueDate ?? null,
+    }))
+    .filter(item => item.statement);
 }
 
 function getLatestApprovedReflection(client: Client, conversationId: string) {
@@ -274,7 +288,8 @@ export function resolvePreparationIntelligence(input: {
   );
   const outstandingCommitments = getOutstandingCommitments(
     input.client,
-    input.conversation
+    input.conversation,
+    input.profile
   );
   const recentReflection = getLatestApprovedReflection(
     input.client,

@@ -624,14 +624,15 @@ describe("RelationshipCanvas", () => {
   });
 
   it("shows an explicit outstanding commitment rather than an outcome narrative", async () => {
+    const commitment =
+      "Ask each manager what they believe should happen before offering an answer.";
     const session = makeSession({
       status: "completed",
       summaryStatus: "approved",
       aiSummaryApproved: true,
       summary:
         "Sarah reflected on an experience of stepping back from an operational issue and recognised that quality was maintained while her supervisor had space to demonstrate capability.",
-      commitments:
-        "Ask each manager what they believe should happen before offering an answer.",
+      commitments: commitment,
     });
     const client = makeClient([session]);
 
@@ -640,7 +641,8 @@ describe("RelationshipCanvas", () => {
         relationship={client}
         currentSession={null}
         narrative={client.identitySummary}
-        outstandingCommitment={session.summary}
+        outstandingCommitment={commitment}
+        openCommitments={[commitment]}
         relationshipDetails={details}
         onPrimaryAction={() => undefined}
         onModuleAction={() => undefined}
@@ -654,15 +656,11 @@ describe("RelationshipCanvas", () => {
     );
 
     expect(container.textContent).toContain("Outstanding commitment");
-    expect(container.textContent).toContain(
-      "Ask each manager what they believe should happen before offering an answer"
-    );
+    expect(container.textContent).toContain(commitment);
     const commitmentValue = container.querySelector(
       ".current-position-panel__details"
     )?.textContent;
-    expect(commitmentValue).toContain(
-      "Ask each manager what they believe should happen before offering an answer"
-    );
+    expect(commitmentValue).toContain(commitment);
     expect(commitmentValue).not.toContain(
       "Sarah reflected on an experience of stepping back"
     );
@@ -671,6 +669,10 @@ describe("RelationshipCanvas", () => {
   });
 
   it("shows no outstanding commitment and view-all when multiple exist", async () => {
+    const openCommitments = [
+      "Continue asking supervisors to propose solutions before offering advice.",
+      "Protect weekly thinking time.",
+    ];
     const session = makeSession({
       status: "completed",
       summaryStatus: "approved",
@@ -683,7 +685,8 @@ describe("RelationshipCanvas", () => {
       <RelationshipCanvas
         relationship={makeClient([session])}
         currentSession={null}
-        outstandingCommitment=""
+        outstandingCommitment={openCommitments[0]}
+        openCommitments={openCommitments}
         relationshipDetails={details}
         onPrimaryAction={() => undefined}
         onModuleAction={() => undefined}

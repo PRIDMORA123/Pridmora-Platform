@@ -10,6 +10,12 @@ export const IDENTITY_EMPTY_STATES = {
     description: "Agreed actions will appear here when they are created.",
   },
 
+  /** Session-scoped Actions empty state (this conversation only). */
+  noCommitmentsFromConversation: {
+    title: "No commitments from this conversation",
+    description: "No new commitments were recorded in this conversation.",
+  },
+
   noInsights: {
     title: "Insights still emerging",
     description:
@@ -33,3 +39,12 @@ export const IDENTITY_EMPTY_STATES = {
       "Meaningful development evidence will appear after coaching conversations, reflections and commitments have been reviewed.",
   },
 } as const;
+
+/** Secondary hint when session Actions is empty but earlier opens remain. */
+export function priorOpenCommitmentsHint(count: number): string | null {
+  if (count < 1) return null;
+  if (count === 1) {
+    return "1 commitment remains open from an earlier conversation.";
+  }
+  return `${count} commitments remain open from earlier conversations.`;
+}
