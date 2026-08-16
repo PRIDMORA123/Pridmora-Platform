@@ -71,7 +71,8 @@ export function ActionsWorkspace({
   suppressOpenEmptyState?: boolean;
   /**
    * When true, empty copy describes this conversation only (not relationship-wide
-   * open commitments).
+   * open commitments). Embedded Session Actions also forces conversation-scoped
+   * empty copy as a defensive default.
    */
   sessionScoped?: boolean;
   /** Open commitments from earlier conversations (session-scoped Actions only). */
@@ -82,6 +83,10 @@ export function ActionsWorkspace({
   const [form, setForm] = useState(() => EMPTY_FORM(clientName));
   const [historyOpen, setHistoryOpen] = useState(false);
   const { feedback, isLoading, runAction } = useActionFeedback();
+
+  // Defensive: embedded Session Actions always uses conversation-scoped empty
+  // copy, even if sessionScoped is omitted by a caller.
+  const conversationScopedEmpty = embedded || sessionScoped;
 
   const clientActions = useMemo(
     () => actions.map(toClientAction),
@@ -230,18 +235,18 @@ export function ActionsWorkspace({
             <>
               <EmergingEvidenceState
                 title={
-                  sessionScoped
+                  conversationScopedEmpty
                     ? IDENTITY_EMPTY_STATES.noCommitmentsFromConversation.title
                     : IDENTITY_EMPTY_STATES.noCommitments.title
                 }
                 description={
-                  sessionScoped
+                  conversationScopedEmpty
                     ? IDENTITY_EMPTY_STATES.noCommitmentsFromConversation
                         .description
                     : IDENTITY_EMPTY_STATES.noCommitments.description
                 }
               />
-              {sessionScoped && priorOpenCommitmentCount > 0 ? (
+              {conversationScopedEmpty && priorOpenCommitmentCount > 0 ? (
                 <p className="identity-empty-copy">
                   {priorOpenCommitmentsHint(priorOpenCommitmentCount)}
                 </p>
