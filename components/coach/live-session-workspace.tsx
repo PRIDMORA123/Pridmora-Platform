@@ -359,6 +359,14 @@ export function LiveSessionWorkspace({
     );
   }
 
+  const optionalPrompts = initialData.context.suggestedQuestions
+    .map(item => ({
+      id: item.id,
+      text: item.text.trim(),
+    }))
+    .filter(item => item.text)
+    .slice(0, 4);
+
   return (
     <div className="live-session-workspace live-session-workspace--minimal">
       <header className="live-session-workspace__person">
@@ -396,6 +404,13 @@ export function LiveSessionWorkspace({
           <p className="muted">
             Keep attention on the person. Use prompts only if helpful.
           </p>
+          {optionalPrompts.length > 0 ? (
+            <ul className="live-session-workspace__optional-prompts">
+              {optionalPrompts.map(prompt => (
+                <li key={prompt.id}>{prompt.text}</li>
+              ))}
+            </ul>
+          ) : null}
         </div>
       </details>
 

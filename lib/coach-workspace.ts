@@ -136,10 +136,13 @@ function buildKeyInsights(client: Client, session: Session): string[] {
 
 function buildSuggestedQuestions(session: Session): SuggestedQuestion[] {
   if (session.coachingQuestions.length > 0) {
-    return session.coachingQuestions.map((text, index) => ({
-      id: `question-${session.id}-${index}`,
-      text,
-    }));
+    return session.coachingQuestions
+      .map((text, index) => ({
+        id: `question-${session.id}-${index}`,
+        text: text.trim(),
+      }))
+      .filter(item => item.text)
+      .slice(0, 4);
   }
 
   const fromPrep = session.prepQuestions
@@ -147,10 +150,29 @@ function buildSuggestedQuestions(session: Session): SuggestedQuestion[] {
     .map(line => line.replace(/^\d+\.\s*/, "").replace(/^[-*•]\s*/, "").trim())
     .filter(Boolean);
 
-  return fromPrep.map((text, index) => ({
-    id: `prep-question-${session.id}-${index}`,
+  if (fromPrep.length > 0) {
+    return fromPrep.slice(0, 4).map((text, index) => ({
+      id: `prep-question-${session.id}-${index}`,
+      text,
+    }));
+  }
+
+  // Align with Preparation display when coach prepQuestions was never seeded.
+  const fromBrief = (session.prepAiBrief?.questions ?? [])
+    .map(text => text.trim())
+    .filter(Boolean);
+
+  return fromBrief.slice(0, 4).map((text, index) => ({
+    id: `brief-question-${session.id}-${index}`,
     text,
   }));
+}
+
+/** Exported for tests — same precedence as the live conversation view-model. */
+export function resolveSuggestedQuestionsForConversation(
+  session: Session
+): SuggestedQuestion[] {
+  return buildSuggestedQuestions(session);
 }
 
 type SessionMutationInput = {
