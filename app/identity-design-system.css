@@ -11041,7 +11041,8 @@ button.coaching-moments-section__item:focus-visible {
   display: flex;
   justify-content: flex-end;
   align-items: stretch;
-  z-index: 80;
+  z-index: 2000;
+  pointer-events: auto;
 }
 
 .evidence-drawer-backdrop__dismiss {
@@ -11058,12 +11059,16 @@ button.coaching-moments-section__item:focus-visible {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   width: min(28rem, 100%);
-  max-height: 90vh;
-  height: min(90vh, 100%);
-  margin: auto 0;
+  /* Definite viewport height so the body region can scroll independently.
+     Percentage height (min(90vh, 100%)) was resolving without a bound, so
+     overflow-y:auto never activated while body scroll was locked. */
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
   background: #fff;
   overflow: hidden;
   box-shadow: -12px 0 40px rgba(15, 35, 64, 0.12);
+  isolation: isolate;
 }
 
 .evidence-drawer__header {
@@ -11077,6 +11082,7 @@ button.coaching-moments-section__item:focus-visible {
   padding: 1.25rem 1.35rem 1rem;
   border-bottom: 1px solid rgba(15, 35, 64, 0.08);
   background: #fff;
+  flex-shrink: 0;
 }
 
 .evidence-drawer__close {

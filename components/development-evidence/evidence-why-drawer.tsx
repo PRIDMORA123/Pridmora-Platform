@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import type { EvidenceWhyThisPayload } from "@/lib/development-evidence";
 import { getFocusableElements, trapFocusTab } from "@/lib/focus-trap";
@@ -26,6 +27,7 @@ export function EvidenceWhyDrawer({
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const frame = requestAnimationFrame(() => {
+      bodyRef.current?.scrollTo?.({ top: 0, behavior: "auto" });
       const focusable = panelRef.current
         ? getFocusableElements(panelRef.current)
         : [];
@@ -49,9 +51,9 @@ export function EvidenceWhyDrawer({
     };
   }, [open]);
 
-  if (!open || !payload) return null;
+  if (!open || !payload || typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <div className="evidence-drawer-backdrop" role="presentation">
       <button
         type="button"
@@ -82,7 +84,7 @@ export function EvidenceWhyDrawer({
           </button>
         </header>
 
-        <div ref={bodyRef} className="evidence-drawer__body">
+        <div ref={bodyRef} className="evidence-drawer__body" tabIndex={-1}>
           <EvidenceConfidencePanel
             confidence={payload.confidence}
             coverage={payload.coverage}
@@ -151,6 +153,7 @@ export function EvidenceWhyDrawer({
         </div>
         <div className="evidence-drawer__fade" aria-hidden="true" />
       </aside>
-    </div>
+    </div>,
+    document.body
   );
 }

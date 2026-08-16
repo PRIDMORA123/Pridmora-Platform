@@ -64,9 +64,16 @@ describe("UAT readiness polish", () => {
   it("keeps Why this drawer within viewport with sticky close affordance", () => {
     const css = read("app/identity-design-system.css");
     const drawer = read("components/development-evidence/evidence-why-drawer.tsx");
-    expect(css).toMatch(/evidence-drawer[\s\S]{0,200}max-height:\s*90vh/);
+    expect(css).toContain(".evidence-drawer {");
+    expect(css).toContain("max-height: 100dvh;");
+    expect(css).toContain("height: 100dvh;");
+    expect(css).toContain(".evidence-drawer__body {");
+    expect(css).toContain("overflow-y: auto;");
+    expect(css).toContain("overscroll-behavior: contain;");
+    expect(drawer).toContain("createPortal");
     expect(drawer).toContain("evidence-drawer__close");
     expect(drawer).toContain("evidence-drawer__fade");
+    expect(drawer).toContain("evidence-drawer__body");
   });
 
   it("syncs confirmed commitments into open actions after apply", () => {
