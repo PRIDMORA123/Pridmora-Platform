@@ -1,5 +1,6 @@
 import type { PatternEvidenceSourceType } from "@/lib/patterns/types";
 import { formatSessionDateLabel } from "@/lib/session/session-display";
+import { useState } from "react";
 
 export type IdentityEvidenceItem = {
   id: string;
@@ -9,6 +10,8 @@ export type IdentityEvidenceItem = {
   sessionLabel?: string;
   /** UK display date — never a raw ISO timestamp. */
   dateLabel?: string;
+  /** Verbatim authorised excerpt for Manager judgement. */
+  excerpt?: string | null;
   href?: string;
   onView?: () => void;
   /** @deprecated Prefer typeLabel + sessionLabel + dateLabel */
@@ -20,7 +23,7 @@ export type IdentityEvidenceItem = {
 const SOURCE_TYPE_LABELS: Record<PatternEvidenceSourceType, string> = {
   session_notes: "Session notes",
   approved_summary: "Approved summary",
-  commitment: "Commitment",
+  commitment: "Commitment / intention",
   development_observation: "Development observation",
   supporting_context: "Supporting context",
   coaching_moment: "Development moment",
@@ -61,6 +64,7 @@ export function dedupeEvidenceItems(
       type,
       (item.sessionLabel ?? "").toLocaleLowerCase("en-GB"),
       (item.dateLabel ?? "").toLocaleLowerCase("en-GB"),
+      (item.excerpt ?? "").toLocaleLowerCase("en-GB"),
       item.href ?? "",
     ].join("|");
     if (seen.has(softKey)) continue;
@@ -70,10 +74,89 @@ export function dedupeEvidenceItems(
   return result;
 }
 
+function formatSourceLine(item: IdentityEvidenceItem): string | null {
+  const typeLabel = item.typeLabel || item.title || "Evidence";
+  const parts = [item.sessionLabel, typeLabel].filter(Boolean);
+  if (parts.length === 0) return null;
+  if (item.sessionLabel && typeLabel) {
+    return `Source: ${item.sessionLabel} · ${typeLabel}`;
+  }
+  if (item.dateLabel) {
+    return `Source: ${typeLabel} · ${item.dateLabel}`;
+  }
+  return `Source: ${typeLabel}`;
+}
+
+function EvidenceListItem({ item }: { item: IdentityEvidenceItem }) {
+  const [expanded, setExpanded] = useState(false);
+  const excerpt = (item.excerpt ?? "").trim();
+  const sourceLine = formatSourceLine(item);
+  const hasExpandableExcerpt = excerpt.length > 0;
+  const hasAction = Boolean(item.onView || item.href || hasExpandableExcerpt);
+
+  return (
+    <li className="identity-evidence-list__item">
+      {excerpt ? (
+        <blockquote className="identity-evidence-list__excerpt">
+          {excerpt}
+        </blockquote>
+      ) : null}
+
+      {sourceLine ? (
+        <p className="identity-evidence-list__source">{sourceLine}</p>
+      ) : (
+        <p className="identity-evidence-list__type">
+          {item.typeLabel || item.title || "Evidence"}
+        </p>
+      )}
+
+      {item.dateLabel && item.sessionLabel ? (
+        <p className="identity-evidence-list__meta">{item.dateLabel}</p>
+      ) : null}
+
+      {expanded && excerpt ? (
+        <div className="identity-evidence-list__full" role="region">
+          <p className="identity-evidence-list__full-label">
+            Authorised source excerpt
+          </p>
+          <p className="identity-evidence-list__full-body">{excerpt}</p>
+        </div>
+      ) : null}
+
+      {hasAction ? (
+        item.onView ? (
+          <button
+            type="button"
+            className="identity-text-action identity-evidence-list__action"
+            onClick={item.onView}
+          >
+            View full evidence
+          </button>
+        ) : hasExpandableExcerpt ? (
+          <button
+            type="button"
+            className="identity-text-action identity-evidence-list__action"
+            aria-expanded={expanded}
+            onClick={() => setExpanded(current => !current)}
+          >
+            {expanded ? "Hide full evidence" : "View full evidence"}
+          </button>
+        ) : item.href ? (
+          <a
+            href={item.href}
+            className="identity-text-action identity-evidence-list__action"
+          >
+            View full evidence
+          </a>
+        ) : null
+      ) : null}
+    </li>
+  );
+}
+
 /**
  * Structured evidence list for Pridmora Intelligence panels.
- * Legacy internal component namespace retained for compatibility.
- * Type · session · readable date · View evidence action.
+ * Excerpt first; source metadata secondary; View full evidence for context.
  */
 export function IdentityEvidenceList({
   items,
@@ -85,43 +168,9 @@ export function IdentityEvidenceList({
 
   return (
     <ul className="identity-evidence-list" role="list">
-      {unique.map(item => {
-        const typeLabel = item.typeLabel || item.title || "Evidence";
-        const metaParts = [item.sessionLabel, item.dateLabel].filter(Boolean);
-        const legacyMeta = item.meta && metaParts.length === 0 ? item.meta : null;
-        const hasAction = Boolean(item.href || item.onView);
-
-        return (
-          <li key={item.id} className="identity-evidence-list__item">
-            <p className="identity-evidence-list__type">{typeLabel}</p>
-            {metaParts.length > 0 ? (
-              <p className="identity-evidence-list__meta">
-                {metaParts.join(" · ")}
-              </p>
-            ) : legacyMeta ? (
-              <p className="identity-evidence-list__meta">{legacyMeta}</p>
-            ) : null}
-            {hasAction ? (
-              item.onView ? (
-                <button
-                  type="button"
-                  className="identity-text-action identity-evidence-list__action"
-                  onClick={item.onView}
-                >
-                  View evidence
-                </button>
-              ) : (
-                <a
-                  href={item.href}
-                  className="identity-text-action identity-evidence-list__action"
-                >
-                  View evidence
-                </a>
-              )
-            ) : null}
-          </li>
-        );
-      })}
+      {unique.map(item => (
+        <EvidenceListItem key={item.id} item={item} />
+      ))}
     </ul>
   );
 }

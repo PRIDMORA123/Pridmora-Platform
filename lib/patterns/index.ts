@@ -26,6 +26,7 @@ export {
 } from "@/lib/patterns/classify";
 
 export {
+  authorisedEvidenceExcerpt,
   countDistinctEvidence,
   deduplicateEvidence,
   distinctSessionIds,
@@ -33,6 +34,7 @@ export {
   evidenceFingerprint,
   filterAuthorisedEvidence,
   normaliseAuthorisedEvidence,
+  PATTERN_EVIDENCE_EXCERPT_MAX,
   toEvidenceReference,
 } from "@/lib/patterns/evidence";
 

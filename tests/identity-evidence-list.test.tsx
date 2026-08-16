@@ -30,7 +30,7 @@ describe("evidence date formatting", () => {
       "Development observation"
     );
     expect(evidenceTypeLabel("approved_summary")).toBe("Approved summary");
-    expect(evidenceTypeLabel("commitment")).toBe("Commitment");
+    expect(evidenceTypeLabel("commitment")).toBe("Commitment / intention");
     expect(evidenceTypeLabel("coaching_moment")).toBe("Development moment");
   });
 });
@@ -52,7 +52,33 @@ describe("IdentityEvidenceList", () => {
     container.remove();
   });
 
-  it("renders structured rows with View evidence actions", () => {
+  it("renders excerpt before source metadata", () => {
+    act(() => {
+      root.render(
+        <IdentityEvidenceList
+          items={[
+            {
+              id: "1",
+              typeLabel: "Session notes",
+              sessionLabel: "Session 1",
+              dateLabel: "1 August 2026",
+              excerpt: "She left one decision with her manager.",
+            },
+          ]}
+        />
+      );
+    });
+
+    const text = container.textContent || "";
+    expect(text).toContain("She left one decision with her manager.");
+    expect(text).toContain("Source: Session 1 · Session notes");
+    expect(text.indexOf("She left one decision")).toBeLessThan(
+      text.indexOf("Source: Session 1")
+    );
+    expect(container.textContent).toContain("View full evidence");
+  });
+
+  it("renders structured rows with View full evidence actions", () => {
     act(() => {
       root.render(
         <IdentityEvidenceList
@@ -62,27 +88,28 @@ describe("IdentityEvidenceList", () => {
               typeLabel: "Development observation",
               sessionLabel: "Session 1",
               dateLabel: "1 August 2026",
-              href: "#evidence-1",
+              excerpt: "Theme appeared in review.",
             },
             {
               id: "2",
               typeLabel: "Approved summary",
               sessionLabel: "Session 2",
               dateLabel: "18 August 2026",
-              href: "#evidence-2",
+              excerpt: "Summary confirms the theme.",
             },
           ]}
         />
       );
     });
 
-    expect(container.textContent).toContain("Development observation");
-    expect(container.textContent).toContain("Session 1 · 1 August 2026");
-    expect(container.textContent).toContain("Approved summary");
+    expect(container.textContent).toContain("Theme appeared in review.");
+    expect(container.textContent).toContain(
+      "Source: Session 1 · Development observation"
+    );
     expect(container.querySelectorAll(".identity-evidence-list__action").length).toBe(
       2
     );
-    expect(container.querySelector("a.identity-text-action")).not.toBeNull();
+    expect(container.querySelector("button.identity-text-action")).not.toBeNull();
     expect(container.querySelector('a[style*="purple"]')).toBeNull();
   });
 
@@ -90,17 +117,17 @@ describe("IdentityEvidenceList", () => {
     const items = dedupeEvidenceItems([
       {
         id: "a",
-        typeLabel: "Commitment",
+        typeLabel: "Commitment / intention",
         sessionLabel: "Session 2",
         dateLabel: "18 August 2026",
-        href: "#c",
+        excerpt: "Same commitment",
       },
       {
         id: "b",
-        typeLabel: "Commitment",
+        typeLabel: "Commitment / intention",
         sessionLabel: "Session 2",
         dateLabel: "18 August 2026",
-        href: "#c",
+        excerpt: "Same commitment",
       },
     ]);
     expect(items).toHaveLength(1);

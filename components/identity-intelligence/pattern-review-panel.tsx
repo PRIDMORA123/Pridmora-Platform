@@ -2,10 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { CoachingPattern } from "@/lib/patterns/types";
-import {
-  formatSupportedBySessions,
-  provenanceHref,
-} from "@/lib/patterns/display";
+import { formatSupportedBySessions } from "@/lib/patterns/display";
 import {
   IdentityEvidenceList,
   evidenceTypeLabel,
@@ -39,7 +36,7 @@ function buildEvidenceItems(
       sessionLabel:
         sessionNumber != null ? `Session ${sessionNumber}` : undefined,
       dateLabel: formatEvidenceDateLabel(ref.sourceDate),
-      href: provenanceHref(ref),
+      excerpt: ref.excerpt ?? null,
     };
   });
 }

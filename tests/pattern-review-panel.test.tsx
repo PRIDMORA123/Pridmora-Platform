@@ -69,7 +69,18 @@ describe("PatternReviewPanel", () => {
     act(() => {
       root.render(
         <PatternReviewPanel
-          pattern={makePattern()}
+          pattern={makePattern({
+            evidence: [
+              {
+                sourceType: "session_notes",
+                sourceId: "session-1:notes",
+                sessionId: "session-1",
+                sourceDate: "2026-08-01T09:23:57.013+00:00",
+                excerpt:
+                  "She left the final call with her manager and clarified the outcome.",
+              },
+            ],
+          })}
           sessionNumbers={new Map([["session-1", 1]])}
           onClose={onClose}
           onSubmit={onSubmit}
@@ -79,12 +90,82 @@ describe("PatternReviewPanel", () => {
 
     expect(container.textContent).toContain("Review pattern");
     expect(container.textContent).toContain("Delegation under pressure");
-    expect(container.textContent).toContain("Development observation");
-    expect(container.textContent).toContain("1 August 2026");
+    expect(container.textContent).toContain(
+      "She left the final call with her manager and clarified the outcome."
+    );
+    expect(container.textContent).toContain("Source: Session 1 · Session notes");
+    expect(container.textContent).toContain("View full evidence");
     expect(container.textContent).not.toContain("2026-08-01T09:23:57");
     expect(container.textContent).toContain("Accept pattern");
     expect(container.textContent).toContain("Not relevant");
     expect(container.textContent).toContain("Close review");
+  });
+
+  it("labels commitment evidence as Commitment / intention", () => {
+    act(() => {
+      root.render(
+        <PatternReviewPanel
+          pattern={makePattern({
+            evidence: [
+              {
+                sourceType: "commitment",
+                sourceId: "session-2:commitments",
+                sessionId: "session-2",
+                sourceDate: "2026-08-08",
+                excerpt: "Will leave one decision with the manager this week.",
+              },
+            ],
+          })}
+          sessionNumbers={new Map([["session-2", 2]])}
+          onClose={() => undefined}
+          onSubmit={async () => undefined}
+        />
+      );
+    });
+
+    expect(container.textContent).toContain(
+      "Will leave one decision with the manager this week."
+    );
+    expect(container.textContent).toContain(
+      "Source: Session 2 · Commitment / intention"
+    );
+    expect(container.textContent).not.toMatch(/Source: Session 2 · Commitment$/);
+  });
+
+  it("expands View full evidence to show the authorised excerpt", () => {
+    act(() => {
+      root.render(
+        <PatternReviewPanel
+          pattern={makePattern({
+            evidence: [
+              {
+                sourceType: "session_notes",
+                sourceId: "session-1:notes",
+                sessionId: "session-1",
+                excerpt: "Authorised note excerpt for judgement.",
+              },
+            ],
+          })}
+          sessionNumbers={new Map([["session-1", 1]])}
+          onClose={() => undefined}
+          onSubmit={async () => undefined}
+        />
+      );
+    });
+
+    expect(container.textContent).not.toContain("Authorised source excerpt");
+
+    act(() => {
+      const button = Array.from(container.querySelectorAll("button")).find(
+        item => item.textContent === "View full evidence"
+      );
+      button?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(container.textContent).toContain("Authorised source excerpt");
+    expect(container.textContent).toContain(
+      "Authorised note excerpt for judgement."
+    );
   });
 
   it("moves focus to the review heading", () => {

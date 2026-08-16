@@ -325,6 +325,147 @@ describe("pattern authorised evidence", () => {
   });
 });
 
+describe("pattern evidence excerpt persistence", () => {
+  it("persists verbatim authorised excerpts and ignores AI-invented excerpt text", () => {
+    const sessions = [
+      baseSession({
+        id: "s1",
+        sessionNumber: 1,
+        notes: "Delegation pressure appeared when leaving decisions with managers.",
+        summary: "Delegation theme in session one.",
+        summaryStatus: "approved",
+        aiSummaryApproved: true,
+      }),
+      baseSession({
+        id: "s2",
+        sessionNumber: 2,
+        date: "2026-07-08",
+        notes: "Delegation again — she left the call with her manager.",
+        summary: "Delegation continued.",
+        summaryStatus: "approved",
+        aiSummaryApproved: true,
+      }),
+    ];
+
+    const result = generateRelationshipPatterns({
+      relationshipId: "rel-1",
+      sessions,
+      existingPatterns: [],
+      candidates: [
+        {
+          title: "Delegation",
+          description: "Delegation has appeared across approved sessions.",
+          evidence: [
+            {
+              sourceType: "session_notes",
+              sourceId: "s1:notes",
+              sessionId: "s1",
+              excerpt: "AI invented paraphrase that must not be stored.",
+            },
+            {
+              sourceType: "session_notes",
+              sourceId: "s2:notes",
+              sessionId: "s2",
+              excerpt: "Another invented AI display sentence.",
+            },
+          ],
+        },
+      ],
+    });
+
+    const pattern = result.patterns[0];
+    expect(pattern).toBeTruthy();
+    expect(pattern?.evidence).toHaveLength(2);
+    for (const item of pattern?.evidence ?? []) {
+      expect(item.excerpt).toBeTruthy();
+      expect(item.excerpt).not.toContain("AI invented");
+      expect(item.excerpt).not.toContain("invented AI");
+    }
+    expect(pattern?.evidence[0]?.excerpt).toContain("Delegation pressure");
+    expect(pattern?.evidence[1]?.excerpt).toContain("Delegation again");
+  });
+
+  it("does not attach private notes as pattern evidence excerpts", () => {
+    const sessions = [
+      baseSession({
+        id: "s1",
+        notes: "Visible coaching note about delegation.",
+        prepPrivateNotes: "Private reminder about anxiety diagnosis.",
+        reflectPrivate: "Do not surface this private reflection.",
+        summary: "Delegation theme.",
+        summaryStatus: "approved",
+        aiSummaryApproved: true,
+      }),
+      baseSession({
+        id: "s2",
+        date: "2026-07-08",
+        notes: "Delegation continued in the conversation.",
+        summary: "Delegation continued.",
+        summaryStatus: "approved",
+        aiSummaryApproved: true,
+      }),
+    ];
+
+    const points = collectPatternEvidenceFromRelationship({
+      relationshipId: "rel-1",
+      sessions,
+    });
+    expect(
+      points.some(item => /anxiety diagnosis|private reflection/i.test(item.content))
+    ).toBe(false);
+
+    const result = generateRelationshipPatterns({
+      relationshipId: "rel-1",
+      sessions,
+      existingPatterns: [],
+      candidates: [
+        {
+          title: "Delegation",
+          description: "Delegation has appeared across approved sessions.",
+          evidence: [
+            {
+              sourceType: "session_notes",
+              sourceId: "s1:notes",
+              sessionId: "s1",
+            },
+            {
+              sourceType: "session_notes",
+              sourceId: "s2:notes",
+              sessionId: "s2",
+            },
+          ],
+        },
+      ],
+    });
+
+    const joined = (result.patterns[0]?.evidence ?? [])
+      .map(item => item.excerpt ?? "")
+      .join(" ");
+    expect(joined).not.toMatch(/anxiety diagnosis|private reflection/i);
+  });
+
+  it("leaves pattern strength classification unchanged", () => {
+    expect(
+      classifyPatternStrength([
+        ref({ sourceType: "approved_summary", sourceId: "a", sessionId: "s1" }),
+      ])
+    ).toBe("observation");
+    expect(
+      classifyPatternStrength([
+        ref({ sourceType: "approved_summary", sourceId: "a", sessionId: "s1" }),
+        ref({ sourceType: "approved_summary", sourceId: "b", sessionId: "s2" }),
+      ])
+    ).toBe("emerging");
+    expect(
+      classifyPatternStrength([
+        ref({ sourceType: "approved_summary", sourceId: "a", sessionId: "s1" }),
+        ref({ sourceType: "commitment", sourceId: "b", sessionId: "s2" }),
+        ref({ sourceType: "session_notes", sourceId: "c", sessionId: "s3" }),
+      ])
+    ).toBe("established");
+  });
+});
+
 describe("pattern coach review", () => {
   const rejected: CoachingPattern = {
     id: "p1",

@@ -67,7 +67,7 @@ export function collectPatternEvidenceFromRelationship(input: {
           sessionId: session.id,
           sourceDate: date,
           content: notes,
-          excerpt: notes.slice(0, 160),
+          excerpt: notes.slice(0, 240),
           isPrivate: false,
           isApproved: true,
           canonicalKey: evidenceCanonicalKey({
@@ -90,7 +90,7 @@ export function collectPatternEvidenceFromRelationship(input: {
         sessionId: session.id,
         sourceDate: date,
         content: summary,
-        excerpt: summary.slice(0, 160),
+        excerpt: summary.slice(0, 240),
         isPrivate: false,
         isApproved: approved,
         canonicalKey: evidenceCanonicalKey({
@@ -112,7 +112,7 @@ export function collectPatternEvidenceFromRelationship(input: {
         sessionId: session.id,
         sourceDate: date,
         content: themes,
-        excerpt: themes.slice(0, 160),
+        excerpt: themes.slice(0, 240),
         isPrivate: false,
         isApproved: true,
         canonicalKey: evidenceCanonicalKey({
@@ -135,7 +135,7 @@ export function collectPatternEvidenceFromRelationship(input: {
         sessionId: session.id,
         sourceDate: date,
         content: commitments,
-        excerpt: commitments.slice(0, 160),
+        excerpt: commitments.slice(0, 240),
         isPrivate: false,
         isApproved: true,
         canonicalKey: evidenceCanonicalKey({
@@ -157,7 +157,7 @@ export function collectPatternEvidenceFromRelationship(input: {
       sessionId: null,
       sourceDate: item.sourceDate || null,
       content,
-      excerpt: content.slice(0, 160),
+      excerpt: content.slice(0, 240),
       isPrivate: false,
       isApproved: true,
       aiEnabled: true,
@@ -192,7 +192,7 @@ export function collectPatternEvidenceFromRelationship(input: {
       sessionId: null,
       sourceDate: moment.occurredAt || moment.updatedAt,
       content,
-      excerpt: content.slice(0, 160),
+      excerpt: content.slice(0, 240),
       isPrivate: false,
       isApproved: true,
       canonicalKey: coachingMomentEvidenceCanonicalKey(moment.id),

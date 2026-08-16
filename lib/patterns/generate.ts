@@ -2,7 +2,10 @@ import {
   collectPatternEvidenceFromRelationship,
 } from "@/lib/patterns/collect";
 import { detectPatternCandidates } from "@/lib/patterns/detect";
-import { evidenceFingerprint } from "@/lib/patterns/evidence";
+import {
+  authorisedEvidenceExcerpt,
+  evidenceFingerprint,
+} from "@/lib/patterns/evidence";
 import {
   preserveAcceptedOnFailure,
   reconcilePatterns,
@@ -89,15 +92,20 @@ function constrainCandidatesToEvidence(
         .filter(ref => allowed.has(ref.sourceId))
         .map(ref => {
           const point = byId.get(ref.sourceId);
-          if (!point) return ref;
+          if (!point) {
+            // Drop unauthorised or unresolved refs — never keep AI-supplied excerpt alone
+            return null;
+          }
           return {
             sourceType: point.sourceType,
             sourceId: point.sourceId,
             sessionId: point.sessionId ?? null,
             sourceDate: point.sourceDate ?? null,
-            excerpt: null as string | null,
+            // Verbatim from authorised catalogue only — ignore any model-supplied excerpt
+            excerpt: authorisedEvidenceExcerpt(point),
           };
-        });
+        })
+        .filter((ref): ref is NonNullable<typeof ref> => ref != null);
       return { ...candidate, evidence };
     })
     .filter(candidate => candidate.evidence.length > 0);

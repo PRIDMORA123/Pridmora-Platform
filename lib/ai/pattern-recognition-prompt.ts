@@ -76,7 +76,8 @@ Return JSON only:
 
 Rules for evidence references:
 - Only cite sourceIds from the supplied catalogue.
-- Prefer source references without sensitive excerpts.
+- Set excerpt to null — the server attaches a bounded verbatim excerpt from the authorised source.
+- Do not invent, paraphrase, or invent source text for display.
 - Do not invent sources.
 - A pattern needs meaningfully related evidence, not raw keyword coincidence alone.
 `;

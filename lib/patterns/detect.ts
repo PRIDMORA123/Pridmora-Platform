@@ -99,7 +99,7 @@ export function detectPatternCandidates(
   const ranked = Array.from(termToEvidence.entries())
     .map(([term, evidencePoints]) => {
       const uniquePoints = dedupePoints(evidencePoints);
-      const refs = uniquePoints.map(point => toEvidenceReference(point, false));
+      const refs = uniquePoints.map(point => toEvidenceReference(point, true));
       return { term, refs, sessions: distinctSessionIds(refs) };
     })
     .filter(item => item.refs.length >= 2)

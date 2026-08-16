@@ -8,11 +8,14 @@ function asTrimmed(value: string | null | undefined): string {
   return (value ?? "").replace(/\s+/g, " ").trim();
 }
 
-function truncateExcerpt(value: string, max = 160): string {
+function truncateExcerpt(value: string, max = 240): string {
   const cleaned = asTrimmed(value);
   if (cleaned.length <= max) return cleaned;
   return `${cleaned.slice(0, max - 1).trim()}…`;
 }
+
+/** Bounded verbatim excerpt length for pattern review display. */
+export const PATTERN_EVIDENCE_EXCERPT_MAX = 240;
 
 /**
  * Build a stable canonical key so regenerated summaries / duplicates count once.
@@ -113,9 +116,25 @@ export function toEvidenceReference(
     sessionId: point.sessionId ?? null,
     sourceDate: point.sourceDate ?? null,
     excerpt: includeExcerpt
-      ? truncateExcerpt(point.excerpt || point.content) || null
+      ? truncateExcerpt(
+          point.excerpt || point.content,
+          PATTERN_EVIDENCE_EXCERPT_MAX
+        ) || null
       : null,
   };
+}
+
+/**
+ * Verbatim authorised excerpt for persistence — never AI-invented prose.
+ * Uses catalogue content only (already filtered of private / unapproved sources).
+ */
+export function authorisedEvidenceExcerpt(
+  point: AuthorisedPatternEvidencePoint
+): string | null {
+  return (
+    truncateExcerpt(point.excerpt || point.content, PATTERN_EVIDENCE_EXCERPT_MAX) ||
+    null
+  );
 }
 
 export function evidenceFingerprint(

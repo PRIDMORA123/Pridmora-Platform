@@ -6,7 +6,6 @@ import {
   coachReviewStateLabel,
   formatSupportedBySessions,
   patternStatusLabel,
-  provenanceHref,
 } from "@/lib/patterns/display";
 import { selectPatternsForDevelopment } from "@/lib/patterns/prioritise";
 import {
@@ -49,7 +48,7 @@ function evidenceItemsForPattern(
       sessionLabel:
         sessionNumber != null ? `Session ${sessionNumber}` : undefined,
       dateLabel: formatEvidenceDateLabel(ref.sourceDate),
-      href: provenanceHref(ref),
+      excerpt: ref.excerpt ?? null,
     };
   });
 }
