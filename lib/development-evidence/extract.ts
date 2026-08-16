@@ -5,6 +5,9 @@
  *
  * Binary extractors must stay bounded — sync full-file scans can freeze
  * the Node event loop and prevent evidence rows from being created.
+ *
+ * DOCX Deflate uses DecompressionStream (available in Node and modern
+ * runtimes) so this module stays safe for shared client/server imports.
  */
 
 import {
@@ -16,6 +19,11 @@ import {
 /** Max bytes scanned for sync PDF/DOCX best-effort extraction. */
 export const EXTRACT_BINARY_SCAN_BYTES = 384 * 1024;
 const MAX_PDF_TEXT_BLOCKS = 250;
+/** Cap inflated document.xml size to keep extraction bounded. */
+const MAX_DOCX_XML_INFLATE_BYTES = 2 * 1024 * 1024;
+const ZIP_LOCAL_FILE_SIGNATURE = 0x04034b50;
+const ZIP_METHOD_STORE = 0;
+const ZIP_METHOD_DEFLATE = 8;
 
 export type ExtractionResult =
   | {
@@ -123,7 +131,7 @@ export async function extractEvidenceDocumentText(input: {
     input.mimeType ===
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
   ) {
-    const text = extractDocxTextBestEffort(scanWindow(input.bytes));
+    const text = await extractDocxTextBestEffort(scanWindow(input.bytes));
     if (!text.trim()) {
       return {
         ok: false,
@@ -255,34 +263,123 @@ function unescapePdfString(value: string): string {
 }
 
 /**
- * Best-effort DOCX extraction: DOCX is a ZIP with word/document.xml.
- * Without a ZIP library, attempt to locate UTF-8 XML text payloads.
+ * Best-effort DOCX extraction: DOCX is a ZIP containing word/document.xml.
+ * Modern Word files Deflate (method 8) that entry — inflate before parsing
+ * <w:t> runs. Falls back to a raw scan for store-compressed / atypical files.
  */
-function extractDocxTextBestEffort(bytes: Uint8Array): string {
-  const raw = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+async function extractDocxTextBestEffort(bytes: Uint8Array): Promise<string> {
+  const fromZip = await extractDocxTextFromZipEntries(bytes);
+  if (fromZip.trim()) return fromZip;
+
+  // Fallback: uncompressed XML visible in the byte stream (rare).
+  return extractWtTextFromXml(
+    new TextDecoder("latin1").decode(bytes)
+  );
+}
+
+async function extractDocxTextFromZipEntries(
+  bytes: Uint8Array
+): Promise<string> {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let offset = 0;
+
+  while (offset + 30 <= bytes.byteLength) {
+    if (view.getUint32(offset, true) !== ZIP_LOCAL_FILE_SIGNATURE) {
+      offset += 1;
+      continue;
+    }
+
+    const method = view.getUint16(offset + 8, true);
+    const generalPurpose = view.getUint16(offset + 6, true);
+    const compressedSize = view.getUint32(offset + 18, true);
+    const uncompressedSize = view.getUint32(offset + 22, true);
+    const nameLen = view.getUint16(offset + 26, true);
+    const extraLen = view.getUint16(offset + 28, true);
+    const nameStart = offset + 30;
+    const dataStart = nameStart + nameLen + extraLen;
+
+    if (dataStart > bytes.byteLength) break;
+
+    const name = new TextDecoder("utf-8", { fatal: false }).decode(
+      bytes.subarray(nameStart, nameStart + nameLen)
+    );
+
+    // Bit 3: sizes live in a trailing data descriptor — skip (atypical for DOCX).
+    const sizesDeferred = (generalPurpose & 0x0008) !== 0;
+    if (sizesDeferred && compressedSize === 0) {
+      offset = dataStart;
+      continue;
+    }
+
+    if (dataStart + compressedSize > bytes.byteLength) break;
+
+    if (name === "word/document.xml") {
+      const payload = bytes.subarray(dataStart, dataStart + compressedSize);
+      const xmlBytes = await inflateZipPayload({
+        method,
+        payload,
+        uncompressedSize,
+      });
+      if (xmlBytes) {
+        const xml = new TextDecoder("utf-8", { fatal: false }).decode(xmlBytes);
+        const text = extractWtTextFromXml(xml);
+        if (text) return text;
+      }
+    }
+
+    offset = dataStart + compressedSize;
+  }
+
+  return "";
+}
+
+async function inflateZipPayload(input: {
+  method: number;
+  payload: Uint8Array;
+  uncompressedSize: number;
+}): Promise<Uint8Array | null> {
+  if (input.method === ZIP_METHOD_STORE) {
+    return input.payload;
+  }
+  if (input.method !== ZIP_METHOD_DEFLATE) {
+    return null;
+  }
+  if (input.uncompressedSize > MAX_DOCX_XML_INFLATE_BYTES) {
+    return null;
+  }
+
+  const maxOutput =
+    input.uncompressedSize > 0
+      ? Math.min(input.uncompressedSize, MAX_DOCX_XML_INFLATE_BYTES)
+      : MAX_DOCX_XML_INFLATE_BYTES;
+
+  try {
+    if (typeof DecompressionStream === "undefined") {
+      return null;
+    }
+    const stream = new Blob([
+      new Uint8Array(input.payload),
+    ]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+    const buffer = await new Response(stream).arrayBuffer();
+    if (buffer.byteLength > maxOutput) {
+      return null;
+    }
+    return new Uint8Array(buffer);
+  } catch {
+    return null;
+  }
+}
+
+function extractWtTextFromXml(xml: string): string {
   const textChunks: string[] = [];
   const tagPattern = /<w:t[^>]*>([^<]*)<\/w:t>/g;
   let match: RegExpExecArray | null;
   let tags = 0;
-  while ((match = tagPattern.exec(raw)) && tags < 2_000) {
+  while ((match = tagPattern.exec(xml)) && tags < 2_000) {
     tags += 1;
     if (match[1]) textChunks.push(decodeXml(match[1]));
   }
-
-  if (textChunks.length > 0) {
-    return textChunks.join(" ").replace(/\s+/g, " ").trim();
-  }
-
-  // Binary ZIP often breaks UTF-8 decoding of XML; scan for w:t fragments in latin1
-  const latin = new TextDecoder("latin1").decode(bytes);
-  const latinChunks: string[] = [];
-  const latinPattern = /<w:t[^>]*>([^<]*)<\/w:t>/g;
-  tags = 0;
-  while ((match = latinPattern.exec(latin)) && tags < 2_000) {
-    tags += 1;
-    if (match[1]) latinChunks.push(decodeXml(match[1]));
-  }
-  return latinChunks.join(" ").replace(/\s+/g, " ").trim();
+  return textChunks.join(" ").replace(/\s+/g, " ").trim();
 }
 
 function decodeXml(value: string): string {

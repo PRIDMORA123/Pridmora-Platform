@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { deflateRawSync } from "node:zlib";
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import {
@@ -27,6 +28,34 @@ const root = join(__dirname, "..");
 
 function read(relativePath: string): string {
   return readFileSync(join(root, relativePath), "utf8");
+}
+
+/** Minimal DOCX ZIP with a single word/document.xml local-file entry. */
+function buildMinimalDocxZip(input: {
+  bodyText: string;
+  compressionMethod: 0 | 8;
+}): Uint8Array {
+  const xml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body><w:p><w:r><w:t>${input.bodyText}</w:t></w:r></w:p></w:body>
+</w:document>`;
+  const uncompressed = Buffer.from(xml, "utf8");
+  const payload =
+    input.compressionMethod === 8
+      ? deflateRawSync(uncompressed)
+      : uncompressed;
+  const name = Buffer.from("word/document.xml", "utf8");
+  const header = Buffer.alloc(30);
+  header.writeUInt32LE(0x04034b50, 0);
+  header.writeUInt16LE(20, 4);
+  header.writeUInt16LE(0, 6);
+  header.writeUInt16LE(input.compressionMethod, 8);
+  header.writeUInt32LE(0, 14);
+  header.writeUInt32LE(payload.length, 18);
+  header.writeUInt32LE(uncompressed.length, 22);
+  header.writeUInt16LE(name.length, 26);
+  header.writeUInt16LE(0, 28);
+  return new Uint8Array(Buffer.concat([header, name, payload]));
 }
 
 function makeEvidence(
@@ -177,6 +206,48 @@ describe("Development Evidence uploads and extraction", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.text).toContain("clearer expectations");
+    }
+  });
+
+  it("extracts text from Deflate-compressed DOCX (ZIP method 8)", async () => {
+    const sample =
+      "Stakeholder feedback: clearer expectations and calmer pacing were observed in recent reviews.";
+    const bytes = buildMinimalDocxZip({
+      bodyText: sample,
+      compressionMethod: 8,
+    });
+    const result = await extractEvidenceDocumentText({
+      fileName: "stakeholder-feedback.docx",
+      mimeType:
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      bytes,
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.method).toBe("docx_text");
+      expect(result.text).toContain("clearer expectations");
+      expect(result.text.replace(/\s+/g, " ").trim().length).toBeGreaterThanOrEqual(
+        40
+      );
+    }
+  });
+
+  it("extracts text from store-compressed DOCX (ZIP method 0)", async () => {
+    const sample =
+      "Stakeholder feedback: store-compressed document still yields readable development signals.";
+    const bytes = buildMinimalDocxZip({
+      bodyText: sample,
+      compressionMethod: 0,
+    });
+    const result = await extractEvidenceDocumentText({
+      fileName: "feedback-store.docx",
+      mimeType:
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      bytes,
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.text).toContain("store-compressed document");
     }
   });
 
