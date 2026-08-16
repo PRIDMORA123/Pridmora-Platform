@@ -10,7 +10,8 @@ export type IntelligenceSource =
   | "approved_reflections"
   | "journey_evidence"
   | "development_themes"
-  | "approved_reports";
+  | "approved_reports"
+  | "authorised_development_evidence";
 
 export type CoachingIntelligenceSettings = {
   mode: CoachingIntelligenceMode;

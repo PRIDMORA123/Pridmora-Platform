@@ -24,9 +24,13 @@ describe("coaching intelligence modes", () => {
       "previous_conversations",
       "approved_summaries",
       "open_commitments",
+      "authorised_development_evidence",
     ]);
     expect(COACHING_INTELLIGENCE_MODES.comprehensive.sources).toContain(
       "development_themes"
+    );
+    expect(COACHING_INTELLIGENCE_MODES.comprehensive.sources).toContain(
+      "authorised_development_evidence"
     );
   });
 

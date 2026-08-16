@@ -211,6 +211,7 @@ function formatSourceLabel(source: IntelligenceSource) {
     journey_evidence: "Journey evidence",
     development_themes: "Development themes",
     approved_reports: "Approved reports",
+    authorised_development_evidence: "Authorised development evidence",
   };
 
   return labels[source];

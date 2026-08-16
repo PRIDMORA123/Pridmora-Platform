@@ -215,6 +215,7 @@ describe("prepare route OpenAI diagnostics", () => {
         journeyEvidence: [],
         developmentThemes: [],
         approvedReports: [],
+        authorisedDevelopmentEvidence: [],
         usedSources: [],
       })),
     }));

@@ -81,6 +81,7 @@ export function parseIntelligenceSources(value: unknown): IntelligenceSource[] {
     "journey_evidence",
     "development_themes",
     "approved_reports",
+    "authorised_development_evidence",
   ];
   return value.filter((item): item is IntelligenceSource =>
     allowed.includes(item as IntelligenceSource)

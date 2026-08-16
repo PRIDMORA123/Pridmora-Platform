@@ -1,6 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  selectAuthorisedObservationsForPreparation,
+  type PreparationAuthorisedObservation,
+} from "@/lib/coaching-intelligence/authorised-development-evidence";
 import { COACHING_INTELLIGENCE_MODES } from "@/lib/coaching-intelligence/mode-config";
 import { COACHING_INTELLIGENCE_RULES } from "@/lib/coaching-intelligence/rules";
+import { listEvidenceForClient } from "@/lib/development-evidence";
+import { mapObservationRow } from "@/lib/development-evidence/map";
 import {
   ensureProfileOrEmpty,
   listDevelopmentUpdatesForClient,
@@ -46,6 +52,8 @@ export type ResolvedIntelligenceSources = {
     title: string;
     summary: string;
   }>;
+  /** Authorised Development Evidence library observations only. */
+  authorisedDevelopmentEvidence: PreparationAuthorisedObservation[];
   usedSources: IntelligenceSource[];
 };
 
@@ -64,6 +72,56 @@ async function assertRelationshipOwnershipLocal(
   if (error || !data) {
     throw new Error("RELATIONSHIP_NOT_FOUND");
   }
+}
+
+export async function loadAuthorisedDevelopmentEvidenceForPreparation(input: {
+  supabase: SupabaseClient;
+  coachId: string;
+  relationshipId: string;
+}): Promise<PreparationAuthorisedObservation[]> {
+  const evidence = await listEvidenceForClient(
+    input.supabase,
+    input.coachId,
+    input.relationshipId
+  );
+
+  assertRelationshipOwnership(
+    input.relationshipId,
+    evidence.map(item => ({ relationshipId: item.clientId, id: item.id }))
+  );
+
+  if (evidence.length === 0) return [];
+
+  const evidenceIds = evidence.map(item => item.id);
+  const { data: observationRows, error } = await input.supabase
+    .from("development_evidence_observations")
+    .select(
+      "id, evidence_id, organisation_id, client_id, title, description, category, behavioural_evidence, development_implication, source_confidence, assessment_context, limitations, capability_key, include_in_intelligence, review_status, sort_order, created_at, updated_at"
+    )
+    .eq("client_id", input.relationshipId)
+    .in("evidence_id", evidenceIds);
+
+  if (error) {
+    throw new Error("Unable to load development evidence observations.");
+  }
+
+  const observations = (observationRows ?? []).map(row =>
+    mapObservationRow(row as Record<string, unknown>)
+  );
+
+  assertRelationshipOwnership(
+    input.relationshipId,
+    observations.map(item => ({
+      relationshipId: item.clientId,
+      id: item.id,
+    }))
+  );
+
+  // Observation rows only — never structured_evidence.observations or documents.
+  return selectAuthorisedObservationsForPreparation({
+    evidence,
+    observations,
+  });
 }
 
 export async function resolveIntelligenceSources({
@@ -92,6 +150,7 @@ export async function resolveIntelligenceSources({
     journeyEvidence: [],
     developmentThemes: [],
     approvedReports: [],
+    authorisedDevelopmentEvidence: [],
     usedSources,
   };
 
@@ -325,6 +384,18 @@ export async function resolveIntelligenceSources({
       if (result.approvedReports.length > 0) {
         usedSources.push("approved_reports");
       }
+    }
+  }
+
+  if (configuration.sources.includes("authorised_development_evidence")) {
+    result.authorisedDevelopmentEvidence =
+      await loadAuthorisedDevelopmentEvidenceForPreparation({
+        supabase,
+        coachId,
+        relationshipId,
+      });
+    if (result.authorisedDevelopmentEvidence.length > 0) {
+      usedSources.push("authorised_development_evidence");
     }
   }
 

@@ -25,6 +25,7 @@ const emptySources: ResolvedIntelligenceSources = {
   journeyEvidence: [],
   developmentThemes: [],
   approvedReports: [],
+  authorisedDevelopmentEvidence: [],
   usedSources: [],
 };
 

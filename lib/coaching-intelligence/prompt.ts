@@ -1,3 +1,4 @@
+import { formatAuthorisedDevelopmentEvidenceForPrompt } from "@/lib/coaching-intelligence/authorised-development-evidence";
 import {
   getModePrompt,
   PREPARATION_INTELLIGENCE_PROMPT,
@@ -131,6 +132,13 @@ export function buildPreparationIntelligenceInput(input: {
           .join("\n\n")
       : "None available.",
     "",
+    "Authorised Development Evidence observations (reviewer-authorised only):",
+    formatAuthorisedDevelopmentEvidenceForPrompt(
+      input.sources.authorisedDevelopmentEvidence
+    ),
+    "",
     "Private coach notes are excluded and must not be invented or requested.",
+    "Do not use excluded, rejected, pending, or unreviewed Development Evidence.",
+    "Do not invent document contents beyond the authorised behavioural excerpts above.",
   ].join("\n");
 }

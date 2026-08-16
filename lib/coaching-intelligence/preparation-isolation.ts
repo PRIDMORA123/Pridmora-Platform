@@ -65,6 +65,14 @@ export function buildPreparationAuthorisedEvidenceText(input: {
   for (const item of input.sources.approvedReports) {
     parts.push(item.title, item.summary);
   }
+  for (const item of input.sources.authorisedDevelopmentEvidence) {
+    parts.push(
+      item.title,
+      item.sourceTitle,
+      item.behaviouralEvidence,
+      item.evidenceType
+    );
+  }
 
   return joinAuthorisedEvidenceText(parts);
 }

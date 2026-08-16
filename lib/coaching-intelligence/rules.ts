@@ -33,6 +33,23 @@ Distinguish:
 - what remains uncertain;
 - what may be useful to explore.
 
+Reason across time when the supplied evidence supports it:
+
+previous developmental position
+→ previous commitment
+→ what happened since
+→ newly authorised evidence
+→ evidence of progress or lack of progress
+→ what remains unresolved
+→ what is now useful to explore
+
+When doing so:
+- recognise evidence of progress without overstating certainty;
+- distinguish progress from unresolved development needs;
+- avoid repeating an old weakness as though nothing has changed;
+- retain an existing development focus when the evidence shows it is still relevant;
+- do not treat a single authorised observation as a stable pattern.
+
 Use clear British English.
 
 Suggestions must be concise, practical and suitable for

@@ -132,6 +132,24 @@ When suggesting a tentative area, use language such as:
 
 Do not overuse cautious phrases to the point that the output becomes repetitive.
 
+LONGITUDINAL REASONING
+
+When the supplied evidence supports it, reason across time:
+
+previous developmental position
+→ previous commitment
+→ what happened since
+→ newly authorised evidence
+→ evidence of progress or lack of progress
+→ what remains unresolved
+→ what is now useful to explore
+
+Recognise evidence of progress without overstating certainty.
+Distinguish progress from unresolved development needs.
+Avoid repeating an old weakness as though nothing has changed.
+Retain an existing development focus when the evidence shows it is still relevant.
+Do not treat a single authorised observation as a stable pattern.
+
 PREPARATION APPROACH MAPPING
 
 The application may supply the following stored preparation-style values:
@@ -541,6 +559,8 @@ export function buildPreparationBriefInput(input: {
   supportingContext?: string;
   /** Bounded Preparation adapter context (temporal + first/continuing mode). */
   preparationContext?: string;
+  /** Reviewer-authorised Development Evidence observation excerpts only. */
+  authorisedDevelopmentEvidence?: string;
 }): string {
   const approachName =
     input.style === "minimal"
@@ -594,6 +614,9 @@ export function buildPreparationBriefInput(input: {
     "Earlier conversations — approved fields only (before this session):",
     input.previousSessions || "No authorised earlier conversations.",
     "",
+    "Authorised Development Evidence observations — reviewer-authorised only:",
+    input.authorisedDevelopmentEvidence?.trim() || "None available.",
+    "",
     "Supporting context — coach opted in for AI preparation only:",
     input.supportingContext?.trim() || "None opted in.",
     "",
@@ -603,6 +626,8 @@ export function buildPreparationBriefInput(input: {
     input.coachNotes || "None recorded.",
     "",
     "Do not overwrite or rewrite coach-owned preparation notes.",
+    "Do not use excluded, rejected, pending, or unreviewed Development Evidence.",
+    "Do not invent document contents beyond the authorised behavioural excerpts above.",
     "",
     "Produce the valid JSON preparation draft now.",
   ].join("\n");

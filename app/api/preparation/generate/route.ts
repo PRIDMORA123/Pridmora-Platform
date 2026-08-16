@@ -13,6 +13,11 @@ import {
 import { buildClientJourneySnapshot } from "@/lib/client-journey";
 import { ensureProfileOrEmpty } from "@/lib/development-updates/repository";
 import {
+  authorisedDevelopmentEvidenceFingerprintPart,
+  formatAuthorisedDevelopmentEvidenceForPrompt,
+} from "@/lib/coaching-intelligence/authorised-development-evidence";
+import { loadAuthorisedDevelopmentEvidenceForPreparation } from "@/lib/coaching-intelligence/resolve-sources";
+import {
   buildSourceFingerprint,
   EMPTY_PREPARATION_AI_BRIEF,
   parsePreparationAiBriefFromModel,
@@ -292,6 +297,17 @@ export async function POST(request: Request) {
     const latestConversation = adapter.prompt.latestConversation;
     const previousSessionsText = adapter.prompt.previousSessions;
 
+    const authorisedDevelopmentEvidence =
+      await loadAuthorisedDevelopmentEvidenceForPreparation({
+        supabase,
+        coachId,
+        relationshipId: clientId,
+      });
+    const authorisedDevelopmentEvidenceText =
+      formatAuthorisedDevelopmentEvidenceForPrompt(
+        authorisedDevelopmentEvidence
+      );
+
     const sourceFingerprint = buildSourceFingerprint([
       client.updated_at,
       latest?.lastUpdated,
@@ -302,6 +318,9 @@ export async function POST(request: Request) {
       String(client.current_focus ?? ""),
       `session:${currentSession.sessionNumber}`,
       adapter.isFirstSession ? "mode:first" : adapter.isHistoricalPreparation ? "mode:historical" : "mode:continuing",
+      authorisedDevelopmentEvidenceFingerprintPart(
+        authorisedDevelopmentEvidence
+      ),
     ]);
 
     const openai = new OpenAI({ apiKey });
@@ -340,6 +359,7 @@ export async function POST(request: Request) {
         coachNotes: "",
         supportingContext: supportingContextText,
         preparationContext: adapter.prompt.preparationContext,
+        authorisedDevelopmentEvidence: authorisedDevelopmentEvidenceText,
       }),
     });
 

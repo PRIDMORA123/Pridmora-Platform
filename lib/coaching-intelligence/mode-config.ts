@@ -34,6 +34,7 @@ export const COACHING_INTELLIGENCE_MODES: Record<
       "previous_conversations",
       "approved_summaries",
       "open_commitments",
+      "authorised_development_evidence",
     ],
     outputs: [
       "Previous-conversation reminder",
@@ -56,6 +57,7 @@ export const COACHING_INTELLIGENCE_MODES: Record<
       "journey_evidence",
       "development_themes",
       "approved_reports",
+      "authorised_development_evidence",
     ],
     outputs: [
       "Comprehensive preparation brief",

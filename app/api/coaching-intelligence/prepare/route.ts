@@ -13,6 +13,7 @@ import {
   buildPreparationIntelligenceInstructions,
 } from "@/lib/coaching-intelligence/prompt";
 import { resolveIntelligenceSources } from "@/lib/coaching-intelligence/resolve-sources";
+import { authorisedDevelopmentEvidenceFingerprintPart } from "@/lib/coaching-intelligence/authorised-development-evidence";
 import { buildSourceFingerprint } from "@/lib/preparation-brief";
 import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import {
@@ -347,6 +348,9 @@ export async function POST(request: Request) {
       sources.usedSources.join(","),
       sources.previousConversations.map(item => item.id).join(","),
       sources.approvedSummaries.map(item => item.id).join(","),
+      authorisedDevelopmentEvidenceFingerprintPart(
+        sources.authorisedDevelopmentEvidence
+      ),
       // Fingerprint whether private notes exist without sending contents.
       sessionRow.prep_private_notes ? "notes:present" : "notes:absent",
       String(client.current_focus ?? ""),
