@@ -61,12 +61,25 @@ describe("UAT readiness polish", () => {
     expect(titles).not.toContain("Growth area");
   });
 
-  it("keeps Why this drawer within viewport with sticky close affordance", () => {
+  it("uses the Identity fixed-panel shell rather than a flex-child panel", () => {
     const css = read("app/identity-design-system.css");
     const drawer = read("components/development-evidence/evidence-why-drawer.tsx");
-    expect(css).toContain(".evidence-drawer {");
-    expect(css).toContain("max-height: 100dvh;");
-    expect(css).toContain("height: 100dvh;");
+    const backdropStart = css.indexOf(".evidence-drawer-backdrop {");
+    const backdropEnd = css.indexOf(".evidence-drawer-backdrop__dismiss {");
+    const panelStart = css.indexOf("\n.evidence-drawer {");
+    const panelEnd = css.indexOf(".evidence-drawer__header {");
+    const backdropBlock = css.slice(backdropStart, backdropEnd);
+    const panelBlock = css.slice(panelStart, panelEnd);
+
+    expect(backdropBlock).toContain("pointer-events: none;");
+    expect(backdropBlock).not.toContain("display: flex;");
+    expect(backdropBlock).not.toContain("align-items: stretch;");
+    expect(panelBlock).toContain("position: fixed;");
+    expect(panelBlock).toContain("top: 0;");
+    expect(panelBlock).toContain("right: 0;");
+    expect(panelBlock).toContain("bottom: 0;");
+    expect(panelBlock).toContain("pointer-events: auto;");
+    expect(panelBlock).not.toContain("position: relative;");
     expect(css).toContain(".evidence-drawer__body {");
     expect(css).toContain("overflow-y: auto;");
     expect(css).toContain("overscroll-behavior: contain;");

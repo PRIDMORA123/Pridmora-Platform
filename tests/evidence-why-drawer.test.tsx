@@ -80,7 +80,7 @@ describe("EvidenceWhyDrawer scrolling shell", () => {
     vi.unstubAllGlobals();
   });
 
-  it("portals under document.body so viewport constraints are not clipped by ancestors", () => {
+  it("keeps the panel as a fixed viewport shell, not a flex child of the backdrop", () => {
     act(() => {
       root.render(
         <EvidenceWhyDrawer open payload={payload} onClose={() => undefined} />
@@ -88,9 +88,18 @@ describe("EvidenceWhyDrawer scrolling shell", () => {
     });
 
     const backdrop = document.body.querySelector(".evidence-drawer-backdrop");
-    expect(backdrop).not.toBeNull();
-    expect(backdrop?.parentElement).toBe(document.body);
-    expect(container.querySelector(".evidence-drawer-backdrop")).toBeNull();
+    const panel = document.body.querySelector(".evidence-drawer");
+    const body = document.body.querySelector(".evidence-drawer__body");
+    const dismiss = document.body.querySelector(
+      ".evidence-drawer-backdrop__dismiss"
+    );
+
+    expect(backdrop?.contains(panel)).toBe(true);
+    expect(backdrop?.contains(dismiss)).toBe(true);
+    expect(panel?.parentElement).toBe(backdrop);
+    expect(body?.parentElement).toBe(panel);
+    // Body is the direct scroll region under the panel (no intermediate wrapper).
+    expect(panel?.querySelector(":scope > .evidence-drawer__body")).toBe(body);
   });
 
   it("keeps the close control in the non-scrolling header and content in the body", () => {
