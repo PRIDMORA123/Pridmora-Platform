@@ -888,6 +888,9 @@ export function PrepareSessionView({
             evidenceLabel: null,
           }))}
           coachingPurpose={getCoachingPurpose(client)}
+          developmentFocus={
+            profile?.currentFocus?.trim() || client.currentFocus.trim() || null
+          }
           isFirstSession={preparationAdapter.isFirstSession}
           adapterPrimaryFocus={preparationAdapter.primaryFocusSuggestion}
           adapterAreas={preparationAdapter.areasToExplore}

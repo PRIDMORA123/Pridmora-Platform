@@ -27,6 +27,10 @@ import {
   deriveLongitudinalPreparationSections,
   looksLikeCommitmentRevisitTitle,
 } from "@/lib/prepare/derive-longitudinal-brief-sections";
+import {
+  resolveConversationFocus,
+  resolveDevelopmentFocus,
+} from "@/lib/prepare/resolve-preparation-focus";
 import { selectPrimaryPreviousCommitment } from "@/lib/preparation/commitment-selection";
 import {
   PreparationApproachControl,
@@ -66,6 +70,8 @@ export type PreparationViewProps = {
   hasSavedPreparation?: boolean;
   isFirstSession?: boolean;
   coachingPurpose?: string | null;
+  /** Longitudinal development focus from profile (preferred) or client. */
+  developmentFocus?: string | null;
   developmentDirection?: string | null;
   historicalContext?: Array<{ title: string; detail: string }>;
   relevantPatterns?: Array<{
@@ -142,6 +148,7 @@ function buildNormalisedBrief(input: {
     evidenceLabel?: string | null;
   }>;
   coachingPurpose?: string | null;
+  developmentFocus?: string | null;
   clientName: string;
   mode: "manual" | "assisted" | "comprehensive";
   isFirstSession: boolean;
@@ -160,34 +167,27 @@ function buildNormalisedBrief(input: {
   emergingEdges?: string[] | null;
   contextualTensions?: string[] | null;
 }): NormalisedPreparationBrief {
-  const coachPurpose = input.initialPreparation.prepPurpose.trim();
-  const coachFocus = input.initialPreparation.focus.trim();
-  const storedFocus = coachPurpose || coachFocus;
-  const focusIsBoilerplate = looksLikeFirstSessionBoilerplate(storedFocus);
-  const coachAuthoredFocus = Boolean(
-    storedFocus && (input.isFirstSession || !focusIsBoilerplate)
-  );
-
   const aiFocus = (input.aiPrimaryFocus || "").trim();
   const adapterFocusRaw = (input.adapterPrimaryFocus || "").trim();
   const adapterFocus = looksLikeCommitmentRevisitTitle(adapterFocusRaw)
     ? ""
     : adapterFocusRaw;
 
-  // Continuing: coach > AI brief > developmental adapter.
-  // Never let first-session boilerplate or commitment-revisit templates win.
-  const purposeSource = coachAuthoredFocus
-    ? storedFocus
-    : input.isFirstSession
-      ? storedFocus ||
-        adapterFocus ||
-        input.intelligence.suggestedFocus ||
-        input.briefSummary
-      : aiFocus ||
-        input.intelligence.suggestedFocus ||
-        adapterFocus ||
-        (focusIsBoilerplate ? "" : storedFocus) ||
-        input.briefSummary;
+  const developmentFocusSource = resolveDevelopmentFocus({
+    profileCurrentFocus: input.developmentFocus,
+    clientCurrentFocus: input.coachingPurpose,
+  });
+
+  const conversationFocusSource = resolveConversationFocus({
+    prepPurpose: input.initialPreparation.prepPurpose,
+    sessionFocus: input.initialPreparation.focus,
+    aiSuggestion: aiFocus,
+    intelligenceSuggestion: input.intelligence.suggestedFocus,
+    adapterSuggestion: adapterFocus,
+    briefSummary: input.briefSummary,
+    isFirstSession: input.isFirstSession,
+    isBoilerplate: looksLikeFirstSessionBoilerplate,
+  });
 
   const storedTopics = input.initialPreparation.prepTopics.trim();
   const topicLines = storedTopics
@@ -219,7 +219,7 @@ function buildNormalisedBrief(input: {
 
   const longitudinal = deriveLongitudinalPreparationSections({
     isFirstSession: input.isFirstSession,
-    primaryFocus: purposeSource,
+    primaryFocus: conversationFocusSource || developmentFocusSource,
     exploration: input.exploration || input.supportingInsight,
     reflectionPrompt: input.reflectionPrompt,
     movementSummary: input.movementSummary || input.intelligence.approachSummary,
@@ -246,7 +246,9 @@ function buildNormalisedBrief(input: {
     input.suggestedTopics.join("\n");
 
   return normalisePreparationBrief({
-    primaryFocus: purposeSource,
+    developmentFocus: developmentFocusSource,
+    conversationFocus: conversationFocusSource,
+    primaryFocus: conversationFocusSource || developmentFocusSource,
     areasToExplore: areasSource,
     questions: questionsSource,
     previousCommitment:
@@ -259,7 +261,7 @@ function buildNormalisedBrief(input: {
     developmentDirection:
       input.developmentDirection || input.supportingInsight || null,
     historicalContext: input.historicalContext,
-    coachingPurpose: input.coachingPurpose || purposeSource,
+    coachingPurpose: developmentFocusSource || input.coachingPurpose || "",
     clientFirstName: getClientFirstName(input.clientName),
     mode: input.mode,
     isFirstSession: input.isFirstSession,
@@ -293,6 +295,7 @@ export function PreparationView({
   hasSavedPreparation = false,
   isFirstSession = false,
   coachingPurpose = null,
+  developmentFocus = null,
   developmentDirection = null,
   historicalContext = [],
   relevantPatterns = [],
@@ -367,6 +370,7 @@ export function PreparationView({
         historicalContext,
         relevantPatterns,
         coachingPurpose,
+        developmentFocus,
         clientName,
         mode,
         isFirstSession,
@@ -396,6 +400,7 @@ export function PreparationView({
       historicalContext,
       relevantPatterns,
       coachingPurpose,
+      developmentFocus,
       clientName,
       mode,
       isFirstSession,

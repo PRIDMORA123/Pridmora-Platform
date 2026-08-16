@@ -274,16 +274,19 @@ function continuingQuestions(input: {
   commitment: string | null;
   priority: string | null;
   nextFocus: string | null;
+  movement: string | null;
 }): string[] {
+  const hasSpecificEvidence = Boolean(
+    input.commitment ||
+      input.priority ||
+      input.nextFocus ||
+      input.movement
+  );
   const questions: string[] = [];
-  if (input.nextFocus || input.priority) {
+
+  if (input.movement) {
     questions.push(
-      "Where does the current development edge feel most alive in day-to-day work?"
-    );
-  }
-  if (input.priority) {
-    questions.push(
-      "What would be most useful to clarify about the current development priority?"
+      "What enabled the progress visible since the last conversation?"
     );
   }
   if (input.commitment) {
@@ -291,9 +294,20 @@ function continuingQuestions(input: {
       "What progress has been possible on the open commitment since it was agreed?"
     );
   }
-  questions.push(
-    "What would make this conversation useful given where development currently stands?"
-  );
+  if (input.nextFocus || input.priority) {
+    questions.push(
+      "Where did the intended developmental practice show up differently across recent work situations?"
+    );
+    questions.push(
+      "What still makes the next developmental step harder in day-to-day work?"
+    );
+  }
+
+  if (!hasSpecificEvidence) {
+    questions.push("What would be most useful to understand better in this conversation?");
+    questions.push("What do you want the person to leave clearer about?");
+  }
+
   return Array.from(new Set(questions)).slice(0, 4);
 }
 
@@ -481,6 +495,7 @@ export function buildPreparationAdapterContext(input: {
       commitment: previousCommitment,
       priority,
       nextFocus,
+      movement: movementSummary,
     });
   }
 

@@ -1,6 +1,7 @@
 import {
   isStrongDuplicate as sharedIsStrongDuplicate,
 } from "@/lib/intelligence/semantic-overlap";
+import { isRetiredGenericPreparationFallbackQuestion } from "@/lib/prepare/resolve-preparation-focus";
 
 /**
  * Display-only normalisation for Prepare briefing content.
@@ -8,7 +9,15 @@ import {
  */
 
 export type NormalisedPreparationBrief = {
+  /**
+   * @deprecated Prefer developmentFocus + conversationFocus.
+   * Kept as conversationFocus || developmentFocus for compatibility.
+   */
   primaryFocus: string;
+  /** Longitudinal developmental capability/direction over time. */
+  developmentFocus: string;
+  /** What this particular conversation is intended to concentrate on. */
+  conversationFocus: string;
   /** Longitudinal: what moved since the last reviewed conversation. */
   developmentSinceLast?: string | null;
   /** Longitudinal: developmental tension / pattern to hold lightly. */
@@ -34,6 +43,10 @@ export type NormalisedPreparationBrief = {
 
 export type NormalisePreparationBriefInput = {
   primaryFocus?: string | null;
+  /** Longitudinal focus from profile/client — never overwritten by session focus. */
+  developmentFocus?: string | null;
+  /** This-session conversation focus (prep_purpose / focus / AI). */
+  conversationFocus?: string | null;
   areasToExplore?: string[] | string | null;
   questions?: string[] | string | null;
   previousCommitment?: string | null;
@@ -296,22 +309,71 @@ export function normalisePreparationBrief(
     stripPurposePreamble: false,
   });
 
-  let primaryFocus = cleanSentence(
-    input.primaryFocus ||
-      (input.isFirstSession
-        ? defaultFirstSessionFocus(input.clientFirstName)
-        : "") ||
-      purpose,
-    { maxWords: PRIMARY_FOCUS_MAX_WORDS }
+  let developmentFocus = cleanSentence(input.developmentFocus ?? "", {
+    maxWords: PRIMARY_FOCUS_MAX_WORDS,
+    stripPurposePreamble: false,
+  });
+  developmentFocus = replaceClientPlaceholder(
+    developmentFocus,
+    input.clientFirstName
   );
-  primaryFocus = replaceClientPlaceholder(primaryFocus, input.clientFirstName);
-  if (!primaryFocus) {
-    primaryFocus = input.isFirstSession
+  developmentFocus =
+    firstCompleteSentence(developmentFocus) || developmentFocus;
+  developmentFocus = replaceClientPlaceholder(
+    developmentFocus,
+    input.clientFirstName
+  );
+
+  let conversationFocusRaw =
+    input.conversationFocus ||
+    input.primaryFocus ||
+    (input.isFirstSession
       ? defaultFirstSessionFocus(input.clientFirstName)
-      : "Support the conversation with clear attention to what matters most.";
+      : "") ||
+    "";
+  // Preserve short coach session labels (e.g. "test 5", "Week 3") without the
+  // incomplete-fragment cleaner dropping trailing numeric tokens.
+  const preserveShortCoachLabel = (() => {
+    const collapsed = collapseSpaces(conversationFocusRaw);
+    if (!collapsed || collapsed.length > 80 || wordCount(collapsed) > 8) {
+      return false;
+    }
+    const last = collapsed.split(" ").pop() ?? "";
+    return /^\d+[a-z]?$/i.test(last) || wordCount(collapsed) <= 2;
+  })();
+  let conversationFocus = preserveShortCoachLabel
+    ? collapseSpaces(conversationFocusRaw)
+    : cleanSentence(conversationFocusRaw, {
+        maxWords: PRIMARY_FOCUS_MAX_WORDS,
+      });
+  conversationFocus = replaceClientPlaceholder(
+    conversationFocus,
+    input.clientFirstName
+  );
+  if (
+    !conversationFocus &&
+    input.isFirstSession &&
+    !developmentFocus
+  ) {
+    conversationFocus = defaultFirstSessionFocus(input.clientFirstName);
   }
-  // Prefer a single complete sentence for primary focus.
-  primaryFocus = firstCompleteSentence(primaryFocus) || primaryFocus;
+  if (!preserveShortCoachLabel && wordCount(conversationFocus) > 2) {
+    conversationFocus =
+      firstCompleteSentence(conversationFocus) || conversationFocus;
+  }
+  conversationFocus = replaceClientPlaceholder(
+    conversationFocus,
+    input.clientFirstName
+  );
+
+  // Compatibility: prefer conversation when present; else longitudinal.
+  let primaryFocus =
+    conversationFocus ||
+    developmentFocus ||
+    purpose ||
+    (input.isFirstSession
+      ? defaultFirstSessionFocus(input.clientFirstName)
+      : "Support the conversation with clear attention to what matters most.");
   primaryFocus = replaceClientPlaceholder(primaryFocus, input.clientFirstName);
 
   const rawAreas = dedupeExact(
@@ -352,8 +414,17 @@ export function normalisePreparationBrief(
   }
 
   let questions = filterAgainst(
-    rawQuestions,
-    [primaryFocus, purpose, previousCommitment ?? "", ...areasToExplore],
+    rawQuestions.filter(
+      question => !isRetiredGenericPreparationFallbackQuestion(question)
+    ),
+    [
+      primaryFocus,
+      developmentFocus,
+      conversationFocus,
+      purpose,
+      previousCommitment ?? "",
+      ...areasToExplore,
+    ],
     { max: MAX_QUESTIONS }
   );
 
@@ -452,6 +523,8 @@ export function normalisePreparationBrief(
   if (mode === "manual") {
     return {
       primaryFocus: "",
+      developmentFocus: "",
+      conversationFocus: "",
       developmentSinceLast: null,
       whatToPayAttentionTo: null,
       evidenceWorthExploring: [],
@@ -525,6 +598,8 @@ export function normalisePreparationBrief(
 
   return {
     primaryFocus,
+    developmentFocus,
+    conversationFocus,
     developmentSinceLast:
       developmentSinceLast &&
       !isStrongDuplicate(developmentSinceLast, primaryFocus)

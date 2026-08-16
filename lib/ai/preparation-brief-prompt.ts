@@ -310,6 +310,26 @@ Questions must:
 - be suitable for an experienced professional coach
 - avoid implying that a tentative interpretation is true
 
+When sufficiently specific authorised evidence is available — including
+authorised Development Evidence, approved summaries, commitments,
+evidence of progress or lack of progress, contradictions, unresolved
+developmental edges, or relevant concrete contexts — prefer questions
+grounded in that evidence over generic open coaching questions.
+
+Prefer questions that help explore:
+
+- what changed
+- what enabled progress
+- where behaviour differed
+- what remains difficult
+- contextual differences
+- contradictions between intention and behaviour
+- what the next developmental edge appears to be
+
+Do not prescribe the correct answer.
+Do not turn questions into assessment.
+Do not overstate a single observation.
+
 Questions should relate where relevant to:
 
 - the previous conversation
@@ -324,6 +344,9 @@ Do not use generic question banks.
 Do not repeat the same question using slightly different wording.
 
 Do not prescribe solutions.
+
+Generic open coaching questions remain appropriate only when the
+authorised evidence is genuinely too thin to support specificity.
 
 REFLECTION PROMPT
 

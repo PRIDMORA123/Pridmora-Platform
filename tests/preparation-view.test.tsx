@@ -82,7 +82,8 @@ describe("PreparationView", () => {
       );
     });
 
-    expect(container.textContent).toContain("Primary focus");
+    expect(container.textContent).toContain("Conversation focus");
+    expect(container.textContent).not.toContain("Primary focus");
     expect(container.textContent).toContain("Areas to explore");
     expect(container.textContent).toContain("Questions to consider");
     expect(
@@ -177,6 +178,26 @@ describe("PreparationView", () => {
     expect(container.textContent).toContain(
       "Preparation could not be refreshed safely"
     );
-    expect(container.textContent).toContain("Primary focus");
+    expect(container.textContent).toContain("Conversation focus");
+    expect(container.textContent).not.toContain("Primary focus");
+  });
+
+  it("renders Development focus when longitudinal focus is supplied", () => {
+    act(() => {
+      root.render(
+        <ToastProvider>
+          <PreparationView
+            {...baseProps}
+            developmentFocus="Build consistency in judgement during senior meetings."
+          />
+        </ToastProvider>
+      );
+    });
+
+    expect(container.textContent).toContain("Development focus");
+    expect(container.textContent).toContain(
+      "Build consistency in judgement during senior meetings."
+    );
+    expect(container.textContent).toContain("Conversation focus");
   });
 });

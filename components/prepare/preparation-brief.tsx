@@ -65,9 +65,17 @@ export function PreparationBrief({
         </PreparationBriefSection>
       ) : (
         <>
-          {brief.primaryFocus ? (
-            <PreparationBriefSection title="Primary focus">
-              <p className="preparation-brief__focus">{brief.primaryFocus}</p>
+          {brief.developmentFocus ? (
+            <PreparationBriefSection title="Development focus">
+              <p className="preparation-brief__focus">{brief.developmentFocus}</p>
+            </PreparationBriefSection>
+          ) : null}
+
+          {brief.conversationFocus ? (
+            <PreparationBriefSection title="Conversation focus">
+              <p className="preparation-brief__focus">
+                {brief.conversationFocus}
+              </p>
             </PreparationBriefSection>
           ) : null}
 
