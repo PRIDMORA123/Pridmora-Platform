@@ -23,6 +23,7 @@ import type {
   ProfileEntry,
   ProfileEntryStatus,
 } from "@/lib/development-updates/types";
+import { filterSemanticDuplicates } from "@/lib/intelligence/semantic-overlap";
 import type { CoachingPattern } from "@/lib/patterns/types";
 
 export type DevelopmentHeadlineSource =
@@ -104,25 +105,8 @@ export function evidenceLibraryHasMeaningfulSignals(
   );
 }
 
-function normaliseForCompare(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/^continue exploring:\s*/i, "")
-    .replace(/\s+/g, " ");
-}
-
 function dedupeAgainst(values: string[], blocked: string[]): string[] {
-  const blockedSet = new Set(blocked.map(normaliseForCompare).filter(Boolean));
-  const seen = new Set<string>();
-  const result: string[] = [];
-  for (const value of values) {
-    const key = normaliseForCompare(value);
-    if (!key || blockedSet.has(key) || seen.has(key)) continue;
-    seen.add(key);
-    result.push(value.trim());
-  }
-  return result;
+  return filterSemanticDuplicates(values, blocked);
 }
 
 /** Conservative: prefer treating as a complete statement when unsure. */

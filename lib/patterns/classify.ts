@@ -1,6 +1,7 @@
 import {
   countDistinctEvidence,
   distinctSessionIds,
+  withoutSupportingContextEvidence,
 } from "@/lib/patterns/evidence";
 import type {
   CoachingPatternStatus,
@@ -14,37 +15,24 @@ import type {
  *
  * Observation: 1 evidence point — must not be labelled a pattern.
  * Emerging theme: ≥2 distinct approved evidence points.
- * Established pattern: ≥3 distinct points spanning ≥2 sessions
- *   OR repeated session evidence plus authorised supporting context.
+ * Established pattern: ≥3 distinct points spanning ≥2 sessions.
+ * Supporting Context never contributes — it is preparation context only.
  */
 export function classifyPatternStrength(
   evidence: PatternEvidenceReference[]
 ): PatternStrength {
-  const count = countDistinctEvidence(evidence);
+  const authorised = withoutSupportingContextEvidence(evidence);
+  const count = countDistinctEvidence(authorised);
   if (count <= 1) return "observation";
   if (count === 2) return "emerging";
 
-  const sessions = distinctSessionIds(evidence);
-  const hasSupportingContext = evidence.some(
-    item => item.sourceType === "supporting_context"
-  );
-  const hasSessionEvidence = evidence.some(
-    item =>
-      item.sourceType === "session_notes" ||
-      item.sourceType === "approved_summary" ||
-      item.sourceType === "commitment" ||
-      item.sourceType === "development_observation"
-  );
+  const sessions = distinctSessionIds(authorised);
   // Coaching moments contribute to observation/emerging counts but never
   // count as formal sessions for established-pattern spanning rules.
 
   if (sessions.length >= 2) return "established";
-  if (hasSessionEvidence && hasSupportingContext && count >= 3) {
-    return "established";
-  }
 
-  // Three+ points in a single session without supporting context remain emerging
-  // until they span sessions — still stronger than one observation.
+  // Three+ points in a single session remain emerging until they span sessions.
   return "emerging";
 }
 

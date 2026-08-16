@@ -73,7 +73,8 @@ export function filterAuthorisedEvidence(
     }
 
     if (point.sourceType === "supporting_context") {
-      if (point.aiEnabled !== true) return false;
+      // Supporting Context is preparation context only — never pattern evidence.
+      return false;
     }
 
     if (point.sourceType === "coaching_moment") {
@@ -163,14 +164,23 @@ export function countDistinctEvidence(
   evidence: PatternEvidenceReference[]
 ): number {
   const keys = new Set(
-    evidence.map(item =>
-      evidenceCanonicalKey({
-        sourceType: item.sourceType,
-        sourceId: item.sourceId,
-        sessionId: item.sessionId,
-        content: item.excerpt ?? "",
-      })
-    )
+    evidence
+      .filter(item => item.sourceType !== "supporting_context")
+      .map(item =>
+        evidenceCanonicalKey({
+          sourceType: item.sourceType,
+          sourceId: item.sourceId,
+          sessionId: item.sessionId,
+          content: item.excerpt ?? "",
+        })
+      )
   );
   return keys.size;
+}
+
+/** Strip Supporting Context refs — preparation context only, never pattern evidence. */
+export function withoutSupportingContextEvidence<
+  T extends Pick<PatternEvidenceReference, "sourceType">,
+>(evidence: T[]): T[] {
+  return evidence.filter(item => item.sourceType !== "supporting_context");
 }

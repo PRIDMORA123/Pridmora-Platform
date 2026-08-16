@@ -29,6 +29,7 @@ Rules:
 - Do not make absolute statements.
 - Do not invent unsupported psychological conclusions.
 - Do not duplicate content already present in the living profile unless strengthening status.
+- Do not propose the same developmental idea in more than one of currentFocus, emergingThemes, and growthAreas. Choose the single most appropriate field.
 - Do not propose changes where evidence is weak.
 - Prefer an empty proposedChanges object when nothing meaningful has changed.
 - Use only evidence supplied for the named coaching relationship.

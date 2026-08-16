@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { CoachingPattern } from "@/lib/patterns/types";
 import { formatSupportedBySessions } from "@/lib/patterns/display";
+import { withoutSupportingContextEvidence } from "@/lib/patterns/evidence";
 import {
   IdentityEvidenceList,
   evidenceTypeLabel,
@@ -27,7 +28,7 @@ function buildEvidenceItems(
   pattern: CoachingPattern,
   sessionNumbers?: Map<string, number>
 ): IdentityEvidenceItem[] {
-  return pattern.evidence.map((ref, index) => {
+  return withoutSupportingContextEvidence(pattern.evidence).map((ref, index) => {
     const sessionNumber =
       ref.sessionId && sessionNumbers?.get(ref.sessionId);
     return {

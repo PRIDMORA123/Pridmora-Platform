@@ -1,17 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { collectPatternEvidenceFromRelationship } from "@/lib/patterns/collect";
 import type { CoachingPattern } from "@/lib/patterns/types";
-import {
-  parseSupportingContext,
-  supportingContextForAi,
-} from "@/lib/relationship-meta";
 import { rowToSession } from "@/lib/supabase/map";
 import type { Session } from "@/lib/types";
 
 /**
  * Load authorised evidence for Coaching Moment AI.
- * Excludes private notes, unapproved summaries, reference-only supporting context,
- * and material from other relationships.
+ * Excludes private notes, unapproved summaries, Supporting Context
+ * (preparation context only), and material from other relationships.
  */
 export async function loadAuthorisedCoachingMomentContext(
   supabase: SupabaseClient,
@@ -33,21 +29,9 @@ export async function loadAuthorisedCoachingMomentContext(
     rowToSession(row as never, index, rows.length)
   ).filter(session => session.clientId === input.clientId);
 
-  const { data: client } = await supabase
-    .from("clients")
-    .select("supporting_context")
-    .eq("id", input.clientId)
-    .eq("coach_id", input.coachId)
-    .maybeSingle();
-
-  const supportingContext = supportingContextForAi(
-    parseSupportingContext(client?.supporting_context)
-  );
-
   const points = collectPatternEvidenceFromRelationship({
     relationshipId: input.clientId,
     sessions,
-    supportingContext,
     includeSessionNotes: true,
   }).filter(point => point.isApproved !== false && !point.isPrivate);
 

@@ -106,7 +106,7 @@ export const SUPPORTING_CONTEXT_SOURCE_LABELS: Record<
   development_plan: "Development plan",
   personal_objectives: "Personal objectives",
   previous_coaching: "Previous coaching information",
-  other: "Other relevant evidence",
+  other: "Other relevant context",
 };
 
 export function agreementStatusLabel(status: AgreementStatus): string {

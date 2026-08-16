@@ -266,7 +266,7 @@ describe("pattern authorised evidence", () => {
     expect(points).toHaveLength(0);
   });
 
-  it("authorised Supporting Context can contribute", () => {
+  it("Supporting Context never becomes Recognised Pattern evidence", () => {
     const context: SupportingContextItem[] = [
       {
         id: "ctx-1",
@@ -298,14 +298,29 @@ describe("pattern authorised evidence", () => {
     });
     expect(
       points.some(item => item.sourceType === "supporting_context")
-    ).toBe(true);
+    ).toBe(false);
 
+    // Historical supporting_context refs must not count toward strength.
     const strength = classifyPatternStrength([
       ref({ sourceType: "approved_summary", sourceId: "s1:summary", sessionId: "s1" }),
-      ref({ sourceType: "approved_summary", sourceId: "s2:summary", sessionId: "s2" }),
       ref({ sourceType: "supporting_context", sourceId: "ctx-1" }),
     ]);
-    expect(strength).toBe("established");
+    expect(strength).toBe("observation");
+    expect(
+      classifyPatternStrength([
+        ref({
+          sourceType: "approved_summary",
+          sourceId: "s1:summary",
+          sessionId: "s1",
+        }),
+        ref({
+          sourceType: "approved_summary",
+          sourceId: "s1:notes",
+          sessionId: "s1",
+        }),
+        ref({ sourceType: "supporting_context", sourceId: "ctx-1" }),
+      ])
+    ).toBe("emerging");
   });
 
   it("evidence from another relationship is excluded", () => {

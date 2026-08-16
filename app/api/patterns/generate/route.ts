@@ -35,8 +35,8 @@ type GenerateRequest = {
 
 /**
  * Idempotent longitudinal pattern analysis for one relationship.
- * Runs after summary approval, supporting-context changes, or deliberate refresh.
- * Does not run on page view.
+ * Runs after summary approval or deliberate refresh.
+ * Does not run on page view. Supporting Context never triggers pattern generation.
  */
 export async function POST(request: Request) {
   let body: GenerateRequest;

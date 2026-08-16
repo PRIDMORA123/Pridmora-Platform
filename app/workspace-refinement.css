@@ -907,6 +907,22 @@ a.identity-sidebar-principle:hover {
   line-height: 1.5;
 }
 
+.development-theme-card__evidence-items {
+  margin: 0 0 4px;
+}
+
+.development-theme-card__evidence-items li {
+  margin: 0 0 10px;
+}
+
+.development-theme-card__evidence-source {
+  margin: 0 0 4px;
+  color: var(--identity-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
 .development-theme-card small {
   color: var(--identity-text-muted);
   font-size: 0.78rem;

@@ -17,9 +17,10 @@ const DEFAULT_DESCRIPTIONS: Record<EvidenceStrength, string> = {
 
 export function IdentityEvidenceStrength({
   strength,
+  label,
   description,
-}: IdentityEvidenceStrengthProps) {
-  const label = EVIDENCE_STRENGTH_LABELS[strength];
+}: IdentityEvidenceStrengthProps & { label?: string }) {
+  const display = label ?? EVIDENCE_STRENGTH_LABELS[strength];
   const accessible = description ?? DEFAULT_DESCRIPTIONS[strength];
 
   return (
@@ -28,7 +29,7 @@ export function IdentityEvidenceStrength({
       data-strength={strength}
       title={accessible}
     >
-      {label}
+      {display}
       <span className="sr-only">. {accessible}</span>
     </span>
   );

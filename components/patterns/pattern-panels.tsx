@@ -3,11 +3,10 @@
 import { useState } from "react";
 import type { CoachingPattern } from "@/lib/patterns/types";
 import {
-  coachReviewStateLabel,
   formatSupportedBySessions,
-  patternStatusLabel,
 } from "@/lib/patterns/display";
 import { selectPatternsForDevelopment } from "@/lib/patterns/prioritise";
+import { withoutSupportingContextEvidence } from "@/lib/patterns/evidence";
 import {
   IdentityInsight,
   IdentityPattern,
@@ -35,11 +34,25 @@ function toReviewState(pattern: CoachingPattern): IntelligenceReviewState {
   return "draft";
 }
 
+/** Single Recognised Pattern maturity label — Emerging / Strengthening / Established. */
+function patternCardMaturityLabel(pattern: CoachingPattern): string {
+  if (pattern.status === "strengthening") return "Strengthening";
+  if (pattern.strength === "established") return "Established";
+  return "Emerging";
+}
+
+/** Recognised Pattern review label — Awaiting review until human acceptance. */
+function patternCardReviewLabel(pattern: CoachingPattern): string {
+  if (pattern.coachAccepted === false || pattern.suppressed) return "Rejected";
+  if (pattern.coachAccepted === true) return "Accepted";
+  return "Awaiting review";
+}
+
 function evidenceItemsForPattern(
   pattern: CoachingPattern,
   sessionNumbers?: Map<string, number>
 ): IdentityEvidenceItem[] {
-  return pattern.evidence.map((ref, index) => {
+  return withoutSupportingContextEvidence(pattern.evidence).map((ref, index) => {
     const sessionNumber =
       ref.sessionId && sessionNumbers?.get(ref.sessionId);
     return {
@@ -173,6 +186,8 @@ export function PatternsOverTimeSection({
           {visible.map(pattern => {
             const open = evidenceId === pattern.id;
             const isReviewing = reviewingPattern?.id === pattern.id;
+            const maturityLabel = patternCardMaturityLabel(pattern);
+            const reviewStateLabel = patternCardReviewLabel(pattern);
             const reviewLabel =
               pattern.coachAccepted === true && !pattern.pendingSuggestion
                 ? "View reviewed pattern"
@@ -183,11 +198,14 @@ export function PatternsOverTimeSection({
                 <IdentityPattern
                   title={pattern.title}
                   evidenceStrength={toEvidenceStrength(pattern.strength)}
+                  strengthLabel={maturityLabel}
                   evidenceLabel={formatSupportedBySessions(
                     pattern,
                     sessionNumbers
                   )}
                   reviewState={toReviewState(pattern)}
+                  reviewLabel={reviewStateLabel}
+                  showLevelLabel={false}
                   onViewEvidence={() =>
                     setEvidenceId(current =>
                       current === pattern.id ? null : pattern.id
@@ -214,8 +232,7 @@ export function PatternsOverTimeSection({
                 >
                   <p>{pattern.description}</p>
                   <p className="identity-supporting">
-                    {patternStatusLabel(pattern.status)} ·{" "}
-                    {coachReviewStateLabel(pattern)}
+                    {maturityLabel} · {reviewStateLabel}
                   </p>
                   {pattern.pendingSuggestion ? (
                     <p className="patterns-over-time__pending">

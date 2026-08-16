@@ -32,8 +32,9 @@ You may identify:
 - movement towards or away from agreed goals;
 - changes in the client’s language or framing;
 - topics that continue to reappear;
-- development priorities that strengthen, reduce or change;
-- relevant connections with authorised Supporting Context.
+- development priorities that strengthen, reduce or change.
+
+Supporting Context is preparation context only. Do not cite it as pattern evidence and do not treat it as substantiating a Recognised Pattern.
 
 You must not:
 - diagnose the client;
@@ -43,13 +44,14 @@ You must not:
 - identify a pattern from one isolated observation;
 - use private coach notes;
 - use unapproved AI content as evidence;
+- use Supporting Context as pattern evidence;
 - treat outdated external evidence as current fact;
 - overwrite coach interpretation.
 
 EVIDENCE LEVELS (the server will re-classify; still respect them)
 - Observation: one approved evidence point — do not return as a pattern.
 - Emerging theme: at least two distinct approved evidence points — label tentative.
-- Established pattern: at least three distinct evidence points spanning at least two sessions, or repeated session evidence plus authorised Supporting Context.
+- Established pattern: at least three distinct evidence points spanning at least two sessions.
 
 Do not manufacture an insight merely to fill the interface.
 If evidence is insufficient, return { "patterns": [] }.
@@ -62,7 +64,7 @@ Return JSON only:
       "description": "One cautious sentence grounded in the evidence",
       "evidence": [
         {
-          "sourceType": "session_notes" | "approved_summary" | "commitment" | "development_observation" | "supporting_context" | "coaching_moment",
+          "sourceType": "session_notes" | "approved_summary" | "commitment" | "development_observation" | "coaching_moment",
           "sourceId": "exact source id from the evidence catalogue",
           "sessionId": "session id or null",
           "sourceDate": "ISO date or null",

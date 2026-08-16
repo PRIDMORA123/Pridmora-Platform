@@ -10,10 +10,7 @@ import {
   toEvidenceReference,
 } from "@/lib/patterns/evidence";
 import type { AuthorisedPatternEvidencePoint } from "@/lib/patterns/types";
-import {
-  supportingContextForAi,
-  type SupportingContextItem,
-} from "@/lib/relationship-meta";
+import type { SupportingContextItem } from "@/lib/relationship-meta";
 import type { Session } from "@/lib/types";
 
 function isApprovedSession(session: Session): boolean {
@@ -28,7 +25,8 @@ function sessionDate(session: Session): string | null {
 
 /**
  * Build authorised evidence points for one relationship.
- * Excludes private notes, unapproved summaries, and unauthorised supporting context.
+ * Excludes private notes, unapproved summaries, and Supporting Context
+ * (contextual preparation input only — never pattern evidence).
  */
 export function collectPatternEvidenceFromRelationship(input: {
   relationshipId: string;
@@ -148,26 +146,9 @@ export function collectPatternEvidenceFromRelationship(input: {
     }
   }
 
-  for (const item of supportingContextForAi(supportingContext)) {
-    const content = [item.title, item.summary].filter(Boolean).join(". ");
-    points.push({
-      sourceType: "supporting_context",
-      sourceId: item.id,
-      relationshipId,
-      sessionId: null,
-      sourceDate: item.sourceDate || null,
-      content,
-      excerpt: content.slice(0, 240),
-      isPrivate: false,
-      isApproved: true,
-      aiEnabled: true,
-      canonicalKey: evidenceCanonicalKey({
-        sourceType: "supporting_context",
-        sourceId: item.id,
-        content,
-      }),
-    });
-  }
+  // Supporting Context (including AI-preparation opt-in) is contextual input
+  // for preparation only — never catalogue evidence for Recognised Patterns.
+  void supportingContext;
 
   for (const moment of coachingMoments ?? []) {
     if (moment.clientId !== relationshipId) continue;

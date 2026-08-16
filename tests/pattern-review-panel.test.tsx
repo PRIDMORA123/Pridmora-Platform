@@ -317,4 +317,65 @@ describe("PatternsOverTimeSection inline review", () => {
       container.querySelector("button.identity-button.is-secondary")?.textContent
     ).toMatch(/Review pattern|View reviewed pattern/);
   });
+
+  it("simplifies recognised pattern card status terminology", () => {
+    act(() => {
+      root.render(
+        <PatternsOverTimeSection
+          patterns={[
+            makePattern({
+              strength: "emerging",
+              status: "strengthening",
+              coachReviewed: false,
+              coachAccepted: null,
+            }),
+          ]}
+          sessionNumbers={new Map([["session-1", 1]])}
+          onReview={() => undefined}
+        />
+      );
+    });
+
+    const text = container.textContent || "";
+    expect(text).toContain("Strengthening");
+    expect(text).toContain("Awaiting review");
+    expect(text).not.toContain("Awaiting coach review");
+    expect(text).not.toMatch(/\bDraft\b/);
+    expect(text).not.toMatch(/\bActive\b/);
+    expect(text).not.toContain("Emerging");
+
+    const classification = container.querySelector(
+      ".identity-intelligence__classification"
+    );
+    expect(classification?.textContent).not.toMatch(/Pattern/);
+    expect(classification?.textContent).toContain("Strengthening");
+
+    const supporting = container.querySelector(".identity-supporting");
+    expect(supporting?.textContent).toBe("Strengthening · Awaiting review");
+  });
+
+  it("shows Accepted after human acceptance on recognised pattern cards", () => {
+    act(() => {
+      root.render(
+        <PatternsOverTimeSection
+          patterns={[
+            makePattern({
+              strength: "established",
+              status: "active",
+              coachReviewed: true,
+              coachAccepted: true,
+            }),
+          ]}
+          onReview={() => undefined}
+        />
+      );
+    });
+
+    expect(container.textContent).toContain("Established");
+    expect(container.textContent).toContain("Accepted");
+    expect(container.textContent).not.toContain("Awaiting review");
+    expect(container.querySelector(".identity-supporting")?.textContent).toBe(
+      "Established · Accepted"
+    );
+  });
 });

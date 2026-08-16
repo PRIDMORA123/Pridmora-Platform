@@ -21,8 +21,14 @@ export type IdentityIntelligencePanelProps = {
   title?: string;
   children: ReactNode;
   evidenceStrength?: EvidenceStrength;
+  /** Optional maturity label override (e.g. Emerging / Strengthening / Established). */
+  strengthLabel?: string;
   evidenceLabel?: string;
   reviewState?: IntelligenceReviewState;
+  /** Optional review-state label override (e.g. Awaiting review). */
+  reviewLabel?: string;
+  /** When false, hide the level word (Observation / Insight / Pattern). */
+  showLevelLabel?: boolean;
   onViewEvidence?: () => void;
   actions?: ReactNode;
   compact?: boolean;
@@ -34,8 +40,11 @@ export function IdentityIntelligencePanel({
   title,
   children,
   evidenceStrength,
+  strengthLabel,
   evidenceLabel,
   reviewState,
+  reviewLabel,
+  showLevelLabel = true,
   onViewEvidence,
   actions,
   compact = false,
@@ -61,15 +70,20 @@ export function IdentityIntelligencePanel({
           </p>
 
           <div className="identity-intelligence__classification">
-            <span>{levelLabel}</span>
+            {showLevelLabel ? <span>{levelLabel}</span> : null}
             {evidenceStrength ? (
-              <IdentityEvidenceStrength strength={evidenceStrength} />
+              <IdentityEvidenceStrength
+                strength={evidenceStrength}
+                label={strengthLabel}
+              />
+            ) : strengthLabel ? (
+              <span className="identity-evidence-strength">{strengthLabel}</span>
             ) : null}
           </div>
         </div>
 
         {reviewState ? (
-          <IdentityReviewStateLabel state={reviewState} />
+          <IdentityReviewStateLabel state={reviewState} label={reviewLabel} />
         ) : null}
       </header>
 

@@ -1,13 +1,20 @@
 import type { Client, Session } from "@/lib/types";
 import type {
   DevelopmentProfile,
+  DevelopmentUpdate,
   ProfileEntry,
   ProfileEntryStatus,
+  ProfileItemChange,
+  ProposedProfileChanges,
 } from "@/lib/development-updates/types";
+import { effectiveChanges } from "@/lib/development-updates/types";
+import { evidenceForChange } from "@/lib/development-updates/presentation";
+import { filterSemanticDuplicates } from "@/lib/intelligence/semantic-overlap";
 import type {
   DevelopmentMilestone,
   DevelopmentProfileViewModel,
   DevelopmentTheme,
+  DevelopmentThemeEvidenceItem,
   EvidenceConfidence,
 } from "@/types/development-profile";
 
@@ -33,7 +40,101 @@ function evidenceCountFor(status: ProfileEntryStatus): number {
   }
 }
 
-function themeFromEntry(entry: ProfileEntry): DevelopmentTheme {
+function normaliseThemeValue(value: string): string {
+  return value.trim().toLocaleLowerCase("en-GB");
+}
+
+function valuesMatchTheme(
+  theme: ProfileEntry,
+  change: ProfileItemChange
+): boolean {
+  if (change.id && change.id === theme.id) return true;
+  const themeValue = normaliseThemeValue(theme.value);
+  const changeValue = normaliseThemeValue(change.value ?? "");
+  return Boolean(themeValue) && themeValue === changeValue;
+}
+
+function sessionLabelFor(
+  sessionId: string | null | undefined,
+  sessions: Session[]
+): string | undefined {
+  if (!sessionId) return undefined;
+  const session = sessions.find(item => item.id === sessionId);
+  if (!session) return undefined;
+  return `Session ${session.sessionNumber}`;
+}
+
+/**
+ * Collect existing reviewed evidence for a development theme from applied
+ * development updates. Does not invent or rephrase evidence text.
+ */
+export function collectThemeEvidenceItems(
+  theme: ProfileEntry,
+  updates: DevelopmentUpdate[],
+  sessions: Session[]
+): DevelopmentThemeEvidenceItem[] {
+  const items: DevelopmentThemeEvidenceItem[] = [];
+  const seen = new Set<string>();
+
+  for (const update of updates) {
+    if (update.status !== "applied") continue;
+
+    const changes: ProposedProfileChanges =
+      update.appliedChanges ?? effectiveChanges(update);
+    const bucket = changes.emergingThemes;
+    if (!bucket) continue;
+
+    const actions: Array<"add" | "update"> = ["add", "update"];
+    for (const action of actions) {
+      const rows = bucket[action] ?? [];
+      rows.forEach((row, index) => {
+        if (!valuesMatchTheme(theme, row)) return;
+        const changeKey = `emergingThemes.${action}.${index}`;
+        const linked = evidenceForChange(update.evidenceSummary, changeKey);
+        for (const evidence of linked) {
+          const content = (
+            evidence.sourceExcerpt?.trim() ||
+            evidence.evidenceText.trim()
+          ).trim();
+          if (!content) continue;
+          const id = `${update.id}:${changeKey}:${content.slice(0, 48)}`;
+          if (seen.has(id)) continue;
+          seen.add(id);
+          items.push({
+            id,
+            sourceLabel: "Approved development update",
+            sessionLabel: sessionLabelFor(
+              evidence.sessionId ?? update.sessionId,
+              sessions
+            ),
+            content,
+          });
+        }
+      });
+    }
+  }
+
+  // Fall back to the theme reason stored on the approved profile entry.
+  if (items.length === 0) {
+    const reason = theme.reason?.trim();
+    if (reason) {
+      items.push({
+        id: `${theme.id}:reason`,
+        sourceLabel: "Approved development record",
+        content: reason,
+      });
+    }
+  }
+
+  return items;
+}
+
+function themeFromEntry(
+  entry: ProfileEntry,
+  updates: DevelopmentUpdate[],
+  sessions: Session[]
+): DevelopmentTheme {
+  const evidenceItems = collectThemeEvidenceItems(entry, updates, sessions);
   return {
     id: entry.id,
     name: entry.value,
@@ -41,7 +142,11 @@ function themeFromEntry(entry: ProfileEntry): DevelopmentTheme {
     narrative:
       entry.reason?.trim() ||
       "This theme is grounded in reviewed coaching evidence and remains open to further observation.",
-    evidenceCount: evidenceCountFor(entry.status),
+    evidenceCount:
+      evidenceItems.length > 0
+        ? evidenceItems.length
+        : evidenceCountFor(entry.status),
+    evidenceItems,
   };
 }
 
@@ -101,19 +206,24 @@ function buildMilestones(
 
 export function buildDevelopmentProfileViewModel(
   client: Client,
-  profile: DevelopmentProfile | null
+  profile: DevelopmentProfile | null,
+  appliedUpdates: DevelopmentUpdate[] = []
 ): DevelopmentProfileViewModel {
   const strengths = profile?.strengths ?? [];
-  const themes = (profile?.emergingThemes ?? []).map(themeFromEntry);
+  const themes = (profile?.emergingThemes ?? []).map(entry =>
+    themeFromEntry(entry, appliedUpdates, client.sessions ?? [])
+  );
   const growthAreas = profile?.growthAreas ?? [];
+  const focus = profile?.currentFocus?.trim() || "";
+  const priorityCandidates = growthAreas
+    .filter(item => item.status === "emerging" || item.status === "supported")
+    .map(item => item.value);
+  const distinctPriorities = filterSemanticDuplicates(priorityCandidates, [
+    focus,
+  ]).slice(0, 3);
   const lookingAhead = [
-    ...(profile?.currentFocus?.trim()
-      ? [`Continue exploring: ${profile.currentFocus.trim()}`]
-      : []),
-    ...growthAreas
-      .filter(item => item.status === "emerging" || item.status === "supported")
-      .slice(0, 3)
-      .map(item => item.value),
+    ...(focus ? [`Continue exploring: ${focus}`] : []),
+    ...distinctPriorities,
   ];
 
   const notYetEstablished = [

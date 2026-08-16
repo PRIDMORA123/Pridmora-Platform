@@ -5,6 +5,7 @@ import {
   parseSupportingContext,
   supportingContextForAi,
   agreementStatusLabel,
+  SUPPORTING_CONTEXT_SOURCE_LABELS,
 } from "@/lib/relationship-meta";
 
 describe("relationship meta", () => {
@@ -47,5 +48,11 @@ describe("relationship meta", () => {
     ]);
     expect(items).toHaveLength(2);
     expect(supportingContextForAi(items).map(item => item.id)).toEqual(["2"]);
+  });
+
+  it("labels other supporting context as context, not evidence", () => {
+    expect(SUPPORTING_CONTEXT_SOURCE_LABELS.other).toBe(
+      "Other relevant context"
+    );
   });
 });

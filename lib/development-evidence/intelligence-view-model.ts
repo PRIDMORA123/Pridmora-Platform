@@ -16,6 +16,7 @@ import {
 } from "@/lib/development-evidence/constants";
 import { calculateEvidenceCoverage } from "@/lib/development-evidence/coverage";
 import { buildEvidenceGraph } from "@/lib/development-evidence/graph";
+import { filterSemanticDuplicates } from "@/lib/intelligence/semantic-overlap";
 import type {
   CapabilityEvidenceInsight,
   DevelopmentEvidenceObservation,
@@ -188,11 +189,11 @@ export function buildDevelopmentIntelligenceEvidenceView(input: {
     )
   ).slice(0, 6);
 
-  const developmentPriorities = Array.from(
+  const developmentPrioritySignals = Array.from(
     new Set(
       included.flatMap(item => item.structuredEvidence.developmentSignals ?? [])
     )
-  ).slice(0, 6);
+  );
 
   const contradictions = Array.from(
     new Set(
@@ -249,11 +250,17 @@ export function buildDevelopmentIntelligenceEvidenceView(input: {
           : "Evidence is currently mixed or limited; trajectory should be treated cautiously.";
 
   const nextDevelopmentFocus =
-    developmentPriorities[0] ||
+    developmentPrioritySignals[0] ||
     attention[0]?.developmentOpportunity ||
     (evidenceCoverage.level === "limited"
       ? "A useful next area to explore may be gathering broader evidence across conversations, feedback and reflection."
       : "A useful next area to explore may be the highest-priority development signal supported by recent evidence.");
+
+  const developmentPriorities = filterSemanticDuplicates(
+    developmentPrioritySignals,
+    [nextDevelopmentFocus, input.currentFocus?.trim() || ""],
+    { max: 6 }
+  );
 
   return {
     currentPosition,

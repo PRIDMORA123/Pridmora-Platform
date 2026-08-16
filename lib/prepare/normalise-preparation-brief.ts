@@ -1,3 +1,7 @@
+import {
+  isStrongDuplicate as sharedIsStrongDuplicate,
+} from "@/lib/intelligence/semantic-overlap";
+
 /**
  * Display-only normalisation for Prepare briefing content.
  * Does not mutate stored preparation output.
@@ -61,7 +65,6 @@ const MAX_AREAS = 3;
 const MAX_QUESTIONS = 4;
 const MAX_PATTERNS = 2;
 const MAX_HISTORICAL = 3;
-const STRONG_OVERLAP = 0.72;
 
 const GENERIC_PURPOSE_PREFIXES = [
   /^given the stated coaching purpose[,:]?\s*/i,
@@ -87,14 +90,6 @@ function comparisonKey(value: string): string {
     .replace(/[^\p{L}\p{N}\s]/gu, "")
     .replace(/\s+/g, " ")
     .trim();
-}
-
-function tokenSet(value: string): Set<string> {
-  return new Set(
-    comparisonKey(value)
-      .split(" ")
-      .filter(token => token.length > 2)
-  );
 }
 
 function wordCount(value: string): number {
@@ -219,27 +214,9 @@ function dedupeExact(values: string[]): string[] {
   return result;
 }
 
+/** @deprecated Prefer shared helper — kept as stable Prepare export. */
 export function isStrongDuplicate(a: string, b: string): boolean {
-  const left = comparisonKey(a);
-  const right = comparisonKey(b);
-  if (!left || !right) return false;
-  if (left === right) return true;
-  if (left.includes(right) || right.includes(left)) {
-    const shorter = Math.min(left.length, right.length);
-    const longer = Math.max(left.length, right.length);
-    if (shorter / longer >= 0.85) return true;
-  }
-
-  const aTokens = tokenSet(a);
-  const bTokens = tokenSet(b);
-  if (aTokens.size === 0 || bTokens.size === 0) return false;
-
-  let overlap = 0;
-  for (const token of aTokens) {
-    if (bTokens.has(token)) overlap += 1;
-  }
-  const ratio = overlap / Math.min(aTokens.size, bTokens.size);
-  return ratio >= STRONG_OVERLAP;
+  return sharedIsStrongDuplicate(a, b);
 }
 
 function replaceClientPlaceholder(

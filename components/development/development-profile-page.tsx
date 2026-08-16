@@ -119,7 +119,7 @@ function DevelopmentDetail({
       </section>
 
       <section className="development-section">
-        <h3>Not yet established</h3>
+        <h3>Still developing</h3>
         <ConciseList
           values={data.notYetEstablished}
           emptyMessage="No unresolved evidence gaps have been identified."
@@ -246,11 +246,23 @@ export function DevelopmentProfilePage({
                       }
                     />
                     {themeEvidenceId === theme.id ? (
-                      <p className="development-theme-card__evidence-detail identity-supporting">
-                        Supported by {theme.evidenceCount} reviewed evidence{" "}
-                        {theme.evidenceCount === 1 ? "item" : "items"} from the
-                        approved development record.
-                      </p>
+                      theme.evidenceItems && theme.evidenceItems.length > 0 ? (
+                        <ul
+                          className="development-evidence-list development-theme-card__evidence-items"
+                          aria-label={`Evidence for ${theme.name}`}
+                        >
+                          {theme.evidenceItems.map(item => (
+                            <li key={item.id}>
+                              <p className="development-theme-card__evidence-source">
+                                {item.sessionLabel
+                                  ? `${item.sourceLabel} · ${item.sessionLabel}`
+                                  : item.sourceLabel}
+                              </p>
+                              <p>{item.content}</p>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null
                     ) : null}
                   </div>
                 ))}

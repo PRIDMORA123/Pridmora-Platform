@@ -36,6 +36,7 @@ export {
   normaliseAuthorisedEvidence,
   PATTERN_EVIDENCE_EXCERPT_MAX,
   toEvidenceReference,
+  withoutSupportingContextEvidence,
 } from "@/lib/patterns/evidence";
 
 export {

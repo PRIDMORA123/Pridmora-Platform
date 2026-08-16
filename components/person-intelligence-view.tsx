@@ -42,6 +42,7 @@ export function PersonIntelligenceView({
   void onTabChange;
   const [profile, setProfile] = useState<DevelopmentProfile | null>(null);
   const [pendingUpdate, setPendingUpdate] = useState<DevelopmentUpdate | null>(null);
+  const [appliedUpdates, setAppliedUpdates] = useState<DevelopmentUpdate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [contextItems, setContextItems] = useState<SupportingContextItem[]>(
@@ -60,6 +61,7 @@ export function PersonIntelligenceView({
   const load = useCallback(async () => {
     setProfile(null);
     setPendingUpdate(null);
+    setAppliedUpdates([]);
     setPatterns([]);
     setLoading(true);
     setError("");
@@ -67,6 +69,7 @@ export function PersonIntelligenceView({
       const data = await apiJson<{
         profile: DevelopmentProfile;
         pendingUpdate: DevelopmentUpdate | null;
+        updates?: DevelopmentUpdate[];
       }>(`/api/development-profiles/${client.id}`);
       if (data.profile && data.profile.clientId !== client.id) {
         throw new Error("Relationship-scoped data integrity check failed.");
@@ -77,9 +80,16 @@ export function PersonIntelligenceView({
       setProfile(data.profile);
       setPatterns(data.profile.coachingPatterns ?? []);
       setPendingUpdate(data.pendingUpdate);
+      setAppliedUpdates(
+        (data.updates ?? []).filter(
+          update =>
+            update.status === "applied" && update.clientId === client.id
+        )
+      );
     } catch (err) {
       setProfile(null);
       setPendingUpdate(null);
+      setAppliedUpdates([]);
       setPatterns([]);
       const message = errorMessage(err, "Unable to load development intelligence.");
       if (/Relationship-scoped data integrity/i.test(message)) {
@@ -101,8 +111,8 @@ export function PersonIntelligenceView({
   }, [load]);
 
   const viewModel = useMemo(
-    () => buildDevelopmentProfileViewModel(client, profile),
-    [client, profile]
+    () => buildDevelopmentProfileViewModel(client, profile, appliedUpdates),
+    [client, profile, appliedUpdates]
   );
 
   const developmentPatterns = useMemo(() => {
@@ -152,20 +162,6 @@ export function PersonIntelligenceView({
     });
     setContextItems(updated.supportingContext ?? next);
     onClientUpdated?.(updated);
-    // Authorised supporting context changed — regenerate patterns when AI-enabled items differ
-    const prevAi = (client.supportingContext ?? [])
-      .filter(item => item.useForAiPreparation)
-      .map(item => item.id)
-      .sort()
-      .join(",");
-    const nextAi = next
-      .filter(item => item.useForAiPreparation)
-      .map(item => item.id)
-      .sort()
-      .join(",");
-    if (prevAi !== nextAi) {
-      void refreshPatterns(true);
-    }
   }
 
   async function submitPatternReview(input: {

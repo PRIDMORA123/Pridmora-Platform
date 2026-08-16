@@ -1,4 +1,7 @@
-import { distinctSessionIds } from "@/lib/patterns/evidence";
+import {
+  distinctSessionIds,
+  withoutSupportingContextEvidence,
+} from "@/lib/patterns/evidence";
 import {
   classifyPatternStrength,
   isDisplayablePattern,
@@ -31,19 +34,11 @@ export function formatSupportedBySessions(
   pattern: CoachingPattern,
   sessionNumbers?: Map<string, number>
 ): string {
-  const sessionIds = distinctSessionIds(pattern.evidence);
+  const evidence = withoutSupportingContextEvidence(pattern.evidence);
+  const sessionIds = distinctSessionIds(evidence);
   if (sessionIds.length === 0) {
-    const contextCount = pattern.evidence.filter(
-      item => item.sourceType === "supporting_context"
-    ).length;
-    if (contextCount > 0) {
-      return `Supported by ${contextCount} authorised supporting context source${
-        contextCount === 1 ? "" : "s"
-      }.`;
-    }
-    return `Supported by ${pattern.evidenceCount} evidence source${
-      pattern.evidenceCount === 1 ? "" : "s"
-    }.`;
+    const count = evidence.length || pattern.evidenceCount;
+    return `Supported by ${count} evidence source${count === 1 ? "" : "s"}.`;
   }
 
   const labels = sessionIds.map(id => {
