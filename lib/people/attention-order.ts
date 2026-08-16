@@ -18,9 +18,9 @@ export type PeopleAttentionRank = 1 | 2 | 3 | 4 | 5 | 6;
  * 1 active conversation
  * 2 notes awaiting completion
  * 3 Summary & Insights awaiting review
- * 4 preparation ready
- * 5 next conversation not planned
- * 6 no recent activity
+ * 4 preparation ready to start
+ * 5 preparation in progress / to begin
+ * 6 plan next conversation or no recent activity
  */
 export function getPeopleAttentionRank(client: Client): PeopleAttentionRank {
   if (isClientArchived(client)) return 6;
@@ -41,8 +41,11 @@ export function getPeopleAttentionRank(client: Client): PeopleAttentionRank {
       return 3;
     case "start_conversation":
       return 4;
-    case "plan_conversation":
+    case "continue_preparation":
+    case "prepare":
       return 5;
+    case "plan_conversation":
+    case "none":
     default:
       return 6;
   }
@@ -51,7 +54,7 @@ export function getPeopleAttentionRank(client: Client): PeopleAttentionRank {
 /** Standardised People-row next-action label from persisted state. */
 export function getPeopleNextActionLabel(client: Client): string {
   if (isClientArchived(client)) {
-    return "Open relationship";
+    return "View team member";
   }
 
   const session = getFutureOrOpenSession(client.sessions);
@@ -81,9 +84,10 @@ function peopleLabelForPrimaryAction(
     case "prepare":
       return "Prepare conversation";
     case "plan_conversation":
+      return "Plan next conversation";
     case "none":
     default:
-      return "Open relationship";
+      return "View team member";
   }
 }
 

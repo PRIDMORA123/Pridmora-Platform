@@ -370,6 +370,16 @@ export function RelationshipCanvas({
                 + Add Development Evidence
               </button>
             ) : null}
+            {onNewCoachingMoment && !archived ? (
+              <button
+                type="button"
+                className="secondary person-next-conversation__moment"
+                data-testid="person-capture-development-moment"
+                onClick={onNewCoachingMoment}
+              >
+                Capture development moment
+              </button>
+            ) : null}
           </div>
         </section>
       ) : null}

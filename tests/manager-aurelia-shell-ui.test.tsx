@@ -139,7 +139,7 @@ describe("Manager Aurelia shell UI", () => {
     expect(container.textContent).toContain("Talk something through");
     expect(container.textContent).toContain("What’s on your mind?");
     expect(container.textContent).toContain("private working session");
-    expect(container.textContent).toContain("It is not saved");
+    expect(container.textContent).toMatch(/conversation itself is not saved/i);
     expect(container.textContent).toContain(
       "current development focus and actions"
     );

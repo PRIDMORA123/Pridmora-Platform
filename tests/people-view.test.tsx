@@ -147,7 +147,7 @@ describe("ClientsView visual polish", () => {
     expect(row?.querySelector(".identity-person-row__journey")).toBeTruthy();
     expect(row?.querySelector(".identity-person-row__focus")).toBeTruthy();
     expect(row?.querySelector(".identity-person-row__next")?.textContent).toContain(
-      "Open relationship"
+      "Plan next conversation"
     );
 
     root.unmount();

@@ -106,7 +106,7 @@ describe("Stage 3.2A Customer #1 minimum pilot readiness corrections", () => {
   it("does not change Aurelia non-persistence architecture", () => {
     const view = read("components/aurelia/manager-aurelia-view.tsx");
     expect(view).toContain("Conversation state is React memory only");
-    expect(view).toMatch(/It is\s+not saved/);
+    expect(view).toMatch(/conversation itself is not saved/i);
     expect(view).not.toContain("localStorage.setItem");
     expect(view).not.toContain("indexedDB");
   });

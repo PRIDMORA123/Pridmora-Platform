@@ -28,7 +28,7 @@ describe("Stage 2.1 Manager Front Door", () => {
       "Reflect on something",
       "Work on my development",
       "Develop someone in my team",
-      "Add evidence",
+      "Add my development evidence",
     ]);
   });
 
@@ -100,13 +100,14 @@ describe("Stage 2.1 Manager Front Door", () => {
     );
   });
 
-  it("makes Add evidence a first-level Manager Home action to existing upload", () => {
+  it("makes Add my development evidence a first-level Manager Home action to self upload", () => {
     const mcc = read("components/identity/manager-command-centre.tsx");
     const evidence = read(
       "components/development-evidence/development-evidence-view.tsx"
     );
     expect(mcc).toContain('id: "add-evidence"');
-    expect(mcc).toContain("Add evidence");
+    expect(mcc).toContain("Add my development evidence");
+    expect(mcc).toContain("your own development record");
     expect(mcc).toContain("onAddEvidence");
     expect(evidence).toContain("Add evidence");
     expect(evidence).toMatch(/upload|Upload/);
@@ -169,5 +170,19 @@ describe("Stage 2.1 Manager Front Door", () => {
     const mcc = read("components/identity/manager-command-centre.tsx");
     expect(mcc).not.toMatch(/Practise|Practice scenario|Micro-learning|Micro learning/i);
     expect(MANAGER_FRONT_DOOR_ACTIONS).toHaveLength(6);
+  });
+
+  it("surfaces Needs attention alongside the need-led question", () => {
+    const mcc = read("components/identity/manager-command-centre.tsx");
+    expect(mcc).toContain("Needs attention");
+    expect(mcc).toContain("Who or what needs your attention?");
+    expect(mcc).toContain("buildManagerHomeAttentionItems");
+    expect(mcc).toContain("What would help you today?");
+    const needsAttention = mcc.indexOf("Needs attention");
+    const whatWouldHelp = mcc.indexOf("What would help you today?");
+    const continuePanel = mcc.indexOf("Continue your development");
+    expect(needsAttention).toBeGreaterThan(-1);
+    expect(whatWouldHelp).toBeGreaterThan(-1);
+    expect(continuePanel).toBeGreaterThan(whatWouldHelp);
   });
 });

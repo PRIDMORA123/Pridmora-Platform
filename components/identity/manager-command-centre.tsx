@@ -1,9 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { apiJson } from "@/lib/api-client";
 import { BRAND } from "@/lib/brand";
 import type { MyDevelopmentWorkspace } from "@/lib/my-development/workspace";
+import {
+  buildManagerHomeAttentionItems,
+  type ManagerHomeAttentionItem,
+} from "@/lib/people/manager-home-attention";
+import type { Client } from "@/lib/types";
 
 export const MANAGER_FRONT_DOOR_ACTIONS = [
   {
@@ -37,9 +42,9 @@ export const MANAGER_FRONT_DOOR_ACTIONS = [
   },
   {
     id: "add-evidence",
-    title: "Add evidence",
+    title: "Add my development evidence",
     description:
-      "Add feedback, an assessment, document or other development evidence.",
+      "Add feedback, an assessment or a document to your own development record.",
   },
 ] as const;
 
@@ -54,6 +59,7 @@ export type ManagerFrontDoorActionId =
 export function ManagerCommandCentre({
   greeting,
   coachName,
+  clients = [],
   hasManagedPeople = true,
   onTalkThrough,
   onPrepareSomething,
@@ -61,9 +67,12 @@ export function ManagerCommandCentre({
   onOpenMyDevelopment,
   onOpenPeople,
   onAddEvidence,
+  onOpenPerson,
 }: {
   greeting: string;
   coachName: string;
+  /** Managed people (self-development excluded) for Needs attention. */
+  clients?: Client[];
   /** False when the Manager has no managed People yet (self-dev excluded). */
   hasManagedPeople?: boolean;
   onTalkThrough: () => void;
@@ -72,12 +81,18 @@ export function ManagerCommandCentre({
   onOpenMyDevelopment: () => void;
   onOpenPeople: () => void;
   onAddEvidence: () => void;
+  onOpenPerson?: (personId: string) => void;
 }) {
   const [workspace, setWorkspace] = useState<MyDevelopmentWorkspace | null>(
     null
   );
   const [continueLoaded, setContinueLoaded] = useState(false);
   const [showPrepareNeedsPerson, setShowPrepareNeedsPerson] = useState(false);
+
+  const attentionItems = useMemo(
+    () => buildManagerHomeAttentionItems(clients),
+    [clients]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -178,6 +193,13 @@ export function ManagerCommandCentre({
           next step.
         </p>
       </header>
+
+      <NeedsAttentionSection
+        items={attentionItems}
+        hasManagedPeople={hasManagedPeople}
+        onOpenPerson={onOpenPerson}
+        onOpenPeople={onOpenPeople}
+      />
 
       <nav
         className="manager-front-door__needs"
@@ -323,6 +345,76 @@ export function ManagerCommandCentre({
           </button>
         </div>
       </section>
+    </section>
+  );
+}
+
+function NeedsAttentionSection({
+  items,
+  hasManagedPeople,
+  onOpenPerson,
+  onOpenPeople,
+}: {
+  items: ManagerHomeAttentionItem[];
+  hasManagedPeople: boolean;
+  onOpenPerson?: (personId: string) => void;
+  onOpenPeople: () => void;
+}) {
+  return (
+    <section
+      className="manager-front-door__attention"
+      aria-labelledby="manager-needs-attention-title"
+      data-testid="manager-needs-attention"
+    >
+      <h2 id="manager-needs-attention-title">Needs attention</h2>
+      <p className="manager-front-door__attention-intro">
+        Who or what needs your attention?
+      </p>
+
+      {!hasManagedPeople ? (
+        <p className="muted" data-testid="manager-needs-attention-empty">
+          Add someone in My People when you are ready. Until then, you can talk
+          something through or work on your own development.
+        </p>
+      ) : null}
+
+      {hasManagedPeople && items.length === 0 ? (
+        <p className="muted" data-testid="manager-needs-attention-empty">
+          Nothing needs your attention right now.
+        </p>
+      ) : null}
+
+      {items.length > 0 ? (
+        <ul className="manager-front-door__attention-list">
+          {items.map(item => (
+            <li key={item.personId}>
+              <button
+                type="button"
+                className="manager-front-door__attention-item"
+                data-testid="manager-needs-attention-item"
+                onClick={() => onOpenPerson?.(item.personId)}
+              >
+                <span className="manager-front-door__attention-person">
+                  {item.personName}
+                </span>
+                <span className="manager-front-door__attention-action">
+                  {item.nextActionLabel}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      {hasManagedPeople ? (
+        <button
+          type="button"
+          className="identity-text-action manager-front-door__attention-all"
+          onClick={onOpenPeople}
+        >
+          View all people
+        </button>
+      ) : null}
     </section>
   );
 }

@@ -52,7 +52,8 @@ describe("Stage 2.2.1 Manager Aurelia conversation shell", () => {
     expect(view).toContain("Talk something through");
     expect(view).toContain("What’s on your mind?");
     expect(view).toContain("private working session");
-    expect(view).toMatch(/It is\s+not saved/);
+    expect(view).toMatch(/conversation itself is not saved/i);
+    expect(view).toContain("Take something forward");
     expect(view).toContain(
       "can use your current development focus and actions"
     );

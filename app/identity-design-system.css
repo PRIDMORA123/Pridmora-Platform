@@ -11217,8 +11217,76 @@ button.coaching-moments-section__item:focus-visible {
   margin-top: 0.35rem;
 }
 
-.manager-front-door__needs {
+.manager-front-door__attention {
+  margin: 1.25rem 0 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(15, 35, 64, 0.12);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.manager-front-door__attention h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+  color: var(--identity-navy-950, #082b4b);
+}
+
+.manager-front-door__attention-intro {
+  margin: 0 0 0.75rem;
+  color: rgba(15, 35, 64, 0.72);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.manager-front-door__attention-list {
+  list-style: none;
   margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.manager-front-door__attention-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid rgba(15, 35, 64, 0.12);
+  border-radius: 0.4rem;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.manager-front-door__attention-item:hover {
+  border-color: rgba(15, 35, 64, 0.28);
+}
+
+.manager-front-door__attention-item:focus-visible {
+  outline: 2px solid var(--identity-navy-950, #082b4b);
+  outline-offset: 2px;
+}
+
+.manager-front-door__attention-person {
+  font-weight: 600;
+}
+
+.manager-front-door__attention-action {
+  color: rgba(15, 35, 64, 0.72);
+  font-size: 0.92rem;
+}
+
+.manager-front-door__attention-all {
+  margin-top: 0.75rem;
+}
+
+.manager-front-door__needs {
+  margin: 1.5rem 0 0;
 }
 
 .manager-front-door__need-list {

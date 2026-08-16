@@ -90,18 +90,30 @@ describe("getPeopleAttentionRank", () => {
     expect(getPeopleAttentionRank(client)).toBe(4);
   });
 
-  it("ranks unplanned next conversation fifth", () => {
+  it("ranks unplanned next conversation sixth with clear plan label", () => {
     const client = makeClient({ sessions: [] });
-    expect(getPeopleAttentionRank(client)).toBe(5);
-    expect(getPeopleNextActionLabel(client)).toBe("Open relationship");
+    expect(getPeopleAttentionRank(client)).toBe(6);
+    expect(getPeopleNextActionLabel(client)).toBe("Plan next conversation");
   });
 
-  it("ranks quieter planned preparation as no recent activity", () => {
-    const client = makeClient({
+  it("ranks continuing and incomplete preparation above plan-next", () => {
+    const planned = makeClient({
       sessions: [makeSession({ status: "planned" })],
     });
-    expect(getPeopleAttentionRank(client)).toBe(6);
-    expect(getPeopleNextActionLabel(client)).toBe("Prepare conversation");
+    expect(getPeopleAttentionRank(planned)).toBe(5);
+    expect(getPeopleNextActionLabel(planned)).toBe("Prepare conversation");
+
+    const preparing = makeClient({
+      sessions: [
+        makeSession({
+          status: "planned",
+          prepPurpose: "Strengthen recommendation clarity.",
+          prepQuestions: "What helps you speak earlier?",
+        }),
+      ],
+    });
+    expect(getPeopleAttentionRank(preparing)).toBe(5);
+    expect(getPeopleNextActionLabel(preparing)).toBe("Continue preparation");
   });
 });
 
@@ -138,8 +150,8 @@ describe("sortClientsByAttention", () => {
     expect(ordered.map(client => client.id)).toEqual([
       "c-active",
       "c-prepared",
-      "c-unplanned",
       "c-planned",
+      "c-unplanned",
     ]);
   });
 });

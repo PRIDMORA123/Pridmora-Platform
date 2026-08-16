@@ -439,6 +439,7 @@ export function IdentityHomePage({
         <ManagerCommandCentre
           greeting={viewModel.greeting}
           coachName={viewModel.coachName}
+          clients={clients}
           hasManagedPeople={clients.length > 0}
           onTalkThrough={() => onOpenManagerAurelia?.()}
           onPrepareSomething={openPrepareSomething}
@@ -446,6 +447,10 @@ export function IdentityHomePage({
           onOpenMyDevelopment={() => onOpenMyDevelopment?.()}
           onOpenPeople={() => onViewPeople?.()}
           onAddEvidence={() => onOpenMyDevelopmentEvidence?.()}
+          onOpenPerson={personId => {
+            const client = clients.find(entry => entry.id === personId);
+            if (client) onOpenClient(client);
+          }}
         />
       </section>
     );

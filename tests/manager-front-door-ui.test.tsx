@@ -160,7 +160,7 @@ describe("Manager Front Door UI", () => {
     expect(container.textContent).toContain("Reflect on something");
     expect(container.textContent).toContain("Work on my development");
     expect(container.textContent).toContain("Develop someone in my team");
-    expect(container.textContent).toContain("Add evidence");
+    expect(container.textContent).toContain("Add my development evidence");
     expect(container.textContent).toContain("Continue your development");
     expect(container.textContent).toContain("View My Development");
 
@@ -241,7 +241,7 @@ describe("Manager Front Door UI", () => {
     });
 
     expect(managerContainer.textContent).toContain("What would help you today?");
-    expect(managerContainer.textContent).toContain("Add evidence");
+    expect(managerContainer.textContent).toContain("Add my development evidence");
 
     await act(async () => {
       (

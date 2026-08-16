@@ -151,9 +151,11 @@ export function ManagerAureliaView({
           {BRAND.intelligenceName} will help you think it through.
         </p>
         <p className="manager-aurelia__privacy" id={noticeId}>
-          This is a private working session with {BRAND.intelligenceName}. It is
-          not saved. If you leave or refresh this page, the conversation will be
-          lost. Capture anything you want to keep.{" "}
+          This is a private working session with {BRAND.intelligenceName}. The
+          conversation itself is not saved — if you leave or refresh, it will be
+          lost. When something useful emerges, use{" "}
+          <strong>Take something forward</strong> to save a reflection or action
+          into your own development.{" "}
           {`${BRAND.intelligenceName} can use your current development focus and actions to make this conversation more relevant.`}
         </p>
       </header>
