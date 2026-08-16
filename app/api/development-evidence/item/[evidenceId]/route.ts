@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { notFoundOrForbidden } from "@/lib/auth/session";
 import {
+  EVIDENCE_TYPE_LABELS,
+  formatObservationSourceLabel,
   getEvidenceById,
+  resolveVerifiedSourceExcerpt,
   softDeleteEvidence,
   toEvidenceListItem,
 } from "@/lib/development-evidence";
@@ -27,6 +30,29 @@ export async function GET(_request: Request, { params }: Params) {
     });
     if (!access.ok) return access.response;
 
+    const sourceLabel = formatObservationSourceLabel({
+      fileName: detail.document?.fileName,
+      evidenceTitle: detail.evidence.title,
+      evidenceTypeLabel:
+        EVIDENCE_TYPE_LABELS[detail.evidence.evidenceType] ??
+        detail.evidence.evidenceType,
+    });
+
+    const observationSourceEvidence = detail.observations.map(observation => {
+      const resolved = resolveVerifiedSourceExcerpt({
+        extractedText: detail.document?.extractedText,
+        behaviouralEvidence: observation.behaviouralEvidence,
+        observationTitle: observation.title,
+        observationDescription: observation.description,
+      });
+      return {
+        observationId: observation.id,
+        excerpt: resolved.excerpt,
+        matchKind: resolved.matchKind,
+        sourceLabel,
+      };
+    });
+
     return NextResponse.json({
       evidence: detail.evidence,
       listItem: toEvidenceListItem(detail.evidence, {
@@ -37,6 +63,7 @@ export async function GET(_request: Request, { params }: Params) {
         fileName: detail.document?.fileName ?? null,
       }),
       observations: detail.observations,
+      observationSourceEvidence,
       document: detail.document
         ? {
             id: detail.document.id,

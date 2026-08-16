@@ -7,6 +7,8 @@ export * from "@/lib/development-evidence/freshness";
 export * from "@/lib/development-evidence/sanitize";
 export * from "@/lib/development-evidence/ai-context";
 export * from "@/lib/development-evidence/extract";
+export * from "@/lib/development-evidence/source-excerpt";
+export * from "@/lib/development-evidence/authorised-observations";
 export * from "@/lib/development-evidence/psychometrics";
 export * from "@/lib/development-evidence/graph";
 export * from "@/lib/development-evidence/intelligence-view-model";

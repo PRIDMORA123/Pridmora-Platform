@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { pruneStructuredEvidenceToAuthorisedObservations } from "@/lib/development-evidence/authorised-observations";
 import { inferCapabilityKeysFromText } from "@/lib/development-evidence/capabilities";
 import {
   EVIDENCE_TYPE_LABELS,
@@ -554,12 +555,38 @@ export async function reviewEvidence(input: {
     throw new Error("Unable to save evidence review.");
   }
 
+  // Prune structured_evidence.observations to authorised rows only so
+  // helpers that still read the JSON blob cannot leak excluded content.
+  const afterStatus = await getEvidenceById(
+    input.supabase,
+    input.userId,
+    input.evidenceId
+  );
+  const prunedStructured = pruneStructuredEvidenceToAuthorisedObservations({
+    structured: afterStatus.evidence.structuredEvidence,
+    observations: afterStatus.observations,
+    includeEvidenceInIntelligence: include,
+  });
+  const { error: pruneError } = await input.supabase
+    .from("development_evidence")
+    .update({
+      structured_evidence: prunedStructured,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.evidenceId)
+    .is("deleted_at", null);
+  if (pruneError) {
+    throw new Error("Unable to update authorised evidence observations.");
+  }
+
+  const prunedEvidence = {
+    ...mapEvidenceRow(data as Record<string, unknown>),
+    structuredEvidence: prunedStructured,
+  };
+
   // Rebuild capability links for approved evidence
   if (include) {
-    await rebuildCapabilityLinks(
-      input.supabase,
-      mapEvidenceRow(data as Record<string, unknown>)
-    );
+    await rebuildCapabilityLinks(input.supabase, prunedEvidence);
   } else {
     await input.supabase
       .from("development_evidence_links")

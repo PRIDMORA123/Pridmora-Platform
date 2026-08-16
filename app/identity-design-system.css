@@ -10980,6 +10980,12 @@ button.coaching-moments-section__item:focus-visible {
   background: #fff;
 }
 
+.evidence-observation-source-excerpt {
+  margin: 0.35rem 0 0.25rem;
+  max-width: 40rem;
+  line-height: 1.45;
+}
+
 .evidence-record-card {
   display: flex;
   justify-content: space-between;

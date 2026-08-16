@@ -8,6 +8,7 @@ import {
   foundationLabelsForCapability,
   PRIDMORA_CAPABILITIES,
 } from "@/lib/development-evidence/capabilities";
+import { observationContributesToIntelligence } from "@/lib/development-evidence/authorised-observations";
 import { calculateEvidenceConfidence } from "@/lib/development-evidence/confidence";
 import {
   COVERAGE_DISPLAY_LABELS,
@@ -283,7 +284,11 @@ export function buildWhyThisPayload(input: {
   observations?: DevelopmentEvidenceObservation[];
 }): EvidenceWhyThisPayload {
   const included = input.records.filter(
-    item => item.includeInIntelligence && !item.deletedAt
+    item =>
+      item.includeInIntelligence &&
+      !item.deletedAt &&
+      item.reviewStatus !== "rejected" &&
+      item.reviewStatus !== "excluded"
   );
   const confidence = calculateEvidenceConfidence({
     evidence: toConfidenceInputs(included),
@@ -295,18 +300,16 @@ export function buildWhyThisPayload(input: {
     included[0]?.freshnessClass ??
     "current";
 
-  const observedBehaviours = [
-    ...(input.observations ?? [])
-      .filter(item => item.includeInIntelligence)
-      .map(item => item.behaviouralEvidence)
-      .filter((value): value is string => Boolean(value?.trim())),
-    ...included.flatMap(
-      item =>
-        item.structuredEvidence.observations
-          ?.map(observation => observation.behaviouralEvidence)
-          .filter((value): value is string => Boolean(value?.trim())) ?? []
-    ),
-  ].slice(0, 8);
+  // Canonical observation rows only — never fall back to structured_evidence
+  // observations, which may retain excluded proposals until pruned.
+  const authorisedObservations = (input.observations ?? []).filter(
+    observationContributesToIntelligence
+  );
+
+  const observedBehaviours = authorisedObservations
+    .map(item => item.behaviouralEvidence)
+    .filter((value): value is string => Boolean(value?.trim()))
+    .slice(0, 8);
 
   const limitations = Array.from(
     new Set(
@@ -323,12 +326,8 @@ export function buildWhyThisPayload(input: {
   ).slice(0, 6);
 
   const developmentImplication =
-    input.observations?.find(item => item.developmentImplication)
-      ?.developmentImplication ??
-    included
-      .flatMap(item => item.structuredEvidence.observations ?? [])
-      .find(item => item.developmentImplication)?.developmentImplication ??
-    null;
+    authorisedObservations.find(item => item.developmentImplication)
+      ?.developmentImplication ?? null;
 
   return {
     insight: input.insight,

@@ -41,6 +41,12 @@ type ListPayload = {
 type DetailPayload = {
   evidence: DevelopmentEvidenceRecord;
   observations: DevelopmentEvidenceObservation[];
+  observationSourceEvidence?: Array<{
+    observationId: string;
+    excerpt: string | null;
+    matchKind: "exact_behavioural" | "derived" | "none";
+    sourceLabel: string;
+  }>;
   document: { id: string; fileName: string; hasExtractedText: boolean } | null;
 };
 
@@ -643,6 +649,10 @@ export function DevelopmentEvidenceView({
               <ul className="evidence-observation-list">
                 {detail.observations.map(observation => {
                   const edited = editMap[observation.id];
+                  const sourceEvidence =
+                    detail.observationSourceEvidence?.find(
+                      item => item.observationId === observation.id
+                    ) ?? null;
                   return (
                     <li key={observation.id} className="evidence-observation-card">
                       <label className="checkbox-row">
@@ -697,6 +707,23 @@ export function DevelopmentEvidenceView({
                           }
                         />
                       </label>
+                      <div className="field">
+                        <span>Supporting evidence</span>
+                        {sourceEvidence?.excerpt ? (
+                          <>
+                            <p className="evidence-observation-source-excerpt">
+                              {sourceEvidence.excerpt}
+                            </p>
+                            <p className="muted">
+                              Source: {sourceEvidence.sourceLabel}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="muted">
+                            No verified source excerpt available
+                          </p>
+                        )}
+                      </div>
                     </li>
                   );
                 })}

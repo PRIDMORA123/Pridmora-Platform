@@ -4,6 +4,7 @@ import {
   buildDevelopmentIntelligenceEvidenceView,
   buildWhyThisPayload,
   composeDevelopmentHeadlineIntelligence,
+  getEvidenceById,
   listEvidenceForClient,
   writeEvidenceAudit,
 } from "@/lib/development-evidence";
@@ -78,9 +79,30 @@ export async function GET(request: Request, { params }: Params) {
     if (insight && whyEvidenceIds) {
       const ids = whyEvidenceIds.split(",").filter(Boolean);
       const selected = records.filter(item => ids.includes(item.id));
+      const whyRecords =
+        selected.length > 0
+          ? selected
+          : records.filter(r => r.includeInIntelligence);
+
+      const observationLists = await Promise.all(
+        whyRecords.map(async record => {
+          try {
+            const detail = await getEvidenceById(
+              access.context.supabase,
+              access.context.user.id,
+              record.id
+            );
+            return detail.observations;
+          } catch {
+            return [];
+          }
+        })
+      );
+
       const whyThis = buildWhyThisPayload({
         insight,
-        records: selected.length > 0 ? selected : records.filter(r => r.includeInIntelligence),
+        records: whyRecords,
+        observations: observationLists.flat(),
       });
 
       await writeEvidenceAudit({
