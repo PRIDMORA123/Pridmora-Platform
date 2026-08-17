@@ -698,10 +698,22 @@ describe("Team and Organisation evidence aggregation", () => {
       sourceRelationshipCount: 8,
       sourceConversationCount: 40,
       sourceEvidenceCount: 55,
-      strengthening: ["Delegation"],
-      attention: ["Feedback & Difficult Conversations"],
-      strongEvidenceAreas: ["Delegation"],
-      limitedEvidenceAreas: ["Systems Thinking"],
+      visibleThemes: [
+        {
+          label: "Delegation",
+          direction: "increasing_prevalence",
+          evidencePosture: "emerging",
+          recurring: false,
+          relationshipCount: 8,
+        },
+        {
+          label: "Feedback",
+          direction: "unchanged_prevalence",
+          evidencePosture: "emerging",
+          recurring: true,
+          relationshipCount: 6,
+        },
+      ],
       recommendations: [
         {
           title: "Review performance conversation support",
@@ -717,7 +729,12 @@ describe("Team and Organisation evidence aggregation", () => {
     );
     expect(brief.plainText).toMatch(/Evidence Confidence/i);
     expect(brief.plainText).not.toMatch(/promot(e|ion)/i);
-    expect(brief.plainText).toMatch(/premature|limited|Consider/i);
+    expect(brief.plainText).toMatch(/premature|limited|Consider|monitor/i);
+    expect(brief.plainText).not.toMatch(/behaviours are strengthening/i);
+    expect(brief.plainText).not.toMatch(/recurring difficulty/i);
+    expect(brief.plainText).toContain(
+      "8 contributing relationships, 40 conversations, 55 reviewed evidence items"
+    );
   });
 });
 

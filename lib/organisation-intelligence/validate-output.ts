@@ -1,6 +1,7 @@
 /**
  * Post-generation validation for organisation intelligence AI output.
- * Rejects identity leakage, unsupported certainty and promotional language.
+ * Rejects identity leakage, unsupported certainty, progress/difficulty claims
+ * and references to themes that are not Lead-visible.
  */
 
 const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
@@ -29,6 +30,32 @@ const COMMERCIAL_PATTERNS = [
   /\bpricing\b/i,
 ];
 
+/** Progress / difficulty claims unsupported by prevalence aggregates alone. */
+const FORBIDDEN_PROGRESS_DIFFICULTY_PATTERNS = [
+  /\bbehaviours? are strengthening\b/i,
+  /\bstrengthening\b/i,
+  /\bimproving\b/i,
+  /\bcapability is improving\b/i,
+  /\bdevelopment is progressing\b/i,
+  /\bprogressing\b/i,
+  /\brecurring difficulty\b/i,
+  /\bdifficulty\b/i,
+  /\bcomparatively strong\b/i,
+  /\brequiring attention\b/i,
+  /\bweakness\b/i,
+  /\bperformance (gap|problem|issue)\b/i,
+];
+
+/** Foundation labels that must not appear unless they are also visible theme labels. */
+const FOUNDATION_LABELS = [
+  "Listening and Presence",
+  "Psychological Safety",
+  "Accountability and Ownership",
+  "Feedback and Conversations",
+  "Emotional Intelligence and Self-Management",
+  "Collaboration and Alignment",
+];
+
 export type OrganisationIntelligenceValidationResult =
   | { ok: true; brief: string }
   | {
@@ -37,9 +64,14 @@ export type OrganisationIntelligenceValidationResult =
       retryable: boolean;
     };
 
+export type OrganisationIntelligenceBriefValidationOptions = {
+  visibleThemeLabels?: string[];
+};
+
 export function validateOrganisationIntelligenceBrief(
   brief: string,
-  allowedNumbers: number[] = []
+  allowedNumbers: number[] = [],
+  options: OrganisationIntelligenceBriefValidationOptions = {}
 ): OrganisationIntelligenceValidationResult {
   const text = brief.trim();
   const reasons: string[] = [];
@@ -87,18 +119,41 @@ export function validateOrganisationIntelligenceBrief(
     }
   }
 
+  for (const pattern of FORBIDDEN_PROGRESS_DIFFICULTY_PATTERNS) {
+    if (pattern.test(text)) {
+      reasons.push("forbidden_progress_or_difficulty_language");
+      break;
+    }
+  }
+
+  const visibleLabels = (options.visibleThemeLabels ?? []).map(label =>
+    label.trim().toLowerCase()
+  );
+  if (visibleLabels.length > 0) {
+    for (const foundation of FOUNDATION_LABELS) {
+      const foundationLower = foundation.toLowerCase();
+      if (
+        text.toLowerCase().includes(foundationLower) &&
+        !visibleLabels.includes(foundationLower)
+      ) {
+        // Allow "Psychological Safety" when that exact theme is visible.
+        reasons.push("foundation_or_non_visible_theme_label");
+        break;
+      }
+    }
+  }
+
   const numbers = Array.from(text.matchAll(/\b\d+(?:\.\d+)?%?\b/g)).map(match =>
     Number.parseFloat(match[0].replace("%", ""))
   );
   const allowed = new Set(
-    allowedNumbers.filter(value => Number.isFinite(value)).map(value =>
-      Math.round(value * 10) / 10
-    )
+    allowedNumbers
+      .filter(value => Number.isFinite(value))
+      .map(value => Math.round(value * 10) / 10)
   );
   for (const value of numbers) {
     const rounded = Math.round(value * 10) / 10;
     if (!allowed.has(rounded) && !allowed.has(Math.round(value))) {
-      // Allow small structural counts that commonly appear (paragraph indices etc. not expected).
       if (value > 4) {
         reasons.push("unsupported_number");
         break;
@@ -106,7 +161,6 @@ export function validateOrganisationIntelligenceBrief(
     }
   }
 
-  // Obvious personal name pattern: Capitalised First Last adjacent words with no organisational keywords.
   if (
     /\b[A-Z][a-z]{2,}\s+[A-Z][a-z]{2,}\b/.test(text) &&
     !/\b(Development Momentum|Psychological Safety|Emotional Intelligence)\b/.test(
@@ -123,7 +177,9 @@ export function validateOrganisationIntelligenceBrief(
   return { ok: true, brief: text };
 }
 
-export function collectAllowedNumbers(values: Array<number | null | undefined>): number[] {
+export function collectAllowedNumbers(
+  values: Array<number | null | undefined>
+): number[] {
   const out: number[] = [];
   for (const value of values) {
     if (typeof value === "number" && Number.isFinite(value)) {

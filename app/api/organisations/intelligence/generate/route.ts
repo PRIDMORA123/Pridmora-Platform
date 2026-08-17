@@ -8,6 +8,7 @@ import {
   generateOrganisationIntelligence,
   parsePeriodPreset,
 } from "@/lib/organisation-intelligence";
+import { isSupabaseServiceRoleConfigured } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -20,6 +21,13 @@ export async function POST(request: Request) {
     "intelligence.organisation.read"
   );
   if (denied) return denied;
+
+  if (!isSupabaseServiceRoleConfigured()) {
+    return NextResponse.json(
+      { error: "Server configuration is incomplete." },
+      { status: 503 }
+    );
+  }
 
   let body: {
     period?: string;
@@ -34,6 +42,7 @@ export async function POST(request: Request) {
   }
 
   // Never trust browser-supplied organisation IDs.
+  // Authz first (above). Raw aggregation uses service-role only inside generate.
   const organisationId = auth.context.organisation.organisationId;
   const organisationName = auth.context.organisation.organisation.name;
 

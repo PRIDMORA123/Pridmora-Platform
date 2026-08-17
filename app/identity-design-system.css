@@ -10389,6 +10389,12 @@ button.coaching-moments-section__item:focus-visible {
   color: var(--identity-ink-muted, #5b6675);
 }
 
+.org-intelligence-summary-meta__note {
+  max-width: 42rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
 .org-intelligence-section {
   margin: 0;
 }

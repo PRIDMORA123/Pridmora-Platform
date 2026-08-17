@@ -353,12 +353,17 @@ function sourceTypesForMetric(metricKey: string): string[] {
   }
 }
 
+/**
+ * Lead-safe deterministic buyer narrative.
+ * Visible themes only — never Six Foundation roll-ups, never suppressed themes.
+ */
 export function buildDeterministicExecutiveBrief(input: {
   organisationName: string;
   periodLabel: string;
   metrics: MetricView[];
   themes: ThemeView[];
-  capabilities: CapabilityTrendView[];
+  /** Ignored for Customer #1 narrative — foundations must not enter buyer prose. */
+  capabilities?: CapabilityTrendView[];
   recommendations: RecommendationView[];
   restrictedEvidenceExcluded: boolean;
   confidenceLevel?: "low" | "moderate" | "high";
@@ -366,74 +371,39 @@ export function buildDeterministicExecutiveBrief(input: {
   sourceConversationCount?: number;
   sourceEvidenceCount?: number;
 }): string {
-  const improving = input.capabilities
-    .filter(
-      capability =>
-        !capability.suppressed &&
-        capability.direction === "increasing_prevalence"
-    )
-    .map(capability => capability.label);
-  const attention = input.capabilities
-    .filter(
-      capability =>
-        !capability.suppressed &&
-        capability.direction === "decreasing_prevalence"
-    )
-    .map(capability => capability.label);
-
-  const attentionThemeLabels = input.themes
-    .filter(
-      theme =>
-        !theme.suppressed &&
-        (theme.direction === "increasing_prevalence" ||
-          theme.metadata.recurring === true)
-    )
-    .map(theme => theme.themeLabel);
-
-  const strongEvidenceAreas = input.capabilities
-    .filter(
-      capability =>
-        !capability.suppressed &&
-        (capability.confidenceLevel === "high" ||
-          capability.confidenceLevel === "moderate") &&
-        (capability.direction === "increasing_prevalence" ||
-          capability.direction === "unchanged_prevalence")
-    )
-    .map(capability => capability.label);
-
-  const limitedEvidenceAreas = input.capabilities
-    .filter(
-      capability =>
-        capability.suppressed ||
-        capability.direction === "insufficient_evidence" ||
-        capability.confidenceLevel === "low"
-    )
-    .map(capability => capability.label)
-    .slice(0, 4);
+  const visibleThemes = input.themes.filter(theme => !theme.suppressed);
 
   const conversations = input.metrics.find(
-    metric => metric.metricKey === "conversations_completed"
+    metric => metric.metricKey === "development_conversations"
   );
   const evidenceMetric = input.metrics.find(
     metric => metric.metricKey === "evidence_items"
   );
 
+  const sourceConversationCount =
+    input.sourceConversationCount ??
+    Number(conversations?.metricValue ?? 0);
+  const sourceEvidenceCount =
+    input.sourceEvidenceCount ?? Number(evidenceMetric?.metricValue ?? 0);
+  const sourceRelationshipCount = input.sourceRelationshipCount ?? 0;
+
   const premium = buildPremiumExecutiveBrief({
     organisationName: input.organisationName,
     periodLabel: input.periodLabel,
     confidenceLevel: input.confidenceLevel ?? "low",
-    sourceRelationshipCount: input.sourceRelationshipCount ?? 0,
-    sourceConversationCount:
-      input.sourceConversationCount ??
-      Number(conversations?.metricValue ?? 0),
-    sourceEvidenceCount:
-      input.sourceEvidenceCount ?? Number(evidenceMetric?.metricValue ?? 0),
-    strengthening: improving,
-    attention: Array.from(
-      new Set([...attention, ...attentionThemeLabels])
-    ).slice(0, 4),
-    strongEvidenceAreas: strongEvidenceAreas.slice(0, 4),
-    limitedEvidenceAreas,
+    sourceRelationshipCount,
+    sourceConversationCount,
+    sourceEvidenceCount,
+    visibleThemes: visibleThemes.map(theme => ({
+      label: theme.themeLabel,
+      direction: theme.direction,
+      evidencePosture:
+        typeof theme.metadata?.evidencePosture === "string"
+          ? theme.metadata.evidencePosture
+          : null,
+      recurring: theme.metadata?.recurring === true,
+      relationshipCount: theme.relationshipCount,
+    })),
     recommendations: input.recommendations.map(item => ({
       title: item.title,
       recommendation: item.recommendation,
@@ -450,7 +420,7 @@ export function buildPremiumExecutiveBriefSections(input: {
   periodLabel: string;
   metrics: MetricView[];
   themes: ThemeView[];
-  capabilities: CapabilityTrendView[];
+  capabilities?: CapabilityTrendView[];
   recommendations: RecommendationView[];
   restrictedEvidenceExcluded: boolean;
   confidenceLevel?: "low" | "moderate" | "high";
@@ -458,63 +428,44 @@ export function buildPremiumExecutiveBriefSections(input: {
   sourceConversationCount?: number;
   sourceEvidenceCount?: number;
 }) {
-  const improving = input.capabilities
-    .filter(
-      capability =>
-        !capability.suppressed &&
-        capability.direction === "increasing_prevalence"
-    )
-    .map(capability => capability.label);
-  const attention = Array.from(
-    new Set([
-      ...input.capabilities
-        .filter(
-          capability =>
-            !capability.suppressed &&
-            capability.direction === "decreasing_prevalence"
-        )
-        .map(capability => capability.label),
-      ...input.themes
-        .filter(
-          theme =>
-            !theme.suppressed &&
-            (theme.direction === "increasing_prevalence" ||
-              theme.metadata.recurring === true)
-        )
-        .map(theme => theme.themeLabel),
-    ])
-  ).slice(0, 4);
-
-  return buildPremiumExecutiveBrief({
-    organisationName: input.organisationName,
-    periodLabel: input.periodLabel,
-    confidenceLevel: input.confidenceLevel ?? "low",
-    sourceRelationshipCount: input.sourceRelationshipCount ?? 0,
-    sourceConversationCount: input.sourceConversationCount ?? 0,
-    sourceEvidenceCount: input.sourceEvidenceCount ?? 0,
-    strengthening: improving,
-    attention,
-    strongEvidenceAreas: input.capabilities
-      .filter(
-        capability =>
-          !capability.suppressed && capability.confidenceLevel !== "low"
-      )
-      .map(capability => capability.label)
-      .slice(0, 4),
-    limitedEvidenceAreas: input.capabilities
-      .filter(
-        capability =>
-          capability.suppressed || capability.confidenceLevel === "low"
-      )
-      .map(capability => capability.label)
-      .slice(0, 4),
-    recommendations: input.recommendations.map(item => ({
-      title: item.title,
-      recommendation: item.recommendation,
-      confidenceLevel: item.confidenceLevel,
-    })),
-    restrictedEvidenceExcluded: input.restrictedEvidenceExcluded,
-  });
+  return {
+    ...buildPremiumExecutiveBrief({
+      organisationName: input.organisationName,
+      periodLabel: input.periodLabel,
+      confidenceLevel: input.confidenceLevel ?? "low",
+      sourceRelationshipCount: input.sourceRelationshipCount ?? 0,
+      sourceConversationCount:
+        input.sourceConversationCount ??
+        Number(
+          input.metrics.find(m => m.metricKey === "development_conversations")
+            ?.metricValue ?? 0
+        ),
+      sourceEvidenceCount:
+        input.sourceEvidenceCount ??
+        Number(
+          input.metrics.find(m => m.metricKey === "evidence_items")
+            ?.metricValue ?? 0
+        ),
+      visibleThemes: input.themes
+        .filter(theme => !theme.suppressed)
+        .map(theme => ({
+          label: theme.themeLabel,
+          direction: theme.direction,
+          evidencePosture:
+            typeof theme.metadata?.evidencePosture === "string"
+              ? theme.metadata.evidencePosture
+              : null,
+          recurring: theme.metadata?.recurring === true,
+          relationshipCount: theme.relationshipCount,
+        })),
+      recommendations: input.recommendations.map(item => ({
+        title: item.title,
+        recommendation: item.recommendation,
+        confidenceLevel: item.confidenceLevel,
+      })),
+      restrictedEvidenceExcluded: input.restrictedEvidenceExcluded,
+    }),
+  };
 }
 
 export function hasEnoughEvidenceForOrganisationView(

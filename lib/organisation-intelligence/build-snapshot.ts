@@ -137,6 +137,11 @@ export function buildOrganisationIntelligenceSnapshotView(input: {
         threshold,
       });
 
+  const sourceRelationshipCount =
+    input.aggregates.contributingRelationships;
+  const sourceConversationCount = input.aggregates.conversations;
+  const sourceEvidenceCount = input.aggregates.evidenceItems;
+
   const executiveBrief =
     input.executiveBrief ??
     (emptyState
@@ -145,10 +150,13 @@ export function buildOrganisationIntelligenceSnapshotView(input: {
           organisationName: input.organisationName,
           periodLabel: input.period.label,
           metrics,
-          themes: themeResult.themes,
-          capabilities,
+          themes: visibleThemes,
           recommendations,
           restrictedEvidenceExcluded: themeResult.restrictedEvidenceExcluded,
+          confidenceLevel,
+          sourceRelationshipCount,
+          sourceConversationCount,
+          sourceEvidenceCount,
         }));
 
   let insufficientEvidenceMessage: string | null = null;
@@ -171,9 +179,9 @@ export function buildOrganisationIntelligenceSnapshotView(input: {
     period: input.period,
     generatedAt: input.generatedAt,
     generatedBy: input.generatedBy,
-    sourceRelationshipCount: input.aggregates.contributingRelationships,
-    sourceConversationCount: input.aggregates.conversations,
-    sourceEvidenceCount: input.aggregates.evidenceItems,
+    sourceRelationshipCount,
+    sourceConversationCount,
+    sourceEvidenceCount,
     confidenceLevel,
     executiveBrief,
     status: input.status ?? "ready",

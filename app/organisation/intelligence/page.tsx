@@ -13,22 +13,59 @@ import {
   OrganisationIntelligenceThemeDrawer,
 } from "@/components/organisation/intelligence/evidence-drawers";
 import { apiJson } from "@/lib/api-client";
-import { buildExecutiveBriefScanSummary } from "@/lib/development-evidence/executive-brief";
 import {
   GENERATION_STAGE_LABELS,
   MOMENTUM_METHODOLOGY,
   MOMENTUM_WEIGHTS,
   ORGANISATION_INTELLIGENCE_PRIVACY_THRESHOLD,
+  SIX_FOUNDATIONS,
   confidenceDisplayLabel,
   directionLabel,
   directionScreenReaderLabel,
-  type TrendDirection,
+  type ConfidenceLevel,
   type EvidenceTrace,
   type GenerationStage,
   type OrganisationIntelligencePeriod,
   type OrganisationIntelligenceSnapshotView,
   type ThemeView,
 } from "@/lib/organisation-intelligence";
+
+const EXECUTIVE_BRIEF_SECTION_TITLES = [
+  "What is changing",
+  "What the evidence shows about theme prevalence",
+  "What needs attention",
+  "Themes to monitor",
+  "Where evidence is strong",
+  "Evidence posture",
+  "Where evidence is limited",
+  "Where evidence remains limited",
+  "Recommended questions / actions",
+  "Evidence base",
+] as const;
+
+/** Snapshot header / theme labels: "Moderate" not "Moderate confidence". */
+function confidenceLevelWord(level: ConfidenceLevel): string {
+  if (level === "high") return "High";
+  if (level === "moderate") return "Moderate";
+  return "Low";
+}
+
+/**
+ * Themes-to-monitor UI only. Capability/foundation roll-ups stay in Capability trends.
+ * Do not change snapshot attentionAreas — filter at presentation time only.
+ */
+function isThemeMonitorAttentionArea(area: {
+  key: string;
+  label: string;
+  kind?: string | null;
+}): boolean {
+  if (area.kind === "capability") return false;
+  if (area.kind === "theme") return true;
+  // Legacy rows without kind: drop exact Six Foundations labels (e.g. "Psychological Safety").
+  const foundation = SIX_FOUNDATIONS.find(row => row.key === area.key);
+  if (foundation && foundation.label === area.label) return false;
+  return true;
+}
 
 type HistoryItem = {
   id: string;
@@ -358,18 +395,12 @@ export default function OrganisationIntelligencePage() {
     !snapshot &&
     !readyToGeneratePanel;
 
-  const briefScanSummary = useMemo(() => {
-    if (!snapshot || snapshot.emptyState) return null;
-    return buildExecutiveBriefScanSummary({
-      executiveBrief: snapshot.executiveBrief,
-      themes: snapshot.themes,
-      capabilities: snapshot.capabilities,
-      attentionAreas: snapshot.attentionAreas,
-      momentum: overviewMetrics?.momentum ?? null,
-      organisationName: snapshot.organisationName,
-      periodLabel: snapshot.period.label,
-    });
-  }, [overviewMetrics?.momentum, snapshot]);
+  const themeAttentionAreas = useMemo(() => {
+    if (!snapshot || snapshot.emptyState) return [];
+    // Theme monitoring is the primary buyer narrative; foundation roll-ups stay
+    // in Capability trends so Leads are not shown near-duplicate monitor rows.
+    return snapshot.attentionAreas.filter(isThemeMonitorAttentionArea);
+  }, [snapshot]);
 
   const momentumDrivers = useMemo(() => {
     const momentum = overviewMetrics?.momentum;
@@ -706,7 +737,13 @@ export default function OrganisationIntelligencePage() {
               </p>
               <p>
                 Source relationships: {snapshot.sourceRelationshipCount} ·{" "}
-                {confidenceDisplayLabel(snapshot.confidenceLevel)}
+                Evidence base confidence:{" "}
+                {confidenceLevelWord(snapshot.confidenceLevel)}
+              </p>
+              <p className="organisation-muted org-intelligence-summary-meta__note">
+                Evidence base confidence reflects the overall anonymised sample.
+                Theme confidence is shown on each theme and can differ when a
+                theme has a narrower evidence base.
               </p>
               {snapshot.restrictedEvidenceExcluded ? (
                 <p className="organisation-muted">
@@ -732,78 +769,17 @@ export default function OrganisationIntelligencePage() {
                 </button>
               </div>
               <div className="org-intelligence-brief org-intelligence-brief--sections">
-                {briefScanSummary ? (
-                  <article className="org-intelligence-brief__scan">
-                    <h3 className="org-intelligence-sr-only">Brief summary</h3>
-                    <dl className="org-intelligence-brief__scan-list">
-                      <div>
-                        <dt>Overall position</dt>
-                        <dd>{briefScanSummary.overallPosition}</dd>
-                      </div>
-                      <div>
-                        <dt>Themes with increasing prevalence</dt>
-                        <dd>
-                          {briefScanSummary.strengthening.length > 0 ? (
-                            <ul>
-                              {briefScanSummary.strengthening.map(item => (
-                                <li key={item}>{item}</li>
-                              ))}
-                            </ul>
-                          ) : (
-                            "No theme shows increasing prevalence yet."
-                          )}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>Themes to monitor</dt>
-                        <dd>
-                          {briefScanSummary.needsAttention.length > 0 ? (
-                            <ul>
-                              {briefScanSummary.needsAttention.map(item => (
-                                <li key={item}>{item}</li>
-                              ))}
-                            </ul>
-                          ) : (
-                            "No additional themes flagged for monitoring."
-                          )}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>Development activity momentum</dt>
-                        <dd>
-                          {briefScanSummary.momentumValue ?? "Not available"} ·{" "}
-                          <span className="org-intelligence-sr-only">
-                            {directionScreenReaderLabel(
-                              (briefScanSummary.momentumDirection ??
-                                "insufficient_evidence") as TrendDirection
-                            )}
-                          </span>
-                          {directionLabel(
-                            (briefScanSummary.momentumDirection ??
-                              "insufficient_evidence") as TrendDirection
-                          )}
-                        </dd>
-                      </div>
-                    </dl>
-                  </article>
-                ) : null}
                 {(snapshot.executiveBrief || "")
                   .split(/\n\s*\n/)
                   .filter(Boolean)
                   .reduce<Array<{ title?: string; body: string }>>(
                     (sections, block) => {
                       const lines = block.split("\n").filter(Boolean);
-                      const knownTitles = [
-                        "What is changing",
-                        "What needs attention",
-                        "Where evidence is strong",
-                        "Where evidence is limited",
-                        "Recommended questions / actions",
-                        "Evidence base",
-                      ];
                       if (
                         lines.length >= 2 &&
-                        knownTitles.includes(lines[0] ?? "")
+                        EXECUTIVE_BRIEF_SECTION_TITLES.includes(
+                          lines[0] as (typeof EXECUTIVE_BRIEF_SECTION_TITLES)[number]
+                        )
                       ) {
                         sections.push({
                           title: lines[0],
@@ -823,6 +799,123 @@ export default function OrganisationIntelligencePage() {
                     </article>
                   ))}
               </div>
+            </section>
+
+            <section
+              className="org-intelligence-section"
+              aria-labelledby="org-intel-themes"
+            >
+              <h2 id="org-intel-themes">Emerging themes</h2>
+              <p className="organisation-muted">
+                Primary theme narrative for this period. Foundation roll-ups
+                appear under Capability trends.
+              </p>
+              {snapshot.themes.length === 0 ? (
+                <p className="organisation-muted">
+                  Not enough evidence to report safely.
+                </p>
+              ) : (
+                <ol className="org-intelligence-theme-list">
+                  {snapshot.themes.map(theme => (
+                    <li key={theme.themeKey}>
+                      <button
+                        type="button"
+                        className="org-intelligence-theme-item"
+                        onClick={() => setSelectedTheme(theme)}
+                      >
+                        <span className="org-intelligence-theme-item__title">
+                          {theme.themeLabel}
+                        </span>
+                        <span className="org-intelligence-theme-item__meta">
+                          {theme.relationshipCount} relationships ·{" "}
+                          {theme.evidenceCount} evidence ·{" "}
+                          <span className="org-intelligence-sr-only">
+                            {directionScreenReaderLabel(
+                              theme.direction ?? "insufficient_evidence"
+                            )}
+                          </span>
+                          {directionLabel(
+                            theme.direction ?? "insufficient_evidence"
+                          )}{" "}
+                          · Theme confidence:{" "}
+                          {confidenceLevelWord(theme.confidenceLevel)}
+                        </span>
+                        {theme.summary ? (
+                          <span className="org-intelligence-theme-item__summary">
+                            {theme.summary}
+                          </span>
+                        ) : null}
+                      </button>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </section>
+
+            <section
+              className="org-intelligence-section"
+              aria-labelledby="org-intel-attention"
+            >
+              <h2 id="org-intel-attention">Themes to monitor</h2>
+              <p className="organisation-muted">
+                Theme-level monitoring priorities. Related Six Foundations
+                signals are listed once under Capability trends, not repeated
+                here.
+              </p>
+              {themeAttentionAreas.length === 0 ? (
+                <p className="organisation-muted">
+                  No attention areas identified from the available evidence.
+                </p>
+              ) : (
+                <ul className="org-intelligence-priority-list">
+                  {themeAttentionAreas.map(area => (
+                    <li key={`${area.kind}-${area.key}`}>
+                      <h3>{area.label}</h3>
+                      <p>
+                        <span className="org-intelligence-sr-only">
+                          {directionScreenReaderLabel(area.direction)}
+                        </span>
+                        {directionLabel(area.direction)} · Theme confidence:{" "}
+                        {confidenceLevelWord(area.confidenceLevel)}
+                      </p>
+                      <p>{area.reason}</p>
+                      <p className="organisation-meta">
+                        {area.recommendedReview}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            <section
+              className="org-intelligence-section"
+              aria-labelledby="org-intel-priorities"
+            >
+              <h2 id="org-intel-priorities">Priority areas</h2>
+              {snapshot.recommendations.length === 0 ? (
+                <p className="organisation-muted">
+                  No priority areas identified for this period.
+                </p>
+              ) : (
+                <ul className="org-intelligence-priority-list">
+                  {snapshot.recommendations.map(row => (
+                    <li key={`${row.priority}-${row.title}`}>
+                      <h3>{row.title}</h3>
+                      <p>{row.rationale}</p>
+                      <p>
+                        <strong>Suggested response:</strong> {row.recommendation}
+                      </p>
+                      <p className="organisation-meta">
+                        Theme confidence:{" "}
+                        {confidenceLevelWord(row.confidenceLevel)} ·{" "}
+                        {row.evidenceCount} evidence · {row.relationshipCount}{" "}
+                        relationships
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </section>
 
             <section
@@ -993,7 +1086,8 @@ export default function OrganisationIntelligencePage() {
                     </div>
                   ) : null}
                   <p className="organisation-meta">
-                    {confidenceDisplayLabel(
+                    Evidence base confidence:{" "}
+                    {confidenceLevelWord(
                       overviewMetrics.momentum.confidenceLevel
                     )}
                   </p>
@@ -1019,6 +1113,10 @@ export default function OrganisationIntelligencePage() {
               aria-labelledby="org-intel-capabilities"
             >
               <h2 id="org-intel-capabilities">Capability trends</h2>
+              <p className="organisation-muted">
+                Six Foundations view derived from reportable themes. This is a
+                foundation roll-up, not a second monitoring list.
+              </p>
               <div
                 className="org-intelligence-table-wrap"
                 role="region"
@@ -1031,7 +1129,7 @@ export default function OrganisationIntelligencePage() {
                       <th scope="col">Direction</th>
                       <th scope="col">Evidence</th>
                       <th scope="col">Relationships</th>
-                      <th scope="col">Confidence</th>
+                      <th scope="col">Capability confidence</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1057,9 +1155,7 @@ export default function OrganisationIntelligencePage() {
                         <td>
                           {capability.suppressed
                             ? "Not enough evidence to report safely."
-                            : confidenceDisplayLabel(
-                                capability.confidenceLevel
-                              )}
+                            : confidenceLevelWord(capability.confidenceLevel)}
                         </td>
                       </tr>
                     ))}
@@ -1070,84 +1166,9 @@ export default function OrganisationIntelligencePage() {
 
             <section
               className="org-intelligence-section"
-              aria-labelledby="org-intel-themes"
-            >
-              <h2 id="org-intel-themes">Emerging themes</h2>
-              {snapshot.themes.length === 0 ? (
-                <p className="organisation-muted">
-                  Not enough evidence to report safely.
-                </p>
-              ) : (
-                <ol className="org-intelligence-theme-list">
-                  {snapshot.themes.map(theme => (
-                    <li key={theme.themeKey}>
-                      <button
-                        type="button"
-                        className="org-intelligence-theme-item"
-                        onClick={() => setSelectedTheme(theme)}
-                      >
-                        <span className="org-intelligence-theme-item__title">
-                          {theme.themeLabel}
-                        </span>
-                        <span className="org-intelligence-theme-item__meta">
-                          {theme.relationshipCount} relationships ·{" "}
-                          {theme.evidenceCount} evidence ·{" "}
-                          <span className="org-intelligence-sr-only">
-                            {directionScreenReaderLabel(
-                              theme.direction ?? "insufficient_evidence"
-                            )}
-                          </span>
-                          {directionLabel(
-                            theme.direction ?? "insufficient_evidence"
-                          )}{" "}
-                          · {confidenceDisplayLabel(theme.confidenceLevel)}
-                        </span>
-                        {theme.summary ? (
-                          <span className="org-intelligence-theme-item__summary">
-                            {theme.summary}
-                          </span>
-                        ) : null}
-                      </button>
-                    </li>
-                  ))}
-                </ol>
-              )}
-            </section>
-
-            <section
-              className="org-intelligence-section"
-              aria-labelledby="org-intel-priorities"
-            >
-              <h2 id="org-intel-priorities">Priority areas</h2>
-              {snapshot.recommendations.length === 0 ? (
-                <p className="organisation-muted">
-                  No priority areas identified for this period.
-                </p>
-              ) : (
-                <ul className="org-intelligence-priority-list">
-                  {snapshot.recommendations.map(row => (
-                    <li key={`${row.priority}-${row.title}`}>
-                      <h3>{row.title}</h3>
-                      <p>{row.rationale}</p>
-                      <p>
-                        <strong>Suggested response:</strong> {row.recommendation}
-                      </p>
-                      <p className="organisation-meta">
-                        {confidenceDisplayLabel(row.confidenceLevel)} ·{" "}
-                        {row.evidenceCount} evidence · {row.relationshipCount}{" "}
-                        relationships
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-
-            <section
-              className="org-intelligence-section"
               aria-labelledby="org-intel-impact"
             >
-              <h2 id="org-intel-impact">Coaching impact</h2>
+              <h2 id="org-intel-impact">Development indicators</h2>
               <p className="organisation-muted">
                 Outcomes associated with coaching activity in the selected period.
                 These observations do not claim causation.
@@ -1161,37 +1182,6 @@ export default function OrganisationIntelligencePage() {
                   {snapshot.coachingImpact.map(item => (
                     <li key={item.key}>
                       <strong>{item.label}.</strong> {item.statement}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-
-            <section
-              className="org-intelligence-section"
-              aria-labelledby="org-intel-attention"
-            >
-              <h2 id="org-intel-attention">Themes to monitor</h2>
-              {snapshot.attentionAreas.length === 0 ? (
-                <p className="organisation-muted">
-                  No attention areas identified from the available evidence.
-                </p>
-              ) : (
-                <ul className="org-intelligence-priority-list">
-                  {snapshot.attentionAreas.map(area => (
-                    <li key={`${area.kind}-${area.key}`}>
-                      <h3>{area.label}</h3>
-                      <p>
-                        <span className="org-intelligence-sr-only">
-                          {directionScreenReaderLabel(area.direction)}
-                        </span>
-                        {directionLabel(area.direction)} ·{" "}
-                        {confidenceDisplayLabel(area.confidenceLevel)}
-                      </p>
-                      <p>{area.reason}</p>
-                      <p className="organisation-meta">
-                        {area.recommendedReview}
-                      </p>
                     </li>
                   ))}
                 </ul>

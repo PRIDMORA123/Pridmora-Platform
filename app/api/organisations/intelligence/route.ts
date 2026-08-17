@@ -13,6 +13,7 @@ import {
   fetchOrganisationIntelligenceSources,
   hasEnoughEvidenceForOrganisationView,
 } from "@/lib/organisation-intelligence";
+import { isSupabaseServiceRoleConfigured } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -59,10 +60,11 @@ export async function GET(request: Request) {
       readyToGenerate: boolean;
     } | null = null;
 
-    if (!snapshot) {
+    // Empty-state readiness only: scalars from internal aggregation after authz.
+    // Never return raw candidate rows / contributorKey to the Lead.
+    if (!snapshot && isSupabaseServiceRoleConfigured()) {
       try {
         const aggregates = await fetchOrganisationIntelligenceSources(
-          auth.context.supabase,
           organisationId,
           resolvedPeriod
         );

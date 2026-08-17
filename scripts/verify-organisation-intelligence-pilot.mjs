@@ -580,10 +580,9 @@ async function main() {
 
     pass("fixtures.created", `${createdClientIds.length} relationships`);
 
-    // Direct RPC permission checks with real auth clients
+    // Gate 3.4 P0: raw aggregation RPC is service_role only — authenticated JWTs denied.
     {
-      const { client } = await signIn(owner.email);
-      const { data, error } = await client.rpc(
+      const { data, error } = await admin.rpc(
         "aggregate_organisation_intelligence_sources",
         {
           p_organisation_id: orgId,
@@ -591,8 +590,8 @@ async function main() {
           p_period_end: "2026-08-04",
         }
       );
-      assert(!error && data, `owner rpc: ${error?.message}`);
-      assert(data.contributingRelationships >= 5, "owner rpc relationship count");
+      assert(!error && data, `service_role rpc: ${error?.message}`);
+      assert(data.contributingRelationships >= 5, "service_role rpc relationship count");
       assert(
         !JSON.stringify(data).includes("PRIVATE SESSION NOTES"),
         "rpc must not return session notes"
@@ -601,7 +600,35 @@ async function main() {
         !JSON.stringify(data).toLowerCase().includes("example.com"),
         "rpc must not return emails"
       );
-      pass("rpc.owner_allowed", `relationships=${data.contributingRelationships}`);
+      pass("rpc.service_role_allowed", `relationships=${data.contributingRelationships}`);
+    }
+
+    {
+      const { client } = await signIn(owner.email);
+      const { error } = await client.rpc(
+        "aggregate_organisation_intelligence_sources",
+        {
+          p_organisation_id: orgId,
+          p_period_start: "2026-05-07",
+          p_period_end: "2026-08-04",
+        }
+      );
+      assert(error, "owner direct RPC must be denied after Gate 3.4 lockdown");
+      pass("rpc.owner_direct_denied", error.message);
+    }
+
+    {
+      const { client } = await signIn(oversight.email);
+      const { error } = await client.rpc(
+        "aggregate_organisation_intelligence_sources",
+        {
+          p_organisation_id: orgId,
+          p_period_start: "2026-05-07",
+          p_period_end: "2026-08-04",
+        }
+      );
+      assert(error, "oversight/Lead direct RPC must be denied");
+      pass("rpc.oversight_direct_denied", error.message);
     }
 
     {

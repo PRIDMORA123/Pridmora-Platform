@@ -396,14 +396,15 @@ describe("organisation intelligence metrics", () => {
 describe("organisation intelligence AI validation", () => {
   it("accepts evidence-led brief language", () => {
     const brief = [
-      "Evidence suggests improvement in Feedback and Conversations during the last 90 days.",
-      "Areas requiring attention include confidence. Confidence remains tied to the volume of anonymised evidence.",
+      "Evidence suggests Feedback appears across more reportable development relationships during the last 90 days.",
+      "Themes to monitor include Confidence. Confidence remains tied to the volume of anonymised evidence.",
       "Development Momentum is 42 against the previous comparable period. Stable readings should be treated as evidence limits.",
       "Recommended next focus is continued monitoring and additional evidence gathering.",
     ].join("\n\n");
     const result = validateOrganisationIntelligenceBrief(
       brief,
-      collectAllowedNumbers([42, 90, 5])
+      collectAllowedNumbers([42, 90, 5]),
+      { visibleThemeLabels: ["Feedback", "Confidence"] }
     );
     expect(result.ok).toBe(true);
   });
@@ -461,6 +462,16 @@ describe("organisation intelligence UI and navigation", () => {
     expect(page).toContain("Emerging themes");
     expect(page).toContain("Priority areas");
     expect(page).toContain("Themes to monitor");
+    expect(page).toContain("Development indicators");
+    expect(page).toContain("Evidence base confidence");
+    expect(page).toContain("Theme confidence");
+    expect(page).toContain("isThemeMonitorAttentionArea");
+    expect(page).toContain('kind === "capability"');
+    expect(page).not.toContain("Coaching impact");
+    expect(page).not.toContain("org-intelligence-brief__scan");
+    expect(page).not.toContain("buildExecutiveBriefScanSummary");
+    expect(page).not.toContain("Overall position");
+    expect(page).not.toContain("Themes with increasing prevalence");
     expect(page).toContain("Development Activity Momentum");
     expect(page).toContain("org-intelligence-sr-only");
   });
@@ -648,7 +659,9 @@ describe("organisation intelligence security and migration", () => {
     expect(generate).toContain("intelligence.organisation.read");
     expect(generate).toContain("Never trust browser-supplied organisation IDs");
     expect(generate).toContain("organisation_intelligence_generated");
+    expect(generate).toContain("isSupabaseServiceRoleConfigured");
     expect(load).toContain("organisation_intelligence_viewed");
+    expect(load).toContain("isSupabaseServiceRoleConfigured");
     expect(load).not.toMatch(/body\.organisationId|searchParams.get\(\"organisation/);
   });
 
@@ -695,11 +708,16 @@ describe("organisation intelligence security and migration", () => {
         periodLabel: "Last 90 days",
         metrics: view.metrics,
         themes: view.themes,
-        capabilities: view.capabilities,
         recommendations: view.recommendations,
         restrictedEvidenceExcluded: view.restrictedEvidenceExcluded,
+        confidenceLevel: view.confidenceLevel,
+        sourceRelationshipCount: view.sourceRelationshipCount,
+        sourceConversationCount: view.sourceConversationCount,
+        sourceEvidenceCount: view.sourceEvidenceCount,
       });
-    expect(brief).toMatch(/Evidence suggests|There is not yet/i);
-    expect(brief).not.toMatch(/this proves|guaranteed|buy/i);
+    expect(brief).toMatch(
+      /reportable|prevalence|Evidence Confidence|not enough reportable/i
+    );
+    expect(brief).not.toMatch(/this proves|guaranteed|buy|behaviours are strengthening|recurring difficulty/i);
   });
 });

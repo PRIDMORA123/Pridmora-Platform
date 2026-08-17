@@ -42,6 +42,7 @@ export type GenerateOrganisationIntelligenceResult =
 async function generateExecutiveBriefWithAi(input: {
   promptInput: ReturnType<typeof buildOrganisationIntelligencePromptInput>;
   allowedNumbers: number[];
+  visibleThemeLabels?: string[];
 }): Promise<string | null> {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) return null;
@@ -70,7 +71,8 @@ async function generateExecutiveBriefWithAi(input: {
     const text = response.output_text?.trim() || "";
     const validation = validateOrganisationIntelligenceBrief(
       text,
-      input.allowedNumbers
+      input.allowedNumbers,
+      { visibleThemeLabels: input.visibleThemeLabels }
     );
     if (validation.ok) return validation.brief;
   }
@@ -123,9 +125,10 @@ export async function generateOrganisationIntelligence(input: {
 
   try {
     // Stage: gathering evidence
+    // Authz already enforced by the generate route (intelligence.organisation.read).
+    // Raw RPC is service-role only — never call with the Lead JWT.
     void GENERATION_STAGE_LABELS.gathering_evidence;
     const aggregates = await fetchOrganisationIntelligenceSources(
-      input.supabase,
       input.organisationId,
       period
     );
@@ -142,7 +145,7 @@ export async function generateOrganisationIntelligence(input: {
       status: "ready",
     });
 
-    // Stage: preparing executive brief
+    // Stage: preparing executive brief (Lead-safe payload only; deterministic is canonical)
     if (!view.emptyState) {
       const promptPayload = {
         organisationName: input.organisationName,
@@ -155,16 +158,18 @@ export async function generateOrganisationIntelligence(input: {
         sourceEvidenceCount: view.sourceEvidenceCount,
         restrictedEvidenceExcluded: view.restrictedEvidenceExcluded,
         privacyThreshold: view.privacyThreshold,
-        metrics: view.metrics.map(metric => ({
-          key: metric.metricKey,
-          label: metric.metricLabel,
-          value: metric.displayValue,
-          direction: metric.direction,
-          confidence: metric.confidenceLevel,
-          evidenceCount: metric.evidenceCount,
-          relationshipCount: metric.relationshipCount,
-          suppressed: metric.suppressed,
-        })),
+        metrics: view.metrics
+          .filter(metric => !metric.suppressed)
+          .map(metric => ({
+            key: metric.metricKey,
+            label: metric.metricLabel,
+            value: metric.displayValue,
+            direction: metric.direction,
+            confidence: metric.confidenceLevel,
+            evidenceCount: metric.evidenceCount,
+            relationshipCount: metric.relationshipCount,
+            suppressed: false,
+          })),
         themes: view.themes.map(theme => ({
           key: theme.themeKey,
           label: theme.themeLabel,
@@ -173,22 +178,29 @@ export async function generateOrganisationIntelligence(input: {
           evidenceCount: theme.evidenceCount,
           relationshipCount: theme.relationshipCount,
           summary: theme.summary,
+          evidencePosture:
+            typeof theme.metadata?.evidencePosture === "string"
+              ? theme.metadata.evidencePosture
+              : null,
         })),
-        capabilities: view.capabilities.map(capability => ({
-          key: capability.key,
-          label: capability.label,
-          direction: capability.direction,
-          confidence: capability.confidenceLevel,
-          evidenceCount: capability.evidenceCount,
-          relationshipCount: capability.relationshipCount,
-          suppressed: capability.suppressed,
-        })),
+        // Foundations excluded from buyer narrative — do not supply to AI.
+        capabilities: [] as Array<{
+          key: string;
+          label: string;
+          direction: string;
+          confidence: string;
+          evidenceCount: number;
+          relationshipCount: number;
+          suppressed: boolean;
+        }>,
         recommendations: view.recommendations.map(row => ({
           title: row.title,
           rationale: row.rationale,
           recommendation: row.recommendation,
           confidence: row.confidenceLevel,
         })),
+        visibleThemeKeys: view.themes.map(theme => theme.themeKey),
+        visibleThemeLabels: view.themes.map(theme => theme.themeLabel),
       };
 
       const allowedNumbers = collectAllowedNumbers([
@@ -212,6 +224,7 @@ export async function generateOrganisationIntelligence(input: {
         const aiBrief = await generateExecutiveBriefWithAi({
           promptInput: buildOrganisationIntelligencePromptInput(promptPayload),
           allowedNumbers,
+          visibleThemeLabels: promptPayload.visibleThemeLabels,
         });
         if (aiBrief) {
           view = { ...view, executiveBrief: aiBrief };
@@ -230,7 +243,8 @@ export async function generateOrganisationIntelligence(input: {
           view.sourceConversationCount,
           view.sourceEvidenceCount,
           ...view.metrics.map(metric => metric.metricValue),
-        ])
+        ]),
+        { visibleThemeLabels: view.themes.map(theme => theme.themeLabel) }
       );
       if (!validation.ok) {
         // Fall back to deterministic brief rather than failing the snapshot.

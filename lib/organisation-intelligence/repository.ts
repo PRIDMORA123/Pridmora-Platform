@@ -18,6 +18,10 @@ import type {
   ThemeView,
 } from "@/lib/organisation-intelligence/types";
 import type { ConfidenceLevel, PeriodPreset } from "@/lib/organisation-intelligence/constants";
+import {
+  getSupabaseServiceClient,
+  isSupabaseServiceRoleConfigured,
+} from "@/lib/supabase/service-role";
 
 function asNumber(value: unknown, fallback = 0): number {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -238,12 +242,25 @@ function asCapabilityCandidates(
   return rows;
 }
 
+/**
+ * Internal raw aggregation for snapshot generation / readiness.
+ *
+ * Call only AFTER application authz (intelligence.organisation.read).
+ * Uses the service-role client — the RPC is not executable by authenticated
+ * Lead/browser JWTs (Gate 3.4 P0). Never return the raw payload to the client.
+ */
 export async function fetchOrganisationIntelligenceSources(
-  supabase: SupabaseClient,
   organisationId: string,
   period: OrganisationIntelligencePeriod
 ): Promise<OrganisationIntelligenceSourceAggregates> {
-  const { data, error } = await supabase.rpc(
+  if (!isSupabaseServiceRoleConfigured()) {
+    throw new Error(
+      "Organisation intelligence aggregation requires server configuration."
+    );
+  }
+
+  const aggregationClient = getSupabaseServiceClient();
+  const { data, error } = await aggregationClient.rpc(
     "aggregate_organisation_intelligence_sources",
     {
       p_organisation_id: organisationId,
@@ -264,7 +281,7 @@ export async function fetchOrganisationIntelligenceSources(
 
   // Stage 3.1 — relationship OI must not include Manager self-development.
   return sanitizeOrganisationIntelligenceAggregates({
-    supabase,
+    supabase: aggregationClient,
     organisationId,
     period,
     aggregates,

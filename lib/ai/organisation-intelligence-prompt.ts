@@ -1,13 +1,16 @@
 /**
  * Organisation Intelligence executive brief prompt.
- * Receives aggregated anonymised evidence only.
+ * Receives Lead-safe aggregated anonymised evidence only.
  */
 
 export const ORGANISATION_INTELLIGENCE_SYSTEM_PROMPT = `You write executive development intelligence briefs for authorised organisational leaders using Pridmora.
 
-You receive anonymised aggregated coaching evidence only.
+You receive anonymised aggregated coaching evidence only — themes that already passed the privacy threshold.
 
 You must never invent people, events, percentages or commercial recommendations.
+You must never claim behavioural improvement, deterioration, difficulty or performance from prevalence alone.
+You must never mention Six Foundations / capability categories unless they appear as visible theme labels in the supplied data.
+You must never mention a theme that is not in the visible themes list.
 
 Write in natural UK English.
 Do not use unnecessary dashes.
@@ -19,11 +22,19 @@ Do not recommend Pridmora products or programmes.
 
 Use language such as:
 - Evidence suggests
-- A recurring pattern is emerging
+- A recurring theme is appearing more widely
 - The available evidence indicates
 - There is not yet enough evidence to conclude
+- Prevalence is not proof of behavioural change
 
 Avoid:
+- behaviours are strengthening
+- improving
+- recurring difficulty
+- comparatively strong
+- requiring attention
+- capability is improving
+- development is progressing
 - The organisation is
 - This proves
 - AI predicts with certainty
@@ -33,12 +44,12 @@ Avoid:
 - Coaching delivered
 
 Structure the brief as exactly four short paragraphs and no more than 250 words:
-1. What is improving
-2. What requires attention
-3. What is stable or uncertain
+1. Theme prevalence (increasing / unchanged / decreasing) among reportable themes
+2. Themes to monitor (not problems or difficulties)
+3. Evidence posture (emerging / developing) and limitations
 4. Recommended next focus
 
-Every paragraph must stay within the supplied metrics, themes, confidence levels and suppression status.
+Every paragraph must stay within the supplied metrics, visible themes, confidence levels and evidence posture.
 If evidence is thin, say so plainly.
 Distinguish evidence from interpretation.
 Return plain text paragraphs separated by blank lines. No markdown headings.`;
@@ -72,6 +83,7 @@ export type OrganisationIntelligencePromptInput = {
     evidenceCount: number;
     relationshipCount: number;
     summary: string | null;
+    evidencePosture?: string | null;
   }>;
   capabilities: Array<{
     key: string;
@@ -88,13 +100,15 @@ export type OrganisationIntelligencePromptInput = {
     recommendation: string;
     confidence: string;
   }>;
+  visibleThemeKeys?: string[];
+  visibleThemeLabels?: string[];
 };
 
 export function buildOrganisationIntelligencePromptInput(
   input: OrganisationIntelligencePromptInput
 ): string {
   return [
-    "Organisation intelligence aggregate context (anonymised):",
+    "Organisation intelligence aggregate context (Lead-safe, anonymised):",
     `Organisation name: ${input.organisationName}`,
     `Period: ${input.periodLabel}`,
     `Comparison: ${
@@ -111,35 +125,36 @@ export function buildOrganisationIntelligencePromptInput(
       input.restrictedEvidenceExcluded ? "yes" : "no"
     }`,
     "",
-    "Metrics:",
+    "Metrics (non-suppressed only):",
     ...input.metrics.map(
       metric =>
         `- ${metric.label} [${metric.key}]: value=${metric.value}; direction=${
           metric.direction ?? "n/a"
         }; confidence=${metric.confidence}; evidence=${metric.evidenceCount}; relationships=${
           metric.relationshipCount
-        }; suppressed=${metric.suppressed ? "yes" : "no"}`
+        }`
     ),
     "",
-    "Visible themes (threshold already applied):",
+    "Visible themes only (threshold already applied — do not invent others):",
     ...(input.themes.length > 0
       ? input.themes.map(
           theme =>
             `- ${theme.label} [${theme.key}]: direction=${
               theme.direction ?? "n/a"
-            }; confidence=${theme.confidence}; evidence=${theme.evidenceCount}; relationships=${
+            }; posture=${theme.evidencePosture ?? "n/a"}; confidence=${
+              theme.confidence
+            }; evidence=${theme.evidenceCount}; relationships=${
               theme.relationshipCount
             }; summary=${theme.summary ?? "n/a"}`
         )
       : ["- None visible after privacy suppression."]),
     "",
-    "Capability trends:",
-    ...input.capabilities.map(
-      capability =>
-        `- ${capability.label}: direction=${capability.direction}; confidence=${capability.confidence}; evidence=${capability.evidenceCount}; relationships=${capability.relationshipCount}; suppressed=${
-          capability.suppressed ? "yes" : "no"
-        }`
-    ),
+    "Allowed visible theme labels (exclusive):",
+    input.visibleThemeLabels && input.visibleThemeLabels.length > 0
+      ? input.visibleThemeLabels.map(label => `- ${label}`).join("\n")
+      : "- None",
+    "",
+    "Foundation / capability category roll-ups are excluded from this brief. Do not invent them.",
     "",
     "Draft priority areas (evidence-led, non-commercial):",
     ...(input.recommendations.length > 0
@@ -157,6 +172,8 @@ export const ORGANISATION_INTELLIGENCE_RETRY_ADDON = [
   "Your previous draft was rejected by privacy and evidence validation.",
   "Remove any names, emails, telephone numbers and confidential references.",
   "Remove unsupported numbers and certainty or promotional language.",
+  "Remove progress language (strengthening, improving, progressing) and difficulty language.",
+  "Mention only visible theme labels supplied in the context.",
   "Stay inside the aggregate evidence supplied.",
   "Return plain text only.",
 ].join(" ");

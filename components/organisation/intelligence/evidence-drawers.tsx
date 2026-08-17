@@ -52,7 +52,7 @@ export function OrganisationIntelligenceEvidenceDrawer({
               </dd>
             </div>
             <div>
-              <dt>Confidence</dt>
+              <dt>Evidence base confidence</dt>
               <dd>{confidenceDisplayLabel(trace.confidenceLevel)}</dd>
             </div>
             <div>
@@ -196,8 +196,14 @@ export function OrganisationIntelligenceThemeDrawer({
             <dd>{relationshipCount}</dd>
           </div>
           <div>
-            <dt>Confidence</dt>
-            <dd>{confidenceDisplayLabel(confidence as "low" | "moderate" | "high")}</dd>
+            <dt>Theme confidence</dt>
+            <dd>
+              {confidence === "high"
+                ? "High"
+                : confidence === "moderate"
+                  ? "Moderate"
+                  : "Low"}
+            </dd>
           </div>
         </dl>
 

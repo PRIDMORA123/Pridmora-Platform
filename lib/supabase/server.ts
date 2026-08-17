@@ -1,13 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
-import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+import { type SupabaseClient, type User } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import {
   getSupabaseAnonKey,
-  getSupabaseServiceRoleKey,
   getSupabaseUrl,
   isSupabaseConfigured,
   isSupabaseServiceRoleConfigured,
 } from "./env";
+import { getSupabaseServiceClient } from "./service-role";
 
 /**
  * Authenticated Supabase client for Server Components, Route Handlers, and Server Actions.
@@ -43,33 +43,11 @@ export async function createAuthenticatedServerClient(): Promise<SupabaseClient>
   });
 }
 
-let serviceClient: SupabaseClient | null = null;
-
 /**
  * Server-only service-role client. Bypasses RLS — use only for genuine admin tasks
  * (e.g. one-time demo data claim). Never import from Client Components.
  */
-export function getSupabaseServiceClient(): SupabaseClient {
-  const url = getSupabaseUrl();
-  const serviceKey = getSupabaseServiceRoleKey();
-
-  if (!url || !serviceKey) {
-    throw new Error(
-      "Supabase server access is not configured. Add NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to your environment."
-    );
-  }
-
-  if (!serviceClient) {
-    serviceClient = createClient(url, serviceKey, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      },
-    });
-  }
-
-  return serviceClient;
-}
+export { getSupabaseServiceClient };
 
 export function isSupabaseServerConfigured(): boolean {
   return isSupabaseServiceRoleConfigured();
