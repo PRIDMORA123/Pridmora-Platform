@@ -322,6 +322,7 @@ export async function POST(request: Request) {
             acceptedPatterns: context.acceptedPatternsText,
             confirmedCommitments: context.commitmentsText,
           }),
+          store: false,
         });
 
         const outputText = response.output_text?.trim();
@@ -563,6 +564,7 @@ export async function POST(request: Request) {
             authorisedEvidence: context.authorisedEvidenceText,
             acceptedPatterns: context.acceptedPatternsText,
           }),
+          store: false,
         });
 
         const outputText = response.output_text?.trim();

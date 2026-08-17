@@ -66,6 +66,7 @@ async function generateExecutiveBriefWithAi(input: {
               : `${userPrompt}\n\n${ORGANISATION_INTELLIGENCE_RETRY_ADDON}`,
         },
       ],
+      store: false,
     });
 
     const text = response.output_text?.trim() || "";

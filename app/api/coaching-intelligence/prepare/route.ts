@@ -202,6 +202,7 @@ async function generatePreparationDraft(input: {
       isolationRetry: input.isolationRetry,
     }),
     input: modelInput,
+    store: false,
   });
 
   return {

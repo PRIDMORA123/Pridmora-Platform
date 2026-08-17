@@ -111,6 +111,7 @@ export async function POST(request: Request) {
       instructions: buildManagerAureliaProposeCaptureInstructions(captureType),
       input: buildManagerAureliaProposeCaptureInput(turnsResult.turns, captureType),
       max_output_tokens: MANAGER_AURELIA_PROPOSE_CAPTURE_MAX_OUTPUT_TOKENS,
+      store: false,
     });
 
     const parsed = parseManagerAureliaProposeCaptureDraft(

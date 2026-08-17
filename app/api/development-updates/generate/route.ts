@@ -372,6 +372,7 @@ export async function POST(request: Request) {
         model: "gpt-5.5",
         instructions,
         input: promptInput,
+        store: false,
       });
       return {
         outputText: response.output_text?.trim() ?? "",

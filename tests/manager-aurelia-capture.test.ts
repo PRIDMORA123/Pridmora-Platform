@@ -97,11 +97,25 @@ describe("Stage 2.2.4 capture API and UI contracts", () => {
     expect(route).toContain("rejectPersonIdentifiers");
     expect(route).toContain("rejectClientSuppliedDevelopmentContext");
     expect(route).toContain("openai.responses.create");
+    expect(route).toContain("store: false");
     expect(route).not.toContain("ensureSelfDevelopmentRelationship");
     expect(route).not.toContain("createMyDevelopmentReflection");
     expect(route).not.toContain("upsertActionInDb");
     expect(route).not.toContain(".from(");
     expect(route).not.toContain("console.log");
+  });
+
+  it("disables OpenAI Responses storage on Manager Aurelia propose-capture", () => {
+    const route = read(
+      "app/api/my-development/aurelia/propose-capture/route.ts"
+    );
+    const createBlocks = [
+      ...route.matchAll(/openai\.responses\.create\(\{[\s\S]*?\}\)/g),
+    ].map(match => match[0]);
+    expect(createBlocks.length).toBeGreaterThanOrEqual(1);
+    for (const block of createBlocks) {
+      expect(block).toContain("store: false");
+    }
   });
 
   it("resolves self client server-side for action capture", () => {
@@ -246,6 +260,9 @@ describe("Stage 2.2.4 propose-capture route behaviour", () => {
     expect(data.captureType).toBe("reflection");
     expect(data.draft.title).toBe("Checking less");
     expect(create).toHaveBeenCalledTimes(1);
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({ store: false })
+    );
   });
 
   it("rejects client-supplied portfolio and person identifiers", async () => {

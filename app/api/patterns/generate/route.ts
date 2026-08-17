@@ -186,6 +186,7 @@ export async function POST(request: Request) {
             evidenceCatalogue: formatEvidenceCatalogue(points),
             existingAcceptedPatterns: existingSummary,
           }),
+          store: false,
         });
 
         const text =

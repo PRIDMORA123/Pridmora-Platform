@@ -196,6 +196,7 @@ export async function analyseEvidenceDocument(input: {
             { role: "user", content: aiContext.userPrompt },
           ],
           response_format: { type: "json_object" },
+          store: false,
         },
         { signal: AbortSignal.timeout(ANALYSE_TIMEOUT_MS) }
       );

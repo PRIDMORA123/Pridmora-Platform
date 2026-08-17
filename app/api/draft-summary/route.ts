@@ -74,6 +74,7 @@ export async function POST(request: Request) {
       model: "gpt-5.5",
       instructions: buildDraftSummaryInstructions(depthMode),
       input: buildDraftSummaryInput(notes, depthMode),
+      store: false,
     });
 
     const rawDraft = response.output_text?.trim();

@@ -166,6 +166,7 @@ describe("Stage 2.2.2 Manager Aurelia API contract", () => {
     expect(route).toContain("rejectClientSuppliedDevelopmentContext");
     expect(route).toContain("loadManagerAureliaDevelopmentContext");
     expect(route).toContain("openai.responses.create");
+    expect(route).toContain("store: false");
     expect(route).toContain("buildManagerAureliaInstructions");
     expect(route).toContain("boundManagerAureliaReply");
     expect(route).toContain('errorCode: "MANAGER_AURELIA_AI_FAILED"');
@@ -176,6 +177,17 @@ describe("Stage 2.2.2 Manager Aurelia API contract", () => {
     expect(route).not.toContain("loadMyDevelopmentWorkspace");
     expect(route).not.toContain("ensureSelfDevelopmentRelationship");
     expect(route).not.toContain(".from(");
+  });
+
+  it("disables OpenAI Responses storage on Manager Aurelia chat", () => {
+    const route = read("app/api/my-development/aurelia/chat/route.ts");
+    const createBlocks = [
+      ...route.matchAll(/openai\.responses\.create\(\{[\s\S]*?\}\)/g),
+    ].map(match => match[0]);
+    expect(createBlocks.length).toBeGreaterThanOrEqual(1);
+    for (const block of createBlocks) {
+      expect(block).toContain("store: false");
+    }
   });
 
   it("keeps dedicated prompt layer separate from prepare prompts", () => {
@@ -414,6 +426,9 @@ describe("Stage 2.2.2 Manager Aurelia route behaviour", () => {
     expect(data.developmentContext).toBeUndefined();
     expect(data.focusTitles).toBeUndefined();
     expect(create).toHaveBeenCalledTimes(1);
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({ store: false })
+    );
   });
 
   it("bounds oversized model output so the next turn cannot 400 on Aurelia length", async () => {

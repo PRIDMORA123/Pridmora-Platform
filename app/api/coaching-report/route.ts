@@ -193,6 +193,7 @@ export async function POST(request: Request) {
       model: "gpt-5.5",
       instructions: IDENTITY_SYSTEM_PROMPT,
       input,
+      store: false,
     });
 
     const raw = response.output_text?.trim();

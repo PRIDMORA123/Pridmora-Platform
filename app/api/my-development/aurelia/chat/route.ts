@@ -124,6 +124,7 @@ export async function POST(request: Request) {
       instructions: buildManagerAureliaInstructions(),
       input,
       max_output_tokens: MANAGER_AURELIA_MAX_OUTPUT_TOKENS,
+      store: false,
     });
 
     const reply = boundManagerAureliaReply(response.output_text ?? "");

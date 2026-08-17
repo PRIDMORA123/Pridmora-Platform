@@ -87,6 +87,7 @@ ${notes.trim()}`;
       model: "gpt-5.5",
       instructions: IDENTITY_SYSTEM_PROMPT,
       input,
+      store: false,
     });
 
     const questions = response.output_text?.trim();

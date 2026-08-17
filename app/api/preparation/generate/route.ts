@@ -361,6 +361,7 @@ export async function POST(request: Request) {
         preparationContext: adapter.prompt.preparationContext,
         authorisedDevelopmentEvidence: authorisedDevelopmentEvidenceText,
       }),
+      store: false,
     });
 
     const outputText = response.output_text?.trim();
