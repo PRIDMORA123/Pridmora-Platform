@@ -8,9 +8,22 @@ import {
   formatSeatsInUseLabel,
   loadPractitionerSeatUsage,
 } from "@/lib/organisations/licence";
+import {
+  getSupabaseServiceClient,
+  isSupabaseServiceRoleConfigured,
+} from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
+/**
+ * Organisation Overview / Usage metrics.
+ *
+ * Access: organisation.view_safe_oversight (owner / administrator / oversight).
+ * Aggregation uses a privileged server client after permission checks so that
+ * Organisation Leads receive org-wide operational counts without needing
+ * assignment-scoped RLS on sessions or development updates.
+ * Only scalar counts are returned — never notes, summaries, or narrative.
+ */
 export async function GET() {
   const auth = await requireOrganisationContext();
   if (!auth.ok) return auth.response;
@@ -21,11 +34,21 @@ export async function GET() {
   );
   if (denied) return denied;
 
+  if (!isSupabaseServiceRoleConfigured()) {
+    return NextResponse.json(
+      { error: "Server configuration is incomplete." },
+      { status: 503 }
+    );
+  }
+
   try {
     const organisation = auth.context.organisation.organisation;
+    const organisationId = auth.context.organisation.organisationId;
+    const aggregationClient = getSupabaseServiceClient();
+
     const metrics = await loadSafeOversightMetrics(
-      auth.context.supabase,
-      auth.context.organisation.organisationId,
+      aggregationClient,
+      organisationId,
       organisation.name,
       organisation.organisationType
     );
@@ -38,7 +61,7 @@ export async function GET() {
     };
     try {
       const usage = await loadPractitionerSeatUsage(
-        auth.context.supabase,
+        aggregationClient,
         organisation.id
       );
       seats = {
@@ -56,7 +79,8 @@ export async function GET() {
         "Organisation oversight shows operational information only. Confidential coaching content remains available only to authorised relationship practitioners.",
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to load oversight.";
+    const message =
+      error instanceof Error ? error.message : "Unable to load oversight.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

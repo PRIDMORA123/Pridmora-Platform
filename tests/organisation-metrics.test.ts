@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   countActivePractitioners,
@@ -14,6 +16,13 @@ import {
   organisationInitials,
   retentionPolicyDisplayLabel,
 } from "@/lib/organisations/format";
+import { loadSafeOversightMetrics } from "@/lib/organisations/oversight";
+
+const root = process.cwd();
+
+function read(relativePath: string): string {
+  return readFileSync(join(root, relativePath), "utf8");
+}
 
 describe("organisation metric definitions", () => {
   it("counts assigned owners as active practitioners", () => {
@@ -153,5 +162,198 @@ describe("organisation formatting", () => {
       label: "Standard retention policy",
       readOnly: true,
     });
+  });
+});
+
+describe("organisation usage aggregation for Organisation Lead", () => {
+  it("overview route aggregates with service role after safe-oversight permission", () => {
+    const route = read("app/api/organisations/overview/route.ts");
+    expect(route).toContain('organisation.view_safe_oversight');
+    expect(route).toContain("requireOrganisationPermission");
+    expect(route).toContain("getSupabaseServiceClient");
+    expect(route).toContain("isSupabaseServiceRoleConfigured");
+    expect(route).toContain("loadSafeOversightMetrics");
+    expect(route).toContain("aggregationClient");
+    // Must not aggregate Usage via the Lead's RLS-scoped session client.
+    expect(route).not.toMatch(
+      /loadSafeOversightMetrics\(\s*auth\.context\.supabase/
+    );
+  });
+
+  it("loadSafeOversightMetrics counts applied updates via client tenancy, not only organisation_id", async () => {
+    let clientListCalls = 0;
+
+    const supabase = {
+      from(table: string) {
+        const state: {
+          filters: Record<string, unknown>;
+        } = { filters: {} };
+
+        const builder: {
+          select: (...args: unknown[]) => typeof builder;
+          eq: (column: string, value: unknown) => typeof builder;
+          gte: (column: string, value: unknown) => typeof builder;
+          in: (column: string, values: string[]) => typeof builder;
+          is: (column: string, value: unknown) => typeof builder;
+          then: (
+            resolve: (value: unknown) => void,
+            reject?: (reason: unknown) => void
+          ) => void;
+        } = {
+          select() {
+            return builder;
+          },
+          eq(column: string, value: unknown) {
+            state.filters[column] = value;
+            return builder;
+          },
+          gte(column: string, value: unknown) {
+            state.filters[`${column}__gte`] = value;
+            return builder;
+          },
+          in(column: string, values: string[]) {
+            state.filters[`${column}__in`] = values;
+            return builder;
+          },
+          is(column: string, value: unknown) {
+            state.filters[`${column}__is`] = value;
+            return builder;
+          },
+          then(resolve) {
+            if (table === "clients") {
+              if (state.filters.archived_at__is === null) {
+                resolve({ data: null, count: 2, error: null });
+                return;
+              }
+              clientListCalls += 1;
+              resolve({
+                data: [{ id: "client-a" }, { id: "client-b" }],
+                error: null,
+              });
+              return;
+            }
+
+            if (table === "organisation_memberships") {
+              resolve({
+                data: [
+                  {
+                    user_id: "manager-1",
+                    role: "practitioner",
+                    status: "active",
+                  },
+                ],
+                count: 1,
+                error: null,
+              });
+              return;
+            }
+
+            if (table === "relationship_assignments") {
+              resolve({ data: [], count: 0, error: null });
+              return;
+            }
+
+            if (table === "development_updates") {
+              expect(state.filters.status).toBe("applied");
+              expect(state.filters.client_id__in).toEqual([
+                "client-a",
+                "client-b",
+              ]);
+              resolve({ data: null, count: 3, error: null });
+              return;
+            }
+
+            if (table === "development_reports") {
+              expect(state.filters.client_id__in).toEqual([
+                "client-a",
+                "client-b",
+              ]);
+              resolve({ data: null, count: 0, error: null });
+              return;
+            }
+
+            if (table === "sessions") {
+              if (state.filters.summary_status === "draft") {
+                resolve({ data: null, count: 0, error: null });
+                return;
+              }
+              if (state.filters.prep_ai_brief_generated_at__gte) {
+                resolve({ data: null, count: 2, error: null });
+                return;
+              }
+              if (state.filters.status === "awaiting_completion") {
+                resolve({ data: null, count: 0, error: null });
+                return;
+              }
+              resolve({ data: null, count: 4, error: null });
+              return;
+            }
+
+            resolve({ data: null, count: 0, error: null });
+          },
+        };
+
+        return builder;
+      },
+    };
+
+    const metrics = await loadSafeOversightMetrics(
+      supabase as never,
+      "org-1",
+      "Customer #1 Rehearsal",
+      "business"
+    );
+
+    expect(clientListCalls).toBe(1);
+    expect(metrics.preparationUsageThisMonth).toBe(2);
+    expect(metrics.summariesAwaitingReview).toBe(0);
+    expect(metrics.conversationsThisMonth).toBe(4);
+    expect(metrics.developmentUpdatesCompleted).toBe(3);
+    expect(metrics.reportsCount).toBe(0);
+    expect(metrics.activeRelationships).toBe(2);
+  });
+
+  it("does not silently treat query failures as zero", async () => {
+    const supabase = {
+      from(table: string) {
+        const builder = {
+          select() {
+            return builder;
+          },
+          eq() {
+            return builder;
+          },
+          gte() {
+            return builder;
+          },
+          in() {
+            return builder;
+          },
+          is() {
+            return builder;
+          },
+          then(resolve: (value: unknown) => void) {
+            if (table === "clients") {
+              resolve({ data: [{ id: "client-a" }], error: null });
+              return;
+            }
+            resolve({
+              data: null,
+              count: null,
+              error: { message: "rls denied" },
+            });
+          },
+        };
+        return builder;
+      },
+    };
+
+    await expect(
+      loadSafeOversightMetrics(
+        supabase as never,
+        "org-1",
+        "Customer #1 Rehearsal"
+      )
+    ).rejects.toThrow(/Unable to load/);
   });
 });

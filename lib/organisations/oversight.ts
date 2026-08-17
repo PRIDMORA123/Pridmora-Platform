@@ -11,9 +11,72 @@ import type {
   SafeOversightMetrics,
 } from "@/lib/organisations/types";
 
+type CountResult = {
+  count: number | null;
+  error: { message: string } | null;
+};
+
+function requireCount(result: CountResult, label: string): number {
+  if (result.error) {
+    throw new Error(`Unable to load ${label}: ${result.error.message}`);
+  }
+  return result.count ?? 0;
+}
+
+async function listOrganisationClientIds(
+  supabase: SupabaseClient,
+  organisationId: string
+): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("clients")
+    .select("id")
+    .eq("organisation_id", organisationId);
+
+  if (error) {
+    throw new Error(`Unable to load organisation clients: ${error.message}`);
+  }
+
+  return (data ?? [])
+    .map(row => (typeof row.id === "string" ? row.id : ""))
+    .filter(Boolean);
+}
+
+/**
+ * Count rows linked to organisation clients (by client_id).
+ * Needed where organisation_id may be null on older development_update /
+ * development_report rows while client tenancy remains reliable.
+ */
+async function countByOrganisationClientIds(
+  supabase: SupabaseClient,
+  clientIds: string[],
+  table: "development_updates" | "development_reports",
+  filters?: { status?: string }
+): Promise<number> {
+  if (clientIds.length === 0) return 0;
+
+  let query = supabase
+    .from(table)
+    .select("id", { count: "exact", head: true })
+    .in("client_id", clientIds);
+
+  if (filters?.status) {
+    query = query.eq("status", filters.status);
+  }
+
+  const { count, error } = await query;
+  if (error) {
+    throw new Error(`Unable to load ${table}: ${error.message}`);
+  }
+  return count ?? 0;
+}
+
 /**
  * Safe operational oversight metrics only.
  * Never includes private notes, summaries, themes, or client narrative.
+ *
+ * Call only after organisation.view_safe_oversight (or equivalent) is proven.
+ * Pass a privileged server client: session/development_update RLS denies
+ * unassigned Organisation Leads, which previously zeroed Usage silently.
  *
  * Metric definitions (see lib/organisations/metric-definitions.ts):
  * - Active practitioners: practitioner role OR content-capable role with an
@@ -31,6 +94,11 @@ export async function loadSafeOversightMetrics(
   monthStart.setUTCHours(0, 0, 0, 0);
   const monthIso = monthStart.toISOString();
 
+  const organisationClientIds = await listOrganisationClientIds(
+    supabase,
+    organisationId
+  );
+
   const [
     membersResult,
     membershipRowsResult,
@@ -40,8 +108,8 @@ export async function loadSafeOversightMetrics(
     awaitingNotesResult,
     awaitingSummaryResult,
     prepResult,
-    developmentResult,
-    reportsResult,
+    developmentUpdatesCompleted,
+    reportsCount,
   ] = await Promise.all([
     supabase
       .from("organisation_memberships")
@@ -70,8 +138,6 @@ export async function loadSafeOversightMetrics(
       .eq("organisation_id", organisationId)
       .gte("updated_at", monthIso)
       .in("status", ["completed", "awaiting_completion", "in_progress"]),
-    // Awaiting session notes: ended conversations that still require notes.
-    // Excludes planned, in-progress, paused, completed, archived sessions.
     supabase
       .from("sessions")
       .select("id", { count: "exact", head: true })
@@ -88,21 +154,29 @@ export async function loadSafeOversightMetrics(
       .select("id", { count: "exact", head: true })
       .eq("organisation_id", organisationId)
       .gte("prep_ai_brief_generated_at", monthIso),
-    supabase
-      .from("development_updates")
-      .select("id", { count: "exact", head: true })
-      .eq("organisation_id", organisationId)
-      .eq("status", "applied"),
-    supabase
-      .from("development_reports")
-      .select("id", { count: "exact", head: true })
-      .eq("organisation_id", organisationId),
+    countByOrganisationClientIds(
+      supabase,
+      organisationClientIds,
+      "development_updates",
+      { status: "applied" }
+    ),
+    countByOrganisationClientIds(
+      supabase,
+      organisationClientIds,
+      "development_reports"
+    ),
   ]);
 
-  const countOf = (result: {
-    count: number | null;
-    error: { message: string } | null;
-  }) => (result.error ? 0 : result.count ?? 0);
+  if (membershipRowsResult.error) {
+    throw new Error(
+      `Unable to load memberships: ${membershipRowsResult.error.message}`
+    );
+  }
+  if (assignmentRowsResult.error) {
+    throw new Error(
+      `Unable to load assignments: ${assignmentRowsResult.error.message}`
+    );
+  }
 
   const memberships: MembershipMetricRow[] = (
     membershipRowsResult.data ?? []
@@ -120,28 +194,38 @@ export async function loadSafeOversightMetrics(
     status: row.status as string,
   }));
 
-  const preparation = countOf(prepResult);
-  const summaries = countOf(awaitingSummaryResult);
-  const developmentUpdates = countOf(developmentResult);
-  const reports = countOf(reportsResult);
+  const preparation = requireCount(prepResult, "preparations");
+  const summaries = requireCount(
+    awaitingSummaryResult,
+    "summaries awaiting review"
+  );
 
   return {
     organisationName,
     organisationType: organisationType ?? null,
-    activeMembers: countOf(membersResult),
+    activeMembers: requireCount(membersResult, "active members"),
     practitioners: countActivePractitioners(memberships, assignments),
-    activeRelationships: countOf(relationshipsResult),
-    conversationsThisMonth: countOf(conversationsResult),
-    awaitingSessionNotes: countOf(awaitingNotesResult),
+    activeRelationships: requireCount(
+      relationshipsResult,
+      "active relationships"
+    ),
+    conversationsThisMonth: requireCount(
+      conversationsResult,
+      "conversations this month"
+    ),
+    awaitingSessionNotes: requireCount(
+      awaitingNotesResult,
+      "awaiting session notes"
+    ),
     summariesAwaitingReview: summaries,
     preparationUsageThisMonth: preparation,
-    developmentUpdatesCompleted: developmentUpdates,
-    reportsCount: reports,
+    developmentUpdatesCompleted,
+    reportsCount,
     aiOperationCounts: {
       preparation,
       summaries,
-      developmentUpdates,
-      reports,
+      developmentUpdates: developmentUpdatesCompleted,
+      reports: reportsCount,
     },
   };
 }
