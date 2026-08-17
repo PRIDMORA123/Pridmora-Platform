@@ -103,6 +103,7 @@ export function DevelopmentEvidenceView({
     Record<string, { title: string; description: string; include: boolean }>
   >({});
   const uploadInFlightRef = useRef(false);
+  const uploadPanelRef = useRef<HTMLElement | null>(null);
   const [progressLabel, setProgressLabel] = useState("");
 
   const displayName = getRelationshipDisplayName(client);
@@ -151,7 +152,7 @@ export function DevelopmentEvidenceView({
       string,
       { title: string; description: string; include: boolean }
     > = {};
-    for (const observation of data.observations) {
+    for (const observation of data.observations ?? []) {
       next[observation.id] = {
         title: observation.title,
         description: observation.description,
@@ -159,6 +160,33 @@ export function DevelopmentEvidenceView({
       };
     }
     setEditMap(next);
+  }
+
+  /**
+   * Open the review gate for an existing pending item.
+   * Must load detail before review controls render; failures must surface.
+   */
+  async function openReviewForEvidence(evidenceId: string) {
+    setAdding(true);
+    setActiveEvidenceId(evidenceId);
+    setDetail(null);
+    setEditMap({});
+    setStep("review");
+    setError("");
+    setBusy(true);
+    requestAnimationFrame(() => {
+      uploadPanelRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+    try {
+      await loadDetail(evidenceId);
+    } catch (err) {
+      setError(errorMessage(err, "Unable to load evidence for review."));
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function runAnalyseForEvidence(evidenceId: string) {
@@ -469,8 +497,14 @@ export function DevelopmentEvidenceView({
       </div>
 
       {adding ? (
-        <section className="panel evidence-upload-panel">
-          <p className="card-label">Add evidence</p>
+        <section
+          ref={uploadPanelRef}
+          className="panel evidence-upload-panel"
+          data-testid="evidence-upload-panel"
+        >
+          <p className="card-label">
+            {step === "review" ? "Review evidence" : "Add evidence"}
+          </p>
           <h2 className="identity-subheading">
             {step === "type" && "Choose evidence type"}
             {step === "upload" && "Upload document"}
@@ -638,137 +672,177 @@ export function DevelopmentEvidenceView({
             </>
           ) : null}
 
-          {step === "review" && detail ? (
-            <>
-              <p className="muted">
-                No uploaded evidence changes Development Intelligence until you
-                approve it. {EVIDENCE_APPROVAL_ORG_VISIBILITY_COPY}
-              </p>
-              <div className="button-row">
-                <button
-                  type="button"
-                  className="secondary"
-                  onClick={() => setAllObservations(true)}
+          {step === "review" ? (
+            <div data-testid="evidence-review-panel">
+              {busy && !detail ? (
+                <p
+                  className="muted"
+                  aria-live="polite"
+                  data-testid="evidence-review-loading"
                 >
-                  Include all
-                </button>
-                <button
-                  type="button"
-                  className="secondary"
-                  onClick={() => setAllObservations(false)}
-                >
-                  Exclude all
-                </button>
-              </div>
-              <ul className="evidence-observation-list">
-                {detail.observations.map(observation => {
-                  const edited = editMap[observation.id];
-                  const sourceEvidence =
-                    detail.observationSourceEvidence?.find(
-                      item => item.observationId === observation.id
-                    ) ?? null;
-                  return (
-                    <li key={observation.id} className="evidence-observation-card">
-                      <label className="checkbox-row">
-                        <input
-                          type="checkbox"
-                          checked={edited?.include ?? false}
-                          onChange={event =>
-                            setEditMap(current => ({
-                              ...current,
-                              [observation.id]: {
-                                title: edited?.title ?? observation.title,
-                                description:
-                                  edited?.description ?? observation.description,
-                                include: event.target.checked,
-                              },
-                            }))
-                          }
-                        />
-                        <span>Include observation</span>
-                      </label>
-                      <label className="field">
-                        <span>Title</span>
-                        <input
-                          value={edited?.title ?? observation.title}
-                          onChange={event =>
-                            setEditMap(current => ({
-                              ...current,
-                              [observation.id]: {
-                                title: event.target.value,
-                                description:
-                                  edited?.description ?? observation.description,
-                                include: edited?.include ?? true,
-                              },
-                            }))
-                          }
-                        />
-                      </label>
-                      <label className="field">
-                        <span>Observation</span>
-                        <textarea
-                          rows={3}
-                          value={edited?.description ?? observation.description}
-                          onChange={event =>
-                            setEditMap(current => ({
-                              ...current,
-                              [observation.id]: {
-                                title: edited?.title ?? observation.title,
-                                description: event.target.value,
-                                include: edited?.include ?? true,
-                              },
-                            }))
-                          }
-                        />
-                      </label>
-                      <div className="field">
-                        <span>Supporting evidence</span>
-                        {sourceEvidence?.excerpt ? (
-                          <>
-                            <p className="evidence-observation-source-excerpt">
-                              {sourceEvidence.excerpt}
-                            </p>
-                            <p className="muted">
-                              Source: {sourceEvidence.sourceLabel}
-                            </p>
-                          </>
-                        ) : (
-                          <p className="muted">
-                            No verified source excerpt available
-                          </p>
-                        )}
+                  Loading observations for review…
+                </p>
+              ) : null}
+              {!busy && !detail && error ? (
+                <p className="muted" data-testid="evidence-review-unavailable">
+                  Review could not be opened. See the message above, then try
+                  again.
+                </p>
+              ) : null}
+              {detail ? (
+                <>
+                  <p className="muted">
+                    No uploaded evidence changes Development Intelligence until
+                    you approve it. {EVIDENCE_APPROVAL_ORG_VISIBILITY_COPY}
+                  </p>
+                  {(detail.observations ?? []).length === 0 ? (
+                    <p className="muted" data-testid="evidence-review-empty">
+                      No observations are available to review yet. Retry
+                      analysis if extraction did not complete, or reject this
+                      evidence.
+                    </p>
+                  ) : (
+                    <>
+                      <div className="button-row">
+                        <button
+                          type="button"
+                          className="secondary"
+                          onClick={() => setAllObservations(true)}
+                        >
+                          Include all
+                        </button>
+                        <button
+                          type="button"
+                          className="secondary"
+                          onClick={() => setAllObservations(false)}
+                        >
+                          Exclude all
+                        </button>
                       </div>
-                    </li>
-                  );
-                })}
-              </ul>
-              <div className="button-row">
-                <button
-                  type="button"
-                  className="primary"
-                  disabled={busy}
-                  onClick={() => void submitReview("approve")}
-                >
-                  Approve evidence
-                </button>
-                <button
-                  type="button"
-                  className="secondary"
-                  disabled={busy}
-                  onClick={() => void submitReview("exclude")}
-                >
-                  Exclude
-                </button>
-                <button
-                  type="button"
-                  className="secondary"
-                  disabled={busy}
-                  onClick={() => void submitReview("reject")}
-                >
-                  Reject
-                </button>
-              </div>
-            </>
+                      <ul className="evidence-observation-list">
+                        {detail.observations.map(observation => {
+                          const edited = editMap[observation.id];
+                          const sourceEvidence =
+                            detail.observationSourceEvidence?.find(
+                              item => item.observationId === observation.id
+                            ) ?? null;
+                          return (
+                            <li
+                              key={observation.id}
+                              className="evidence-observation-card"
+                            >
+                              <label className="checkbox-row">
+                                <input
+                                  type="checkbox"
+                                  checked={edited?.include ?? false}
+                                  onChange={event =>
+                                    setEditMap(current => ({
+                                      ...current,
+                                      [observation.id]: {
+                                        title:
+                                          edited?.title ?? observation.title,
+                                        description:
+                                          edited?.description ??
+                                          observation.description,
+                                        include: event.target.checked,
+                                      },
+                                    }))
+                                  }
+                                />
+                                <span>Include observation</span>
+                              </label>
+                              <label className="field">
+                                <span>Title</span>
+                                <input
+                                  value={edited?.title ?? observation.title}
+                                  onChange={event =>
+                                    setEditMap(current => ({
+                                      ...current,
+                                      [observation.id]: {
+                                        title: event.target.value,
+                                        description:
+                                          edited?.description ??
+                                          observation.description,
+                                        include: edited?.include ?? true,
+                                      },
+                                    }))
+                                  }
+                                />
+                              </label>
+                              <label className="field">
+                                <span>Observation</span>
+                                <textarea
+                                  rows={3}
+                                  value={
+                                    edited?.description ??
+                                    observation.description
+                                  }
+                                  onChange={event =>
+                                    setEditMap(current => ({
+                                      ...current,
+                                      [observation.id]: {
+                                        title:
+                                          edited?.title ?? observation.title,
+                                        description: event.target.value,
+                                        include: edited?.include ?? true,
+                                      },
+                                    }))
+                                  }
+                                />
+                              </label>
+                              <div className="field">
+                                <span>Supporting evidence</span>
+                                {sourceEvidence?.excerpt ? (
+                                  <>
+                                    <p className="evidence-observation-source-excerpt">
+                                      {sourceEvidence.excerpt}
+                                    </p>
+                                    <p className="muted">
+                                      Source: {sourceEvidence.sourceLabel}
+                                    </p>
+                                  </>
+                                ) : (
+                                  <p className="muted">
+                                    No verified source excerpt available
+                                  </p>
+                                )}
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </>
+                  )}
+                  <div className="button-row">
+                    <button
+                      type="button"
+                      className="primary"
+                      disabled={busy || (detail.observations ?? []).length === 0}
+                      onClick={() => void submitReview("approve")}
+                      data-testid="evidence-review-approve"
+                    >
+                      Approve evidence
+                    </button>
+                    <button
+                      type="button"
+                      className="secondary"
+                      disabled={busy}
+                      onClick={() => void submitReview("exclude")}
+                    >
+                      Exclude
+                    </button>
+                    <button
+                      type="button"
+                      className="secondary"
+                      disabled={busy}
+                      onClick={() => void submitReview("reject")}
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </>
+              ) : null}
+            </div>
           ) : null}
         </section>
       ) : null}
@@ -827,11 +901,10 @@ export function DevelopmentEvidenceView({
                     <button
                       type="button"
                       className="secondary"
+                      data-testid={`evidence-review-open-${item.id}`}
+                      disabled={busy}
                       onClick={() => {
-                        setAdding(true);
-                        setActiveEvidenceId(item.id);
-                        setStep("review");
-                        void loadDetail(item.id);
+                        void openReviewForEvidence(item.id);
                       }}
                     >
                       Review
