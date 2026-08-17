@@ -336,6 +336,59 @@ describe("auth layout replacement", () => {
     expect(homepage).toContain("Start your free trial");
   });
 
+  it("production auth navigation never embeds localhost in Forgot Password or sibling links", async () => {
+    // Guards the deployed sign-in defect class: absolute localhost:3001 in-app nav.
+    // Internal auth moves must stay same-origin relative routes.
+    const signInSource = readFileSync(
+      resolve(process.cwd(), "components/auth/sign-in-form.tsx"),
+      "utf8"
+    );
+    expect(signInSource).toMatch(
+      /href=["']\/auth\/forgot-password["']/
+    );
+    expect(signInSource).not.toMatch(/localhost(?::\d+)?/i);
+    expect(signInSource).not.toMatch(/127\.0\.0\.1(?::\d+)?/);
+    expect(signInSource).not.toMatch(
+      /href=\{[^}]*NEXT_PUBLIC_SITE_URL[^}]*forgot-password/
+    );
+    expect(signInSource).not.toMatch(
+      /href=\{`[^`]*\$\{[^}]+\}[^`]*\/auth\/forgot-password/
+    );
+
+    const { SignInForm } = await import("@/components/auth/sign-in-form");
+    const { SignUpForm } = await import("@/components/auth/sign-up-form");
+    const { ForgotPasswordForm } = await import(
+      "@/components/auth/forgot-password-form"
+    );
+    const { CheckEmailPanel } = await import(
+      "@/components/auth/check-email-panel"
+    );
+
+    const surfaces = [
+      await renderView(<SignInForm />),
+      await renderView(<SignUpForm />),
+      await renderView(<ForgotPasswordForm />),
+      await renderView(<CheckEmailPanel />),
+    ];
+
+    for (const root of surfaces) {
+      const anchors = Array.from(root.querySelectorAll("a[href]"));
+      expect(anchors.length).toBeGreaterThan(0);
+      for (const anchor of anchors) {
+        const href = anchor.getAttribute("href") || "";
+        expect(href.startsWith("/")).toBe(true);
+        expect(href.startsWith("//")).toBe(false);
+        expect(href).not.toMatch(/^https?:\/\//i);
+        expect(href.toLowerCase()).not.toContain("localhost");
+        expect(href).not.toContain("127.0.0.1");
+        expect(href).not.toContain(":3001");
+      }
+    }
+
+    const forgot = surfaces[0].querySelector('a[href="/auth/forgot-password"]');
+    expect(forgot?.getAttribute("href")).toBe("/auth/forgot-password");
+  });
+
   it("sign-up uses approved copy and Create account CTA", async () => {
     const { SignUpForm } = await import("@/components/auth/sign-up-form");
     const container = await renderView(<SignUpForm />);

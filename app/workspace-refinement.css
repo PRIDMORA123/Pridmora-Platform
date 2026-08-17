@@ -74,7 +74,7 @@
   margin-bottom: 5px;
   color: var(--identity-text-muted);
   font-size: 0.64rem;
-  font-weight: 650;
+  font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -83,7 +83,7 @@
   display: block;
   color: var(--identity-text-primary);
   font-size: 1.05rem;
-  font-weight: 650;
+  font-weight: 700;
   line-height: 1.3;
   letter-spacing: -0.01em;
 }
@@ -160,7 +160,7 @@
   margin: 0;
   color: #ffffff;
   font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 650;
+  font-weight: 700;
   line-height: 1;
   letter-spacing: -0.05em;
 }
@@ -171,7 +171,7 @@
   margin-top: 8px;
   color: rgba(255, 255, 255, 0.88);
   font-size: 0.75rem;
-  font-weight: 650;
+  font-weight: 700;
   line-height: 1.35;
 }
 
@@ -243,7 +243,7 @@ a.identity-sidebar-principle:hover {
   margin-right: 3px;
   color: var(--identity-text-muted);
   font-size: 0.67rem;
-  font-weight: 650;
+  font-weight: 700;
 }
 
 .coach-note-toolbar button {
@@ -255,7 +255,7 @@ a.identity-sidebar-principle:hover {
   color: var(--identity-text-secondary);
   font: inherit;
   font-size: 0.68rem;
-  font-weight: 650;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -709,7 +709,7 @@ a.identity-sidebar-principle:hover {
   color: var(--identity-teal-700);
   font: inherit;
   font-size: 0.7rem;
-  font-weight: 650;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -783,7 +783,7 @@ a.identity-sidebar-principle:hover {
   gap: 6px;
   color: var(--identity-text-primary);
   font-size: 0.78rem;
-  font-weight: 650;
+  font-weight: 700;
 }
 
 .commitment-modal__body input,
@@ -1073,7 +1073,7 @@ a.identity-sidebar-principle:hover {
   margin-bottom: 4px;
   color: var(--identity-text-muted);
   font-size: 0.65rem;
-  font-weight: 650;
+  font-weight: 700;
 }
 
 .development-timeline strong {

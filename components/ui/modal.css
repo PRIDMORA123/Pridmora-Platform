@@ -217,7 +217,7 @@
   background: #fff7f7;
   color: #893e3e;
   font-size: 0.82rem;
-  font-weight: 650;
+  font-weight: 700;
 }
 
 .identity-modal-button {
@@ -226,7 +226,7 @@
   border-radius: 10px;
   font: inherit;
   font-size: 0.79rem;
-  font-weight: 650;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -273,7 +273,7 @@
 .identity-modal__body .dialog-confirm-label {
   color: var(--identity-text-primary, #0b3657);
   font-size: 0.76rem;
-  font-weight: 650;
+  font-weight: 700;
 }
 
 .identity-modal__body input:not([type="checkbox"]):not([type="radio"]),

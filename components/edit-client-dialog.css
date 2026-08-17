@@ -18,7 +18,7 @@
 .edit-client-field > span {
   color: var(--identity-text-primary);
   font-size: 0.76rem;
-  font-weight: 650;
+  font-weight: 700;
 }
 
 @media (max-width: 680px) {

@@ -50,7 +50,7 @@
 .session-stage-header__client {
   margin: 0;
   font-size: clamp(1.75rem, 2.4vw, 2.25rem);
-  font-weight: 650;
+  font-weight: 700;
   line-height: 1.15;
   color: var(--identity-text-primary, var(--text));
 }
@@ -234,7 +234,7 @@
 .session-next-steps__header h2 {
   margin: 0;
   font-size: clamp(1.35rem, 2vw, 1.7rem);
-  font-weight: 650;
+  font-weight: 700;
   line-height: 1.25;
 }
 
@@ -458,7 +458,7 @@
 
 .session-workspace.is-live-session .identity-stage-header__title {
   font-size: clamp(2rem, 3vw, 2.6rem);
-  font-weight: 650;
+  font-weight: 700;
 }
 
 .session-workspace.is-live-session .stage-orientation .identity-stage-header {
@@ -589,7 +589,7 @@
 
 .session-debrief-form__field--commitment .session-debrief-form__label {
   color: var(--identity-teal-800, #0f6e74);
-  font-weight: 650;
+  font-weight: 700;
 }
 
 .session-debrief-form__workspace textarea,

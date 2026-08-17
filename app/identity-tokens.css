@@ -163,11 +163,11 @@
   --identity-font: var(--font-poppins), Poppins, "Helvetica Neue", Helvetica,
     Arial, sans-serif;
   --identity-type-display-size: clamp(2rem, 3vw, 2.75rem);
-  --identity-type-display-weight: 650;
+  --identity-type-display-weight: 700;
   --identity-type-display-leading: 1.1;
   --identity-type-display-tracking: -0.035em;
   --identity-type-page-size: clamp(1.75rem, 2.5vw, 2.25rem);
-  --identity-type-page-weight: 650;
+  --identity-type-page-weight: 700;
   --identity-type-page-leading: 1.15;
   --identity-type-section-size: clamp(1.25rem, 1.5vw, 1.5rem);
   --identity-type-section-weight: 600;
