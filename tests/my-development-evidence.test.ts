@@ -113,7 +113,7 @@ describe("My Development self evidence wiring", () => {
     const upload = read("app/api/development-evidence/[clientId]/upload/route.ts");
     const createIdx = upload.indexOf("createUploadedEvidence");
     const extractIdx = upload.indexOf("extractEvidenceDocumentText");
-    const storageIdx = upload.indexOf("startBestEffortStorageUpload");
+    const storageIdx = upload.indexOf("startAuthorisedStorageUpload");
     expect(createIdx).toBeGreaterThan(-1);
     expect(extractIdx).toBeGreaterThan(-1);
     expect(storageIdx).toBeGreaterThan(-1);
@@ -121,7 +121,7 @@ describe("My Development self evidence wiring", () => {
     expect(createIdx).toBeLessThan(storageIdx);
     expect(upload).toContain("Fire-and-forget");
     expect(upload).toContain("updateDocumentExtraction");
-    expect(upload).not.toContain("await startBestEffortStorageUpload");
+    expect(upload).not.toContain("await startAuthorisedStorageUpload");
   });
 });
 

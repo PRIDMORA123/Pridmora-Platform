@@ -487,8 +487,9 @@ describe("organisation intelligence UI and navigation", () => {
     expect(page).toContain("Not yet generated");
     expect(page).toContain("Privacy threshold");
     expect(page).toContain(
-      "A minimum of five contributing relationships helps reduce the risk of identifying individuals."
+      "A minimum of five contributing relationships helps reduce the risk of"
     );
+    expect(page).toContain("identifying individuals");
     expect(page).toContain("People Development Intelligence");
     expect(page).toContain(
       "Patterns emerging through developmental work with people"

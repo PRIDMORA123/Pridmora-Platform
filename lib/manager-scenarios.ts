@@ -24,7 +24,7 @@ export const MANAGER_SCENARIOS: ManagerScenario[] = [
     description: "Prepare for a conversation that may feel uncomfortable or high stakes.",
     focusPrompt: "Prepare for a difficult conversation — clarify the outcome needed and the evidence to share.",
     preparationGuidance:
-      "Help the manager clarify the specific issue, desired outcome and how to stay fair and direct. Do not provide HR, legal or disciplinary advice.",
+      "Help the manager clarify the specific issue, desired outcome and how to stay fair and direct. Do not provide HR, legal or disciplinary advice. If formal process, policy interpretation, safeguarding or significant employment consequences may be involved, encourage checking organisational policy and appropriate People/HR support while continuing preparation.",
     sensitivity: "elevated",
   },
   {
@@ -44,7 +44,7 @@ export const MANAGER_SCENARIOS: ManagerScenario[] = [
     description: "Address a performance concern with clarity and support.",
     focusPrompt: "Explore a performance concern and agree what needs to improve.",
     preparationGuidance:
-      "Help separate facts from interpretation. Frame as preparation and reflection for the manager — not employment advice.",
+      "Help separate facts from interpretation. Frame as preparation and reflection for the manager — not employment advice. If a formal capability or performance process may apply, encourage checking organisational policy and People/HR support; continue helping the manager prepare the conversation.",
     sensitivity: "elevated",
   },
   {
@@ -64,7 +64,7 @@ export const MANAGER_SCENARIOS: ManagerScenario[] = [
     description: "Prepare for a conversation involving disagreement or tension.",
     focusPrompt: "Prepare to address conflict and restore workable working relationships.",
     preparationGuidance:
-      "Help the manager stay curious, name the impact and seek a workable next step. No mediation verdicts.",
+      "Help the manager stay curious, name the impact and seek a workable next step. No mediation verdicts. If bullying, harassment, grievance or formal policy concerns emerge, encourage checking organisational policy and People/HR support while continuing preparation.",
     sensitivity: "elevated",
   },
   {
@@ -174,7 +174,7 @@ export const MANAGER_SCENARIOS: ManagerScenario[] = [
     description: "Prepare for an appraisal or formal performance review conversation.",
     focusPrompt: "Prepare for an appraisal conversation using evidence from recent work.",
     preparationGuidance:
-      "Organise evidence of progress, strengths and development priorities. Not HR policy advice.",
+      "Organise evidence of progress, strengths and development priorities. Not HR policy advice. Completing preparation here is not organisational due process — if formal appraisal policy applies, encourage checking it and seeking People/HR support where needed.",
     sensitivity: "elevated",
   },
   {
@@ -184,7 +184,7 @@ export const MANAGER_SCENARIOS: ManagerScenario[] = [
     description: "Support a thoughtful return-to-work conversation.",
     focusPrompt: "Prepare a supportive return-to-work discussion focused on needs and next steps.",
     preparationGuidance:
-      "Position as preparation for a supportive conversation. Do not give medical or legal advice.",
+      "Position as preparation for a supportive conversation. Do not give medical or legal advice. If organisational absence, return-to-work or adjustment processes may apply, encourage checking policy and appropriate People/HR or specialist support while continuing preparation.",
     sensitivity: "elevated",
   },
   {
@@ -194,7 +194,7 @@ export const MANAGER_SCENARIOS: ManagerScenario[] = [
     description: "Address behaviour that is affecting others or the team.",
     focusPrompt: "Address challenging behaviour with specific examples and a clear expectation.",
     preparationGuidance:
-      "Keep focus on observed behaviour and impact. Preparation only — not disciplinary advice.",
+      "Keep focus on observed behaviour and impact. Preparation only — not disciplinary advice. If formal disciplinary, grievance or policy processes may be involved, encourage checking organisational policy and People/HR support before acting, while continuing to help the manager prepare.",
     sensitivity: "elevated",
   },
   {

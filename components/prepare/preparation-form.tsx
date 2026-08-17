@@ -20,6 +20,7 @@ import { useToast } from "@/components/feedback/toast-provider";
 import { useActionFeedback } from "@/hooks/use-action-feedback";
 import { toActionButtonStatus } from "@/types/action-feedback";
 import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { SENSITIVE_INFO_PREPARATION_NOTES_HELPER } from "@/lib/organisations/sensitive-information-guidance";
 import { resolveProductLanguage } from "@/lib/role-language";
 
 function splitTopics(value: string): string[] {
@@ -581,7 +582,11 @@ export function PreparationForm({
                 ? "Coach reminders"
                 : "Private reminders"
           }
-          helper="Private and optional"
+          helper={
+            organisation?.professionalRole === "coach"
+              ? "Private and optional"
+              : SENSITIVE_INFO_PREPARATION_NOTES_HELPER
+          }
         >
           <textarea
             id="preparation-private-notes"
@@ -590,6 +595,7 @@ export function PreparationForm({
             disabled={disabled}
             rows={5}
             aria-label="Private preparation note"
+            data-testid="preparation-private-notes"
             onChange={event => updateField("privateNotes", event.target.value)}
           />
         </PrepareFormSection>

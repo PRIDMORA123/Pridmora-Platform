@@ -24,7 +24,7 @@ describe("Stage 2.1 Manager Front Door", () => {
     ]);
     expect(MANAGER_FRONT_DOOR_ACTIONS.map(action => action.title)).toEqual([
       "Talk something through",
-      "Prepare for something",
+      "Prepare for a conversation",
       "Reflect on something",
       "Work on my development",
       "Develop someone in my team",
@@ -184,5 +184,32 @@ describe("Stage 2.1 Manager Front Door", () => {
     expect(needsAttention).toBeGreaterThan(-1);
     expect(whatWouldHelp).toBeGreaterThan(-1);
     expect(continuePanel).toBeGreaterThan(whatWouldHelp);
+  });
+
+  it("FIX-3: clarifies Talk vs Prepare hierarchy without changing routes", () => {
+    const mcc = read("components/identity/manager-command-centre.tsx");
+    expect(MANAGER_FRONT_DOOR_ACTIONS[0].id).toBe("talk");
+    expect(MANAGER_FRONT_DOOR_ACTIONS[0].emphasis).toBe("primary");
+    expect(MANAGER_FRONT_DOOR_ACTIONS[0].description).toMatch(
+      /Something on your mind/i
+    );
+    expect(MANAGER_FRONT_DOOR_ACTIONS[0].description).toMatch(
+      /no person record needed/i
+    );
+    expect(MANAGER_FRONT_DOOR_ACTIONS[1].id).toBe("prepare");
+    expect(MANAGER_FRONT_DOOR_ACTIONS[1].title).toBe(
+      "Prepare for a conversation"
+    );
+    expect(MANAGER_FRONT_DOOR_ACTIONS[1].description).toMatch(
+      /someone you manage/i
+    );
+    expect(mcc).toContain("manager-front-door__need--primary");
+    expect(mcc).toContain("immediate thinking support");
+    expect(mcc).toContain("onTalkThrough");
+    expect(mcc).toContain("onPrepareSomething");
+    expect(mcc).toContain("manager-home-privacy");
+    expect(mcc).toContain("manager-home-organisation");
+    expect(mcc).not.toContain("openai");
+    expect(mcc).not.toContain("system prompt");
   });
 });

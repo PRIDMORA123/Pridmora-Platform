@@ -1,31 +1,34 @@
 import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { notFoundOrForbidden } from "@/lib/auth/session";
-import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import {
   UPLOADABLE_EVIDENCE_TYPES,
+  buildDevelopmentEvidenceStoragePath,
   createUploadedEvidence,
   extractEvidenceDocumentText,
   hashEvidenceBytes,
   isSupportedEvidenceUpload,
   updateDocumentExtraction,
   type DevelopmentEvidenceType,
+  DEVELOPMENT_EVIDENCE_STORAGE_BUCKET,
 } from "@/lib/development-evidence";
+import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 type Params = { params: Promise<{ clientId: string }> };
 
-function startBestEffortStorageUpload(input: {
+function startAuthorisedStorageUpload(input: {
   supabase: SupabaseClient;
   storagePath: string;
   bytes: Uint8Array;
   contentType: string;
 }): void {
   // Fire-and-forget: never block the upload HTTP response on storage.
+  // Path is server-built; Storage RLS denies foreign tenancy.
   void input.supabase.storage
-    .from("development-evidence")
+    .from(DEVELOPMENT_EVIDENCE_STORAGE_BUCKET)
     .upload(input.storagePath, input.bytes, {
       contentType: input.contentType,
       upsert: false,
@@ -74,6 +77,18 @@ export async function POST(request: Request, { params }: Params) {
     const evidenceDate = String(form.get("evidenceDate") ?? "").trim() || null;
     const sourceLabel = String(form.get("sourceLabel") ?? "").trim() || null;
 
+    // Reject any client-supplied storage ownership/path fields.
+    if (
+      form.has("storagePath") ||
+      form.has("organisationId") ||
+      form.has("clientId")
+    ) {
+      return NextResponse.json(
+        { error: "Storage ownership fields cannot be supplied by the client." },
+        { status: 400 }
+      );
+    }
+
     if (!(file instanceof File)) {
       return NextResponse.json({ error: "A file is required." }, { status: 400 });
     }
@@ -98,8 +113,13 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     const contentHash = await hashEvidenceBytes(bytes);
-    const organisationId = (client.organisation_id as string | null) ?? "personal";
-    const storagePath = `${organisationId}/${clientId}/${contentHash.slice(0, 16)}-${file.name.replace(/[^\w.\-]+/g, "_")}`;
+    const organisationId = (client.organisation_id as string | null) ?? null;
+    const storagePath = buildDevelopmentEvidenceStoragePath({
+      organisationId,
+      clientId,
+      contentHash,
+      fileName: file.name,
+    });
 
     // Create rows BEFORE extraction so a slow/failed extract never leaves
     // the UI stuck with zero persisted evidence.
@@ -122,7 +142,7 @@ export async function POST(request: Request, { params }: Params) {
       storagePath,
     });
 
-    startBestEffortStorageUpload({
+    startAuthorisedStorageUpload({
       supabase: access.context.supabase,
       storagePath,
       bytes,

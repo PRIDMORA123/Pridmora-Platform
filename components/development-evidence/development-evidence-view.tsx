@@ -14,6 +14,12 @@ import {
   type EvidenceListItem,
 } from "@/lib/development-evidence";
 import { getRelationshipDisplayName } from "@/lib/relationship-identity";
+import { EVIDENCE_APPROVAL_ORG_VISIBILITY_COPY } from "@/lib/organisations/manager-privacy-visibility-copy";
+import {
+  SENSITIVE_INFO_EVIDENCE_PURPOSE_COPY,
+  SENSITIVE_INFO_EVIDENCE_PURPOSE_STEP_COPY,
+  SENSITIVE_INFO_EVIDENCE_UPLOAD_COPY,
+} from "@/lib/organisations/sensitive-information-guidance";
 import type { Client } from "@/lib/types";
 
 const UPLOAD_REQUEST_TIMEOUT_MS = 25_000;
@@ -407,7 +413,8 @@ export function DevelopmentEvidenceView({
           <h2 className="identity-subheading">What is this?</h2>
           <p>
             Evidence that contributes to understanding development. Approved
-            observations inform Development Intelligence for {displayName}.
+            observations inform Development Intelligence for {displayName}.{" "}
+            {SENSITIVE_INFO_EVIDENCE_PURPOSE_COPY}
           </p>
         </div>
         <div className="evidence-orientation__block">
@@ -510,6 +517,12 @@ export function DevelopmentEvidenceView({
 
           {step === "upload" ? (
             <>
+              <p
+                className="muted"
+                data-testid="evidence-upload-data-minimisation"
+              >
+                {SENSITIVE_INFO_EVIDENCE_UPLOAD_COPY}
+              </p>
               <label className="field">
                 <span>Document (PDF, DOCX or plain text)</span>
                 <input
@@ -560,7 +573,8 @@ export function DevelopmentEvidenceView({
               </label>
               <p className="muted">
                 Uploaded documents are interpreted as development evidence. This
-                is not a formal integration with assessment providers.
+                is not a formal integration with assessment providers.{" "}
+                {SENSITIVE_INFO_EVIDENCE_PURPOSE_STEP_COPY}
               </p>
               {busy && progressLabel ? (
                 <p className="muted" aria-live="polite">
@@ -628,7 +642,7 @@ export function DevelopmentEvidenceView({
             <>
               <p className="muted">
                 No uploaded evidence changes Development Intelligence until you
-                approve it.
+                approve it. {EVIDENCE_APPROVAL_ORG_VISIBILITY_COPY}
               </p>
               <div className="button-row">
                 <button

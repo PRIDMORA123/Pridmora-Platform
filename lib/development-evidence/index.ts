@@ -17,6 +17,7 @@ export * from "@/lib/development-evidence/team-intelligence";
 export * from "@/lib/development-evidence/executive-brief";
 export * from "@/lib/development-evidence/display-copy";
 export * from "@/lib/development-evidence/analyse";
+export * from "@/lib/development-evidence/storage-path";
 export {
   listEvidenceForClient,
   getEvidenceById,
@@ -30,4 +31,5 @@ export {
   writeEvidenceAudit,
   findExistingByContentHash,
   recordEvidenceAiUsage,
+  removeDevelopmentEvidenceStorageObject,
 } from "@/lib/development-evidence/repository";

@@ -18,6 +18,7 @@ import {
   toManagerAureliaUserError,
 } from "@/lib/ai/manager-aurelia-user-errors";
 import { BRAND } from "@/lib/brand";
+import { SENSITIVE_INFO_AURELIA_ENTRY_COPY } from "@/lib/organisations/sensitive-information-guidance";
 import { ManagerAureliaCapturePanel } from "@/components/aurelia/manager-aurelia-capture";
 
 /**
@@ -33,6 +34,7 @@ export function ManagerAureliaView({
 }) {
   const inputId = useId();
   const noticeId = useId();
+  const minimisationId = useId();
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const sendingRef = useRef(false);
@@ -158,6 +160,13 @@ export function ManagerAureliaView({
           into your own development.{" "}
           {`${BRAND.intelligenceName} can use your current development focus and actions to make this conversation more relevant.`}
         </p>
+        <p
+          className="manager-aurelia__minimisation muted"
+          id={minimisationId}
+          data-testid="manager-aurelia-data-minimisation"
+        >
+          {SENSITIVE_INFO_AURELIA_ENTRY_COPY}
+        </p>
       </header>
 
       <div
@@ -227,7 +236,7 @@ export function ManagerAureliaView({
           onKeyDown={handleKeyDown}
           placeholder="What’s on your mind?"
           rows={3}
-          aria-describedby={noticeId}
+          aria-describedby={`${noticeId} ${minimisationId}`}
           disabled={sending}
           maxLength={MANAGER_AURELIA_MAX_MESSAGE_CHARS}
         />

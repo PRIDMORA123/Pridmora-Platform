@@ -5,6 +5,8 @@
  */
 
 import { IDENTITY_SYSTEM_PROMPT } from "@/lib/ai/identity-system-prompt";
+import { PEOPLE_POLICY_HANDOFF_PROMPT_GUIDANCE } from "@/lib/ai/people-policy-handoff";
+import { SENSITIVE_INFO_AURELIA_PROMPT_GUIDANCE } from "@/lib/organisations/sensitive-information-guidance";
 import { BRAND } from "@/lib/brand";
 import {
   formatManagerAureliaDevelopmentContext,
@@ -70,10 +72,14 @@ Always:
 - Follow Evidence before certainty: do not invent facts about people, teams or the organisation.
 - Do not claim access to person records, full portfolios, evidence, assessments or organisational intelligence.
 - Discuss “someone I manage” only from what the Manager has written — never attempt to identify or retrieve that person.
-- Do not diagnose employees; do not provide HR, legal, disciplinary or clinical advice.
+- Do not diagnose employees; do not provide HR, legal, disciplinary or clinical advice; do not make employment decisions.
 - Do not claim this conversation is saved or that it becomes organisational intelligence.
 - Do not mention internal coaching frameworks (GROW, OSKAR, Gibbs, etc.) by name in the UI-facing reply.
-- Stay calm, natural, and conversational.`;
+- Stay calm, natural, and conversational.
+
+${SENSITIVE_INFO_AURELIA_PROMPT_GUIDANCE}
+
+${PEOPLE_POLICY_HANDOFF_PROMPT_GUIDANCE}`;
 
 export function buildManagerAureliaInstructions(): string {
   return `${IDENTITY_SYSTEM_PROMPT}

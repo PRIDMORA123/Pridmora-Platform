@@ -18,6 +18,8 @@ import {
   MOMENTUM_METHODOLOGY,
   MOMENTUM_WEIGHTS,
   ORGANISATION_INTELLIGENCE_PRIVACY_THRESHOLD,
+  PREVALENCE_DIRECTION_NOTE,
+  COVERAGE_CAVEAT_NOTE,
   SIX_FOUNDATIONS,
   confidenceDisplayLabel,
   directionLabel,
@@ -241,7 +243,10 @@ function PrivacyThresholdHint() {
       </button>
       {open ? (
         <span id={tipId} role="tooltip" className="org-intelligence-threshold-hint__tip">
-          A minimum of five contributing relationships helps reduce the risk of identifying individuals.
+          A minimum of five contributing relationships helps reduce the risk of
+          identifying individuals. Themes appear only when that threshold is
+          met and reflect contributing authorised evidence — not every licensed
+          manager. {PREVALENCE_DIRECTION_NOTE}
         </span>
       ) : null}
     </span>
@@ -478,9 +483,11 @@ export default function OrganisationIntelligencePage() {
             </p>
             <p className="org-intelligence-privacy-notice__copy">
               People Development Intelligence uses anonymised, aggregated
-              development evidence from relationship work. Confidential content
-              remains available only to authorised practitioners. Individual
-              Manager development records are not shown here.
+              authorised development signals from relationship work. Leads see
+              collective themes once the privacy threshold is met — not private
+              conversations, individual development records or performance
+              scores. {COVERAGE_CAVEAT_NOTE} {PREVALENCE_DIRECTION_NOTE} Absence
+              of a theme does not prove that no development need exists.
             </p>
           </div>
         </aside>
@@ -666,8 +673,8 @@ export default function OrganisationIntelligencePage() {
               <p className="org-intelligence-empty-panel__copy">
                 {snapshot?.emptyState
                   ? snapshot.insufficientEvidenceMessage ||
-                    "Organisation Intelligence becomes available when enough anonymised coaching evidence has been recorded to report safely."
-                  : "As authorised development evidence grows, Pridmora will identify recurring privacy-safe development themes and prevalence changes while protecting individual confidentiality."}
+                    "Organisation Intelligence becomes available when enough anonymised coaching evidence has been recorded to report safely. Absence of themes does not prove that no development need exists."
+                  : "As authorised development evidence grows, Pridmora will identify recurring privacy-safe development themes and prevalence changes while protecting individual confidentiality. Prevalence is not a performance measure, and missing themes do not prove needs are absent."}
               </p>
 
               <div className="org-intelligence-evidence-indicators">
@@ -808,11 +815,13 @@ export default function OrganisationIntelligencePage() {
               <h2 id="org-intel-themes">Emerging themes</h2>
               <p className="organisation-muted">
                 Primary theme narrative for this period. Foundation roll-ups
-                appear under Capability trends.
+                appear under Capability trends. {COVERAGE_CAVEAT_NOTE}{" "}
+                {PREVALENCE_DIRECTION_NOTE}
               </p>
               {snapshot.themes.length === 0 ? (
                 <p className="organisation-muted">
-                  Not enough evidence to report safely.
+                  Not enough evidence to report safely. Absence of a theme does
+                  not prove that no development need exists.
                 </p>
               ) : (
                 <ol className="org-intelligence-theme-list">
@@ -858,13 +867,15 @@ export default function OrganisationIntelligencePage() {
             >
               <h2 id="org-intel-attention">Themes to monitor</h2>
               <p className="organisation-muted">
-                Theme-level monitoring priorities. Related Six Foundations
+                Theme-level monitoring priorities for organisational development
+                support — not individual surveillance. Related Six Foundations
                 signals are listed once under Capability trends, not repeated
-                here.
+                here. {PREVALENCE_DIRECTION_NOTE}
               </p>
               {themeAttentionAreas.length === 0 ? (
                 <p className="organisation-muted">
                   No attention areas identified from the available evidence.
+                  That does not prove development needs are absent.
                 </p>
               ) : (
                 <ul className="org-intelligence-priority-list">

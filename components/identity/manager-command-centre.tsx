@@ -5,6 +5,12 @@ import { apiJson } from "@/lib/api-client";
 import { BRAND } from "@/lib/brand";
 import type { MyDevelopmentWorkspace } from "@/lib/my-development/workspace";
 import {
+  MANAGER_HOME_PRIVACY_VISIBILITY_COPY,
+  MANAGER_HOME_PRIVACY_VISIBILITY_LABEL,
+} from "@/lib/organisations/manager-privacy-visibility-copy";
+import { resolveManagerHomeOrganisationIdentity } from "@/lib/organisations/manager-home-organisation-identity";
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import {
   buildManagerHomeAttentionItems,
   type ManagerHomeAttentionItem,
 } from "@/lib/people/manager-home-attention";
@@ -15,36 +21,48 @@ export const MANAGER_FRONT_DOOR_ACTIONS = [
     id: "talk",
     title: "Talk something through",
     description:
-      "Think through a situation, decision or challenge with Aurelia.",
+      "Something on your mind? Talk through a situation happening at work with Aurelia — no person record needed.",
+    cue: "Immediate support",
+    emphasis: "primary" as const,
   },
   {
     id: "prepare",
-    title: "Prepare for something",
+    title: "Prepare for a conversation",
     description:
-      "Get ready for a conversation, meeting or management situation.",
+      "Structured preparation for a conversation with someone you manage.",
+    cue: "Person-specific",
+    emphasis: "default" as const,
   },
   {
     id: "reflect",
     title: "Reflect on something",
     description:
       "Think through what happened and what you can learn from it.",
+    cue: null,
+    emphasis: "default" as const,
   },
   {
     id: "my-development",
     title: "Work on my development",
     description:
       "Continue a development focus, review actions or see progress.",
+    cue: null,
+    emphasis: "default" as const,
   },
   {
     id: "my-people",
     title: "Develop someone in my team",
     description: "Prepare for and support someone’s development.",
+    cue: null,
+    emphasis: "default" as const,
   },
   {
     id: "add-evidence",
     title: "Add my development evidence",
     description:
       "Add feedback, an assessment or a document to your own development record.",
+    cue: null,
+    emphasis: "default" as const,
   },
 ] as const;
 
@@ -83,6 +101,21 @@ export function ManagerCommandCentre({
   onAddEvidence: () => void;
   onOpenPerson?: (personId: string) => void;
 }) {
+  const organisation = useOrganisation();
+  const organisationIdentity = useMemo(
+    () =>
+      resolveManagerHomeOrganisationIdentity(
+        organisation
+          ? {
+              organisationName: organisation.organisation.name,
+              organisationType: organisation.organisation.organisationType,
+              multiOrganisation: organisation.showWorkspaceSelector,
+            }
+          : null
+      ),
+    [organisation]
+  );
+
   const [workspace, setWorkspace] = useState<MyDevelopmentWorkspace | null>(
     null
   );
@@ -178,6 +211,25 @@ export function ManagerCommandCentre({
     >
       <header className="manager-command-centre__header manager-front-door__header">
         <p className="eyebrow">Manager home</p>
+        {organisationIdentity ? (
+          <p
+            className="manager-front-door__organisation"
+            data-testid="manager-home-organisation"
+          >
+            {organisationIdentity.multiOrganisation ? (
+              <>
+                Current organisation workspace
+                <span className="manager-front-door__organisation-name">
+                  {organisationIdentity.name}
+                </span>
+              </>
+            ) : (
+              <span className="manager-front-door__organisation-name">
+                {organisationIdentity.name}
+              </span>
+            )}
+          </p>
+        ) : null}
         <h1 id="manager-front-door-title">
           {greeting}, {coachName}
         </h1>
@@ -189,9 +241,21 @@ export function ManagerCommandCentre({
           What would help you today?
         </p>
         <p className="manager-front-door__supporting">
-          Choose what you need and {BRAND.companyName} will help you take the
-          next step.
+          Talk something through for immediate thinking support. Prepare when
+          you need structured help for a conversation with someone you manage.
         </p>
+        <aside
+          className="manager-front-door__privacy"
+          aria-label={MANAGER_HOME_PRIVACY_VISIBILITY_LABEL}
+          data-testid="manager-home-privacy"
+        >
+          <p className="manager-front-door__privacy-label">
+            {MANAGER_HOME_PRIVACY_VISIBILITY_LABEL}
+          </p>
+          <p className="manager-front-door__privacy-copy">
+            {MANAGER_HOME_PRIVACY_VISIBILITY_COPY}
+          </p>
+        </aside>
       </header>
 
       <NeedsAttentionSection
@@ -210,10 +274,19 @@ export function ManagerCommandCentre({
             <li key={action.id}>
               <button
                 type="button"
-                className="manager-front-door__need"
+                className={
+                  action.emphasis === "primary"
+                    ? "manager-front-door__need manager-front-door__need--primary"
+                    : "manager-front-door__need"
+                }
                 data-front-door-action={action.id}
                 onClick={handlers[action.id]}
               >
+                {action.cue ? (
+                  <span className="manager-front-door__need-cue">
+                    {action.cue}
+                  </span>
+                ) : null}
                 <span className="manager-front-door__need-title">
                   {action.title}
                 </span>
@@ -231,18 +304,18 @@ export function ManagerCommandCentre({
           className="manager-front-door__prepare-guidance"
           role="status"
           aria-labelledby="prepare-needs-person-title"
+          data-testid="manager-prepare-needs-person"
         >
           <h2 id="prepare-needs-person-title">
             Person-specific preparation needs someone in My People
           </h2>
           <p>
-            Prepare with Aurelia is for a conversation or situation with someone
-            you support. Add them in My People when you are ready — nothing is
-            created automatically.
+            Prepare is for a conversation with someone you manage. Add them in
+            My People when you are ready — nothing is created automatically.
           </p>
           <p>
-            Meanwhile you can talk something through privately, or work on your
-            own development.
+            Meanwhile you can talk something through without a person record, or
+            work on your own development.
           </p>
           <div className="manager-front-door__prepare-guidance-actions">
             <button

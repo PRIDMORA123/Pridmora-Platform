@@ -16,6 +16,10 @@ import {
   mapObservationRow,
 } from "@/lib/development-evidence/map";
 import { validateStructuredPsychometricEvidence } from "@/lib/development-evidence/psychometrics";
+import {
+  DEVELOPMENT_EVIDENCE_STORAGE_BUCKET,
+  assertDevelopmentEvidenceStoragePathMatches,
+} from "@/lib/development-evidence/storage-path";
 import type {
   DevelopmentEvidenceDocument,
   DevelopmentEvidenceLink,
@@ -197,6 +201,15 @@ export async function createUploadedEvidence(input: {
     input.userId
   );
 
+  const storagePath = input.storagePath?.trim() || null;
+  if (storagePath) {
+    assertDevelopmentEvidenceStoragePathMatches({
+      storagePath,
+      organisationId: access.organisationId,
+      clientId: input.clientId,
+    });
+  }
+
   const freshnessClass = calculateEvidenceFreshness({
     evidenceType: input.evidenceType,
     evidenceDate: input.evidenceDate,
@@ -211,7 +224,7 @@ export async function createUploadedEvidence(input: {
       mime_type: input.mimeType,
       byte_size: input.byteSize,
       content_hash: input.contentHash,
-      storage_path: input.storagePath ?? null,
+      storage_path: storagePath,
       extracted_text: input.extractedText,
       extraction_method: input.extractionMethod,
       extraction_version: EXTRACTION_VERSION,
@@ -654,6 +667,46 @@ async function rebuildCapabilityLinks(
   await supabase.from("development_evidence_links").insert(rows);
 }
 
+/**
+ * Remove the underlying storage object after ownership has already been proven
+ * via getEvidenceById / assignment gates. Best-effort — metadata soft-delete
+ * still proceeds if the object is already missing.
+ */
+export async function removeDevelopmentEvidenceStorageObject(input: {
+  supabase: SupabaseClient;
+  organisationId: string | null;
+  clientId: string;
+  storagePath: string | null | undefined;
+}): Promise<{ removed: boolean; skipped: boolean; error?: string }> {
+  const path = input.storagePath?.trim() ?? "";
+  if (!path) {
+    return { removed: false, skipped: true };
+  }
+
+  try {
+    assertDevelopmentEvidenceStoragePathMatches({
+      storagePath: path,
+      organisationId: input.organisationId,
+      clientId: input.clientId,
+    });
+  } catch (error) {
+    return {
+      removed: false,
+      skipped: true,
+      error: error instanceof Error ? error.message : "Invalid storage path.",
+    };
+  }
+
+  const { error } = await input.supabase.storage
+    .from(DEVELOPMENT_EVIDENCE_STORAGE_BUCKET)
+    .remove([path]);
+
+  if (error) {
+    return { removed: false, skipped: false, error: error.message };
+  }
+  return { removed: true, skipped: false };
+}
+
 export async function softDeleteEvidence(input: {
   supabase: SupabaseClient;
   userId: string;
@@ -666,6 +719,26 @@ export async function softDeleteEvidence(input: {
   );
 
   const now = new Date().toISOString();
+  const storagePath = current.document?.storagePath ?? null;
+
+  // Remove the object while the path is still known, then clear metadata.
+  // Metadata soft-delete always proceeds; orphaned objects are logged.
+  let storagePathRemoved = false;
+  if (storagePath) {
+    const removal = await removeDevelopmentEvidenceStorageObject({
+      supabase: input.supabase,
+      organisationId: current.evidence.organisationId,
+      clientId: current.evidence.clientId,
+      storagePath,
+    });
+    storagePathRemoved = removal.removed;
+    if (removal.error && !removal.skipped) {
+      console.error(
+        "Evidence storage object delete skipped:",
+        removal.error
+      );
+    }
+  }
 
   await input.supabase
     .from("development_evidence")
@@ -682,6 +755,7 @@ export async function softDeleteEvidence(input: {
       .update({
         deleted_at: now,
         extracted_text: null,
+        storage_path: null,
       })
       .eq("id", current.document.id);
   }
@@ -709,6 +783,7 @@ export async function softDeleteEvidence(input: {
     metadata: {
       evidenceType: current.evidence.evidenceType,
       includeInIntelligence: false,
+      storagePathRemoved,
     },
   });
 }

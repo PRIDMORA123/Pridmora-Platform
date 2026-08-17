@@ -72,16 +72,22 @@ export const MOMENTUM_METHODOLOGY = [
 ].join(" ");
 
 export const PRIVACY_NOTE =
-  "People Development Intelligence uses anonymised aggregated authorised development signals only. Private identity, session notes, evidence wording and confidential relationship details are never shown.";
+  "People Development Intelligence uses anonymised aggregated authorised development signals only. Private identity, session notes, evidence wording and confidential relationship details are never shown. Themes reflect contributing authorised evidence — not a census of every licensed manager — and must not be used to identify or target individual contributors.";
+
+export const PREVALENCE_DIRECTION_NOTE =
+  "Direction describes how frequently a development theme appears in the available evidence over time; it is not a performance measure.";
+
+export const COVERAGE_CAVEAT_NOTE =
+  "These themes reflect contributing authorised evidence and should not be interpreted as a census of every manager.";
 
 export const INSUFFICIENT_EVIDENCE_COPY =
-  "Not enough evidence to report safely.";
+  "Not enough evidence to report safely. Absence of a theme does not prove that no development need exists.";
 
 export const ACTIVITY_WITHOUT_AUTHORISED_THEMES_COPY =
-  "Development activity is recorded, but there is not yet enough authorised, mapped development evidence to report recurring themes safely.";
+  "Development activity is recorded, but there is not yet enough authorised, mapped development evidence to report recurring themes safely. That does not mean development needs are absent.";
 
 export const BELOW_THEME_THRESHOLD_COPY =
-  "Authorised development signals exist, but not enough distinct relationships contribute to any single theme to report safely.";
+  "Authorised development signals exist, but not enough distinct relationships contribute to any single theme to report safely. Missing themes may reflect the privacy threshold or limited authorised evidence — not proof that no need exists.";
 
 export const NO_COMPARISON_COPY = "No earlier comparison is available.";
 

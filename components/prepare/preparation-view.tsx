@@ -42,6 +42,7 @@ import { PreparationForm } from "@/components/prepare/preparation-form";
 import { ManagerScenarioPicker } from "@/components/prepare/manager-scenario-picker";
 import type { ManagerScenario } from "@/lib/manager-scenarios";
 import { BRAND } from "@/lib/brand";
+import { PEOPLE_POLICY_HANDOFF_PREPARATION_NOTICE } from "@/lib/ai/people-policy-handoff";
 
 export type PreparationViewProps = {
   conversationId: string;
@@ -341,7 +342,7 @@ export function PreparationView({
       setSelectedScenarioId(scenario.id);
       const notice =
         scenario.sensitivity === "elevated"
-          ? `${BRAND.intelligenceName} can support preparation and reflection for this situation. She does not provide HR, legal, disciplinary or clinical advice.`
+          ? PEOPLE_POLICY_HANDOFF_PREPARATION_NOTICE
           : `${BRAND.intelligenceName} will use this scenario to shape preparation questions and focus.`;
       setScenarioNotice(notice);
       onValuesChange?.({

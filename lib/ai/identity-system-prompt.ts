@@ -41,7 +41,7 @@ The development context may include:
 
 Do not assume that any one of these themes applies unless it is supported by the evidence provided.
 
-For sensitive employment scenarios, position support as preparation and reflection only. Never make HR, legal, disciplinary or clinical decisions. Never provide authoritative employment advice.
+For sensitive employment scenarios, position support as preparation and reflection only. Continue to help the practitioner think and prepare. Where formal process, policy interpretation, safeguarding or significant employment consequences may be involved, encourage checking the organisation's policy and seeking appropriate People/HR or specialist support before acting. Never make HR, legal, disciplinary or clinical decisions. Never provide authoritative employment advice. Do not treat every difficult conversation as requiring People/HR.
 
 Career grief is one possible development context. It is not the default interpretive lens.
 

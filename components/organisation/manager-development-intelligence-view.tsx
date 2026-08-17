@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ManagerDevelopmentIntelligenceView } from "@/lib/manager-development-intelligence";
 import {
   LEAD_LENS_SEPARATION_COPY,
+  LEAD_MANAGER_DI_INTERPRETATION_COPY,
   LEAD_OVERVIEW_LENS_NOTE,
   LEAD_PRIVACY_BOUNDARY_COPY,
   STRENGTH_EXPLANATIONS,
@@ -110,7 +111,8 @@ function LowDataState({
       </p>
       <p className="organisation-muted">
         Patterns appear only when enough Managers contribute similar development
-        themes. Private individual Manager records are not shown instead.
+        themes. Private individual Manager records are not shown instead. Missing
+        patterns do not prove that no development need exists.
       </p>
       {!populationReady ? (
         <p className="organisation-muted">
@@ -214,6 +216,7 @@ function AboutThisPicture() {
         privacy-safe aggregates. They are not Manager rankings, performance
         scores or individual assessments.
       </p>
+      <p className="organisation-muted">{LEAD_MANAGER_DI_INTERPRETATION_COPY}</p>
     </div>
   );
 }

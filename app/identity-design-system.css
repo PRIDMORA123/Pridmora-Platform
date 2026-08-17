@@ -11192,6 +11192,22 @@ button.coaching-moments-section__item:focus-visible {
   margin: 0.25rem 0 0.65rem;
 }
 
+.manager-front-door__organisation {
+  margin: 0.35rem 0 0;
+  max-width: 36rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: rgba(15, 35, 64, 0.72);
+}
+
+.manager-front-door__organisation-name {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--identity-navy-950, #082b4b);
+}
+
 .manager-command-centre__question {
   margin: 1.15rem 0 0.35rem;
   font-size: 1.35rem;
@@ -11221,6 +11237,27 @@ button.coaching-moments-section__item:focus-visible {
 
 .manager-front-door__supporting {
   margin-top: 0.35rem;
+}
+
+.manager-front-door__privacy {
+  margin: 1rem 0 0;
+  padding: 0.85rem 0 0;
+  border-top: 1px solid rgba(15, 35, 64, 0.08);
+  max-width: 36rem;
+}
+
+.manager-front-door__privacy-label {
+  margin: 0 0 0.35rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--identity-navy-950, #082b4b);
+}
+
+.manager-front-door__privacy-copy {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: rgba(15, 35, 64, 0.72);
 }
 
 .manager-front-door__attention {
@@ -11321,6 +11358,11 @@ button.coaching-moments-section__item:focus-visible {
     background-color 0.15s ease;
 }
 
+.manager-front-door__need--primary {
+  border-color: rgba(28, 165, 173, 0.4);
+  background: var(--identity-teal-50, #eff9f8);
+}
+
 .manager-front-door__need:hover {
   border-color: rgba(28, 165, 173, 0.55);
   background: var(--identity-teal-50, #eff9f8);
@@ -11329,6 +11371,14 @@ button.coaching-moments-section__item:focus-visible {
 .manager-front-door__need:focus-visible {
   outline: 2px solid var(--identity-teal-600, #1ca5ad);
   outline-offset: 2px;
+}
+
+.manager-front-door__need-cue {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: rgba(15, 35, 64, 0.55);
 }
 
 .manager-front-door__need-title {
@@ -11460,6 +11510,13 @@ button.coaching-moments-section__item:focus-visible {
   line-height: 1.5;
   color: rgba(15, 35, 64, 0.62);
   max-width: 34rem;
+}
+
+.manager-aurelia__minimisation {
+  margin: 0.5rem 0 0;
+  max-width: 34rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
 }
 
 .manager-aurelia__conversation {

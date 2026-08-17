@@ -7,7 +7,7 @@
 export const MANAGER_DEVELOPMENT_PRIVACY_THRESHOLD = 5;
 
 export const MANAGER_DEVELOPMENT_PRIVACY_NOTE =
-  "Organisation Development Intelligence uses privacy-safe, anonymised Manager development themes only. Private reflections, Aurelia conversations, action titles, evidence documents and individual Manager development records are never shown.";
+  "Organisation Development Intelligence uses privacy-safe, anonymised Manager development themes only. Private reflections, Aurelia conversations, action titles, evidence documents and individual Manager development records are never shown. Themes reflect contributing Managers and must not be used to identify individuals.";
 
 export const MANAGER_DEVELOPMENT_INSUFFICIENT_COPY =
   "Not enough evidence yet to identify organisation-wide development patterns.";

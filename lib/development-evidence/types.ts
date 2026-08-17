@@ -250,6 +250,7 @@ export type EvidenceAuditMetadata = {
   observationCount?: number;
   fileName?: string;
   contentHashPrefix?: string;
+  storagePathRemoved?: boolean;
   /** Never include raw evidence text. */
   action?: EvidenceAuditAction;
 };

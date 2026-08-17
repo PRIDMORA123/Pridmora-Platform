@@ -27,6 +27,7 @@ const organisationState: {
     id: string;
     name: string;
     slug: string;
+    organisationType: "business" | "personal" | "practice" | "public_sector" | "education" | "other";
     status: "active";
     createdAt: string;
     updatedAt: string;
@@ -54,6 +55,7 @@ const organisationState: {
     id: "org-1",
     name: "Acme",
     slug: "acme",
+    organisationType: "business",
     status: "active",
     createdAt: "",
     updatedAt: "",
@@ -85,6 +87,9 @@ vi.mock("@/lib/organisations/organisation-context", () => ({
 beforeEach(() => {
   organisationState.professionalRole = "manager";
   organisationState.showOrganisationNav = false;
+  organisationState.showWorkspaceSelector = false;
+  organisationState.organisation.name = "Acme";
+  organisationState.organisation.organisationType = "business";
   vi.stubGlobal(
     "fetch",
     vi.fn(async (input: RequestInfo) => {
@@ -156,7 +161,15 @@ describe("Manager Front Door UI", () => {
 
     expect(container.textContent).toContain("What would help you today?");
     expect(container.textContent).toContain("Talk something through");
-    expect(container.textContent).toContain("Prepare for something");
+    expect(container.textContent).toContain("Prepare for a conversation");
+    expect(container.textContent).toContain("Immediate support");
+    expect(container.textContent).toContain("Person-specific");
+    expect(container.textContent).toContain(
+      "Something on your mind? Talk through a situation happening at work"
+    );
+    expect(container.textContent).toContain(
+      "Structured preparation for a conversation with someone you manage"
+    );
     expect(container.textContent).toContain("Reflect on something");
     expect(container.textContent).toContain("Work on my development");
     expect(container.textContent).toContain("Develop someone in my team");
@@ -301,5 +314,150 @@ describe("Manager Front Door UI", () => {
     expect(
       coachContainer.querySelector("[data-front-door-action]")
     ).toBeNull();
+  });
+
+  it("FIX-2: shows authorised organisation name on Manager Home", async () => {
+    organisationState.organisation.name = "Horizon Facilities Group";
+    organisationState.organisation.organisationType = "business";
+
+    const container = await renderView(
+      <ManagerCommandCentre
+        greeting="Good morning"
+        coachName="Alex"
+        onTalkThrough={() => undefined}
+        onPrepareSomething={() => undefined}
+        onReflect={() => undefined}
+        onOpenMyDevelopment={() => undefined}
+        onOpenPeople={() => undefined}
+        onAddEvidence={() => undefined}
+      />
+    );
+
+    const label = container.querySelector(
+      '[data-testid="manager-home-organisation"]'
+    );
+    expect(label?.textContent).toContain("Horizon Facilities Group");
+    expect(container.textContent).not.toContain("Organisation B");
+    expect(container.textContent).toContain("What would help you today?");
+  });
+
+  it("FIX-2: does not show organisation identity for personal workspace", async () => {
+    organisationState.organisation.name = "Personal workspace";
+    organisationState.organisation.organisationType = "personal";
+
+    const container = await renderView(
+      <ManagerCommandCentre
+        greeting="Good morning"
+        coachName="Alex"
+        onTalkThrough={() => undefined}
+        onPrepareSomething={() => undefined}
+        onReflect={() => undefined}
+        onOpenMyDevelopment={() => undefined}
+        onOpenPeople={() => undefined}
+        onAddEvidence={() => undefined}
+      />
+    );
+
+    expect(
+      container.querySelector('[data-testid="manager-home-organisation"]')
+    ).toBeNull();
+    expect(container.textContent).not.toContain("Personal workspace");
+  });
+
+  it("FIX-2: multi-org labels the current workspace without inventing a switcher", async () => {
+    organisationState.organisation.name = "Northbridge Care Group";
+    organisationState.organisation.organisationType = "business";
+    organisationState.showWorkspaceSelector = true;
+
+    const container = await renderView(
+      <ManagerCommandCentre
+        greeting="Good morning"
+        coachName="Alex"
+        onTalkThrough={() => undefined}
+        onPrepareSomething={() => undefined}
+        onReflect={() => undefined}
+        onOpenMyDevelopment={() => undefined}
+        onOpenPeople={() => undefined}
+        onAddEvidence={() => undefined}
+      />
+    );
+
+    const label = container.querySelector(
+      '[data-testid="manager-home-organisation"]'
+    );
+    expect(label?.textContent).toContain("Current organisation workspace");
+    expect(label?.textContent).toContain("Northbridge Care Group");
+    expect(container.querySelector("select")).toBeNull();
+  });
+
+  it("FIX-1: shows organisation visibility explanation on Manager Home", async () => {
+    const container = await renderView(
+      <ManagerCommandCentre
+        greeting="Good morning"
+        coachName="Alex"
+        onTalkThrough={() => undefined}
+        onPrepareSomething={() => undefined}
+        onReflect={() => undefined}
+        onOpenMyDevelopment={() => undefined}
+        onOpenPeople={() => undefined}
+        onAddEvidence={() => undefined}
+      />
+    );
+
+    const privacy = container.querySelector(
+      '[data-testid="manager-home-privacy"]'
+    );
+    expect(privacy?.textContent).toContain("What can my organisation see?");
+    expect(privacy?.textContent).toMatch(
+      /does not receive readable Aurelia conversations/i
+    );
+    expect(privacy?.textContent).toMatch(/collective themes/i);
+    expect(privacy?.textContent).not.toMatch(/absolutely confidential/i);
+    expect(container.textContent).toContain("What would help you today?");
+  });
+
+  it("FIX-3: Talk is primary immediate support; Prepare stays person-specific", async () => {
+    const onTalkThrough = vi.fn();
+    const onPrepareSomething = vi.fn();
+
+    const container = await renderView(
+      <ManagerCommandCentre
+        greeting="Good morning"
+        coachName="Alex"
+        hasManagedPeople={false}
+        onTalkThrough={onTalkThrough}
+        onPrepareSomething={onPrepareSomething}
+        onReflect={() => undefined}
+        onOpenMyDevelopment={() => undefined}
+        onOpenPeople={() => undefined}
+        onAddEvidence={() => undefined}
+      />
+    );
+
+    const talk = container.querySelector(
+      '[data-front-door-action="talk"]'
+    ) as HTMLButtonElement;
+    const prepare = container.querySelector(
+      '[data-front-door-action="prepare"]'
+    ) as HTMLButtonElement;
+
+    expect(talk.className).toContain("manager-front-door__need--primary");
+    expect(prepare.className).not.toContain("manager-front-door__need--primary");
+    expect(talk.textContent).toMatch(/no person record needed/i);
+    expect(prepare.textContent).toMatch(/someone you manage/i);
+
+    await act(async () => {
+      talk.click();
+    });
+    expect(onTalkThrough).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      prepare.click();
+    });
+    expect(onPrepareSomething).not.toHaveBeenCalled();
+    expect(
+      container.querySelector('[data-testid="manager-prepare-needs-person"]')
+        ?.textContent
+    ).toMatch(/talk something through without a person record/i);
   });
 });
