@@ -9350,6 +9350,22 @@ button.coaching-moments-section__item:focus-visible {
   border-radius: 4px;
 }
 
+.organisation-header__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--identity-space-3, 12px);
+  flex-shrink: 0;
+}
+
+.organisation-header__account {
+  min-width: min(16rem, 100%);
+}
+
+.organisation-header__account .identity-account-menu__trigger {
+  width: 100%;
+}
+
 /* Navigation */
 .organisation-nav {
   margin-bottom: var(--identity-space-6, 24px);
@@ -10051,9 +10067,21 @@ button.coaching-moments-section__item:focus-visible {
     flex-direction: column;
   }
 
-  .organisation-header__back {
+  .organisation-header__actions {
+    width: 100%;
+    align-items: stretch;
     order: -1;
     margin-bottom: 0.25rem;
+  }
+
+  .organisation-header__back {
+    order: 0;
+    margin-bottom: 0;
+  }
+
+  .organisation-header__account {
+    min-width: 0;
+    width: 100%;
   }
 
   .organisation-header__title {

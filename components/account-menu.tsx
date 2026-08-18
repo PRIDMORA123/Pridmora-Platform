@@ -13,6 +13,8 @@ type AccountMenuProps = {
   onOpenSettings: () => void;
   onSignOut: () => void;
   onNavigateAway?: () => void;
+  /** Sidebar menus open upward; header menus open downward. */
+  menuPlacement?: "above" | "below";
 };
 
 /**
@@ -26,6 +28,7 @@ export function AccountMenu({
   onOpenSettings,
   onSignOut,
   onNavigateAway,
+  menuPlacement = "above",
 }: AccountMenuProps) {
   const [open, setOpen] = useState(false);
   const [showOwnerConsole, setShowOwnerConsole] = useState(false);
@@ -67,7 +70,13 @@ export function AccountMenu({
     if (!rect) return;
     const width = Math.max(rect.width, 220);
     const estimatedHeight = showOwnerConsole ? 160 : 120;
-    const top = Math.max(12, rect.top - estimatedHeight - 8);
+    const top =
+      menuPlacement === "below"
+        ? Math.min(
+            rect.bottom + 8,
+            Math.max(12, window.innerHeight - estimatedHeight - 12)
+          )
+        : Math.max(12, rect.top - estimatedHeight - 8);
     const left = Math.min(
       Math.max(12, rect.left),
       window.innerWidth - width - 12
@@ -112,7 +121,7 @@ export function AccountMenu({
       window.removeEventListener("resize", onReposition);
       window.removeEventListener("scroll", onReposition, true);
     };
-  }, [open, showOwnerConsole]);
+  }, [open, showOwnerConsole, menuPlacement]);
 
   useEffect(() => {
     if (!open) return;

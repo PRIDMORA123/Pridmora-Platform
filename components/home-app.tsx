@@ -61,7 +61,6 @@ import {
 import { getPrepareRoute, PREPARE_VIEW } from "@/lib/prepare-route";
 import { resolveAccountRoleTitle } from "@/lib/role-language";
 import { buildSessionModuleRoute } from "@/lib/session-module-route";
-import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 import { isClientArchived } from "@/lib/types";
 import { identityErrorMessages, identityMessages } from "@/lib/identity-language";
 import { SessionsLoadError } from "@/components/feedback/sessions-load-error";
@@ -71,6 +70,7 @@ import {
   LEAD_WORKSPACE_PATH,
   resolvePostLoginDestination,
 } from "@/lib/auth/post-login-destination";
+import { signOutToSignIn } from "@/lib/auth/sign-out-client";
 import {
   OrganisationProvider,
   type OrganisationWorkspaceState,
@@ -1155,13 +1155,7 @@ export function HomeApp() {
     setClients([]);
     setSelectedId("");
     setProfile(null);
-    try {
-      const supabase = createBrowserSupabaseClient();
-      await supabase.auth.signOut();
-    } catch {
-      // Still leave the workspace even if the network call fails.
-    }
-    window.location.assign("/auth/sign-in");
+    await signOutToSignIn();
   }
 
   // Auth / profile still resolving — never mount AppShell or coaching views.
