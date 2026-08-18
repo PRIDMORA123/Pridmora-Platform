@@ -140,6 +140,29 @@ export function canSeeOrganisationNav(role: MembershipRole): boolean {
 }
 
 /**
+ * Manager People `/api/clients` (and search) must list assigned relationships only.
+ * Includes oversight so Leads never receive an organisation-wide People list
+ * through the Manager endpoint (assignments UI remains the Lead surface).
+ */
+export function requiresAssignedOnlyPeopleList(role: MembershipRole): boolean {
+  return (
+    role === "practitioner" ||
+    role === "owner" ||
+    role === "administrator" ||
+    role === "oversight"
+  );
+}
+
+/**
+ * UI gate for Manager People navigation and CoachSpace entry.
+ * Does not grant coaching content — API assignment gates still apply.
+ * Oversight / viewer must not enter the practitioner person workspace.
+ */
+export function canEnterManagerPeopleWorkspace(role: MembershipRole): boolean {
+  return CONTENT_CAPABLE_ROLES.has(role);
+}
+
+/**
  * Confidential coaching content requires:
  * 1. Role capable of content (practitioner, or owner/admin who is assigned)
  * 2. Active assignment that grants content access

@@ -66,12 +66,29 @@ import { isClientArchived } from "@/lib/types";
 import { identityErrorMessages, identityMessages } from "@/lib/identity-language";
 import { SessionsLoadError } from "@/components/feedback/sessions-load-error";
 import { ApiRequestError } from "@/lib/api-failure";
+import { LEAD_WORKSPACE_PATH } from "@/lib/auth/post-login-destination";
 import {
   OrganisationProvider,
   type OrganisationWorkspaceState,
 } from "@/lib/organisations/organisation-context";
+import { canEnterManagerPeopleWorkspace } from "@/lib/organisations/permissions";
 
 type ProfilePayload = CoachProfile & { initials: string; email: string | null };
+
+const MANAGER_PEOPLE_WORKSPACE_VIEWS: AppView[] = [
+  "clients",
+  "people",
+  "coach-space",
+  "prepare",
+  "session",
+  "intelligence",
+  "development-evidence",
+  "development-update",
+  "person-actions",
+  "journey",
+  "career-journey",
+  "coaching-report",
+];
 
 /**
  * Authenticated coaching workspace. Only mounted after the server page
@@ -119,12 +136,19 @@ export function HomeApp() {
   const coachId = profile?.id ?? "";
   const coachDisplayName = profile?.fullName || "Coach";
   const organisationRole = organisationState?.professionalRole ?? null;
+  const membershipRole = organisationState?.role ?? null;
+  const mayEnterManagerPeopleWorkspace =
+    !membershipRole || canEnterManagerPeopleWorkspace(membershipRole);
   const coachTitle = resolveAccountRoleTitle({
     professionalRole: organisationRole,
     profileTitle: profile?.professionalTitle,
   });
   const coachInitials = profile?.initials || initialsFromFullName(coachDisplayName);
   const coachFirstName = coachDisplayName.trim().split(/\s+/)[0] || "Coach";
+
+  const leaveToOrganisationWorkspace = useCallback(() => {
+    window.location.assign(LEAD_WORKSPACE_PATH);
+  }, []);
 
   const leaveToSignIn = useCallback(() => {
     // Hard navigation tears down the coaching shell so no in-flight
@@ -298,6 +322,14 @@ export function HomeApp() {
     (selectedId && clients.find(client => client.id === selectedId)) || undefined;
 
   function navigate(next: AppView) {
+    if (
+      membershipRole &&
+      !canEnterManagerPeopleWorkspace(membershipRole) &&
+      MANAGER_PEOPLE_WORKSPACE_VIEWS.includes(next)
+    ) {
+      leaveToOrganisationWorkspace();
+      return;
+    }
     setView(next);
     setMobileOpen(false);
     if (next !== "session") {
@@ -318,6 +350,16 @@ export function HomeApp() {
       setView("dashboard");
     }
   }, [view, organisationRole]);
+
+  useEffect(() => {
+    if (
+      membershipRole &&
+      !canEnterManagerPeopleWorkspace(membershipRole) &&
+      MANAGER_PEOPLE_WORKSPACE_VIEWS.includes(view)
+    ) {
+      leaveToOrganisationWorkspace();
+    }
+  }, [view, membershipRole, leaveToOrganisationWorkspace]);
 
   async function openSelfDevelopmentView(
     next:
@@ -492,6 +534,13 @@ export function HomeApp() {
 
   async function openClient(client: Client) {
     if (!isUuid(client.id) || !authReady || !profile) return;
+    if (
+      membershipRole &&
+      !canEnterManagerPeopleWorkspace(membershipRole)
+    ) {
+      leaveToOrganisationWorkspace();
+      return;
+    }
     setSelectedId(client.id);
     setStorageError("");
     setClientFlash("");
@@ -1393,81 +1442,83 @@ export function HomeApp() {
               }
             />
           )}
-          {view === "coach-space" && selected && (
-            <CoachSpaceView
-              key={selected.id}
-              client={selected}
-              preferredSessionId={focusSessionId}
-              coachPreparationStyle={profile?.preparationStyle ?? "guided"}
-              loadingSessions={loadingClientSessions}
-              lifecycleBusy={lifecycleBusy}
-              flashMessage={clientFlash}
-              onBack={() => navigate("people")}
-              onOpenSession={sessionId => {
-                setFocusSessionStage(null);
-                void openSessionWorkspace(sessionId);
-              }}
-              onRecordSession={sessionId => {
-                void recordConversation(sessionId);
-              }}
-              onOpenSessionModule={(sessionId, moduleId) => {
-                const route = buildSessionModuleRoute({
-                  relationshipId: selected.id,
-                  sessionId,
-                  module: moduleId,
-                });
-                setFocusSessionId(sessionId);
-                setFocusSessionStage(
-                  route.stage === "coach" ||
-                    route.stage === "reflect" ||
-                    route.stage === "summary" ||
-                    route.stage === "actions"
-                    ? route.stage
-                    : null
-                );
-                setSessionFlash("");
-                if (moduleId === "prepare") {
+          {view === "coach-space" &&
+            selected &&
+            mayEnterManagerPeopleWorkspace && (
+              <CoachSpaceView
+                key={selected.id}
+                client={selected}
+                preferredSessionId={focusSessionId}
+                coachPreparationStyle={profile?.preparationStyle ?? "guided"}
+                loadingSessions={loadingClientSessions}
+                lifecycleBusy={lifecycleBusy}
+                flashMessage={clientFlash}
+                onBack={() => navigate("people")}
+                onOpenSession={sessionId => {
+                  setFocusSessionStage(null);
+                  void openSessionWorkspace(sessionId);
+                }}
+                onRecordSession={sessionId => {
+                  void recordConversation(sessionId);
+                }}
+                onOpenSessionModule={(sessionId, moduleId) => {
+                  const route = buildSessionModuleRoute({
+                    relationshipId: selected.id,
+                    sessionId,
+                    module: moduleId,
+                  });
+                  setFocusSessionId(sessionId);
+                  setFocusSessionStage(
+                    route.stage === "coach" ||
+                      route.stage === "reflect" ||
+                      route.stage === "summary" ||
+                      route.stage === "actions"
+                      ? route.stage
+                      : null
+                  );
+                  setSessionFlash("");
+                  if (moduleId === "prepare") {
+                    void prepare(selected, sessionId);
+                    return;
+                  }
+                  navigate("session");
+                  void refreshSessionsForClient(selected.id);
+                }}
+                onPrepare={sessionId => {
                   void prepare(selected, sessionId);
-                  return;
-                }
-                navigate("session");
-                void refreshSessionsForClient(selected.id);
-              }}
-              onPrepare={sessionId => {
-                void prepare(selected, sessionId);
-              }}
-              onReviewIntelligence={() => navigate("intelligence")}
-              onReviewDevelopmentUpdate={updateId => {
-                setFocusUpdateId(updateId);
-                navigate("development-update");
-              }}
-              onTabChange={handleWorkspaceTab}
-              onScheduleSession={async (values, options) => {
-                try {
-                  if (!selected) {
-                    throw new Error(
-                      "This relationship is missing required context. Refresh and try again."
+                }}
+                onReviewIntelligence={() => navigate("intelligence")}
+                onReviewDevelopmentUpdate={updateId => {
+                  setFocusUpdateId(updateId);
+                  navigate("development-update");
+                }}
+                onTabChange={handleWorkspaceTab}
+                onScheduleSession={async (values, options) => {
+                  try {
+                    if (!selected) {
+                      throw new Error(
+                        "This relationship is missing required context. Refresh and try again."
+                      );
+                    }
+                    await scheduleSessionForClient(selected, values, options);
+                  } catch (error) {
+                    if (error instanceof AuthRequiredError) {
+                      handleAuthFailure(error);
+                      throw toError(error, "Your session has expired. Please sign in again.");
+                    }
+                    throw toError(
+                      error,
+                      "Unable to schedule the session in Supabase. Please try again."
                     );
                   }
-                  await scheduleSessionForClient(selected, values, options);
-                } catch (error) {
-                  if (error instanceof AuthRequiredError) {
-                    handleAuthFailure(error);
-                    throw toError(error, "Your session has expired. Please sign in again.");
-                  }
-                  throw toError(
-                    error,
-                    "Unable to schedule the session in Supabase. Please try again."
-                  );
-                }
-              }}
-              onEditClient={fields => editSelectedClient(fields)}
-              onArchiveClient={() => archiveSelectedClient()}
-              onRestoreClient={() => restoreSelectedClient()}
-              onPermanentlyDeleteClient={() => permanentlyDeleteSelectedClient()}
-              allowPermanentDelete={organisationRole !== "manager"}
-            />
-          )}
+                }}
+                onEditClient={fields => editSelectedClient(fields)}
+                onArchiveClient={() => archiveSelectedClient()}
+                onRestoreClient={() => restoreSelectedClient()}
+                onPermanentlyDeleteClient={() => permanentlyDeleteSelectedClient()}
+                allowPermanentDelete={organisationRole !== "manager"}
+              />
+            )}
           {view === PREPARE_VIEW && selected && (() => {
             const destination = getPrepareRoute(selected.id);
             const prepSession =

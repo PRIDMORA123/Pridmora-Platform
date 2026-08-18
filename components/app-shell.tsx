@@ -19,6 +19,7 @@ import { IdentityProductMark } from "@/components/identity/product-mark";
 import { WorkspaceSelector } from "@/components/organisation/workspace-selector";
 import { BRAND } from "@/lib/brand";
 import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { canEnterManagerPeopleWorkspace } from "@/lib/organisations/permissions";
 import { useCanManageSampleOrganisation } from "@/lib/organisations/use-can-manage-sample-organisation";
 import { resolveProductLanguage } from "@/lib/role-language";
 
@@ -115,9 +116,13 @@ export function AppShell({
   const language = resolveProductLanguage(organisation?.professionalRole);
   const isManager = organisation?.professionalRole === "manager";
   const isCoach = organisation?.professionalRole === "coach";
+  const showManagerPeopleNav =
+    !organisation?.role || canEnterManagerPeopleWorkspace(organisation.role);
   const items = [
     { key: "dashboard" as const, label: "Home", icon: Home },
-    { key: "people" as const, label: language.peopleNavLabel, icon: Users },
+    ...(showManagerPeopleNav
+      ? [{ key: "people" as const, label: language.peopleNavLabel, icon: Users }]
+      : []),
     // Conversations stay for professional coaches; managers reach them via People.
     ...(isManager
       ? []
@@ -292,7 +297,9 @@ export function AppShell({
             <WorkspaceSelector />
           </div>
           <div className="application-topbar-actions">
-            {view === "dashboard" || view === "today" ? null : (
+            {view === "dashboard" ||
+            view === "today" ||
+            !showManagerPeopleNav ? null : (
               <IdentityButton
                 variant="secondary"
                 size="md"

@@ -51,6 +51,8 @@ export {
 export {
   hasPermission,
   canSeeOrganisationNav,
+  canEnterManagerPeopleWorkspace,
+  requiresAssignedOnlyPeopleList,
   canAccessCoachingContent,
   canAccessPrivateNotes,
   canManageOrganisation,

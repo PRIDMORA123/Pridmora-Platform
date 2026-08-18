@@ -4,7 +4,10 @@ import {
   ensureCoachProfile,
 } from "@/lib/auth/session";
 import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
-import { canCreateRelationships } from "@/lib/organisations/permissions";
+import {
+  canCreateRelationships,
+  requiresAssignedOnlyPeopleList,
+} from "@/lib/organisations/permissions";
 import {
   createRelationshipAtomicInDb,
   listClientsFromDb,
@@ -29,12 +32,9 @@ export async function GET() {
     const organisationId = auth.context.organisation.organisationId;
     const role = auth.context.organisation.role;
 
-    // Practitioners / content roles: assigned relationships only.
-    // Admins without assignment do not receive confidential People lists here.
-    const assignedOnly =
-      role === "practitioner" ||
-      role === "owner" ||
-      role === "administrator";
+    // Practitioners / content roles / oversight: assigned relationships only.
+    // Admins and Leads without assignment do not receive org-wide People lists here.
+    const assignedOnly = requiresAssignedOnlyPeopleList(role);
 
     const clients = await listClientsFromDb(
       auth.context.supabase,

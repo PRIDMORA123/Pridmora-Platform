@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
+import { requiresAssignedOnlyPeopleList } from "@/lib/organisations/permissions";
 import { listClientsFromDb } from "@/lib/supabase/repository";
 import { supabaseErrorResponse } from "@/lib/supabase/errors";
 import { searchPrivateIdentityClientIds } from "@/lib/private-identity";
@@ -33,10 +34,7 @@ export async function GET(request: Request) {
 
   const organisationId = auth.context.organisation.organisationId;
   const role = auth.context.organisation.role;
-  const assignedOnly =
-    role === "practitioner" ||
-    role === "owner" ||
-    role === "administrator";
+  const assignedOnly = requiresAssignedOnlyPeopleList(role);
 
   try {
     const clients = await listClientsFromDb(
