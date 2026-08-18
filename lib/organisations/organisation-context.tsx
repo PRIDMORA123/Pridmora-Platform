@@ -16,6 +16,7 @@ import type {
 } from "@/lib/organisations/types";
 import { canSeeOrganisationNav } from "@/lib/organisations/permissions";
 import { apiJson } from "@/lib/api-client";
+import { resolvePostLoginDestination } from "@/lib/auth/post-login-destination";
 
 export type OrganisationWorkspaceState = {
   organisation: Organisation;
@@ -74,6 +75,13 @@ export function OrganisationProvider({
     async (organisationId: string) => {
       if (!state || organisationId === state.organisation.id) return;
 
+      const target = state.organisations.find(
+        entry => entry.organisation.id === organisationId
+      );
+      if (!target) {
+        throw new Error("Not an active member of that organisation.");
+      }
+
       await apiJson("/api/organisations/current", {
         method: "POST",
         body: JSON.stringify({ organisationId }),
@@ -83,13 +91,17 @@ export function OrganisationProvider({
       clearHandler?.();
       onOrganisationSwitched?.();
 
-      await refreshOrganisations();
-
-      // Hard navigation clears any residual client-side relationship state
-      // and prevents browser-back leakage across organisations.
-      window.location.assign("/?view=dashboard");
+      // Hard navigation clears residual client state and lands by active membership.
+      const destination = resolvePostLoginDestination({
+        requestedNext: "/",
+        isPlatformOwner: false,
+        membershipRole: target.membership.role,
+        professionalRole: target.membership.professionalRole,
+        organisationType: target.organisation.organisationType,
+      });
+      window.location.assign(destination);
     },
-    [state, clearHandler, onOrganisationSwitched, refreshOrganisations]
+    [state, clearHandler, onOrganisationSwitched]
   );
 
   const registerClear = useCallback((handler: () => void) => {

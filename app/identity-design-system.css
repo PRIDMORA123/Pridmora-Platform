@@ -9358,6 +9358,14 @@ button.coaching-moments-section__item:focus-visible {
   flex-shrink: 0;
 }
 
+.organisation-header__workspace {
+  width: min(18rem, 100%);
+}
+
+.organisation-header__workspace .workspace-selector {
+  width: 100%;
+}
+
 .organisation-header__account {
   min-width: min(16rem, 100%);
 }

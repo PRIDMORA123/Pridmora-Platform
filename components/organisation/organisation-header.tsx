@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AccountMenu } from "@/components/account-menu";
+import { WorkspaceSelector } from "@/components/organisation/workspace-selector";
 import { apiJson } from "@/lib/api-client";
 import { LEAD_WORKSPACE_PATH } from "@/lib/auth/post-login-destination";
 import { signOutToSignIn } from "@/lib/auth/sign-out-client";
 import { initialsFromFullName } from "@/lib/auth/session-client";
+import { useOrganisation } from "@/lib/organisations/organisation-context";
 import { MEMBERSHIP_ROLE_LABELS } from "@/lib/organisations/types";
 import type { MembershipRole } from "@/lib/organisations/types";
 
@@ -21,6 +23,7 @@ function accountTitleForMembership(role: MembershipRole | null): string {
 /**
  * Organisation workspace header.
  * Oversight Leads must stay in /organisation — do not send them to Manager home.
+ * Multi-membership users get the same WorkspaceSelector as Manager AppShell.
  * Account menu reuses Manager Sign out (Supabase session → /auth/sign-in).
  */
 export function OrganisationHeader({
@@ -32,44 +35,39 @@ export function OrganisationHeader({
   subtitle?: string;
   eyebrow?: string;
 }) {
-  const [backHref, setBackHref] = useState("/?view=dashboard");
-  const [backLabel, setBackLabel] = useState("Back to workspace");
+  const organisation = useOrganisation();
+  const membershipRole = organisation?.role ?? null;
   const [accountName, setAccountName] = useState("Account");
   const [accountTitle, setAccountTitle] = useState("Account");
   const [accountInitials, setAccountInitials] = useState("?");
+
+  const isOversight = membershipRole === "oversight";
+  const backHref = isOversight ? LEAD_WORKSPACE_PATH : "/?view=dashboard";
+  const backLabel = isOversight
+    ? "Organisation overview"
+    : "Back to workspace";
 
   useEffect(() => {
     let cancelled = false;
     void (async () => {
       try {
-        const [orgPayload, profilePayload] = await Promise.all([
-          apiJson<{
-            current?: { role?: MembershipRole };
-          }>("/api/organisations/current"),
-          apiJson<{
-            profile?: { fullName?: string; professionalTitle?: string | null };
-          }>("/api/profile"),
-        ]);
+        const profilePayload = await apiJson<{
+          profile?: { fullName?: string; professionalTitle?: string | null };
+        }>("/api/profile");
         if (cancelled) return;
-
-        const role = orgPayload.current?.role ?? null;
-        if (role === "oversight") {
-          setBackHref(LEAD_WORKSPACE_PATH);
-          setBackLabel("Organisation overview");
-        }
 
         const fullName = profilePayload.profile?.fullName?.trim() || "Account";
         setAccountName(fullName);
         setAccountInitials(initialsFromFullName(fullName));
-        setAccountTitle(accountTitleForMembership(role));
+        setAccountTitle(accountTitleForMembership(membershipRole));
       } catch {
-        // Keep Manager-home fallback when org context is unavailable.
+        // Account menu still renders with placeholders.
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [membershipRole]);
 
   return (
     <header className="organisation-header">
@@ -81,6 +79,11 @@ export function OrganisationHeader({
         ) : null}
       </div>
       <div className="organisation-header__actions">
+        {organisation?.showWorkspaceSelector ? (
+          <div className="organisation-header__workspace">
+            <WorkspaceSelector />
+          </div>
+        ) : null}
         <Link href={backHref} className="organisation-header__back">
           {backLabel}
         </Link>

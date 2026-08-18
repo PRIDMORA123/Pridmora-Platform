@@ -60,7 +60,8 @@ describe("organisation workspace isolation", () => {
   it("organisation switch clears relationship state and hard-navigates", () => {
     const context = read("lib/organisations/organisation-context.tsx");
     const home = read("components/home-app.tsx");
-    expect(context).toContain('window.location.assign("/?view=dashboard")');
+    expect(context).toContain("resolvePostLoginDestination");
+    expect(context).toContain("window.location.assign(destination)");
     expect(context).toContain("clearHandler?.()");
     expect(home).toContain("onOrganisationSwitched");
     expect(home).toContain('setSelectedId("")');

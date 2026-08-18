@@ -364,11 +364,16 @@ export function HomeApp() {
       isPlatformOwner: false,
       membershipRole,
       professionalRole: organisationRole,
+      organisationType: organisationState?.organisation.organisationType,
     });
     if (!isHomeWorkspacePath(destination)) {
       window.location.assign(destination);
     }
-  }, [membershipRole, organisationRole]);
+  }, [
+    membershipRole,
+    organisationRole,
+    organisationState?.organisation.organisationType,
+  ]);
 
   useEffect(() => {
     if (

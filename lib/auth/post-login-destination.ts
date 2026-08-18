@@ -15,7 +15,8 @@ export function isHomeWorkspacePath(path: string): boolean {
  * Server-authoritative post-auth destination.
  * Uses existing role architecture only:
  * - Platform Owner → /owner
- * - Organisation Lead (oversight) / owner / administrator → /organisation
+ * - Organisation Lead (oversight) / business owner / administrator → /organisation
+ * - Personal-workspace owner → Manager home (coaching workspace)
  * - Manager (practitioner + professional_role manager) → Manager workspace
  *
  * Deep links (invitations, etc.) win over role defaults when `requestedNext`
@@ -26,6 +27,8 @@ export function resolvePostLoginDestination(input: {
   isPlatformOwner: boolean;
   membershipRole?: string | null;
   professionalRole?: string | null;
+  /** When set, personal owners land on Manager home rather than Lead shell. */
+  organisationType?: string | null;
 }): string {
   const requested = sanitizeNextPath(input.requestedNext, "/");
 
@@ -39,8 +42,16 @@ export function resolvePostLoginDestination(input: {
 
   const role = (input.membershipRole || "").toLowerCase();
   const professional = (input.professionalRole || "").toLowerCase();
+  const organisationType = (input.organisationType || "").toLowerCase();
 
-  if (role === "oversight" || role === "owner" || role === "administrator") {
+  if (role === "oversight" || role === "administrator") {
+    return LEAD_WORKSPACE_PATH;
+  }
+
+  if (role === "owner") {
+    if (organisationType === "personal") {
+      return MANAGER_WORKSPACE_PATH;
+    }
     return LEAD_WORKSPACE_PATH;
   }
 
@@ -55,6 +66,10 @@ type MembershipRow = {
   role: string;
   professional_role: string | null;
   organisation_id: string;
+  organisations?:
+    | { organisation_type?: string | null }
+    | Array<{ organisation_type?: string | null }>
+    | null;
 };
 
 /**
@@ -64,9 +79,13 @@ type MembershipRow = {
 export async function loadActiveMembershipForRouting(
   supabase: SupabaseClient,
   userId: string
-): Promise<{ role: string | null; professionalRole: string | null }> {
+): Promise<{
+  role: string | null;
+  professionalRole: string | null;
+  organisationType: string | null;
+}> {
   if (!userId) {
-    return { role: null, professionalRole: null };
+    return { role: null, professionalRole: null, organisationType: null };
   }
 
   const { data: profile } = await supabase
@@ -80,17 +99,16 @@ export async function loadActiveMembershipForRouting(
       ? profile.current_organisation_id
       : null;
 
-  let query = supabase
+  const { data, error } = await supabase
     .from("organisation_memberships")
-    .select("role, professional_role, organisation_id")
+    .select("role, professional_role, organisation_id, organisations(organisation_type)")
     .eq("user_id", userId)
     .eq("status", "active")
     .order("joined_at", { ascending: true })
     .limit(20);
 
-  const { data, error } = await query;
   if (error || !data?.length) {
-    return { role: null, professionalRole: null };
+    return { role: null, professionalRole: null, organisationType: null };
   }
 
   const rows = data as MembershipRow[];
@@ -99,9 +117,16 @@ export async function loadActiveMembershipForRouting(
       rows.find(row => row.organisation_id === preferredOrgId)) ||
     rows[0];
 
+  const orgJoin = preferred?.organisations;
+  const organisationType = Array.isArray(orgJoin)
+    ? orgJoin[0]?.organisation_type ?? null
+    : orgJoin?.organisation_type ?? null;
+
   return {
     role: preferred?.role ?? null,
     professionalRole: preferred?.professional_role ?? null,
+    organisationType:
+      typeof organisationType === "string" ? organisationType : null,
   };
 }
 
@@ -123,5 +148,6 @@ export async function resolveAuthoritativePostLoginDestination(
     isPlatformOwner: owner,
     membershipRole: membership.role,
     professionalRole: membership.professionalRole,
+    organisationType: membership.organisationType,
   });
 }

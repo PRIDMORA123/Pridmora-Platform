@@ -103,7 +103,7 @@ describe("Scenario A — oversight Manager People UX guard", () => {
     expect(header).toContain('role === "oversight"');
     expect(header).toContain("LEAD_WORKSPACE_PATH");
     expect(header).toContain("Organisation overview");
-    expect(header).toContain("/api/organisations/current");
+    expect(header).toContain("useOrganisation");
   });
 
   it("preserves content API assignment gates (sessions / moments / profiles)", () => {

@@ -31,6 +31,30 @@ describe("authoritative post-login destination", () => {
     ).toBe(LEAD_WORKSPACE_PATH);
   });
 
+  it("routes personal-workspace owner to Manager home", () => {
+    expect(
+      resolvePostLoginDestination({
+        requestedNext: "/",
+        isPlatformOwner: false,
+        membershipRole: "owner",
+        professionalRole: null,
+        organisationType: "personal",
+      })
+    ).toBe(MANAGER_WORKSPACE_PATH);
+  });
+
+  it("routes business organisation owner to /organisation", () => {
+    expect(
+      resolvePostLoginDestination({
+        requestedNext: "/",
+        isPlatformOwner: false,
+        membershipRole: "owner",
+        professionalRole: null,
+        organisationType: "business",
+      })
+    ).toBe(LEAD_WORKSPACE_PATH);
+  });
+
   it("treats / and /?view=dashboard as home workspace paths", async () => {
     const { isHomeWorkspacePath } = await import(
       "@/lib/auth/post-login-destination"
