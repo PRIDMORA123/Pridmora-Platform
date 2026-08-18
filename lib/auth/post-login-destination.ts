@@ -6,7 +6,8 @@ export const MANAGER_WORKSPACE_PATH = "/?view=dashboard";
 export const LEAD_WORKSPACE_PATH = "/organisation";
 export const OWNER_CONSOLE_PATH = "/owner";
 
-function isHomePath(path: string): boolean {
+/** True for `/` and `/?…` Manager home paths (not Lead/Owner destinations). */
+export function isHomeWorkspacePath(path: string): boolean {
   return path === "/" || path.startsWith("/?");
 }
 
@@ -28,7 +29,7 @@ export function resolvePostLoginDestination(input: {
 }): string {
   const requested = sanitizeNextPath(input.requestedNext, "/");
 
-  if (!isHomePath(requested)) {
+  if (!isHomeWorkspacePath(requested)) {
     return requested;
   }
 

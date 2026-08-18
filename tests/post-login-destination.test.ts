@@ -31,6 +31,16 @@ describe("authoritative post-login destination", () => {
     ).toBe(LEAD_WORKSPACE_PATH);
   });
 
+  it("treats / and /?view=dashboard as home workspace paths", async () => {
+    const { isHomeWorkspacePath } = await import(
+      "@/lib/auth/post-login-destination"
+    );
+    expect(isHomeWorkspacePath("/")).toBe(true);
+    expect(isHomeWorkspacePath("/?view=dashboard")).toBe(true);
+    expect(isHomeWorkspacePath("/organisation")).toBe(false);
+    expect(isHomeWorkspacePath("/owner")).toBe(false);
+  });
+
   it("routes Manager practitioner to Manager workspace", () => {
     expect(
       resolvePostLoginDestination({

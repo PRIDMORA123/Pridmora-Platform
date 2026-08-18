@@ -66,7 +66,11 @@ import { isClientArchived } from "@/lib/types";
 import { identityErrorMessages, identityMessages } from "@/lib/identity-language";
 import { SessionsLoadError } from "@/components/feedback/sessions-load-error";
 import { ApiRequestError } from "@/lib/api-failure";
-import { LEAD_WORKSPACE_PATH } from "@/lib/auth/post-login-destination";
+import {
+  isHomeWorkspacePath,
+  LEAD_WORKSPACE_PATH,
+  resolvePostLoginDestination,
+} from "@/lib/auth/post-login-destination";
 import {
   OrganisationProvider,
   type OrganisationWorkspaceState,
@@ -350,6 +354,21 @@ export function HomeApp() {
       setView("dashboard");
     }
   }, [view, organisationRole]);
+
+  // Defence in depth: Lead/admin memberships must not stay on Manager home
+  // (server `/` also redirects; this covers client-side org switches).
+  useEffect(() => {
+    if (!membershipRole) return;
+    const destination = resolvePostLoginDestination({
+      requestedNext: "/",
+      isPlatformOwner: false,
+      membershipRole,
+      professionalRole: organisationRole,
+    });
+    if (!isHomeWorkspacePath(destination)) {
+      window.location.assign(destination);
+    }
+  }, [membershipRole, organisationRole]);
 
   useEffect(() => {
     if (

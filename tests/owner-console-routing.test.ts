@@ -44,11 +44,15 @@ describe("owner console routing contracts", () => {
     expect(layout).not.toContain("organisation_memberships");
   });
 
-  it("root HomeApp routing does not claim /owner", () => {
+  it("root authenticated `/` reuses post-login destination (Lead/Owner leave Manager home)", () => {
     const home = read("app/page.tsx");
     expect(home).toContain("getSessionUser");
     expect(home).toContain("HomeApp");
-    expect(home).not.toMatch(/owner/i);
+    expect(home).toContain("resolveAuthoritativePostLoginDestination");
+    expect(home).toContain("isHomeWorkspacePath");
+    // Destination paths live in the shared helper — not hard-coded on the page.
+    expect(home).not.toContain('"/owner"');
+    expect(home).not.toContain("'/owner'");
   });
 
   it("post-auth next path may remain /owner", () => {
