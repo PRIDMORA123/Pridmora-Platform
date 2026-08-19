@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requirePlatformOwner, ownerValidationResponse } from "@/lib/owner/auth";
 import { writePlatformAudit } from "@/lib/owner/audit";
+import { convertTrialOrganisationToActive } from "@/lib/owner/convert-trial-to-active";
 import { assertOwnerPayloadIsSafe } from "@/lib/owner/privacy";
 import {
   getOwnerOrganisationDetail,
@@ -19,6 +20,7 @@ import {
 export const runtime = "nodejs";
 
 const patchSchema = z.object({
+  action: z.enum(["convert_trial_to_active"]).optional(),
   legalName: z.string().trim().max(200).nullable().optional(),
   tradingName: z.string().trim().max(200).nullable().optional(),
   sector: z.string().trim().max(120).nullable().optional(),
@@ -117,10 +119,37 @@ export async function PATCH(
     return ownerValidationResponse("Invalid organisation update.");
   }
 
+  const data = parsed.data;
+
+  if (data.action === "convert_trial_to_active") {
+    const result = await convertTrialOrganisationToActive({
+      supabase: auth.context.supabase,
+      organisationId: id,
+      actorUserId: auth.context.user.id,
+    });
+    if (!result.ok) {
+      const status =
+        result.code === "NOT_FOUND"
+          ? 404
+          : result.code === "NOT_TRIAL"
+            ? 400
+            : 500;
+      return NextResponse.json(
+        { error: result.error, code: result.code },
+        { status }
+      );
+    }
+    return NextResponse.json({
+      ok: true,
+      organisationId: result.organisationId,
+      licenceStatus: "active",
+      licenceEndsAt: null,
+    });
+  }
+
   const updates: Record<string, unknown> = {
     updated_at: new Date().toISOString(),
   };
-  const data = parsed.data;
   if (data.legalName !== undefined) updates.legal_name = data.legalName;
   if (data.tradingName !== undefined) updates.trading_name = data.tradingName;
   if (data.sector !== undefined) updates.sector = data.sector;

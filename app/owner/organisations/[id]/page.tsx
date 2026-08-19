@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { OwnerShell } from "@/components/owner/owner-shell";
 import { OwnerEmpty } from "@/components/owner/owner-empty";
@@ -8,6 +8,10 @@ import { OwnerStatus } from "@/components/owner/owner-status";
 import { OwnerConfirmDialog } from "@/components/owner/owner-confirm-dialog";
 import { apiJson } from "@/lib/api-client";
 import { formatMoneyMinor } from "@/lib/owner/money";
+import {
+  CONVERT_TRIAL_CONFIRMATION,
+  ownerOrganisationSettingsActions,
+} from "@/lib/owner/convert-trial-to-active";
 import type {
   CustomerHealth,
   Invoice,
@@ -97,6 +101,7 @@ export default function OwnerOrganisationDetailPage() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [confirmSuspend, setConfirmSuspend] = useState(false);
+  const [confirmConvertTrial, setConfirmConvertTrial] = useState(false);
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [showLeadInviteForm, setShowLeadInviteForm] = useState(false);
   const [inviteFullName, setInviteFullName] = useState("");
@@ -217,8 +222,17 @@ export default function OwnerOrganisationDetailPage() {
     } finally {
       setSaving(false);
       setConfirmSuspend(false);
+      setConfirmConvertTrial(false);
     }
   }
+
+  const settingsActions = useMemo(
+    () =>
+      data
+        ? ownerOrganisationSettingsActions(data.organisation.accountStatus)
+        : null,
+    [data]
+  );
 
   return (
     <OwnerShell title="Organisation" subtitle="Operational and commercial profile.">
@@ -625,25 +639,51 @@ export default function OwnerOrganisationDetailPage() {
             <section className="owner-panel">
               <h2 className="owner-panel__title">Account settings</h2>
               <div className="owner-filters">
-                <button
-                  type="button"
-                  className="owner-button owner-button--danger"
-                  onClick={() => setConfirmSuspend(true)}
-                  disabled={saving || data.organisation.accountStatus === "suspended"}
-                >
-                  Suspend organisation
-                </button>
-                <button
-                  type="button"
-                  className="owner-button"
-                  disabled={saving || data.organisation.accountStatus === "active"}
-                  onClick={() => updateOrganisation({ licenceStatus: "active" })}
-                >
-                  Reactivate organisation
-                </button>
+                {settingsActions?.showConvertTrial ? (
+                  <button
+                    type="button"
+                    className="owner-button"
+                    disabled={saving}
+                    onClick={() => setConfirmConvertTrial(true)}
+                  >
+                    Convert trial to active
+                  </button>
+                ) : null}
+                {settingsActions?.showSuspend ? (
+                  <button
+                    type="button"
+                    className="owner-button owner-button--danger"
+                    onClick={() => setConfirmSuspend(true)}
+                    disabled={saving}
+                  >
+                    Suspend organisation
+                  </button>
+                ) : null}
+                {settingsActions?.showReactivate ? (
+                  <button
+                    type="button"
+                    className="owner-button"
+                    disabled={saving}
+                    onClick={() => updateOrganisation({ licenceStatus: "active" })}
+                  >
+                    Reactivate organisation
+                  </button>
+                ) : null}
               </div>
             </section>
           ) : null}
+
+          <OwnerConfirmDialog
+            open={confirmConvertTrial}
+            title="Convert trial to active?"
+            description={CONVERT_TRIAL_CONFIRMATION}
+            confirmLabel="Convert trial to active"
+            busy={saving}
+            onCancel={() => setConfirmConvertTrial(false)}
+            onConfirm={() =>
+              updateOrganisation({ action: "convert_trial_to_active" })
+            }
+          />
 
           <OwnerConfirmDialog
             open={confirmSuspend}
