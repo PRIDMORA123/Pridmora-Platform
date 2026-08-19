@@ -6,6 +6,7 @@ import { BRAND } from "@/lib/brand";
 /**
  * Public platform landing page for signed-out visitors on `/`.
  * Rendered by `app/page.tsx` when `getSessionUser()` returns null.
+ * Acquisition is organisation-led (Request a demo); no public self-service trial.
  */
 export function MarketingHomepage() {
   return (
@@ -16,9 +17,13 @@ export function MarketingHomepage() {
           <Link className="secondary" href="/auth/sign-in">
             Sign in
           </Link>
-          <Link className="primary" href="/auth/sign-up">
-            Free trial
-          </Link>
+          <a
+            className="primary"
+            href={BRAND.requestDemoUrl}
+            rel="noopener noreferrer"
+          >
+            Request a demo
+          </a>
         </div>
       </header>
 
@@ -35,15 +40,20 @@ export function MarketingHomepage() {
             with greater clarity.
           </p>
           <div className="button-row">
-            <Link className="primary" href="/auth/sign-up">
-              Start your free trial
-            </Link>
+            <a
+              className="primary"
+              href={BRAND.requestDemoUrl}
+              rel="noopener noreferrer"
+            >
+              Request a demo
+            </a>
             <a className="secondary" href="#how-it-works">
               See how it works
             </a>
           </div>
           <p className="muted marketing-trial-note">
-            14-day free trial. No credit card required.
+            Organisation pilots are provisioned for your team. Authorised users
+            are invited after a buyer conversation.
           </p>
         </div>
 
@@ -146,12 +156,16 @@ export function MarketingHomepage() {
       <section className="marketing-section marketing-final">
         <h2>Make the next conversation better than the last.</h2>
         <div className="button-row">
-          <Link className="primary" href="/auth/sign-up">
-            Start your free trial
-          </Link>
+          <a
+            className="primary"
+            href={BRAND.requestDemoUrl}
+            rel="noopener noreferrer"
+          >
+            Request a demo
+          </a>
         </div>
         <p className="muted marketing-trial-note">
-          14-day free trial. No credit card required.
+          Speak with us to arrange an organisational pilot for your managers.
         </p>
       </section>
     </div>

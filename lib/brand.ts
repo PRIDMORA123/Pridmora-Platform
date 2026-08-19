@@ -24,6 +24,12 @@ export const BRAND = {
 
   /** Visible report product label. */
   reportName: "Development Report",
+
+  /**
+   * Public acquisition CTA for organisation-led pilots (no self-service sign-up).
+   * WordPress contact form includes a "Request a demo" category.
+   */
+  requestDemoUrl: "https://pridmora.com/demo/",
 } as const;
 
 export function getProductTitle(pageTitle?: string): string {

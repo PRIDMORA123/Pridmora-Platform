@@ -145,12 +145,15 @@ describe("UAT readiness polish", () => {
     expect(page).toMatch(/if\s*\(\s*!user\s*\)/);
   });
 
-  it("public platform landing uses Development Snapshot and free trial copy", () => {
+  it("public platform landing uses Development Snapshot and Request a demo", () => {
     const marketing = read("components/marketing-homepage.tsx");
     expect(marketing).toContain("Development snapshot");
-    expect(marketing).toContain("Start your free trial");
-    expect(marketing).toContain("Free trial");
-    expect(marketing).toContain("14-day free trial. No credit card required.");
+    expect(marketing).toContain("Request a demo");
+    expect(marketing).toContain("requestDemoUrl");
+    expect(marketing).not.toContain("Start your free trial");
+    expect(marketing).not.toContain("Free trial");
+    expect(marketing).not.toContain("14-day free trial");
+    expect(marketing).not.toContain('href="/auth/sign-up"');
     expect(marketing).toContain(
       "Understand how your managers are developing."
     );

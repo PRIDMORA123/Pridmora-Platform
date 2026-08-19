@@ -284,8 +284,10 @@ describe("product naming and homepage routes", () => {
       resolve(process.cwd(), "components/marketing-homepage.tsx"),
       "utf8"
     );
-    expect(homepage).toContain('href="/auth/sign-up"');
-    expect(homepage).toContain("Start your free trial");
+    expect(homepage).toContain("Request a demo");
+    expect(homepage).toContain("requestDemoUrl");
+    expect(homepage).not.toContain('href="/auth/sign-up"');
+    expect(homepage).not.toContain("Start your free trial");
     expect(homepage).toContain("See how it works");
   });
 });

@@ -3,6 +3,7 @@
 import { act, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { BRAND } from "@/lib/brand";
 import { MarketingHomepage } from "@/components/marketing-homepage";
 
 vi.mock("next/link", () => ({
@@ -43,13 +44,15 @@ afterEach(async () => {
 });
 
 describe("public MarketingHomepage", () => {
-  it("renders the Development Snapshot free-trial landing, not the GPT mock", async () => {
+  it("renders organisation-led Request a demo landing, not a free trial", async () => {
     const container = await renderView(<MarketingHomepage />);
     const text = container.textContent || "";
 
-    expect(text).toContain("Start your free trial");
-    expect(text).toContain("Free trial");
-    expect(text).toContain("14-day free trial. No credit card required.");
+    expect(text).toContain("Request a demo");
+    expect(text).not.toContain("Start your free trial");
+    expect(text).not.toContain("Free trial");
+    expect(text).not.toContain("14-day free trial");
+    expect(text).not.toContain("Create an account");
     expect(text).toContain("Understand how your managers are developing.");
     expect(text).toContain("Conversations end. Understanding shouldn't.");
     expect(text).toContain("Development snapshot");
@@ -57,6 +60,11 @@ describe("public MarketingHomepage", () => {
     expect(text).toContain("Development strengthening");
     expect(text).toContain("Delegation");
     expect(text).toContain("7 development conversations");
+    expect(text).toContain("Organisation pilots are provisioned");
+
+    expect(
+      container.querySelectorAll(`a[href="${BRAND.requestDemoUrl}"]`).length
+    ).toBeGreaterThanOrEqual(1);
 
     expect(text).not.toContain("Start free");
     expect(text).not.toContain("Coach-approved");

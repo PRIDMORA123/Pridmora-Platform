@@ -46,6 +46,18 @@ export async function middleware(request: NextRequest) {
   // Let server layouts distinguish invitation accept from gated workspace routes.
   response.headers.set("x-pathname", pathname);
 
+  // Organisation-led access: anonymous public sign-up is closed.
+  // Invitation accept, setup-password, callback/confirm, and recovery stay open.
+  if (
+    !userId &&
+    (pathname === "/auth/sign-up" || pathname.startsWith("/auth/sign-up/"))
+  ) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/auth/sign-in";
+    redirectUrl.search = "";
+    return NextResponse.redirect(redirectUrl);
+  }
+
   const isApi = pathname.startsWith("/api/");
   const isDevPreview =
     process.env.NODE_ENV !== "production" && pathname.startsWith("/dev/");

@@ -1,5 +1,9 @@
-import { SignUpForm } from "@/components/auth/sign-up-form";
+import { redirect } from "next/navigation";
 
+/**
+ * Public self-registration is closed for organisation-led commercial access.
+ * Invitations use inviteUserByEmail / magic-link — not this route.
+ */
 export default function SignUpPage() {
-  return <SignUpForm />;
+  redirect("/auth/sign-in");
 }

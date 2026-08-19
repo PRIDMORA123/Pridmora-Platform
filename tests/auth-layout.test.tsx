@@ -202,7 +202,9 @@ describe("auth layout replacement", () => {
     expect(container.textContent).toContain("Sign in securely to return to your workspace.");
     expect(container.textContent).toContain("Remember me");
     expect(container.textContent).toContain("Forgot your password?");
-    expect(container.textContent).toContain("Create an account");
+    expect(container.textContent).not.toContain("Create an account");
+    expect(container.textContent).not.toContain("Don't have an account?");
+    expect(container.querySelector('a[href="/auth/sign-up"]')).toBeNull();
     expect(container.textContent).not.toContain("Privacy policy");
     expect(container.textContent).not.toContain("Terms of service");
     expect(container.querySelector(".auth-evidence-path")).toBeNull();
@@ -319,9 +321,8 @@ describe("auth layout replacement", () => {
   it("auth and marketing navigation links use the correct routes", async () => {
     const { SignInForm } = await import("@/components/auth/sign-in-form");
     const signIn = await renderView(<SignInForm />);
-    expect(
-      signIn.querySelector('a[href="/auth/sign-up"]')?.textContent
-    ).toContain("Create an account");
+    expect(signIn.querySelector('a[href="/auth/sign-up"]')).toBeNull();
+    expect(signIn.textContent).not.toContain("Create an account");
     expect(
       signIn.querySelector('a[href="/auth/forgot-password"]')?.textContent
     ).toContain("Forgot your password?");
@@ -332,8 +333,11 @@ describe("auth layout replacement", () => {
     );
     expect(homepage).toContain('href="/auth/sign-in"');
     expect(homepage).toContain("Sign in");
-    expect(homepage).toContain('href="/auth/sign-up"');
-    expect(homepage).toContain("Start your free trial");
+    expect(homepage).toContain("Request a demo");
+    expect(homepage).toContain("requestDemoUrl");
+    expect(homepage).not.toContain('href="/auth/sign-up"');
+    expect(homepage).not.toContain("Start your free trial");
+    expect(homepage).not.toContain("14-day free trial");
   });
 
   it("production auth navigation never embeds localhost in Forgot Password or sibling links", async () => {
@@ -389,18 +393,20 @@ describe("auth layout replacement", () => {
     expect(forgot?.getAttribute("href")).toBe("/auth/forgot-password");
   });
 
-  it("sign-up uses approved copy and Create account CTA", async () => {
+  it("public sign-up page redirects to sign-in; SignUpForm is not the public route", async () => {
+    const page = readFileSync(
+      resolve(process.cwd(), "app/auth/sign-up/page.tsx"),
+      "utf8"
+    );
+    expect(page).toContain('redirect("/auth/sign-in")');
+    expect(page).not.toContain("SignUpForm");
+
+    // Legacy form may remain in the repo but must not be reachable via the public page.
     const { SignUpForm } = await import("@/components/auth/sign-up-form");
     const container = await renderView(<SignUpForm />);
-    expect(container.textContent).toContain("GET STARTED");
-    expect(container.textContent).toContain("Create your workspace.");
-    expect(container.textContent).toContain(
-      "Begin turning coaching conversations into meaningful development evidence."
-    );
     expect(container.querySelector('button[type="submit"]')?.textContent).toContain(
       "Create account"
     );
-    expect(container.querySelector(".auth-evidence-path")).toBeNull();
   });
 
   it("forgot password uses approved recovery copy", async () => {

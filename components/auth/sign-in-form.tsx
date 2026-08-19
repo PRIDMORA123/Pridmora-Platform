@@ -130,11 +130,6 @@ export function SignInForm() {
       title="Welcome back"
       description="Continue building better conversations."
       supporting="Sign in securely to return to your workspace."
-      footer={
-        <p className="auth-account-prompt">
-          Don&apos;t have an account? <Link href="/auth/sign-up">Create an account</Link>
-        </p>
-      }
     >
       <form
         className="auth-form-fields"

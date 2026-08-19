@@ -104,10 +104,9 @@ describe("Pridmora Development Platform branding", () => {
     expect(container.textContent).toContain(
       "Understand how your managers are developing."
     );
-    expect(container.textContent).toContain("Start your free trial");
-    expect(container.textContent).toContain(
-      "14-day free trial. No credit card required."
-    );
+    expect(container.textContent).toContain("Request a demo");
+    expect(container.textContent).not.toContain("Start your free trial");
+    expect(container.textContent).not.toContain("14-day free trial");
     expect(container.textContent).toContain("Development snapshot");
     expect(container.textContent).not.toContain("Coach-approved");
     expect(container.textContent).not.toContain("Start free");
