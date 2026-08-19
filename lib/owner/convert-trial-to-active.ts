@@ -110,7 +110,12 @@ export async function convertTrialOrganisationToActive(input: {
   });
 
   if (error) {
-    console.error("Convert trial to active RPC failed:", error.message);
+    console.error("Convert trial to active RPC failed:", {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
     return {
       ok: false,
       code: "UPDATE_FAILED",
