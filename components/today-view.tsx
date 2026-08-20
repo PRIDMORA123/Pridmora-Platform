@@ -441,6 +441,7 @@ export function IdentityHomePage({
           coachName={viewModel.coachName}
           clients={clients}
           hasManagedPeople={clients.length > 0}
+          awaitingUpdates={awaitingUpdates}
           onTalkThrough={() => onOpenManagerAurelia?.()}
           onPrepareSomething={openPrepareSomething}
           onReflect={() => onOpenMyDevelopmentReflection?.()}
@@ -450,6 +451,9 @@ export function IdentityHomePage({
           onOpenPerson={personId => {
             const client = clients.find(entry => entry.id === personId);
             if (client) onOpenClient(client);
+          }}
+          onReviewDevelopmentUpdate={(client, updateId) => {
+            onReviewDevelopmentUpdate?.(client, updateId);
           }}
         />
       </section>

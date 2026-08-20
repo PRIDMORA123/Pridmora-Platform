@@ -167,13 +167,14 @@ async function loadEvidenceCapabilitySignals(input: {
   const { data, error } = await input.supabase
     .from("development_evidence")
     .select(
-      "id, client_id, evidence_type, review_status, include_in_intelligence, deleted_at, capability_keys, restricted"
+      "id, client_id, evidence_type, review_status, include_in_intelligence, deleted_at, capability_keys, restricted, processing_status"
     )
     .eq("organisation_id", input.organisationId)
     .in("client_id", clientIds)
     .is("deleted_at", null)
     .eq("include_in_intelligence", true)
     .eq("restricted", false)
+    .eq("processing_status", "ready")
     .in("review_status", ["approved", "edited", "internal_reference"]);
 
   if (error || !data) return [];

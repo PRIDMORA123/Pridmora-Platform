@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { pruneStructuredEvidenceToAuthorisedObservations } from "@/lib/development-evidence/authorised-observations";
-import { inferCapabilityKeysFromText } from "@/lib/development-evidence/capabilities";
+import { pruneStructuredEvidenceToAuthorisedObservations, authorisedCapabilityKeysFromObservations, parseReviewCapabilityKey, capabilityReviewDecisionOutcome } from "@/lib/development-evidence/authorised-observations";
+import { buildCapabilityInferenceCorpus, inferCapabilityKeysFromText, isPridmoraCapabilityKey } from "@/lib/development-evidence/capabilities";
 import {
   EVIDENCE_TYPE_LABELS,
   EXTRACTION_VERSION,
@@ -8,6 +8,7 @@ import {
   type EvidenceAuditAction,
   type EvidenceReviewStatus,
 } from "@/lib/development-evidence/constants";
+import { constrainStructuredEvidenceObservations } from "@/lib/development-evidence/constrain-observations";
 import { calculateEvidenceFreshness } from "@/lib/development-evidence/freshness";
 import {
   mapDocumentRow,
@@ -356,11 +357,27 @@ export async function updateDocumentExtraction(input: {
 export async function markEvidenceAnalysisFailed(input: {
   supabase: SupabaseClient;
   evidenceId: string;
+  /** When set, records that failure left intelligence excluded. */
+  actorUserId?: string;
+  /** Optional analyse-attempt diagnostics (elapsed, finish reason, tokens). */
+  analysisDiagnostics?: Record<string, unknown>;
 }): Promise<void> {
+  const { data: current } = await input.supabase
+    .from("development_evidence")
+    .select(
+      "organisation_id, client_id, review_status, include_in_intelligence, capability_keys, processing_status"
+    )
+    .eq("id", input.evidenceId)
+    .is("deleted_at", null)
+    .maybeSingle();
+
   const { error } = await input.supabase
     .from("development_evidence")
     .update({
       processing_status: "failed",
+      // Failed analysis must never remain intelligence-authorised.
+      include_in_intelligence: false,
+      review_status: "pending_review",
       updated_at: new Date().toISOString(),
     })
     .eq("id", input.evidenceId)
@@ -368,7 +385,135 @@ export async function markEvidenceAnalysisFailed(input: {
 
   if (error) {
     console.error("Unable to mark evidence analysis failed:", error.message);
+    return;
   }
+
+  await input.supabase
+    .from("development_evidence_observations")
+    .update({
+      include_in_intelligence: false,
+      review_status: "proposed",
+    })
+    .eq("evidence_id", input.evidenceId);
+
+  await input.supabase
+    .from("development_evidence_links")
+    .delete()
+    .eq("from_evidence_id", input.evidenceId)
+    .eq("link_type", "supports");
+
+  if (input.actorUserId && current) {
+    await writeEvidenceAudit({
+      supabase: input.supabase,
+      organisationId: (current.organisation_id as string | null) ?? null,
+      clientId: (current.client_id as string | null) ?? null,
+      evidenceId: input.evidenceId,
+      actorUserId: input.actorUserId,
+      action: "evidence_excluded",
+      metadata: {
+        reason: "reanalysis_failed",
+        previousReviewStatus: String(current.review_status ?? ""),
+        previousIncludeInIntelligence: Boolean(current.include_in_intelligence),
+        previousCapabilityKeys: Array.isArray(current.capability_keys)
+          ? (current.capability_keys as string[])
+          : [],
+        previousProcessingStatus: String(current.processing_status ?? ""),
+        processingStatus: "failed",
+        reviewStatus: "pending_review",
+        includeInIntelligence: false,
+        ...(input.analysisDiagnostics
+          ? { analysisDiagnostics: input.analysisDiagnostics }
+          : {}),
+      },
+    });
+  }
+}
+
+/**
+ * Begin an analysis run that may replace prior results.
+ * Immediately withdraws any prior intelligence authorisation so MDI cannot
+ * keep consuming previously approved capability keys while re-analysis is
+ * in flight or if it later fails.
+ * Historical audit rows are preserved; a new evidence_excluded row is appended
+ * when prior authorisation existed.
+ */
+export async function beginEvidenceAnalysisRun(input: {
+  supabase: SupabaseClient;
+  userId: string;
+  evidenceId: string;
+  force?: boolean;
+}): Promise<{
+  invalidatedPriorAuthorisation: boolean;
+}> {
+  const detail = await getEvidenceById(
+    input.supabase,
+    input.userId,
+    input.evidenceId
+  );
+
+  const previousReviewStatus = detail.evidence.reviewStatus;
+  const previousInclude = detail.evidence.includeInIntelligence;
+  const previousCapabilityKeys = [...detail.evidence.capabilityKeys];
+  const previousProcessingStatus = detail.evidence.processingStatus;
+  const hadAuthorisation =
+    previousInclude ||
+    previousReviewStatus === "approved" ||
+    previousReviewStatus === "edited";
+
+  const { error } = await input.supabase
+    .from("development_evidence")
+    .update({
+      processing_status: "analysing",
+      include_in_intelligence: false,
+      review_status: "pending_review",
+      // Clear authorised keys so MDI cannot read stale capabilities.
+      capability_keys: [],
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.evidenceId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw new Error("Unable to begin evidence analysis.");
+  }
+
+  await input.supabase
+    .from("development_evidence_observations")
+    .update({
+      include_in_intelligence: false,
+      review_status: "proposed",
+    })
+    .eq("evidence_id", input.evidenceId);
+
+  await input.supabase
+    .from("development_evidence_links")
+    .delete()
+    .eq("from_evidence_id", input.evidenceId)
+    .eq("link_type", "supports");
+
+  if (hadAuthorisation) {
+    await writeEvidenceAudit({
+      supabase: input.supabase,
+      organisationId: detail.evidence.organisationId,
+      clientId: detail.evidence.clientId,
+      evidenceId: input.evidenceId,
+      actorUserId: input.userId,
+      action: "evidence_excluded",
+      metadata: {
+        reason: "reanalysis_started",
+        force: Boolean(input.force),
+        previousReviewStatus,
+        previousIncludeInIntelligence: previousInclude,
+        previousCapabilityKeys,
+        previousProcessingStatus,
+        processingStatus: "analysing",
+        reviewStatus: "pending_review",
+        includeInIntelligence: false,
+      },
+    });
+  }
+
+  return { invalidatedPriorAuthorisation: hadAuthorisation };
 }
 
 export async function saveAnalysedEvidence(input: {
@@ -377,6 +522,10 @@ export async function saveAnalysedEvidence(input: {
   evidenceId: string;
   structured: StructuredEvidence;
   sourceSummary?: string | null;
+  /** Authorised extracted source text already cleared for analysis (bounded at inference). */
+  extractedSourceText?: string | null;
+  /** Optional analyse-attempt diagnostics (elapsed, finish reason, tokens). */
+  analysisDiagnostics?: Record<string, unknown>;
 }): Promise<{
   evidence: DevelopmentEvidenceRecord;
   observations: DevelopmentEvidenceObservation[];
@@ -387,21 +536,39 @@ export async function saveAnalysedEvidence(input: {
     input.evidenceId
   );
 
-  const structured = validateStructuredPsychometricEvidence(
-    current.evidence.evidenceType,
-    input.structured
+  const structured = constrainStructuredEvidenceObservations(
+    validateStructuredPsychometricEvidence(
+      current.evidence.evidenceType,
+      input.structured
+    ),
+    current.evidence.evidenceType
   );
+
+  const hasUsableObservation = (structured.observations ?? []).some(
+    observation =>
+      String(observation.title ?? "").trim().length > 0 &&
+      String(observation.description ?? "").trim().length > 0
+  );
+  if (!hasUsableObservation) {
+    throw new Error(
+      "Cannot save analysed evidence without usable observations."
+    );
+  }
+
+  const authorisedExtractedText =
+    input.extractedSourceText ??
+    current.document?.extractedText ??
+    null;
 
   const capabilityKeys = Array.from(
     new Set([
       ...inferCapabilityKeysFromText(
-        [
-          input.sourceSummary ?? "",
-          ...(structured.observations ?? []).map(
-            item => `${item.title} ${item.description}`
-          ),
-          ...(structured.capabilitySignals ?? []),
-        ].join(" ")
+        buildCapabilityInferenceCorpus({
+          sourceSummary: input.sourceSummary,
+          observations: structured.observations,
+          capabilitySignals: structured.capabilitySignals,
+          extractedSourceText: authorisedExtractedText,
+        })
       ),
       ...((structured.observations ?? [])
         .map(item => item.capabilityKey)
@@ -482,6 +649,14 @@ export async function saveAnalysedEvidence(input: {
       evidenceType: current.evidence.evidenceType,
       observationCount: observations.length,
       processingStatus: "ready",
+      proposedCapabilityKeys: (structured.observations ?? [])
+        .map(item => item.capabilityKey)
+        .filter((value): value is string =>
+          Boolean(value && isPridmoraCapabilityKey(value))
+        ),
+      ...(input.analysisDiagnostics
+        ? { analysisDiagnostics: input.analysisDiagnostics }
+        : {}),
     },
   });
 
@@ -503,6 +678,8 @@ export async function reviewEvidence(input: {
     title?: string;
     description?: string;
     includeInIntelligence?: boolean;
+    /** When present, set/clear observation capability (catalogue keys only; null clears). */
+    capabilityKey?: string | null;
   }>;
   editedSummary?: string | null;
 }): Promise<{
@@ -515,7 +692,20 @@ export async function reviewEvidence(input: {
     input.evidenceId
   );
 
+  const observationById = new Map(
+    current.observations.map(observation => [observation.id, observation])
+  );
+  const capabilityDecisions: NonNullable<
+    EvidenceAuditMetadata["capabilityDecisions"]
+  > = [];
+  let capabilityEdited = false;
+
   for (const decision of input.observationDecisions ?? []) {
+    const existing = observationById.get(decision.observationId);
+    if (!existing) {
+      throw new Error("Observation not found for this evidence.");
+    }
+
     const patch: Record<string, unknown> = {
       review_status: decision.reviewStatus,
       include_in_intelligence:
@@ -527,6 +717,26 @@ export async function reviewEvidence(input: {
     if (decision.description !== undefined) {
       patch.description = decision.description;
     }
+
+    let reviewedCapabilityKey = existing.capabilityKey;
+    if (Object.prototype.hasOwnProperty.call(decision, "capabilityKey")) {
+      reviewedCapabilityKey = parseReviewCapabilityKey(decision.capabilityKey);
+      patch.capability_key = reviewedCapabilityKey;
+      if (reviewedCapabilityKey !== existing.capabilityKey) {
+        capabilityEdited = true;
+      }
+    }
+
+    const outcome = capabilityReviewDecisionOutcome({
+      proposedCapabilityKey: existing.capabilityKey,
+      reviewedCapabilityKey,
+    });
+    capabilityDecisions.push({
+      observationId: decision.observationId,
+      proposedCapabilityKey: existing.capabilityKey,
+      reviewedCapabilityKey,
+      outcome,
+    });
 
     const { error } = await input.supabase
       .from("development_evidence_observations")
@@ -548,9 +758,30 @@ export async function reviewEvidence(input: {
   } else if (input.decision === "exclude") {
     reviewStatus = "excluded";
     include = false;
-  } else if ((input.observationDecisions ?? []).some(item => item.title || item.description)) {
+  } else if (
+    capabilityEdited ||
+    (input.observationDecisions ?? []).some(
+      item => item.title || item.description
+    )
+  ) {
     reviewStatus = "edited";
   }
+
+  // Reload observation rows after patches to derive authorised capability_keys.
+  const afterObservationUpdates = await getEvidenceById(
+    input.supabase,
+    input.userId,
+    input.evidenceId
+  );
+  const authorisedCapabilityKeys = authorisedCapabilityKeysFromObservations(
+    afterObservationUpdates.observations,
+    include
+  );
+  const prunedStructured = pruneStructuredEvidenceToAuthorisedObservations({
+    structured: afterObservationUpdates.evidence.structuredEvidence,
+    observations: afterObservationUpdates.observations,
+    includeEvidenceInIntelligence: include,
+  });
 
   const { data, error } = await input.supabase
     .from("development_evidence")
@@ -559,6 +790,9 @@ export async function reviewEvidence(input: {
       include_in_intelligence: include,
       source_summary:
         input.editedSummary ?? current.evidence.sourceSummary,
+      capability_keys: authorisedCapabilityKeys,
+      structured_evidence: prunedStructured,
+      updated_at: new Date().toISOString(),
     })
     .eq("id", input.evidenceId)
     .select("*")
@@ -568,33 +802,10 @@ export async function reviewEvidence(input: {
     throw new Error("Unable to save evidence review.");
   }
 
-  // Prune structured_evidence.observations to authorised rows only so
-  // helpers that still read the JSON blob cannot leak excluded content.
-  const afterStatus = await getEvidenceById(
-    input.supabase,
-    input.userId,
-    input.evidenceId
-  );
-  const prunedStructured = pruneStructuredEvidenceToAuthorisedObservations({
-    structured: afterStatus.evidence.structuredEvidence,
-    observations: afterStatus.observations,
-    includeEvidenceInIntelligence: include,
-  });
-  const { error: pruneError } = await input.supabase
-    .from("development_evidence")
-    .update({
-      structured_evidence: prunedStructured,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", input.evidenceId)
-    .is("deleted_at", null);
-  if (pruneError) {
-    throw new Error("Unable to update authorised evidence observations.");
-  }
-
   const prunedEvidence = {
     ...mapEvidenceRow(data as Record<string, unknown>),
     structuredEvidence: prunedStructured,
+    capabilityKeys: authorisedCapabilityKeys,
   };
 
   // Rebuild capability links for approved evidence
@@ -624,6 +835,7 @@ export async function reviewEvidence(input: {
       reviewStatus,
       includeInIntelligence: include,
       observationCount: refreshed.observations.length,
+      authorisedCapabilityKeys,
     },
   });
 
@@ -634,7 +846,12 @@ export async function reviewEvidence(input: {
     evidenceId: input.evidenceId,
     actorUserId: input.userId,
     action: "evidence_reviewed",
-    metadata: { reviewStatus },
+    metadata: {
+      reviewStatus,
+      capabilityDecisions,
+      authorisedCapabilityKeys,
+      includeInIntelligence: include,
+    },
   });
 
   return {

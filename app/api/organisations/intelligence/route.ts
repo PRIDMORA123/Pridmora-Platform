@@ -13,7 +13,10 @@ import {
   fetchOrganisationIntelligenceSources,
   hasEnoughEvidenceForOrganisationView,
 } from "@/lib/organisation-intelligence";
-import { isSupabaseServiceRoleConfigured } from "@/lib/supabase/server";
+import {
+  getSupabaseServiceClient,
+  isSupabaseServiceRoleConfigured,
+} from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -26,6 +29,13 @@ export async function GET(request: Request) {
     "intelligence.organisation.read"
   );
   if (denied) return denied;
+
+  if (!isSupabaseServiceRoleConfigured()) {
+    return NextResponse.json(
+      { error: "Server configuration is incomplete." },
+      { status: 503 }
+    );
+  }
 
   const organisationId = auth.context.organisation.organisationId;
   const organisationName = auth.context.organisation.organisation.name;
@@ -40,16 +50,20 @@ export async function GET(request: Request) {
     periodEnd,
   });
 
+  // Authz first. Snapshot persistence/retrieval uses the privileged server
+  // client so the Lead JWT never needs direct access to private development tables.
+  const snapshotClient = getSupabaseServiceClient();
+
   try {
     const [snapshot, history] = await Promise.all([
       loadOrganisationIntelligenceSnapshot({
-        supabase: auth.context.supabase,
+        supabase: snapshotClient,
         organisationId,
         organisationName,
         snapshotId,
       }),
       listOrganisationIntelligenceSnapshots({
-        supabase: auth.context.supabase,
+        supabase: snapshotClient,
         organisationId,
       }),
     ]);
@@ -109,8 +123,9 @@ export async function GET(request: Request) {
       error instanceof Error
         ? error.message
         : "Unable to load organisation intelligence.";
-    // Table may not exist until migration is applied.
-    if (/relation|does not exist|schema cache/i.test(message)) {
+    // Genuine missing relation on the privileged client only.
+    // JWT schema-cache misses must not be reported as a migration problem.
+    if (/relation .* does not exist|does not exist/i.test(message)) {
       return NextResponse.json({
         snapshot: null,
         history: [],

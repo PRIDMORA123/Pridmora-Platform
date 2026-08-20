@@ -16,6 +16,8 @@ import {
   wouldMembershipConsumeSeat,
 } from "@/lib/organisations/licence";
 import type { MembershipRole, ProfessionalRole } from "@/lib/organisations/types";
+import { countActiveAssignedPeopleByUser } from "@/lib/organisations/assignments";
+import { listSelfDevelopmentClientIdsForOrganisation } from "@/lib/organisation-intelligence/exclude-self-development";
 
 export const runtime = "nodejs";
 
@@ -56,15 +58,20 @@ export async function GET() {
 
     const { data: assignments } = await auth.context.supabase
       .from("relationship_assignments")
-      .select("user_id")
+      .select("user_id, client_id")
       .eq("organisation_id", organisationId)
       .eq("status", "active");
 
-    const assignmentCounts = new Map<string, number>();
-    for (const row of assignments ?? []) {
-      const uid = row.user_id as string;
-      assignmentCounts.set(uid, (assignmentCounts.get(uid) ?? 0) + 1);
-    }
+    const selfDevelopmentIds = new Set(
+      await listSelfDevelopmentClientIdsForOrganisation(
+        auth.context.supabase,
+        organisationId
+      )
+    );
+    const assignmentCounts = countActiveAssignedPeopleByUser(
+      (assignments ?? []) as Array<{ user_id: string; client_id: string }>,
+      selfDevelopmentIds
+    );
 
     const seatUsage = await loadPractitionerSeatUsage(
       auth.context.supabase,

@@ -193,3 +193,46 @@ export function inferCapabilityKeysFromText(text: string): PridmoraCapabilityKey
   }
   return matched;
 }
+
+/** Max characters of authorised extracted source text used for capability inference. */
+export const CAPABILITY_INFERENCE_SOURCE_TEXT_MAX_CHARS = 4000;
+
+/**
+ * Bound already-authorised extracted source text for capability inference.
+ * Does not load new content — callers must pass text already cleared for analysis.
+ */
+export function boundExtractedTextForCapabilityInference(
+  text: string,
+  maxChars: number = CAPABILITY_INFERENCE_SOURCE_TEXT_MAX_CHARS
+): string {
+  const normalised = String(text ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!normalised) return "";
+  const limit = Math.max(0, maxChars);
+  return normalised.slice(0, limit);
+}
+
+/**
+ * Build the text corpus used by inferCapabilityKeysFromText.
+ * Includes summary, observations, capability signals, and a bounded slice of
+ * authorised extracted source text (when provided).
+ */
+export function buildCapabilityInferenceCorpus(input: {
+  sourceSummary?: string | null;
+  observations?: ReadonlyArray<{
+    title?: string | null;
+    description?: string | null;
+  }>;
+  capabilitySignals?: readonly string[] | null;
+  extractedSourceText?: string | null;
+}): string {
+  return [
+    input.sourceSummary ?? "",
+    ...(input.observations ?? []).map(
+      item => `${item.title ?? ""} ${item.description ?? ""}`
+    ),
+    ...(input.capabilitySignals ?? []),
+    boundExtractedTextForCapabilityInference(input.extractedSourceText ?? ""),
+  ].join(" ");
+}

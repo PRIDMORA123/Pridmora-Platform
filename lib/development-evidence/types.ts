@@ -251,6 +251,28 @@ export type EvidenceAuditMetadata = {
   fileName?: string;
   contentHashPrefix?: string;
   storagePathRemoved?: boolean;
+  /** Aurelia-proposed capability keys at analyse time (catalogue keys only). */
+  proposedCapabilityKeys?: string[];
+  /**
+   * Per-observation capability review outcomes.
+   * Distinguishes AI proposed X → accepted X from AI proposed X → corrected to Y.
+   */
+  capabilityDecisions?: Array<{
+    observationId: string;
+    proposedCapabilityKey: string | null;
+    reviewedCapabilityKey: string | null;
+    outcome: "accepted" | "corrected" | "removed" | "unchanged_absent";
+  }>;
+  authorisedCapabilityKeys?: string[];
+  /** Why authorisation changed (e.g. reanalysis_started). */
+  reason?: string;
+  previousReviewStatus?: string;
+  previousIncludeInIntelligence?: boolean;
+  previousCapabilityKeys?: string[];
+  previousProcessingStatus?: string;
+  force?: boolean;
+  /** Analyse attempt timing / finish diagnostics (no raw evidence text). */
+  analysisDiagnostics?: Record<string, unknown>;
   /** Never include raw evidence text. */
   action?: EvidenceAuditAction;
 };

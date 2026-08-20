@@ -6,9 +6,11 @@ import {
   hasPermission,
 } from "@/lib/organisations/permissions";
 import {
+  LEAD_MANAGER_DI_INTERPRETATION_COPY,
   LEAD_PRIVACY_BOUNDARY_COPY,
   STRENGTH_EXPLANATIONS,
   strengthDisplayLabel,
+  themeDescriptionForKey,
 } from "@/lib/manager-development-intelligence/ui-copy";
 import { MANAGER_DEVELOPMENT_PRIVACY_THRESHOLD } from "@/lib/manager-development-intelligence";
 
@@ -74,7 +76,10 @@ describe("Stage 3.2 Organisation Lead Manager Development UI", () => {
   it("uses qualitative strength labels without numeric scores", () => {
     expect(strengthDisplayLabel("emerging")).toBe("Emerging");
     expect(strengthDisplayLabel("developing")).toBe("Developing");
-    expect(STRENGTH_EXPLANATIONS.emerging).toMatch(/privacy-safe pattern/i);
+    expect(STRENGTH_EXPLANATIONS.emerging).toMatch(
+      /privacy-safe shared development theme/i
+    );
+    expect(STRENGTH_EXPLANATIONS.emerging).toMatch(/development signals/i);
     expect(STRENGTH_EXPLANATIONS.developing).toMatch(/more than one type/i);
     expect(MANAGER_DEVELOPMENT_PRIVACY_THRESHOLD).toBe(5);
   });
@@ -151,5 +156,70 @@ describe("Stage 3.2 Organisation Lead Manager Development UI", () => {
     // Negated framing is allowed (e.g. "not … rankings or performance scores").
     expect(combined).toMatch(/not individual[\s\S]*performance scores/);
     expect(LEAD_PRIVACY_BOUNDARY_COPY).toMatch(/remain private/i);
+  });
+
+  it("Stage 5 L1: theme cards describe a shared privacy-safe theme, not observed behaviour", () => {
+    const themeKeys = [
+      "delegation",
+      "feedback",
+      "difficult_conversations",
+      "accountability",
+      "psychological_safety",
+      "presence",
+      "collaboration",
+      "confidence",
+      "role_transition",
+      "boundaries",
+    ];
+    for (const themeKey of themeKeys) {
+      const description = themeDescriptionForKey(themeKey);
+      expect(description).toBeTruthy();
+      expect(description).toMatch(/shared development theme around/i);
+      expect(description).toMatch(/passed the privacy threshold/i);
+      expect(description).not.toMatch(/managers are showing/i);
+      expect(description).not.toMatch(/showing a recurring/i);
+    }
+
+    const copySource = read("lib/manager-development-intelligence/ui-copy.ts");
+    expect(copySource).not.toMatch(/Managers are showing/i);
+
+    const buyerFacing = [
+      LEAD_MANAGER_DI_INTERPRETATION_COPY,
+      STRENGTH_EXPLANATIONS.emerging,
+      STRENGTH_EXPLANATIONS.developing,
+      ...themeKeys.map(key => themeDescriptionForKey(key) ?? ""),
+    ].join("\n");
+    expect(buyerFacing).not.toMatch(/themeKey|modality|capability key/i);
+  });
+
+  it("Stage 5 L1: interpretation names focus and/or authorised evidence, not evidence alone", () => {
+    expect(LEAD_MANAGER_DI_INTERPRETATION_COPY).toMatch(/development focus/i);
+    expect(LEAD_MANAGER_DI_INTERPRETATION_COPY).toMatch(
+      /where authorised,\s*development evidence/i
+    );
+    expect(LEAD_MANAGER_DI_INTERPRETATION_COPY).not.toMatch(
+      /reflect contributing authorised evidence/i
+    );
+    expect(LEAD_MANAGER_DI_INTERPRETATION_COPY).not.toMatch(
+      /how clearly a theme appears in the available evidence/i
+    );
+    expect(STRENGTH_EXPLANATIONS.emerging).not.toMatch(
+      /the evidence is still developing/i
+    );
+  });
+
+  it("Stage 5 L1: Lead copy does not imply behavioural proof or competence measurement", () => {
+    const copy = read("lib/manager-development-intelligence/ui-copy.ts");
+    const combined = `${copy}\n${LEAD_MANAGER_DI_INTERPRETATION_COPY}\n${STRENGTH_EXPLANATIONS.emerging}\n${STRENGTH_EXPLANATIONS.developing}`.toLowerCase();
+    expect(combined).not.toContain("managers are showing");
+    expect(combined).not.toMatch(/competence score|competence measure/);
+    expect(combined).not.toMatch(/\bproves\b/);
+    expect(LEAD_MANAGER_DI_INTERPRETATION_COPY).toMatch(/not a census/i);
+    expect(LEAD_MANAGER_DI_INTERPRETATION_COPY).toMatch(
+      /not a census, ranking or measure of individual performance/i
+    );
+    expect(LEAD_MANAGER_DI_INTERPRETATION_COPY).toMatch(
+      /does not prove that no development need exists/i
+    );
   });
 });

@@ -313,6 +313,86 @@ describe("organisation usage aggregation for Organisation Lead", () => {
     expect(metrics.activeRelationships).toBe(2);
   });
 
+  it("Westbridge-style overview counts 10 Managers × 5 People as 50, excluding self-development", async () => {
+    const people = Array.from({ length: 50 }, (_, index) => ({
+      id: `person-${index + 1}`,
+      role: "Team leader",
+      is_self_development: false,
+      archived_at: null,
+    }));
+    const selfDevelopment = Array.from({ length: 10 }, (_, index) => ({
+      id: `self-${index + 1}`,
+      role: "Self development",
+      is_self_development: true,
+      archived_at: null,
+    }));
+    const peopleIds = people.map(row => row.id);
+
+    const supabase = {
+      from(table: string) {
+        const state: { filters: Record<string, unknown> } = { filters: {} };
+        const builder = {
+          select() {
+            return builder;
+          },
+          eq(column: string, value: unknown) {
+            state.filters[column] = value;
+            return builder;
+          },
+          gte() {
+            return builder;
+          },
+          in(column: string, values: string[]) {
+            state.filters[`${column}__in`] = values;
+            return builder;
+          },
+          is() {
+            return builder;
+          },
+          then(resolve: (value: unknown) => void) {
+            if (table === "clients") {
+              resolve({
+                data: [...people, ...selfDevelopment],
+                error: null,
+              });
+              return;
+            }
+            if (table === "development_updates") {
+              expect(state.filters.client_id__in).toEqual(peopleIds);
+              resolve({ data: null, count: 0, error: null });
+              return;
+            }
+            if (table === "development_reports") {
+              expect(state.filters.client_id__in).toEqual(peopleIds);
+              resolve({ data: null, count: 0, error: null });
+              return;
+            }
+            if (table === "organisation_memberships") {
+              resolve({ data: [], count: 10, error: null });
+              return;
+            }
+            if (table === "relationship_assignments") {
+              resolve({ data: [], count: 0, error: null });
+              return;
+            }
+            resolve({ data: null, count: 0, error: null });
+          },
+        };
+        return builder;
+      },
+    };
+
+    const metrics = await loadSafeOversightMetrics(
+      supabase as never,
+      "org-westbridge",
+      "Westbridge Services Group",
+      "business"
+    );
+
+    expect(metrics.activeRelationships).toBe(50);
+    expect(metrics.activeRelationships).not.toBe(60);
+  });
+
   it("does not silently treat query failures as zero", async () => {
     const supabase = {
       from(table: string) {

@@ -42,6 +42,18 @@ describe("owner console foundation", () => {
     expect(sql).toContain("owner_platform_usage_totals");
   });
 
+  it("excludes self-development from Owner People/team-member counts, not seat counts", () => {
+    const path =
+      "supabase/migrations/20260820120000_owner_people_counts_exclude_self_development.sql";
+    expect(existsSync(join(root, path))).toBe(true);
+    const sql = read(path);
+    expect(sql).toContain("team_members");
+    expect(sql).toContain("total_team_members");
+    expect(sql).toContain("not public.client_is_self_development(c.id)");
+    expect(sql).not.toContain("seats_purchased");
+    expect(sql).not.toContain("practitioner_seats");
+  });
+
   it("does not grant platform owners direct select on confidential coaching content tables", () => {
     const sql = read("supabase/migrations/20260808120000_owner_console.sql");
     expect(sql).toMatch(/IMPORTANT: intentionally NO platform_owner policies/i);

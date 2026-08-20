@@ -22,6 +22,8 @@ import {
 import {
   EVIDENCE_TYPE_LABELS,
   EXTRACTION_VERSION,
+  EVIDENCE_ANALYSIS_MAX_OBSERVATIONS,
+  EVIDENCE_ANALYSIS_MAX_OBSERVATIONS_PSYCHOMETRIC,
   PSYCHOMETRIC_EVIDENCE_TYPES,
   type DevelopmentEvidenceType,
 } from "@/lib/development-evidence/constants";
@@ -235,39 +237,66 @@ export function buildEvidenceAiContext(
       input.document.evidenceType
     );
 
-  sections.push(
-    "Return structured JSON only with this shape:",
-    JSON.stringify(
-      {
-        observations: [
-          {
-            title: "string",
-            description: "string",
-            category: "string optional",
-            behaviouralEvidence: "string optional",
-            developmentImplication: "string optional",
-            sourceConfidence: "low|medium|high",
-            assessmentContext: "string optional",
-            limitations: "string optional",
-            capabilityKey: "optional pridmora capability key",
-          },
-        ],
-        strengthSignals: [],
-        developmentSignals: [],
-        capabilitySignals: [],
-        contradictoryEvidence: [],
-        context: [],
-        limitations: [],
-      },
-      null,
-      2
-    ),
-    "",
-    "Do not invent observations. Prefer fewer high-quality observations."
-  );
   if (isPsychometric) {
     sections.push(
-      "Treat this assessment as preference/contextual evidence only."
+      "Return structured JSON only with this shape:",
+      JSON.stringify(
+        {
+          observations: [
+            {
+              title: "concise string",
+              description: "concise string",
+              behaviouralEvidence: "short supporting excerpt or paraphrase",
+              developmentImplication: "one short sentence optional",
+              sourceConfidence: "low|medium|high",
+              assessmentContext:
+                "preference/contextual framing when needed for this assessment",
+              capabilityKey: "optional pridmora capability key",
+              limitations: "string optional",
+            },
+          ],
+          strengthSignals: [],
+          developmentSignals: [],
+          capabilitySignals: [],
+          contradictoryEvidence: [],
+          limitations: [],
+        },
+        null,
+        2
+      ),
+      "",
+      `Hard limit: at most ${EVIDENCE_ANALYSIS_MAX_OBSERVATIONS_PSYCHOMETRIC} observations.`,
+      "Prioritise the strongest preference or contextual signals supported by the assessment.",
+      "Keep each field concise. Do not write exhaustive narrative.",
+      "Treat this assessment as preference/contextual evidence only.",
+      "Do not invent observations."
+    );
+  } else {
+    sections.push(
+      "Return structured JSON only with this shape:",
+      JSON.stringify(
+        {
+          observations: [
+            {
+              title: "concise string",
+              description: "concise string",
+              behaviouralEvidence: "short supporting evidence",
+              developmentImplication: "one short sentence optional",
+              capabilityKey: "optional pridmora capability key when genuinely supported",
+            },
+          ],
+          limitations: [],
+        },
+        null,
+        2
+      ),
+      "",
+      `Hard limit: at most ${EVIDENCE_ANALYSIS_MAX_OBSERVATIONS} observations.`,
+      "Prioritise the strongest, most developmentally useful evidence-backed observations for manager review.",
+      "Each observation must be concise. Do not generate repetitive parallel narrative.",
+      "Do not include assessmentContext.",
+      "Leave strengthSignals, developmentSignals, capabilitySignals and contradictoryEvidence empty unless essential — prefer observations.",
+      "Do not invent observations. Fewer strong observations are better than many weak ones."
     );
   }
 

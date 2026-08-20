@@ -109,6 +109,12 @@ describe("Gate 3.4 P0 raw aggregation RPC lockdown", () => {
     expect(generateRoute).toContain("Authz first");
     expect(generateLib).toContain("fetchOrganisationIntelligenceSources");
     expect(generateLib).toContain("service-role only");
+    expect(generateLib).toContain("getSupabaseServiceClient");
+    expect(generateLib).toContain("insertGeneratingSnapshot");
+    expect(generateLib).toContain("persistSnapshotView");
+    expect(generateRoute).not.toMatch(
+      /generateOrganisationIntelligence\(\{\s*supabase:/
+    );
     expect(repository).toContain("getSupabaseServiceClient");
     expect(repository).toContain("isSupabaseServiceRoleConfigured");
     expect(repository).toContain("aggregate_organisation_intelligence_sources");
@@ -118,10 +124,17 @@ describe("Gate 3.4 P0 raw aggregation RPC lockdown", () => {
     );
   });
 
-  it("F: Lead still loads latest ready snapshot via authenticated client", () => {
-    expect(loadRoute).toContain("loadOrganisationIntelligenceSnapshot");
-    expect(loadRoute).toContain("auth.context.supabase");
+  it("F: after organisation.read, Lead loads snapshots via privileged server client", () => {
+    expect(loadRoute).toContain("requireOrganisationPermission");
     expect(loadRoute).toContain("intelligence.organisation.read");
+    expect(loadRoute).toContain("getSupabaseServiceClient");
+    expect(loadRoute).toContain("loadOrganisationIntelligenceSnapshot");
+    expect(loadRoute).not.toMatch(
+      /loadOrganisationIntelligenceSnapshot\(\{\s*supabase:\s*auth\.context\.supabase/
+    );
+    expect(loadRoute).not.toMatch(
+      /listOrganisationIntelligenceSnapshots\(\{\s*supabase:\s*auth\.context\.supabase/
+    );
     expect(canReadOrganisationIntelligence("oversight")).toBe(true);
     expect(hasPermission("oversight", "intelligence.organisation.read")).toBe(
       true

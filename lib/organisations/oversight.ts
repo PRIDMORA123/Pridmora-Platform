@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { isSelfDevelopmentClientRow } from "@/lib/my-development/self-development-identity";
 import {
   countActivePractitioners,
   type AssignmentMetricRow,
@@ -23,22 +24,49 @@ function requireCount(result: CountResult, label: string): number {
   return result.count ?? 0;
 }
 
-async function listOrganisationClientIds(
+async function listOrganisationPeopleClients(
   supabase: SupabaseClient,
   organisationId: string
-): Promise<string[]> {
-  const { data, error } = await supabase
+): Promise<Array<{ id: string; archivedAt: string | null }>> {
+  const withFlag = await supabase
     .from("clients")
-    .select("id")
+    .select("id, role, is_self_development, archived_at")
     .eq("organisation_id", organisationId);
+
+  let rows = withFlag.data as Array<{
+    id: string;
+    role?: string | null;
+    is_self_development?: boolean | null;
+    archived_at?: string | null;
+  }> | null;
+  let error = withFlag.error;
+
+  if (error && /is_self_development|schema cache|could not find/i.test(error.message)) {
+    const fallback = await supabase
+      .from("clients")
+      .select("id, role, archived_at")
+      .eq("organisation_id", organisationId);
+    rows = fallback.data as typeof rows;
+    error = fallback.error;
+  }
 
   if (error) {
     throw new Error(`Unable to load organisation clients: ${error.message}`);
   }
 
-  return (data ?? [])
-    .map(row => (typeof row.id === "string" ? row.id : ""))
-    .filter(Boolean);
+  return (rows ?? [])
+    .filter(
+      row =>
+        !isSelfDevelopmentClientRow({
+          is_self_development: row.is_self_development,
+          role: row.role,
+        })
+    )
+    .map(row => ({
+      id: typeof row.id === "string" ? row.id : "",
+      archivedAt: row.archived_at ?? null,
+    }))
+    .filter(row => Boolean(row.id));
 }
 
 /**
@@ -94,16 +122,18 @@ export async function loadSafeOversightMetrics(
   monthStart.setUTCHours(0, 0, 0, 0);
   const monthIso = monthStart.toISOString();
 
-  const organisationClientIds = await listOrganisationClientIds(
+  const peopleClients = await listOrganisationPeopleClients(
     supabase,
     organisationId
   );
+  const organisationClientIds = peopleClients.map(row => row.id);
+  const activeRelationships = peopleClients.filter(row => row.archivedAt == null)
+    .length;
 
   const [
     membersResult,
     membershipRowsResult,
     assignmentRowsResult,
-    relationshipsResult,
     conversationsResult,
     awaitingNotesResult,
     awaitingSummaryResult,
@@ -127,11 +157,6 @@ export async function loadSafeOversightMetrics(
       .eq("organisation_id", organisationId)
       .eq("status", "active")
       .in("assignment_role", ["primary", "co_practitioner", "cover"]),
-    supabase
-      .from("clients")
-      .select("id", { count: "exact", head: true })
-      .eq("organisation_id", organisationId)
-      .is("archived_at", null),
     supabase
       .from("sessions")
       .select("id", { count: "exact", head: true })
@@ -205,10 +230,7 @@ export async function loadSafeOversightMetrics(
     organisationType: organisationType ?? null,
     activeMembers: requireCount(membersResult, "active members"),
     practitioners: countActivePractitioners(memberships, assignments),
-    activeRelationships: requireCount(
-      relationshipsResult,
-      "active relationships"
-    ),
+    activeRelationships,
     conversationsThisMonth: requireCount(
       conversationsResult,
       "conversations this month"

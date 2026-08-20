@@ -16,14 +16,14 @@ export const LEAD_OVERVIEW_LENS_NOTE =
 
 /** Coverage, prevalence and absence — used once in “About this picture”. */
 export const LEAD_MANAGER_DI_INTERPRETATION_COPY =
-  "These themes reflect contributing authorised evidence and should not be interpreted as a census of every licensed Manager. Pattern strength describes how clearly a theme appears in the available evidence; it is not a performance or competence measure. Absence of a theme does not prove that no development need exists — evidence may be insufficient, or the privacy threshold may not yet be met.";
+  "These themes are drawn from Managers’ development focus and, where authorised, development evidence. They are privacy-safe organisational signals, not a census, ranking or measure of individual performance. Pattern strength reflects the type and consistency of the available development signals. Absence of a theme does not prove that no development need exists.";
 
 export const STRENGTH_EXPLANATIONS: Record<
   ManagerDevelopmentPatternStrength,
   string
 > = {
   emerging:
-    "A privacy-safe pattern is visible, but the evidence is still developing.",
+    "A privacy-safe shared development theme is visible from the current development signals.",
   developing:
     "The pattern is supported by more than one type of development signal.",
 };
@@ -31,25 +31,25 @@ export const STRENGTH_EXPLANATIONS: Record<
 /** Safe catalogue descriptions — no private wording. */
 const THEME_DESCRIPTIONS: Record<string, string> = {
   delegation:
-    "Managers are showing a recurring development focus around delegation.",
+    "A shared development theme around delegation is visible across Managers and has passed the privacy threshold.",
   feedback:
-    "Managers are showing a recurring development focus around feedback.",
+    "A shared development theme around feedback is visible across Managers and has passed the privacy threshold.",
   difficult_conversations:
-    "Managers are showing a recurring development focus around difficult conversations.",
+    "A shared development theme around difficult conversations is visible across Managers and has passed the privacy threshold.",
   accountability:
-    "Managers are showing a recurring development focus around accountability.",
+    "A shared development theme around accountability is visible across Managers and has passed the privacy threshold.",
   psychological_safety:
-    "Managers are showing a recurring development focus around psychological safety.",
+    "A shared development theme around psychological safety is visible across Managers and has passed the privacy threshold.",
   presence:
-    "Managers are showing a recurring development focus around listening and presence.",
+    "A shared development theme around listening and presence is visible across Managers and has passed the privacy threshold.",
   collaboration:
-    "Managers are showing a recurring development focus around collaboration.",
+    "A shared development theme around collaboration is visible across Managers and has passed the privacy threshold.",
   confidence:
-    "Managers are showing a recurring development focus around confident leadership.",
+    "A shared development theme around confident leadership is visible across Managers and has passed the privacy threshold.",
   role_transition:
-    "Managers are showing a recurring development focus around role transition.",
+    "A shared development theme around role transition is visible across Managers and has passed the privacy threshold.",
   boundaries:
-    "Managers are showing a recurring development focus around boundaries and workload.",
+    "A shared development theme around boundaries and workload is visible across Managers and has passed the privacy threshold.",
 };
 
 export function themeDescriptionForKey(themeKey: string): string | null {

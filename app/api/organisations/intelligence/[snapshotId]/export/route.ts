@@ -8,6 +8,10 @@ import {
   buildOrganisationIntelligenceExportHtml,
   loadOrganisationIntelligenceSnapshot,
 } from "@/lib/organisation-intelligence";
+import {
+  getSupabaseServiceClient,
+  isSupabaseServiceRoleConfigured,
+} from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -25,12 +29,19 @@ export async function GET(_request: Request, context: RouteContext) {
   );
   if (denied) return denied;
 
+  if (!isSupabaseServiceRoleConfigured()) {
+    return NextResponse.json(
+      { error: "Server configuration is incomplete." },
+      { status: 503 }
+    );
+  }
+
   const { snapshotId } = await context.params;
   const organisationId = auth.context.organisation.organisationId;
 
   try {
     const snapshot = await loadOrganisationIntelligenceSnapshot({
-      supabase: auth.context.supabase,
+      supabase: getSupabaseServiceClient(),
       organisationId,
       organisationName: auth.context.organisation.organisation.name,
       snapshotId,

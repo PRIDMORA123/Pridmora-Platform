@@ -6,7 +6,9 @@ import { EvidenceConfidencePanel } from "@/components/development-evidence/evide
 import { MyDevelopmentSubnav } from "@/components/my-development-subnav";
 import { apiJson, errorMessage } from "@/lib/api-client";
 import {
+  EVIDENCE_ANALYSIS_CLIENT_TIMEOUT_MS,
   MAX_UPLOAD_BYTES,
+  PRIDMORA_CAPABILITIES,
   type DevelopmentEvidenceObservation,
   type DevelopmentEvidenceRecord,
   type EvidenceConfidenceResult,
@@ -23,7 +25,7 @@ import {
 import type { Client } from "@/lib/types";
 
 const UPLOAD_REQUEST_TIMEOUT_MS = 25_000;
-const ANALYSE_REQUEST_TIMEOUT_MS = 25_000;
+const ANALYSE_REQUEST_TIMEOUT_MS = EVIDENCE_ANALYSIS_CLIENT_TIMEOUT_MS;
 
 function isAbortError(error: unknown): boolean {
   return (
@@ -100,7 +102,15 @@ export function DevelopmentEvidenceView({
   const [activeEvidenceId, setActiveEvidenceId] = useState<string | null>(null);
   const [detail, setDetail] = useState<DetailPayload | null>(null);
   const [editMap, setEditMap] = useState<
-    Record<string, { title: string; description: string; include: boolean }>
+    Record<
+      string,
+      {
+        title: string;
+        description: string;
+        include: boolean;
+        capabilityKey: string | null;
+      }
+    >
   >({});
   const uploadInFlightRef = useRef(false);
   const uploadPanelRef = useRef<HTMLElement | null>(null);
@@ -150,13 +160,19 @@ export function DevelopmentEvidenceView({
     setDetail(data);
     const next: Record<
       string,
-      { title: string; description: string; include: boolean }
+      {
+        title: string;
+        description: string;
+        include: boolean;
+        capabilityKey: string | null;
+      }
     > = {};
     for (const observation of data.observations ?? []) {
       next[observation.id] = {
         title: observation.title,
         description: observation.description,
         include: observation.reviewStatus !== "rejected",
+        capabilityKey: observation.capabilityKey ?? null,
       };
     }
     setEditMap(next);
@@ -337,16 +353,27 @@ export function DevelopmentEvidenceView({
       const observationDecisions = detail.observations.map(observation => {
         const edited = editMap[observation.id];
         const include = edited?.include ?? false;
+        const capabilityKey =
+          edited && Object.prototype.hasOwnProperty.call(edited, "capabilityKey")
+            ? edited.capabilityKey
+            : (observation.capabilityKey ?? null);
+        const titleChanged =
+          (edited?.title ?? observation.title) !== observation.title;
+        const descriptionChanged =
+          (edited?.description ?? observation.description) !==
+          observation.description;
+        const capabilityChanged =
+          capabilityKey !== (observation.capabilityKey ?? null);
         return {
           observationId: observation.id,
           reviewStatus: include
-            ? edited?.title !== observation.title ||
-              edited?.description !== observation.description
+            ? titleChanged || descriptionChanged || capabilityChanged
               ? ("edited" as const)
               : ("approved" as const)
             : ("excluded" as const),
           title: edited?.title,
           description: edited?.description,
+          capabilityKey,
           includeInIntelligence: include && decision === "approve",
         };
       });
@@ -726,6 +753,20 @@ export function DevelopmentEvidenceView({
                             detail.observationSourceEvidence?.find(
                               item => item.observationId === observation.id
                             ) ?? null;
+                          const draft = {
+                            title: edited?.title ?? observation.title,
+                            description:
+                              edited?.description ?? observation.description,
+                            include: edited?.include ?? false,
+                            capabilityKey:
+                              edited &&
+                              Object.prototype.hasOwnProperty.call(
+                                edited,
+                                "capabilityKey"
+                              )
+                                ? edited.capabilityKey
+                                : (observation.capabilityKey ?? null),
+                          };
                           return (
                             <li
                               key={observation.id}
@@ -734,16 +775,12 @@ export function DevelopmentEvidenceView({
                               <label className="checkbox-row">
                                 <input
                                   type="checkbox"
-                                  checked={edited?.include ?? false}
+                                  checked={draft.include}
                                   onChange={event =>
                                     setEditMap(current => ({
                                       ...current,
                                       [observation.id]: {
-                                        title:
-                                          edited?.title ?? observation.title,
-                                        description:
-                                          edited?.description ??
-                                          observation.description,
+                                        ...draft,
                                         include: event.target.checked,
                                       },
                                     }))
@@ -754,16 +791,13 @@ export function DevelopmentEvidenceView({
                               <label className="field">
                                 <span>Title</span>
                                 <input
-                                  value={edited?.title ?? observation.title}
+                                  value={draft.title}
                                   onChange={event =>
                                     setEditMap(current => ({
                                       ...current,
                                       [observation.id]: {
+                                        ...draft,
                                         title: event.target.value,
-                                        description:
-                                          edited?.description ??
-                                          observation.description,
-                                        include: edited?.include ?? true,
                                       },
                                     }))
                                   }
@@ -773,22 +807,50 @@ export function DevelopmentEvidenceView({
                                 <span>Observation</span>
                                 <textarea
                                   rows={3}
-                                  value={
-                                    edited?.description ??
-                                    observation.description
-                                  }
+                                  value={draft.description}
                                   onChange={event =>
                                     setEditMap(current => ({
                                       ...current,
                                       [observation.id]: {
-                                        title:
-                                          edited?.title ?? observation.title,
+                                        ...draft,
                                         description: event.target.value,
-                                        include: edited?.include ?? true,
                                       },
                                     }))
                                   }
                                 />
+                              </label>
+                              <label className="field">
+                                <span>Capability</span>
+                                <select
+                                  value={draft.capabilityKey ?? ""}
+                                  onChange={event =>
+                                    setEditMap(current => ({
+                                      ...current,
+                                      [observation.id]: {
+                                        ...draft,
+                                        capabilityKey: event.target.value
+                                          ? event.target.value
+                                          : null,
+                                      },
+                                    }))
+                                  }
+                                  data-testid={`evidence-review-capability-${observation.id}`}
+                                >
+                                  <option value="">No capability</option>
+                                  {PRIDMORA_CAPABILITIES.map(capability => (
+                                    <option
+                                      key={capability.key}
+                                      value={capability.key}
+                                    >
+                                      {capability.label}
+                                    </option>
+                                  ))}
+                                </select>
+                                <span className="muted">
+                                  Aurelia proposed a capability. Keep it, change
+                                  it to another catalogue capability the
+                                  evidence supports, or clear it.
+                                </span>
                               </label>
                               <div className="field">
                                 <span>Supporting evidence</span>

@@ -250,6 +250,36 @@ export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 export const EXTRACTION_VERSION = "v1";
 
+/**
+ * Analyse-layer timing / completion budget.
+ *
+ * Coherence with the analyse API route (`maxDuration = 60`):
+ * - two attempts × per-attempt timeout = 50s of remote AI wall time
+ * - ~10s reserved for auth, begin/save, and audit overhead
+ * - client abort sits above the two-attempt AI ceiling and at/under the route budget
+ *
+ * Output is intentionally constrained (≤3 concise observations for normal evidence)
+ * so one completion should finish well under the attempt timeout.
+ */
+export const EVIDENCE_ANALYSIS_ATTEMPT_TIMEOUT_MS = 25_000;
+/**
+ * Completion budget for constrained evidence JSON (up to 3 concise observations).
+ * Sized for ~3 × (title + short description + behavioural support + capability +
+ * optional short implication) with JSON overhead — not an essay budget.
+ */
+export const EVIDENCE_ANALYSIS_MAX_COMPLETION_TOKENS = 900;
+/** Browser abort for `/analyse` — must cover 2 × attempt timeout without beating the 60s route. */
+export const EVIDENCE_ANALYSIS_CLIENT_TIMEOUT_MS = 55_000;
+export const EVIDENCE_ANALYSIS_ROUTE_MAX_DURATION_SECONDS = 60;
+
+/** Hard cap for normal (non-psychometric) Development Evidence AI observations. */
+export const EVIDENCE_ANALYSIS_MAX_OBSERVATIONS = 3;
+/**
+ * Psychometric assessments may surface a few preference signals; still bounded
+ * so generation cannot run unbounded.
+ */
+export const EVIDENCE_ANALYSIS_MAX_OBSERVATIONS_PSYCHOMETRIC = 5;
+
 export const EVIDENCE_AUDIT_ACTIONS = [
   "evidence_uploaded",
   "evidence_processed",

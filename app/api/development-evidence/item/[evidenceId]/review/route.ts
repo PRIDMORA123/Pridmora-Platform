@@ -16,6 +16,7 @@ type ReviewBody = {
     title?: string;
     description?: string;
     includeInIntelligence?: boolean;
+    capabilityKey?: string | null;
   }>;
   includeAll?: boolean;
   excludeAll?: boolean;
@@ -76,7 +77,12 @@ export async function POST(request: Request, { params }: Params) {
       error instanceof Error ? error.message : "unknown"
     );
     return NextResponse.json(
-      { error: "Unable to review evidence." },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to review evidence.",
+      },
       { status: 400 }
     );
   }

@@ -1,4 +1,3 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
 import {
   ORGANISATION_INTELLIGENCE_RETRY_ADDON,
@@ -26,6 +25,7 @@ import {
   validateOrganisationIntelligenceBrief,
 } from "@/lib/organisation-intelligence/validate-output";
 import type { OrganisationIntelligenceSnapshotView } from "@/lib/organisation-intelligence/types";
+import { getSupabaseServiceClient } from "@/lib/supabase/service-role";
 
 export type GenerateOrganisationIntelligenceResult =
   | {
@@ -82,7 +82,6 @@ async function generateExecutiveBriefWithAi(input: {
 }
 
 export async function generateOrganisationIntelligence(input: {
-  supabase: SupabaseClient;
   organisationId: string;
   organisationName: string;
   userId: string;
@@ -96,8 +95,13 @@ export async function generateOrganisationIntelligence(input: {
     periodEnd: input.periodEnd,
   });
 
+  // Authz already enforced by the generate route (intelligence.organisation.read).
+  // Snapshot persistence uses the privileged server client so the Lead JWT never
+  // needs direct table access to private underlying development content.
+  const snapshotClient = getSupabaseServiceClient();
+
   const snapshotId = await insertGeneratingSnapshot({
-    supabase: input.supabase,
+    supabase: snapshotClient,
     organisationId: input.organisationId,
     period,
     userId: input.userId,
@@ -105,7 +109,7 @@ export async function generateOrganisationIntelligence(input: {
   });
 
   const lock = await acquireGenerationLock({
-    supabase: input.supabase,
+    supabase: snapshotClient,
     organisationId: input.organisationId,
     userId: input.userId,
     snapshotId,
@@ -113,7 +117,7 @@ export async function generateOrganisationIntelligence(input: {
 
   if (!lock.ok) {
     await markSnapshotFailed({
-      supabase: input.supabase,
+      supabase: snapshotClient,
       snapshotId,
       message: "Generation already in progress.",
     });
@@ -263,7 +267,7 @@ export async function generateOrganisationIntelligence(input: {
     }
 
     await persistSnapshotView({
-      supabase: input.supabase,
+      supabase: snapshotClient,
       view,
     });
 
@@ -276,7 +280,7 @@ export async function generateOrganisationIntelligence(input: {
     const message =
       error instanceof Error ? error.message : "Intelligence generation failed.";
     await markSnapshotFailed({
-      supabase: input.supabase,
+      supabase: snapshotClient,
       snapshotId,
       message,
     });
@@ -287,7 +291,7 @@ export async function generateOrganisationIntelligence(input: {
     };
   } finally {
     await releaseGenerationLock({
-      supabase: input.supabase,
+      supabase: snapshotClient,
       organisationId: input.organisationId,
     });
   }

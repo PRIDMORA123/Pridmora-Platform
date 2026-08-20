@@ -67,14 +67,16 @@ describe("FIX-1 privacy / organisation visibility explanation", () => {
     expect(LEAD_PRIVACY_BOUNDARY_COPY).toMatch(
       /cannot identify or target/i
     );
+    expect(LEAD_MANAGER_DI_INTERPRETATION_COPY).toMatch(/not a census/i);
     expect(LEAD_MANAGER_DI_INTERPRETATION_COPY).toMatch(
-      /not be interpreted as a census/i
-    );
-    expect(LEAD_MANAGER_DI_INTERPRETATION_COPY).toMatch(
-      /not a performance or competence measure/i
+      /not a census, ranking or measure of individual performance/i
     );
     expect(LEAD_MANAGER_DI_INTERPRETATION_COPY).toMatch(
       /does not prove that no development need exists/i
+    );
+    expect(LEAD_MANAGER_DI_INTERPRETATION_COPY).toMatch(/development focus/i);
+    expect(LEAD_MANAGER_DI_INTERPRETATION_COPY).toMatch(
+      /where authorised,\s*development evidence/i
     );
     expect(PREVALENCE_DIRECTION_NOTE).toMatch(
       /not a performance measure/i

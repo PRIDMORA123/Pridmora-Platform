@@ -5,7 +5,11 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ManagerDevelopmentIntelligenceView as Payload } from "@/lib/manager-development-intelligence";
-import { LEAD_PRIVACY_BOUNDARY_COPY } from "@/lib/manager-development-intelligence/ui-copy";
+import {
+  LEAD_MANAGER_DI_INTERPRETATION_COPY,
+  LEAD_PRIVACY_BOUNDARY_COPY,
+  STRENGTH_EXPLANATIONS,
+} from "@/lib/manager-development-intelligence/ui-copy";
 
 vi.mock("next/link", () => ({
   default: ({
@@ -130,6 +134,14 @@ describe("Manager Development Intelligence Lead UI states", () => {
     expect(text).toContain("Strengthen delegation practice");
     expect(text).toContain("What you could do next");
     expect(text).toContain(LEAD_PRIVACY_BOUNDARY_COPY);
+    expect(text).toContain(
+      "A shared development theme around delegation is visible across Managers and has passed the privacy threshold."
+    );
+    expect(text).toContain(STRENGTH_EXPLANATIONS.emerging);
+    expect(text).toContain(STRENGTH_EXPLANATIONS.developing);
+    expect(text).toContain(LEAD_MANAGER_DI_INTERPRETATION_COPY);
+    expect(text).not.toMatch(/Managers are showing/i);
+    expect(text).not.toMatch(/reflect contributing authorised evidence/i);
     expect(text).not.toContain("5 Managers");
     expect(text).not.toContain("contributor");
     expect(text).not.toMatch(/\d+%/);

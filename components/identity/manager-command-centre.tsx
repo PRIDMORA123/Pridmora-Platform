@@ -10,6 +10,7 @@ import {
 } from "@/lib/organisations/manager-privacy-visibility-copy";
 import { resolveManagerHomeOrganisationIdentity } from "@/lib/organisations/manager-home-organisation-identity";
 import { useOrganisation } from "@/lib/organisations/organisation-context";
+import type { DevelopmentUpdateReviewTask } from "@/lib/development-updates/types";
 import {
   buildManagerHomeAttentionItems,
   type ManagerHomeAttentionItem,
@@ -86,6 +87,8 @@ export function ManagerCommandCentre({
   onOpenPeople,
   onAddEvidence,
   onOpenPerson,
+  awaitingUpdates = [],
+  onReviewDevelopmentUpdate,
 }: {
   greeting: string;
   coachName: string;
@@ -100,6 +103,9 @@ export function ManagerCommandCentre({
   onOpenPeople: () => void;
   onAddEvidence: () => void;
   onOpenPerson?: (personId: string) => void;
+  /** Assigned-only ready_for_review updates already loaded for Home. */
+  awaitingUpdates?: readonly DevelopmentUpdateReviewTask[];
+  onReviewDevelopmentUpdate?: (client: Client, updateId: string) => void;
 }) {
   const organisation = useOrganisation();
   const organisationIdentity = useMemo(
@@ -123,8 +129,8 @@ export function ManagerCommandCentre({
   const [showPrepareNeedsPerson, setShowPrepareNeedsPerson] = useState(false);
 
   const attentionItems = useMemo(
-    () => buildManagerHomeAttentionItems(clients),
-    [clients]
+    () => buildManagerHomeAttentionItems(clients, awaitingUpdates),
+    [clients, awaitingUpdates]
   );
 
   useEffect(() => {
@@ -260,8 +266,10 @@ export function ManagerCommandCentre({
 
       <NeedsAttentionSection
         items={attentionItems}
+        clients={clients}
         hasManagedPeople={hasManagedPeople}
         onOpenPerson={onOpenPerson}
+        onReviewDevelopmentUpdate={onReviewDevelopmentUpdate}
         onOpenPeople={onOpenPeople}
       />
 
@@ -424,13 +432,17 @@ export function ManagerCommandCentre({
 
 function NeedsAttentionSection({
   items,
+  clients,
   hasManagedPeople,
   onOpenPerson,
+  onReviewDevelopmentUpdate,
   onOpenPeople,
 }: {
   items: ManagerHomeAttentionItem[];
+  clients: Client[];
   hasManagedPeople: boolean;
   onOpenPerson?: (personId: string) => void;
+  onReviewDevelopmentUpdate?: (client: Client, updateId: string) => void;
   onOpenPeople: () => void;
 }) {
   return (
@@ -465,7 +477,18 @@ function NeedsAttentionSection({
                 type="button"
                 className="manager-front-door__attention-item"
                 data-testid="manager-needs-attention-item"
-                onClick={() => onOpenPerson?.(item.personId)}
+                onClick={() => {
+                  if (item.updateId && onReviewDevelopmentUpdate) {
+                    const person = clients.find(
+                      client => client.id === item.personId
+                    );
+                    if (person) {
+                      onReviewDevelopmentUpdate(person, item.updateId);
+                      return;
+                    }
+                  }
+                  onOpenPerson?.(item.personId);
+                }}
               >
                 <span className="manager-front-door__attention-person">
                   {item.personName}

@@ -42,12 +42,12 @@ export async function POST(request: Request) {
   }
 
   // Never trust browser-supplied organisation IDs.
-  // Authz first (above). Raw aggregation uses service-role only inside generate.
+  // Authz first (above). Snapshot insert/persist and raw aggregation use the
+  // privileged server client inside generate — never the Lead JWT.
   const organisationId = auth.context.organisation.organisationId;
   const organisationName = auth.context.organisation.organisation.name;
 
   const result = await generateOrganisationIntelligence({
-    supabase: auth.context.supabase,
     organisationId,
     organisationName,
     userId: auth.context.user.id,
