@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { IdentityProductMark } from "@/components/identity/product-mark";
 import { BRAND } from "@/lib/brand";
 
 /**
@@ -12,7 +13,7 @@ export function MarketingHomepage() {
   return (
     <div className="marketing-page">
       <header className="marketing-nav">
-        <div className="marketing-brand">{BRAND.productName}</div>
+        <IdentityProductMark variant="full" />
         <div className="button-row">
           <Link className="secondary" href="/auth/sign-in">
             Sign in
@@ -29,11 +30,10 @@ export function MarketingHomepage() {
 
       <section className="marketing-hero">
         <div className="marketing-hero-copy">
-          <p className="eyebrow">{BRAND.productName}</p>
           <h1 className="identity-display">
             Understand how your managers are developing.
           </h1>
-          <p className="marketing-lead">
+          <p className="marketing-lead identity-body-large">
             Pridmora turns everyday development conversations into a clearer,
             evidence-based understanding of each manager&apos;s strengths,
             priorities and progress, helping every future conversation start
@@ -59,11 +59,6 @@ export function MarketingHomepage() {
 
         <div className="marketing-hero-visual" aria-hidden="true">
           <div className="product-mock product-mock--snapshot">
-            <div className="product-mock-bar">
-              <span />
-              <span />
-              <span />
-            </div>
             <p className="eyebrow">Development snapshot</p>
 
             <div className="product-mock-block">
@@ -101,8 +96,10 @@ export function MarketingHomepage() {
       </section>
 
       <section className="marketing-section">
-        <h2>Conversations end. Understanding shouldn&apos;t.</h2>
-        <p>
+        <h2 className="identity-section-title">
+          Conversations end. Understanding shouldn&apos;t.
+        </h2>
+        <p className="identity-body">
           Every development conversation contains observations, commitments and
           evidence of change. Pridmora turns what matters into trusted
           development intelligence that grows over time.
@@ -110,25 +107,25 @@ export function MarketingHomepage() {
       </section>
 
       <section className="marketing-section" id="how-it-works">
-        <h2>Understand. Prepare. Improve.</h2>
+        <h2 className="identity-section-title">Understand. Prepare. Improve.</h2>
         <div className="marketing-three">
           <article>
-            <h3>Understand</h3>
-            <p>
+            <h3 className="identity-subheading">Understand</h3>
+            <p className="identity-body">
               Build a clear picture of who each person is and where they are
               developing.
             </p>
           </article>
           <article>
-            <h3>Prepare</h3>
-            <p>
+            <h3 className="identity-subheading">Prepare</h3>
+            <p className="identity-body">
               Use Aurelia when helpful to enter conversations with sharper focus
               and better questions.
             </p>
           </article>
           <article>
-            <h3>Improve</h3>
-            <p>
+            <h3 className="identity-subheading">Improve</h3>
+            <p className="identity-body">
               Capture what mattered so development intelligence grows with every
               conversation.
             </p>
@@ -137,8 +134,8 @@ export function MarketingHomepage() {
       </section>
 
       <section className="marketing-section">
-        <h2>Evidence before certainty.</h2>
-        <p>
+        <h2 className="identity-section-title">Evidence before certainty.</h2>
+        <p className="identity-body">
           Insights remain proposed until reviewed. Evidence confidence and
           coverage stay visible so managers and leaders know what can be trusted
           and what still needs exploration.
@@ -146,15 +143,19 @@ export function MarketingHomepage() {
       </section>
 
       <section className="marketing-section">
-        <h2>Built for people who develop people.</h2>
-        <p>
+        <h2 className="identity-section-title">
+          Built for people who develop people.
+        </h2>
+        <p className="identity-body">
           For managers, department leaders, HR and L&amp;D teams, and
           professional coaches who want every conversation to build on the last.
         </p>
       </section>
 
       <section className="marketing-section marketing-final">
-        <h2>Make the next conversation better than the last.</h2>
+        <h2 className="identity-section-title">
+          Make the next conversation better than the last.
+        </h2>
         <div className="button-row">
           <a
             className="primary"
