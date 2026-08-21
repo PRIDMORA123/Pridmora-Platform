@@ -41,8 +41,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={poppins.variable}>
-      <body className={poppins.className}>
+    <html lang="en" className={`${poppins.variable} ${poppins.className}`}>
+      <body>
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

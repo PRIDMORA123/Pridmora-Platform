@@ -91,11 +91,11 @@ export function parseIntelligenceSources(value: unknown): IntelligenceSource[] {
 export function getModeLabel(mode: CoachingIntelligenceMode): string {
   switch (mode) {
     case "manual":
-      return "Manual";
+      return "Human-led";
     case "assisted":
-      return "Standard";
+      return "AI-light";
     case "comprehensive":
-      return "Comprehensive";
+      return "AI-supported";
   }
 }
 
@@ -109,15 +109,15 @@ export function getRefreshButtonLabels(mode: CoachingIntelligenceMode) {
       };
     case "assisted":
       return {
-        idle: "Refresh assisted intelligence",
-        loading: "Preparing assisted intelligence…",
-        success: "Standard intelligence ready",
+        idle: "Refresh AI-light intelligence",
+        loading: "Aurelia is working…",
+        success: "AI-light intelligence ready",
       };
     case "comprehensive":
       return {
-        idle: "Refresh comprehensive intelligence",
-        loading: "Preparing comprehensive intelligence…",
-        success: "Comprehensive intelligence ready",
+        idle: "Refresh AI-supported intelligence",
+        loading: "Aurelia is working…",
+        success: "AI-supported intelligence ready",
       };
   }
 }

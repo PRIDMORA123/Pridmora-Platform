@@ -3,6 +3,7 @@
  * Keeps analyse output suitable for human review without unbounded narrative.
  */
 
+import { mapToPridmoraCapabilityKey } from "@/lib/development-evidence/capabilities";
 import {
   EVIDENCE_ANALYSIS_MAX_OBSERVATIONS,
   EVIDENCE_ANALYSIS_MAX_OBSERVATIONS_PSYCHOMETRIC,
@@ -64,6 +65,8 @@ export function constrainStructuredEvidenceObservations(
     .filter(isUsableObservation)
     .slice(0, max)
     .map(observation => {
+      const capabilityKey =
+        mapToPridmoraCapabilityKey(observation.capabilityKey) ?? undefined;
       if (psychometric) {
         return {
           ...observation,
@@ -79,6 +82,7 @@ export function constrainStructuredEvidenceObservations(
             observation.developmentImplication,
             NORMAL_IMPLICATION_MAX
           ),
+          capabilityKey,
         };
       }
 
@@ -96,7 +100,7 @@ export function constrainStructuredEvidenceObservations(
           NORMAL_IMPLICATION_MAX
         ),
         sourceConfidence: observation.sourceConfidence,
-        capabilityKey: observation.capabilityKey,
+        capabilityKey,
         category: observation.category,
         limitations: observation.limitations,
         // Ordinary management evidence does not need assessment framing.

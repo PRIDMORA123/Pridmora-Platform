@@ -79,7 +79,7 @@ describe("organisation workspace UI", () => {
       "utf8"
     );
     expect(css).toContain("organisation-header__title");
-    expect(css).toContain("var(--font-poppins)");
+    expect(css).toContain("var(--identity-font)");
     expect(css).not.toMatch(/Georgia/);
   });
 

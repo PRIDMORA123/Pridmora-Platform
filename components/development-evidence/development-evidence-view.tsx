@@ -2,6 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { IdentityBackLink } from "@/components/identity";
+import {
+  AURELIA_WORKING_DETAIL,
+  AURELIA_WORKING_STAGES,
+  AURELIA_WORKING_TITLE,
+  IdentityProcessingState,
+} from "@/components/identity/identity-processing-state";
 import { EvidenceConfidencePanel } from "@/components/development-evidence/evidence-confidence-panel";
 import { MyDevelopmentSubnav } from "@/components/my-development-subnav";
 import { apiJson, errorMessage } from "@/lib/api-client";
@@ -9,6 +15,9 @@ import {
   EVIDENCE_ANALYSIS_CLIENT_TIMEOUT_MS,
   MAX_UPLOAD_BYTES,
   PRIDMORA_CAPABILITIES,
+  buildObservationReviewDecisions,
+  capabilityKeyForReviewSubmission,
+  mapToPridmoraCapabilityKey,
   type DevelopmentEvidenceObservation,
   type DevelopmentEvidenceRecord,
   type EvidenceConfidenceResult,
@@ -172,7 +181,9 @@ export function DevelopmentEvidenceView({
         title: observation.title,
         description: observation.description,
         include: observation.reviewStatus !== "rejected",
-        capabilityKey: observation.capabilityKey ?? null,
+        capabilityKey: capabilityKeyForReviewSubmission({
+          persistedCapabilityKey: observation.capabilityKey,
+        }),
       };
     }
     setEditMap(next);
@@ -206,7 +217,7 @@ export function DevelopmentEvidenceView({
   }
 
   async function runAnalyseForEvidence(evidenceId: string) {
-    setProgressLabel("Analysing evidence…");
+    setProgressLabel(AURELIA_WORKING_STAGES.lookingForPatterns);
     setStep("analyse");
     const controller = new AbortController();
     const timeoutId = window.setTimeout(
@@ -242,7 +253,7 @@ export function DevelopmentEvidenceView({
     uploadInFlightRef.current = true;
     setBusy(true);
     setError("");
-    setProgressLabel("Uploading evidence…");
+    setProgressLabel(AURELIA_WORKING_STAGES.reviewingEvidence);
     // Stay on purpose until upload succeeds — do not pretend analysis has started.
 
     const uploadController = new AbortController();
@@ -350,32 +361,10 @@ export function DevelopmentEvidenceView({
     setBusy(true);
     setError("");
     try {
-      const observationDecisions = detail.observations.map(observation => {
-        const edited = editMap[observation.id];
-        const include = edited?.include ?? false;
-        const capabilityKey =
-          edited && Object.prototype.hasOwnProperty.call(edited, "capabilityKey")
-            ? edited.capabilityKey
-            : (observation.capabilityKey ?? null);
-        const titleChanged =
-          (edited?.title ?? observation.title) !== observation.title;
-        const descriptionChanged =
-          (edited?.description ?? observation.description) !==
-          observation.description;
-        const capabilityChanged =
-          capabilityKey !== (observation.capabilityKey ?? null);
-        return {
-          observationId: observation.id,
-          reviewStatus: include
-            ? titleChanged || descriptionChanged || capabilityChanged
-              ? ("edited" as const)
-              : ("approved" as const)
-            : ("excluded" as const),
-          title: edited?.title,
-          description: edited?.description,
-          capabilityKey,
-          includeInIntelligence: include && decision === "approve",
-        };
+      const observationDecisions = buildObservationReviewDecisions({
+        observations: detail.observations,
+        editMap,
+        decision,
       });
 
       await apiJson(`/api/development-evidence/item/${activeEvidenceId}/review`, {
@@ -638,9 +627,11 @@ export function DevelopmentEvidenceView({
                 {SENSITIVE_INFO_EVIDENCE_PURPOSE_STEP_COPY}
               </p>
               {busy && progressLabel ? (
-                <p className="muted" aria-live="polite">
-                  {progressLabel}
-                </p>
+                <IdentityProcessingState
+                  compact
+                  title={AURELIA_WORKING_TITLE}
+                  description={progressLabel}
+                />
               ) : null}
               <div className="button-row">
                 <button
@@ -649,7 +640,7 @@ export function DevelopmentEvidenceView({
                   disabled={busy || !purpose.trim()}
                   onClick={() => void uploadAndAnalyse()}
                 >
-                  {busy ? "Uploading…" : "Analyse"}
+                  {busy ? "Aurelia is working…" : "Analyse"}
                 </button>
                 <button
                   type="button"
@@ -665,14 +656,20 @@ export function DevelopmentEvidenceView({
 
           {step === "analyse" ? (
             <>
-              <p className="muted" aria-live="polite">
-                {busy
-                  ? progressLabel ||
-                    "Aurelia is proposing observations for review…"
-                  : activeEvidenceId
+              {busy ? (
+                <IdentityProcessingState
+                  title={AURELIA_WORKING_TITLE}
+                  description={
+                    progressLabel || AURELIA_WORKING_STAGES.lookingForPatterns
+                  }
+                />
+              ) : (
+                <p className="muted" aria-live="polite">
+                  {activeEvidenceId
                     ? "Upload saved. Analysis did not finish — retry without re-uploading the file."
                     : "Upload did not complete. Go back and try again."}
-              </p>
+                </p>
+              )}
               {!busy ? (
                 <div className="button-row">
                   {activeEvidenceId ? (
@@ -753,19 +750,18 @@ export function DevelopmentEvidenceView({
                             detail.observationSourceEvidence?.find(
                               item => item.observationId === observation.id
                             ) ?? null;
+                          const proposedKey = mapToPridmoraCapabilityKey(
+                            observation.capabilityKey
+                          );
                           const draft = {
                             title: edited?.title ?? observation.title,
                             description:
                               edited?.description ?? observation.description,
                             include: edited?.include ?? false,
-                            capabilityKey:
-                              edited &&
-                              Object.prototype.hasOwnProperty.call(
-                                edited,
-                                "capabilityKey"
-                              )
-                                ? edited.capabilityKey
-                                : (observation.capabilityKey ?? null),
+                            capabilityKey: capabilityKeyForReviewSubmission({
+                              persistedCapabilityKey: observation.capabilityKey,
+                              edited,
+                            }),
                           };
                           return (
                             <li
@@ -836,7 +832,9 @@ export function DevelopmentEvidenceView({
                                   }
                                   data-testid={`evidence-review-capability-${observation.id}`}
                                 >
-                                  <option value="">No capability</option>
+                                  <option value="">
+                                    No capability confidently identified
+                                  </option>
                                   {PRIDMORA_CAPABILITIES.map(capability => (
                                     <option
                                       key={capability.key}
@@ -847,9 +845,9 @@ export function DevelopmentEvidenceView({
                                   ))}
                                 </select>
                                 <span className="muted">
-                                  Aurelia proposed a capability. Keep it, change
-                                  it to another catalogue capability the
-                                  evidence supports, or clear it.
+                                  {proposedKey
+                                    ? "Aurelia proposed a capability. Keep it, change it to another capability this evidence supports, or clear it."
+                                    : "Aurelia could not identify a capability that this evidence clearly supports."}
                                 </span>
                               </label>
                               <div className="field">

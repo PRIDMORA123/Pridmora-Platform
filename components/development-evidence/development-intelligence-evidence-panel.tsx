@@ -16,6 +16,11 @@ import type {
   EvidenceWhyThisPayload,
 } from "@/lib/development-evidence";
 import type { DevelopmentProfile } from "@/lib/development-updates/types";
+import {
+  AURELIA_WORKING_DETAIL,
+  AURELIA_WORKING_TITLE,
+  IdentityProcessingState,
+} from "@/components/identity/identity-processing-state";
 
 export function DevelopmentIntelligenceEvidencePanel({
   clientId,
@@ -82,7 +87,12 @@ export function DevelopmentIntelligenceEvidencePanel({
   }
 
   if (loading) {
-    return <p className="muted">Loading development intelligence…</p>;
+    return (
+      <IdentityProcessingState
+        title={AURELIA_WORKING_TITLE}
+        description={AURELIA_WORKING_DETAIL}
+      />
+    );
   }
 
   if (error) {
@@ -121,9 +131,7 @@ export function DevelopmentIntelligenceEvidencePanel({
   return (
     <div className="development-intelligence-evidence">
       <p className="development-intelligence-evidence__question">
-        {isSelf
-          ? "What do we currently understand about your development?"
-          : "What do we now understand about this person?"}
+        Why Aurelia thinks this
       </p>
       {sourceNote ? <p className="muted">{sourceNote}</p> : null}
 

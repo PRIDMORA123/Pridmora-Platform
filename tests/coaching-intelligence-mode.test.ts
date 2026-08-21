@@ -18,7 +18,10 @@ describe("coaching intelligence modes", () => {
     expect(preparationStyleToMode("enhanced")).toBe("comprehensive");
   });
 
-  it("keeps assisted concise and comprehensive wider", () => {
+  it("keeps assisted concise and comprehensive wider, with manager-facing labels", () => {
+    expect(COACHING_INTELLIGENCE_MODES.manual.label).toBe("Human-led");
+    expect(COACHING_INTELLIGENCE_MODES.assisted.label).toBe("AI-light");
+    expect(COACHING_INTELLIGENCE_MODES.comprehensive.label).toBe("AI-supported");
     expect(COACHING_INTELLIGENCE_MODES.manual.aiEnabled).toBe(false);
     expect(COACHING_INTELLIGENCE_MODES.assisted.sources).toEqual([
       "previous_conversations",
@@ -46,9 +49,9 @@ describe("coaching intelligence modes", () => {
 
   it("uses mode-aware refresh labels", () => {
     expect(getRefreshButtonLabels("manual").idle).toBe("AI preparation off");
-    expect(getRefreshButtonLabels("assisted").idle).toContain("assisted");
+    expect(getRefreshButtonLabels("assisted").idle).toContain("AI-light");
     expect(getRefreshButtonLabels("comprehensive").idle).toContain(
-      "comprehensive"
+      "AI-supported"
     );
   });
 

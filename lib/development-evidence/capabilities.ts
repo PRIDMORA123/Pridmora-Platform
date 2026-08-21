@@ -135,6 +135,52 @@ export function isPridmoraCapabilityKey(value: string): value is PridmoraCapabil
   return PRIDMORA_CAPABILITIES.some(capability => capability.key === value);
 }
 
+function normalizeCapabilityLookup(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_|_$/g, "");
+}
+
+/**
+ * Map an AI or UI capability value to a canonical catalogue key.
+ * Accepts keys, labels, and light punctuation/case variants.
+ * Ambiguous or unknown values return null — callers must leave the
+ * capability unassigned rather than persisting the raw AI string.
+ */
+export function mapToPridmoraCapabilityKey(
+  value: unknown
+): PridmoraCapabilityKey | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (isPridmoraCapabilityKey(trimmed)) return trimmed;
+
+  const lower = trimmed.toLowerCase();
+  const caseInsensitiveKey = PRIDMORA_CAPABILITIES.find(
+    capability => capability.key.toLowerCase() === lower
+  );
+  if (caseInsensitiveKey) return caseInsensitiveKey.key;
+
+  const labelMatches = PRIDMORA_CAPABILITIES.filter(
+    capability => capability.label.toLowerCase() === lower
+  );
+  if (labelMatches.length === 1) return labelMatches[0].key;
+
+  const token = normalizeCapabilityLookup(trimmed);
+  if (!token) return null;
+  const tokenMatches = PRIDMORA_CAPABILITIES.filter(
+    capability =>
+      normalizeCapabilityLookup(capability.key) === token ||
+      normalizeCapabilityLookup(capability.label) === token
+  );
+  if (tokenMatches.length === 1) return tokenMatches[0].key;
+  return null;
+}
+
 export function capabilityLabel(key: string): string {
   const found = PRIDMORA_CAPABILITIES.find(capability => capability.key === key);
   return found?.label ?? key;

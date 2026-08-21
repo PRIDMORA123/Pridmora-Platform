@@ -6,6 +6,7 @@ import { DevelopmentSnapshot } from "@/components/development/development-snapsh
 import { DevelopmentStatusChip } from "@/components/identity/development-status-chip";
 import { IDENTITY_EMPTY_STATES } from "@/lib/identity-empty-states";
 import { buildRelationshipDevelopmentSnapshot } from "@/lib/development-snapshot";
+import { visibleDevelopmentProfileSections } from "@/lib/development-snapshot-display";
 import {
   conciseThemeExplanation,
   developmentStatusFromConfidence,
@@ -146,6 +147,8 @@ export function DevelopmentProfilePage({
   onCloseReview,
   onSubmitReview,
   reviewBusy = false,
+  includeRecognisedPatterns = true,
+  onOpenIntelligence,
 }: {
   data: DevelopmentProfileViewModel;
   patterns?: CoachingPattern[];
@@ -164,6 +167,9 @@ export function DevelopmentProfilePage({
     coachComment?: string;
   }) => Promise<void>;
   reviewBusy?: boolean;
+  /** Recognised patterns belong on the Intelligence layer when false. */
+  includeRecognisedPatterns?: boolean;
+  onOpenIntelligence?: () => void;
 }) {
   const [detailOpen, setDetailOpen] = useState(false);
   const [showAllPatterns, setShowAllPatterns] = useState(false);
@@ -190,6 +196,26 @@ export function DevelopmentProfilePage({
     [data, patterns, sessionNumbers, completedSessionCount]
   );
 
+  const patternTitles = useMemo(
+    () =>
+      patterns
+        .filter(pattern => pattern.coachAccepted !== false && !pattern.suppressed)
+        .map(pattern => pattern.title),
+    [patterns]
+  );
+
+  const visible = useMemo(
+    () =>
+      visibleDevelopmentProfileSections({
+        snapshot,
+        themes: data.themes,
+        lookingAhead: data.lookingAhead,
+        emergingStrengths: data.emergingStrengths,
+        blockedInsights: patternTitles,
+      }),
+    [snapshot, data.themes, data.lookingAhead, data.emergingStrengths, patternTitles]
+  );
+
   const hasContent =
     Boolean(data.currentDirection) ||
     data.emergingStrengths.length > 0 ||
@@ -203,21 +229,26 @@ export function DevelopmentProfilePage({
     <main className="development-profile-page development-profile-page--concise">
       {pendingUpdateSlot}
 
-      <DevelopmentSnapshot snapshot={snapshot} />
-
-      <PatternsOverTimeSection
-        patterns={patterns}
-        sessionNumbers={sessionNumbers}
-        showAll={showAllPatterns}
-        onReview={onReviewPattern}
-        onViewAll={() => setShowAllPatterns(true)}
-        onRefresh={onRefreshPatterns}
-        refreshing={refreshingPatterns}
-        reviewingPattern={reviewingPattern}
-        onCloseReview={onCloseReview}
-        onSubmitReview={onSubmitReview}
-        reviewBusy={reviewBusy}
+      <DevelopmentSnapshot
+        snapshot={snapshot}
+        blockedInsights={patternTitles}
       />
+
+      {includeRecognisedPatterns ? (
+        <PatternsOverTimeSection
+          patterns={patterns}
+          sessionNumbers={sessionNumbers}
+          showAll={showAllPatterns}
+          onReview={onReviewPattern}
+          onViewAll={() => setShowAllPatterns(true)}
+          onRefresh={onRefreshPatterns}
+          refreshing={refreshingPatterns}
+          reviewingPattern={reviewingPattern}
+          onCloseReview={onCloseReview}
+          onSubmitReview={onSubmitReview}
+          reviewBusy={reviewBusy}
+        />
+      ) : null}
 
       {!hasContent ? (
         <div className="identity-development-empty">
@@ -228,14 +259,14 @@ export function DevelopmentProfilePage({
         </div>
       ) : (
         <>
-          <section
-            className="development-section development-themes-section"
-            aria-labelledby="development-themes-heading"
-          >
-            <h2 id="development-themes-heading">Development themes</h2>
-            {data.themes.length > 0 ? (
+          {visible.themes.length > 0 ? (
+            <section
+              className="development-section development-themes-section"
+              aria-labelledby="development-themes-heading"
+            >
+              <h2 id="development-themes-heading">Development themes</h2>
               <div className="development-theme-list">
-                {data.themes.map((theme: DevelopmentTheme) => (
+                {visible.themes.map((theme: DevelopmentTheme) => (
                   <div key={theme.id}>
                     <ThemeCard
                       theme={theme}
@@ -267,31 +298,45 @@ export function DevelopmentProfilePage({
                   </div>
                 ))}
               </div>
-            ) : (
-              <p className="identity-empty-copy">
-                Themes will appear once patterns have been reviewed across
-                conversations.
-              </p>
-            )}
-          </section>
-
-          <div className="development-concise-grid">
-            <section className="development-section">
-              <h2>Strengths being demonstrated</h2>
-              <ConciseList
-                values={data.emergingStrengths}
-                emptyMessage="Strengths will appear when supported by reviewed coaching evidence."
-              />
             </section>
+          ) : null}
 
-            <section className="development-section">
-              <h2>Development priorities</h2>
-              <ConciseList
-                values={data.lookingAhead}
-                emptyMessage="Priorities will appear after review."
-              />
-            </section>
-          </div>
+          {visible.emergingStrengths.length > 0 ||
+          visible.lookingAhead.length > 0 ? (
+            <div className="development-concise-grid">
+              {visible.emergingStrengths.length > 0 ? (
+                <section className="development-section">
+                  <h2>Strengths being demonstrated</h2>
+                  <ConciseList
+                    values={visible.emergingStrengths}
+                    emptyMessage="Strengths will appear when supported by reviewed coaching evidence."
+                  />
+                </section>
+              ) : null}
+
+              {visible.lookingAhead.length > 0 ? (
+                <section className="development-section">
+                  <h2>Development priorities</h2>
+                  <ConciseList
+                    values={visible.lookingAhead}
+                    emptyMessage="Priorities will appear after review."
+                  />
+                </section>
+              ) : null}
+            </div>
+          ) : null}
+
+          {onOpenIntelligence ? (
+            <p className="development-why-this">
+              <button
+                type="button"
+                className="identity-text-action"
+                onClick={onOpenIntelligence}
+              >
+                Why this?
+              </button>
+            </p>
+          ) : null}
         </>
       )}
 

@@ -455,7 +455,7 @@ describe("DevelopmentEvidenceView Analyse upload", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(container.textContent).toMatch(/Uploading/);
+    expect(container.textContent).toMatch(/Aurelia is working|Reviewing evidence/);
 
     await act(async () => {
       resolveUpload?.({
@@ -489,7 +489,7 @@ describe("DevelopmentEvidenceView Analyse upload", () => {
     });
 
     expect(container.textContent).toContain("Why is this being added?");
-    expect(container.textContent).toMatch(/Uploading/);
+    expect(container.textContent).toMatch(/Aurelia is working|Reviewing evidence/);
     expect(container.textContent).not.toMatch(/Retry analysis/);
 
     await act(async () => {

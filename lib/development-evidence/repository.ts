@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { pruneStructuredEvidenceToAuthorisedObservations, authorisedCapabilityKeysFromObservations, parseReviewCapabilityKey, capabilityReviewDecisionOutcome } from "@/lib/development-evidence/authorised-observations";
-import { buildCapabilityInferenceCorpus, inferCapabilityKeysFromText, isPridmoraCapabilityKey } from "@/lib/development-evidence/capabilities";
+import { pruneStructuredEvidenceToAuthorisedObservations, authorisedCapabilityKeysFromObservations, reviewedCapabilityKeyFromDecision, capabilityReviewDecisionOutcome } from "@/lib/development-evidence/authorised-observations";
+import { buildCapabilityInferenceCorpus, inferCapabilityKeysFromText, isPridmoraCapabilityKey, mapToPridmoraCapabilityKey } from "@/lib/development-evidence/capabilities";
 import {
   EVIDENCE_TYPE_LABELS,
   EXTRACTION_VERSION,
@@ -571,7 +571,7 @@ export async function saveAnalysedEvidence(input: {
         })
       ),
       ...((structured.observations ?? [])
-        .map(item => item.capabilityKey)
+        .map(item => mapToPridmoraCapabilityKey(item.capabilityKey))
         .filter((value): value is string => Boolean(value)) ?? []),
     ])
   );
@@ -617,7 +617,7 @@ export async function saveAnalysedEvidence(input: {
       source_confidence: observation.sourceConfidence ?? "medium",
       assessment_context: observation.assessmentContext ?? null,
       limitations: observation.limitations ?? null,
-      capability_key: observation.capabilityKey ?? null,
+      capability_key: mapToPridmoraCapabilityKey(observation.capabilityKey),
       include_in_intelligence: false,
       review_status: "proposed",
       sort_order: index,
@@ -718,9 +718,11 @@ export async function reviewEvidence(input: {
       patch.description = decision.description;
     }
 
-    let reviewedCapabilityKey = existing.capabilityKey;
+    const reviewedCapabilityKey = reviewedCapabilityKeyFromDecision({
+      decision,
+      existingCapabilityKey: existing.capabilityKey,
+    });
     if (Object.prototype.hasOwnProperty.call(decision, "capabilityKey")) {
-      reviewedCapabilityKey = parseReviewCapabilityKey(decision.capabilityKey);
       patch.capability_key = reviewedCapabilityKey;
       if (reviewedCapabilityKey !== existing.capabilityKey) {
         capabilityEdited = true;

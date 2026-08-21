@@ -18,6 +18,11 @@ import {
   type IdentityEvidenceItem,
 } from "@/components/identity-intelligence";
 import { PatternReviewPanel } from "@/components/identity-intelligence/pattern-review-panel";
+import {
+  AURELIA_WORKING_STAGES,
+  AURELIA_WORKING_TITLE,
+  IdentityProcessingState,
+} from "@/components/identity/identity-processing-state";
 
 function toEvidenceStrength(
   strength: CoachingPattern["strength"]
@@ -172,10 +177,18 @@ export function PatternsOverTimeSection({
             disabled={refreshing}
             onClick={onRefresh}
           >
-            {refreshing ? "Refreshing…" : "Refresh recognised patterns"}
+            Refresh recognised patterns
           </button>
         ) : null}
       </div>
+
+      {refreshing ? (
+        <IdentityProcessingState
+          compact
+          title={AURELIA_WORKING_TITLE}
+          description={AURELIA_WORKING_STAGES.lookingForPatterns}
+        />
+      ) : null}
 
       {visible.length === 0 ? (
         <p className="identity-empty-copy">

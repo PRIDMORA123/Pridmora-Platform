@@ -1,3 +1,13 @@
+export const AURELIA_WORKING_TITLE = "Aurelia is working…";
+export const AURELIA_WORKING_DETAIL =
+  "Reviewing the available development information.";
+
+export const AURELIA_WORKING_STAGES = {
+  reviewingEvidence: "Reviewing evidence…",
+  lookingForPatterns: "Looking for recurring patterns…",
+  preparingInsight: "Preparing the development insight…",
+} as const;
+
 export type IdentityProcessingStep = {
   id: string;
   label: string;

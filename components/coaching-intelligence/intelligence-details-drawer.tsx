@@ -156,7 +156,7 @@ export function IntelligenceDetailsDrawer({
               </ul>
             ) : (
               <p className="identity-empty-copy">
-                Manual mode does not analyse coaching records.
+                Human-led mode does not analyse coaching records.
               </p>
             )}
           </section>

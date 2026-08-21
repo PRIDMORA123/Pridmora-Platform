@@ -2,6 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { IdentityBackLink } from "@/components/identity";
+import {
+  AURELIA_WORKING_DETAIL,
+  AURELIA_WORKING_TITLE,
+  IdentityProcessingState,
+} from "@/components/identity/identity-processing-state";
 import { DevelopmentIntelligenceEvidencePanel } from "@/components/development-evidence/development-intelligence-evidence-panel";
 import { MyDevelopmentSubnav } from "@/components/my-development-subnav";
 import { apiJson, errorMessage } from "@/lib/api-client";
@@ -28,12 +33,12 @@ export function MyDevelopmentIntelligenceView({
     null
   );
   const [profile, setProfile] = useState<DevelopmentProfile | null>(null);
-  const [profileStrengths, setProfileStrengths] = useState<string[]>([]);
-  const [profileThemes, setProfileThemes] = useState<string[]>([]);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setError("");
+    setLoading(true);
     try {
       const [workspaceData, profileData] = await Promise.all([
         apiJson<{ workspace: MyDevelopmentWorkspace }>(
@@ -47,17 +52,10 @@ export function MyDevelopmentIntelligenceView({
       ]);
       setWorkspace(workspaceData.workspace);
       setProfile(profileData.profile ?? null);
-
-      const strengths = (profileData.profile?.strengths ?? [])
-        .map(item => item.value.trim())
-        .filter(Boolean);
-      const themes = (profileData.profile?.emergingThemes ?? [])
-        .map(item => item.value.trim())
-        .filter(Boolean);
-      setProfileStrengths(strengths);
-      setProfileThemes(themes);
     } catch (err) {
       setError(errorMessage(err, "Unable to load development intelligence."));
+    } finally {
+      setLoading(false);
     }
   }, [client.id]);
 
@@ -75,8 +73,8 @@ export function MyDevelopmentIntelligenceView({
         <p className="eyebrow">My development</p>
         <h1>Development Intelligence</h1>
         <p>
-          Synthesis from your reflections, actions and evidence in this
-          workspace — separate from people you manage.
+          Why Aurelia thinks this — patterns, confidence and sources from your
+          authorised development record, separate from people you manage.
         </p>
       </div>
 
@@ -92,6 +90,13 @@ export function MyDevelopmentIntelligenceView({
         <div className="inline-error" role="alert">
           <p>{error}</p>
         </div>
+      ) : null}
+
+      {loading ? (
+        <IdentityProcessingState
+          title={AURELIA_WORKING_TITLE}
+          description={AURELIA_WORKING_DETAIL}
+        />
       ) : null}
 
       {maturity ? (
@@ -112,7 +117,7 @@ export function MyDevelopmentIntelligenceView({
 
       {workspace && workspace.intelligencePatterns.length > 0 ? (
         <section className="panel" style={{ marginBottom: "1.25rem" }}>
-          <p className="card-label">From your reflections</p>
+          <p className="card-label">Recognised patterns</p>
           <h2 className="identity-subheading">Emerging and recurring themes</h2>
           <p className="muted">
             Themes are surfaced only when they appear across more than one
@@ -122,45 +127,6 @@ export function MyDevelopmentIntelligenceView({
             {workspace.intelligencePatterns.map(pattern => (
               <li key={`${pattern.theme}-${pattern.patternKind}`}>
                 {pattern.statement}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      {profileStrengths.length > 0 ? (
-        <section className="panel" style={{ marginBottom: "1.25rem" }}>
-          <p className="card-label">Strengths</p>
-          <h2 className="identity-subheading">Evidenced strengths</h2>
-          <ul className="development-evidence-list">
-            {profileStrengths.slice(0, 6).map(item => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      {profileThemes.length > 0 ? (
-        <section className="panel" style={{ marginBottom: "1.25rem" }}>
-          <p className="card-label">Development themes</p>
-          <h2 className="identity-subheading">Themes from your profile</h2>
-          <ul className="development-evidence-list">
-            {profileThemes.slice(0, 6).map(item => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      {workspace && workspace.actions.length > 0 ? (
-        <section className="panel" style={{ marginBottom: "1.25rem" }}>
-          <p className="card-label">Actions / progress</p>
-          <h2 className="identity-subheading">Current actions</h2>
-          <ul className="development-evidence-list">
-            {workspace.actions.slice(0, 6).map(action => (
-              <li key={action.id}>
-                <strong>{action.title}</strong>
-                <span className="muted"> — {action.status}</span>
               </li>
             ))}
           </ul>

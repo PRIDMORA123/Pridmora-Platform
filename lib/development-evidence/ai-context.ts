@@ -27,6 +27,7 @@ import {
   PSYCHOMETRIC_EVIDENCE_TYPES,
   type DevelopmentEvidenceType,
 } from "@/lib/development-evidence/constants";
+import { PRIDMORA_CAPABILITIES } from "@/lib/development-evidence/capabilities";
 import type { StructuredEvidence } from "@/lib/development-evidence/types";
 
 export type EvidenceAiDocumentInput = {
@@ -269,7 +270,8 @@ export function buildEvidenceAiContext(
       "Prioritise the strongest preference or contextual signals supported by the assessment.",
       "Keep each field concise. Do not write exhaustive narrative.",
       "Treat this assessment as preference/contextual evidence only.",
-      "Do not invent observations."
+      "Do not invent observations.",
+      `If capabilityKey is set, it must be exactly one of: ${PRIDMORA_CAPABILITIES.map(capability => capability.key).join(", ")}. Omit capabilityKey when no capability is clearly supported. Do not use display names.`
     );
   } else {
     sections.push(
@@ -296,7 +298,8 @@ export function buildEvidenceAiContext(
       "Each observation must be concise. Do not generate repetitive parallel narrative.",
       "Do not include assessmentContext.",
       "Leave strengthSignals, developmentSignals, capabilitySignals and contradictoryEvidence empty unless essential — prefer observations.",
-      "Do not invent observations. Fewer strong observations are better than many weak ones."
+      "Do not invent observations. Fewer strong observations are better than many weak ones.",
+      `If capabilityKey is set, it must be exactly one of: ${PRIDMORA_CAPABILITIES.map(capability => capability.key).join(", ")}. Omit capabilityKey when no capability is clearly supported. Do not use display names.`
     );
   }
 

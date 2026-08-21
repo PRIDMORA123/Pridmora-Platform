@@ -18,18 +18,20 @@ export const COACHING_INTELLIGENCE_MODES: Record<
   ModeConfiguration
 > = {
   manual: {
-    label: "Manual",
-    shortDescription: "Prepare independently without AI-generated guidance.",
-    fullDescription: `${BRAND.intelligenceName} will provide the preparation workspace and your saved coaching records, but it will not analyse them or generate suggestions.`,
+    label: "Human-led",
+    shortDescription:
+      "Work primarily from the development record and invoke Aurelia when you choose.",
+    fullDescription: `${BRAND.intelligenceName} keeps the workspace and saved development record available. Aurelia does not analyse records or generate suggestions until you ask.`,
     sources: [],
     outputs: [],
     aiEnabled: false,
   },
 
   assisted: {
-    label: "Standard",
-    shortDescription: "Concise insight for everyday management use.",
-    fullDescription: `${BRAND.intelligenceName} reviews the previous conversation, approved summary and open commitments to suggest a concise focus and useful questions for everyday management use.`,
+    label: "AI-light",
+    shortDescription:
+      "Aurelia remains available but is less prominent and less proactive.",
+    fullDescription: `${BRAND.intelligenceName} reviews the previous conversation, approved summary and open commitments to suggest a concise focus and useful questions when helpful — without dominating the development record.`,
     sources: [
       "previous_conversations",
       "approved_summaries",
@@ -45,9 +47,9 @@ export const COACHING_INTELLIGENCE_MODES: Record<
   },
 
   comprehensive: {
-    label: "Comprehensive",
+    label: "AI-supported",
     shortDescription:
-      "Deeper analysis across development history, evidence and behavioural patterns.",
+      "Aurelia actively surfaces useful patterns and suggestions from authorised evidence.",
     fullDescription: `${BRAND.intelligenceName} reviews the wider development record to identify themes, evidence, behavioural patterns, confidence and questions for the next conversation.`,
     sources: [
       "previous_conversations",

@@ -158,8 +158,14 @@ export function SettingsView({
 
         <ul className="coaching-intelligence-settings__notes">
           <li>You can also change this level on each Prepare page.</li>
-          <li>Manual stops AI generation for preparation.</li>
-          <li>Existing approved coaching records are not deleted.</li>
+          <li>
+            Human-led keeps Aurelia available when you choose to invoke it, and
+            stops automatic generation for preparation.
+          </li>
+          <li>
+            Changing this preference does not delete Development Intelligence or
+            evidence.
+          </li>
           <li>
             Changing level does not automatically regenerate existing
             preparation.

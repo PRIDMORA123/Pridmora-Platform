@@ -251,4 +251,94 @@ describe("Development Evidence Review button", () => {
       container.querySelector('[data-testid="evidence-review-panel"]')
     ).toBeTruthy();
   });
+
+  it("Approve posts a canonical capability when the observation still stores a display name", async () => {
+    apiJson.mockImplementation(async (url: string, init?: RequestInit) => {
+      if (
+        String(url).includes("/api/development-evidence/") &&
+        !String(url).includes("/item/")
+      ) {
+        return listPayload;
+      }
+      if (
+        String(url).includes("/api/development-evidence/item/ev-pending-1/review")
+      ) {
+        return { ok: true };
+      }
+      if (String(url).includes("/api/development-evidence/item/ev-pending-1")) {
+        return {
+          evidence: {
+            id: "ev-pending-1",
+            title: "pilot-test-evidence.txt",
+            reviewStatus: "pending_review",
+            processingStatus: "ready",
+          },
+          observations: [
+            {
+              id: "obs-1",
+              title: "Follows through after handover",
+              description: "Keeps commitments visible to the team.",
+              reviewStatus: "proposed",
+              capabilityKey: "Accountability",
+              behaviouralEvidence: "Keeps commitments visible to the team.",
+            },
+          ],
+          observationSourceEvidence: [],
+          document: {
+            id: "doc-1",
+            fileName: "pilot-test-evidence.txt",
+            hasExtractedText: true,
+          },
+        };
+      }
+      throw new Error(`Unexpected apiJson call: ${url} ${init?.method ?? ""}`);
+    });
+
+    await act(async () => {
+      root.render(
+        <DevelopmentEvidenceView client={baseClient()} onBack={() => undefined} />
+      );
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const reviewButton = container.querySelector(
+      '[data-testid="evidence-review-open-ev-pending-1"]'
+    ) as HTMLButtonElement | null;
+    await act(async () => {
+      reviewButton?.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, cancelable: true })
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const approve = container.querySelector(
+      '[data-testid="evidence-review-approve"]'
+    ) as HTMLButtonElement | null;
+    expect(approve).toBeTruthy();
+
+    await act(async () => {
+      approve?.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, cancelable: true })
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const reviewCall = apiJson.mock.calls.find(call =>
+      String(call[0]).includes("/review")
+    );
+    expect(reviewCall).toBeTruthy();
+    const posted = JSON.parse(String((reviewCall?.[1] as RequestInit).body)) as {
+      decision: string;
+      observationDecisions: Array<{ capabilityKey: string | null }>;
+    };
+    expect(posted.decision).toBe("approve");
+    expect(posted.observationDecisions[0]?.capabilityKey).toBe("accountability");
+    expect(posted.observationDecisions[0]?.capabilityKey).not.toBe(
+      "Accountability"
+    );
+  });
 });

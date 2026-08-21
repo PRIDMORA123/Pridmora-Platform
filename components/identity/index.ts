@@ -25,6 +25,9 @@ export {
 } from "@/components/identity/development-status-chip";
 export {
   IdentityProcessingState,
+  AURELIA_WORKING_TITLE,
+  AURELIA_WORKING_DETAIL,
+  AURELIA_WORKING_STAGES,
   type IdentityProcessingStep,
   type IdentityProcessingStateProps,
 } from "@/components/identity/identity-processing-state";

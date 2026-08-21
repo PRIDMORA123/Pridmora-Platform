@@ -244,7 +244,7 @@ describe("Manager My Development journey", () => {
     expect(intel).toContain("Evidence before certainty");
     expect(intel).toContain("intelligencePatterns");
     expect(panel).toContain('voice?: "person" | "self"');
-    expect(panel).toContain("What do we currently understand about your development?");
+    expect(panel).toContain("Why Aurelia thinks this");
   });
 
   it("keeps self-development hidden from People and team intelligence", () => {

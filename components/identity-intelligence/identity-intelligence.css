@@ -376,7 +376,7 @@
 
 .relationship-section-heading h1 {
   font-size: var(--identity-type-page-size, clamp(1.75rem, 2.5vw, 2.25rem));
-  font-weight: var(--identity-type-page-weight, 650);
+  font-weight: var(--identity-type-page-weight, 700);
 }
 
 .relationship-section-eyebrow {
@@ -529,7 +529,7 @@
 .client-identity-name,
 .client-identity-header .identity-page-title {
   font-size: var(--identity-type-display-size, clamp(2rem, 3vw, 2.75rem));
-  font-weight: var(--identity-type-display-weight, 650);
+  font-weight: var(--identity-type-display-weight, 700);
   line-height: var(--identity-type-display-leading, 1.1);
 }
 
@@ -583,7 +583,7 @@
 
 .identity-coaching-stage-header__title {
   font-size: var(--identity-type-display-size, clamp(2rem, 3vw, 2.75rem));
-  font-weight: var(--identity-type-display-weight, 650);
+  font-weight: var(--identity-type-display-weight, 700);
   line-height: var(--identity-type-display-leading, 1.1);
 }
 
@@ -698,7 +698,7 @@
 
 .relationship-section-heading h1 {
   font-size: var(--identity-type-page-size, clamp(1.75rem, 2.5vw, 2.25rem));
-  font-weight: var(--identity-type-page-weight, 650);
+  font-weight: var(--identity-type-page-weight, 700);
 }
 
 .relationship-section-eyebrow {

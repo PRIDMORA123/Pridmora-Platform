@@ -121,11 +121,11 @@ export function CoachingIntelligenceBar({
 function getSelectorDescription(mode: CoachingIntelligenceMode) {
   switch (mode) {
     case "manual":
-      return "No AI";
+      return "You decide when to ask";
     case "assisted":
-      return "Light support";
+      return "Available, less prominent";
     case "comprehensive":
-      return "Full context";
+      return "Surfaces useful patterns";
   }
 }
 

@@ -160,8 +160,17 @@
   /* ------------------------------------------------------------------ */
   /* Typography scale                                                   */
   /* ------------------------------------------------------------------ */
-  --identity-font: var(--font-poppins), Poppins, "Helvetica Neue", Helvetica,
-    Arial, sans-serif;
+  /* next/font --font-poppins already includes the hashed face + fallback.
+     Do not append another Poppins/Helvetica list after the variable. */
+  --identity-font: var(
+    --font-poppins,
+    "Poppins",
+    "Helvetica Neue",
+    Helvetica,
+    Arial,
+    sans-serif
+  );
+  --identity-font-display: var(--identity-font);
   --identity-type-display-size: clamp(2rem, 3vw, 2.75rem);
   --identity-type-display-weight: 700;
   --identity-type-display-leading: 1.1;

@@ -6,6 +6,12 @@ import { DevelopmentProfilePage } from "@/components/development/development-pro
 import { SupportingContextSection } from "@/components/development/supporting-context-section";
 import { DevelopmentIntelligenceEvidencePanel } from "@/components/development-evidence/development-intelligence-evidence-panel";
 import { ProposedContentLabel, IdentityBackLink } from "@/components/identity";
+import {
+  AURELIA_WORKING_DETAIL,
+  AURELIA_WORKING_TITLE,
+  IdentityProcessingState,
+} from "@/components/identity/identity-processing-state";
+import { PatternsOverTimeSection } from "@/components/patterns/pattern-panels";
 import { JourneyStagePage } from "@/components/coaching-journey/journey-stage-page";
 import { RelationshipIdentityBar } from "@/components/coaching-journey/relationship-identity-bar";
 import { StageOrientation } from "@/components/coaching-journey/stage-orientation";
@@ -53,6 +59,9 @@ export function PersonIntelligenceView({
     useState<CoachingPattern | null>(null);
   const [refreshingPatterns, setRefreshingPatterns] = useState(false);
   const [reviewBusy, setReviewBusy] = useState(false);
+  const [layer, setLayer] = useState<"development" | "intelligence">(
+    "development"
+  );
 
   useEffect(() => {
     setContextItems(client.supportingContext ?? []);
@@ -107,6 +116,7 @@ export function PersonIntelligenceView({
   }, [client.id]);
 
   useEffect(() => {
+    setLayer("development");
     void load();
   }, [load]);
 
@@ -204,11 +214,10 @@ export function PersonIntelligenceView({
     return (
       <section className="page identity-reveal identity-page-shell journey-stage-page">
         <IdentityBackLink onClick={onBack}>{`Back to ${getRelationshipDisplayName(client)}`}</IdentityBackLink>
-        <div className="skeleton-loading-block" aria-busy="true" aria-live="polite">
-          <div className="skeleton-block skeleton-heading" />
-          <div className="skeleton-block skeleton-line" />
-          <div className="skeleton-block skeleton-line medium" />
-        </div>
+        <IdentityProcessingState
+          title={AURELIA_WORKING_TITLE}
+          description={AURELIA_WORKING_DETAIL}
+        />
       </section>
     );
   }
@@ -260,65 +269,106 @@ export function PersonIntelligenceView({
       nextStepPosition="before"
     >
       <nav className="person-development-subnav" aria-label="Development sections">
-        <button type="button" className="person-development-subnav__item is-active">
-          Development Intelligence
-        </button>
+        {layer === "development" ? (
+          <span className="person-development-subnav__item is-active">
+            Development
+          </span>
+        ) : (
+          <button
+            type="button"
+            className="person-development-subnav__item"
+            onClick={() => setLayer("development")}
+          >
+            Development
+          </button>
+        )}
+        {layer === "intelligence" ? (
+          <span className="person-development-subnav__item is-active">
+            Intelligence
+          </span>
+        ) : (
+          <button
+            type="button"
+            className="person-development-subnav__item"
+            onClick={() => setLayer("intelligence")}
+          >
+            Intelligence
+          </button>
+        )}
         {onOpenEvidence ? (
           <button
             type="button"
             className="person-development-subnav__item"
             onClick={onOpenEvidence}
           >
-            + Add Development Evidence
+            Evidence
           </button>
         ) : null}
       </nav>
 
-      <DevelopmentIntelligenceEvidencePanel
-        clientId={client.id}
-        profile={profile}
-        onOpenEvidence={onOpenEvidence}
-      />
-
-      <DevelopmentProfilePage
-        data={viewModel}
-        patterns={developmentPatterns}
-        sessionNumbers={sessionNumbers}
-        onReviewPattern={setReviewingPattern}
-        onRefreshPatterns={() => void refreshPatterns(true)}
-        refreshingPatterns={refreshingPatterns}
-        reviewingPattern={reviewingPattern}
-        onCloseReview={() => setReviewingPattern(null)}
-        onSubmitReview={submitPatternReview}
-        reviewBusy={reviewBusy}
-        supportingContextSlot={
-          <SupportingContextSection
-            items={contextItems}
-            onSave={saveSupportingContext}
+      {layer === "intelligence" ? (
+        <>
+          <DevelopmentIntelligenceEvidencePanel
+            clientId={client.id}
+            profile={profile}
+            onOpenEvidence={onOpenEvidence}
           />
-        }
-        pendingUpdateSlot={
-          pendingUpdate && onReviewUpdate ? (
-            <section className="development-section">
-              <h2>Development update available</h2>
-              <ProposedContentLabel />
-              <p className="identity-body">
-                Review the suggested changes from the latest conversation before they
-                become part of the confirmed development picture.
-              </p>
-              <div className="button-row">
-                <button
-                  type="button"
-                  className="primary"
-                  onClick={() => onReviewUpdate(pendingUpdate.id)}
-                >
-                  Review development update
-                </button>
-              </div>
-            </section>
-          ) : null
-        }
-      />
+          <PatternsOverTimeSection
+            patterns={developmentPatterns}
+            sessionNumbers={sessionNumbers}
+            showAll
+            onReview={setReviewingPattern}
+            onRefresh={() => void refreshPatterns(true)}
+            refreshing={refreshingPatterns}
+            reviewingPattern={reviewingPattern}
+            onCloseReview={() => setReviewingPattern(null)}
+            onSubmitReview={submitPatternReview}
+            reviewBusy={reviewBusy}
+          />
+        </>
+      ) : (
+        <DevelopmentProfilePage
+          data={viewModel}
+          patterns={developmentPatterns}
+          sessionNumbers={sessionNumbers}
+          includeRecognisedPatterns={false}
+          onOpenIntelligence={() => setLayer("intelligence")}
+          onReviewPattern={setReviewingPattern}
+          onRefreshPatterns={() => void refreshPatterns(true)}
+          refreshingPatterns={refreshingPatterns}
+          reviewingPattern={reviewingPattern}
+          onCloseReview={() => setReviewingPattern(null)}
+          onSubmitReview={submitPatternReview}
+          reviewBusy={reviewBusy}
+          supportingContextSlot={
+            <SupportingContextSection
+              items={contextItems}
+              onSave={saveSupportingContext}
+            />
+          }
+          pendingUpdateSlot={
+            pendingUpdate && onReviewUpdate ? (
+              <section className="development-section">
+                <h2>Development update available</h2>
+                <ProposedContentLabel />
+                <p className="identity-body">
+                  Review the suggested changes from the latest conversation before they
+                  become part of the confirmed development picture.
+                </p>
+                <div className="button-row">
+                  <button
+                    type="button"
+                    className="primary"
+                    onClick={() => onReviewUpdate(pendingUpdate.id)}
+                  >
+                    Review development update
+                  </button>
+                </div>
+              </section>
+            ) : null
+          }
+        />
+      )}
     </JourneyStagePage>
   );
 }
