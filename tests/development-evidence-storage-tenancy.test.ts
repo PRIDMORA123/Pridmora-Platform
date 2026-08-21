@@ -128,6 +128,26 @@ describe("SEC-1 storage RLS migration", () => {
   });
 });
 
+describe("SEC-1 storage write lockdown migration", () => {
+  const lockdown = read(
+    "supabase/migrations/20260820170345_development_evidence_storage_write_lockdown_fix.sql"
+  );
+
+  it("denies authenticated INSERT and UPDATE without reopening bucket-wide access", () => {
+    expect(lockdown).toContain("set public = false");
+    expect(lockdown).toContain("where id = 'development-evidence'");
+    expect(lockdown).toMatch(
+      /development_evidence_storage_insert[\s\S]*for insert[\s\S]*to authenticated[\s\S]*with check \(false\)/
+    );
+    expect(lockdown).toMatch(
+      /development_evidence_storage_update[\s\S]*for update[\s\S]*to authenticated[\s\S]*using \(false\)[\s\S]*with check \(false\)/
+    );
+    expect(lockdown).not.toMatch(
+      /bucket_id = 'development-evidence'\s+and\s+auth\.role\(\) = 'authenticated'/
+    );
+  });
+});
+
 describe("SEC-1 application / API enforcement", () => {
   const uploadRoute = read(
     "app/api/development-evidence/[clientId]/upload/route.ts"
@@ -166,13 +186,17 @@ describe("SEC-1 application / API enforcement", () => {
     expect(fileRoute).not.toMatch(/form\.get\(["']storagePath["']\)/);
   });
 
-  it("C/D: delete verifies assignment then removes storage object", () => {
+  it("C/D: delete verifies assignment then fail-closes if storage remove fails", () => {
     expect(itemRoute).toContain("softDeleteEvidence");
     expect(itemRoute).toContain("requireAssignedPersonInOrganisation");
     expect(repository).toContain("removeDevelopmentEvidenceStorageObject");
     expect(repository).toContain("assertDevelopmentEvidenceStoragePathMatches");
+    expect(repository).toContain("Evidence storage object delete failed:");
     expect(repository).toMatch(
-      /Remove the object while the path is still known[\s\S]*storage_path: null/
+      /if \(!removal\.removed\)[\s\S]*throw new Error/
+    );
+    expect(repository).toMatch(
+      /storagePathRemoved = true[\s\S]*storage_path: null/
     );
   });
 
@@ -183,11 +207,12 @@ describe("SEC-1 application / API enforcement", () => {
     );
   });
 
-  it("O: service_role key is server-only (not NEXT_PUBLIC)", () => {
+  it("O: service_role is server-only; used only for authorised Storage writes", () => {
     expect(env).toContain("SUPABASE_SERVICE_ROLE_KEY");
     expect(env).not.toContain("NEXT_PUBLIC_SUPABASE_SERVICE_ROLE");
-    expect(uploadRoute).not.toContain("getSupabaseServiceRoleKey");
-    expect(uploadRoute).not.toContain("getSupabaseServiceClient");
+    expect(uploadRoute).toContain("getSupabaseServiceClient");
+    expect(uploadRoute).toContain("await uploadAuthorisedEvidenceObject");
+    expect(uploadRoute).not.toContain("startAuthorisedStorageUpload");
     expect(fileRoute).not.toContain("getSupabaseServiceRoleKey");
     expect(fileRoute).not.toContain("getSupabaseServiceClient");
 

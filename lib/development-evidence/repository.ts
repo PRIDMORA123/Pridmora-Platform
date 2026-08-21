@@ -886,8 +886,8 @@ async function rebuildCapabilityLinks(
 
 /**
  * Remove the underlying storage object after ownership has already been proven
- * via getEvidenceById / assignment gates. Best-effort — metadata soft-delete
- * still proceeds if the object is already missing.
+ * via getEvidenceById / assignment gates. Fail-closed: callers must not clear
+ * storage_path unless removed is true or skipped (no object).
  */
 export async function removeDevelopmentEvidenceStorageObject(input: {
   supabase: SupabaseClient;
@@ -909,7 +909,7 @@ export async function removeDevelopmentEvidenceStorageObject(input: {
   } catch (error) {
     return {
       removed: false,
-      skipped: true,
+      skipped: false,
       error: error instanceof Error ? error.message : "Invalid storage path.",
     };
   }
@@ -938,8 +938,6 @@ export async function softDeleteEvidence(input: {
   const now = new Date().toISOString();
   const storagePath = current.document?.storagePath ?? null;
 
-  // Remove the object while the path is still known, then clear metadata.
-  // Metadata soft-delete always proceeds; orphaned objects are logged.
   let storagePathRemoved = false;
   if (storagePath) {
     const removal = await removeDevelopmentEvidenceStorageObject({
@@ -948,13 +946,13 @@ export async function softDeleteEvidence(input: {
       clientId: current.evidence.clientId,
       storagePath,
     });
-    storagePathRemoved = removal.removed;
-    if (removal.error && !removal.skipped) {
-      console.error(
-        "Evidence storage object delete skipped:",
-        removal.error
-      );
+    if (!removal.removed) {
+      const message =
+        removal.error?.trim() || "Unable to remove the stored evidence file.";
+      console.error("Evidence storage object delete failed:", message);
+      throw new Error(message);
     }
+    storagePathRemoved = true;
   }
 
   await input.supabase

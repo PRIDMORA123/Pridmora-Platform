@@ -109,19 +109,20 @@ describe("My Development self evidence wiring", () => {
     expect(list).toContain("requireAssignedPersonInOrganisation");
   });
 
-  it("creates evidence DB rows before extraction and does not await storage", () => {
+  it("awaits authorised storage upload before creating evidence DB rows", () => {
     const upload = read("app/api/development-evidence/[clientId]/upload/route.ts");
-    const createIdx = upload.indexOf("createUploadedEvidence");
-    const extractIdx = upload.indexOf("extractEvidenceDocumentText");
-    const storageIdx = upload.indexOf("startAuthorisedStorageUpload");
+    const uploadIdx = upload.indexOf("await uploadAuthorisedEvidenceObject(");
+    const createIdx = upload.indexOf("await createUploadedEvidence(");
+    const extractIdx = upload.indexOf("await extractEvidenceDocumentText(");
+    expect(uploadIdx).toBeGreaterThan(-1);
     expect(createIdx).toBeGreaterThan(-1);
     expect(extractIdx).toBeGreaterThan(-1);
-    expect(storageIdx).toBeGreaterThan(-1);
+    expect(uploadIdx).toBeLessThan(createIdx);
     expect(createIdx).toBeLessThan(extractIdx);
-    expect(createIdx).toBeLessThan(storageIdx);
-    expect(upload).toContain("Fire-and-forget");
+    expect(upload).toContain("getSupabaseServiceClient");
     expect(upload).toContain("updateDocumentExtraction");
-    expect(upload).not.toContain("await startAuthorisedStorageUpload");
+    expect(upload).not.toContain("Fire-and-forget");
+    expect(upload).not.toContain("startAuthorisedStorageUpload");
   });
 });
 

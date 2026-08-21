@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { notFoundOrForbidden } from "@/lib/auth/session";
 import {
   UPLOADABLE_EVIDENCE_TYPES,
@@ -13,40 +12,44 @@ import {
   DEVELOPMENT_EVIDENCE_STORAGE_BUCKET,
 } from "@/lib/development-evidence";
 import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
+import { getSupabaseServiceClient } from "@/lib/supabase/service-role";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 type Params = { params: Promise<{ clientId: string }> };
 
-function startAuthorisedStorageUpload(input: {
-  supabase: SupabaseClient;
+async function uploadAuthorisedEvidenceObject(input: {
   storagePath: string;
   bytes: Uint8Array;
   contentType: string;
-}): void {
-  // Fire-and-forget: never block the upload HTTP response on storage.
-  // Path is server-built; Storage RLS denies foreign tenancy.
-  void input.supabase.storage
+}): Promise<void> {
+  const { error } = await getSupabaseServiceClient()
+    .storage
     .from(DEVELOPMENT_EVIDENCE_STORAGE_BUCKET)
     .upload(input.storagePath, input.bytes, {
       contentType: input.contentType,
       upsert: false,
-    })
-    .then(result => {
-      if (result.error) {
-        console.error(
-          "Evidence storage upload skipped:",
-          result.error.message
-        );
-      }
-    })
-    .catch(error => {
-      console.error(
-        "Evidence storage upload skipped:",
-        error instanceof Error ? error.message : "unknown"
-      );
     });
+
+  if (error) {
+    throw new Error(
+      error.message.trim() || "Unable to store the evidence file."
+    );
+  }
+}
+
+async function removeUploadedEvidenceObject(storagePath: string): Promise<void> {
+  const { error } = await getSupabaseServiceClient()
+    .storage
+    .from(DEVELOPMENT_EVIDENCE_STORAGE_BUCKET)
+    .remove([storagePath]);
+  if (error) {
+    console.error(
+      "Evidence storage compensating delete failed:",
+      error.message
+    );
+  }
 }
 
 export async function POST(request: Request, { params }: Params) {
@@ -121,33 +124,36 @@ export async function POST(request: Request, { params }: Params) {
       fileName: file.name,
     });
 
-    // Create rows BEFORE extraction so a slow/failed extract never leaves
-    // the UI stuck with zero persisted evidence.
-    const created = await createUploadedEvidence({
-      supabase: access.context.supabase,
-      userId: access.context.user.id,
-      clientId,
-      evidenceType: evidenceType as DevelopmentEvidenceType,
-      title: title || file.name,
-      evidenceDate,
-      purpose: purpose || null,
-      sourceLabel,
-      fileName: file.name,
-      mimeType: file.type || "application/octet-stream",
-      byteSize: bytes.byteLength,
-      contentHash,
-      extractedText: null,
-      extractionMethod: null,
-      extractionStatus: "pending",
-      storagePath,
-    });
-
-    startAuthorisedStorageUpload({
-      supabase: access.context.supabase,
+    await uploadAuthorisedEvidenceObject({
       storagePath,
       bytes,
       contentType: file.type || "application/octet-stream",
     });
+
+    let created;
+    try {
+      created = await createUploadedEvidence({
+        supabase: access.context.supabase,
+        userId: access.context.user.id,
+        clientId,
+        evidenceType: evidenceType as DevelopmentEvidenceType,
+        title: title || file.name,
+        evidenceDate,
+        purpose: purpose || null,
+        sourceLabel,
+        fileName: file.name,
+        mimeType: file.type || "application/octet-stream",
+        byteSize: bytes.byteLength,
+        contentHash,
+        extractedText: null,
+        extractionMethod: null,
+        extractionStatus: "pending",
+        storagePath,
+      });
+    } catch (error) {
+      await removeUploadedEvidenceObject(storagePath);
+      throw error;
+    }
 
     const extraction = await extractEvidenceDocumentText({
       fileName: file.name,
