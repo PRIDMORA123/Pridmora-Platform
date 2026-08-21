@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { pruneStructuredEvidenceToAuthorisedObservations, authorisedCapabilityKeysFromObservations, reviewedCapabilityKeyFromDecision, capabilityReviewDecisionOutcome } from "@/lib/development-evidence/authorised-observations";
-import { buildCapabilityInferenceCorpus, inferCapabilityKeysFromText, isPridmoraCapabilityKey, mapToPridmoraCapabilityKey } from "@/lib/development-evidence/capabilities";
+import { buildCapabilityInferenceCorpus, inferCapabilityKeysFromText, isPridmoraCapabilityKey, mapToPridmoraCapabilityKey, type PridmoraCapabilityKey } from "@/lib/development-evidence/capabilities";
 import {
   EVIDENCE_TYPE_LABELS,
   EXTRACTION_VERSION,
@@ -572,7 +572,7 @@ export async function saveAnalysedEvidence(input: {
       ),
       ...((structured.observations ?? [])
         .map(item => mapToPridmoraCapabilityKey(item.capabilityKey))
-        .filter((value): value is string => Boolean(value)) ?? []),
+        .filter((value): value is PridmoraCapabilityKey => value !== null) ?? []),
     ])
   );
 
