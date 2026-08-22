@@ -810,7 +810,10 @@ export default function OrganisationIntelligencePage() {
                   .filter(Boolean)
                   .reduce<Array<{ title?: string; body: string }>>(
                     (sections, block) => {
-                      const lines = block.split("\n").filter(Boolean);
+                      const lines = block
+                        .split("\n")
+                        .map(line => line.trim())
+                        .filter(Boolean);
                       if (
                         lines.length >= 2 &&
                         EXECUTIVE_BRIEF_SECTION_TITLES.includes(
