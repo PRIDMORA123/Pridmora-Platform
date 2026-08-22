@@ -188,13 +188,12 @@ describe("Gate 3.4 — buyer narrative safety", () => {
 
     const brief = view.executiveBrief ?? "";
     expect(brief).not.toMatch(/behaviours are strengthening/i);
-    expect(brief).not.toMatch(/\bimproving\b/i);
     expect(brief).not.toMatch(/recurring difficulty/i);
     expect(brief).not.toMatch(/comparatively strong/i);
     expect(brief).not.toMatch(/requiring attention/i);
-    expect(brief).toMatch(/emerging organisational development theme|Evidence posture remains limited \(emerging\)/i);
-    expect(brief).toMatch(/not proof of behavioural improvement or deterioration/i);
-    expect(brief).toMatch(/theme to monitor|Themes to monitor/i);
+    expect(brief).toMatch(/emerging as a recurring development theme/i);
+    expect(brief).toMatch(/does not yet tell us whether .+ improving or declining/i);
+    expect(brief).toMatch(/theme to monitor|Themes to monitor|worth watching/i);
   });
 
   it("I/K: AI prompt builder receives Lead-safe payload only", () => {

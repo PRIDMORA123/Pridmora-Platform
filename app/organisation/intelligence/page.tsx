@@ -39,11 +39,40 @@ const EXECUTIVE_BRIEF_SECTION_TITLES = [
   "Themes to monitor",
   "Where evidence is strong",
   "Evidence posture",
+  "What this evidence tells us",
   "Where evidence is limited",
   "Where evidence remains limited",
   "Recommended questions / actions",
   "Evidence base",
 ] as const;
+
+const EXECUTIVE_BRIEF_SUBHEADINGS = [
+  "What we can say",
+  "What we do not know yet",
+  "What to do next",
+] as const;
+
+function renderExecutiveBriefSectionBody(body: string) {
+  const lines = body
+    .split("\n")
+    .map(line => line.trim())
+    .filter(Boolean);
+  const subheading = lines[0];
+  if (
+    lines.length >= 2 &&
+    EXECUTIVE_BRIEF_SUBHEADINGS.includes(
+      subheading as (typeof EXECUTIVE_BRIEF_SUBHEADINGS)[number]
+    )
+  ) {
+    return (
+      <>
+        <h4>{subheading}</h4>
+        <p>{lines.slice(1).join(" ")}</p>
+      </>
+    );
+  }
+  return <p>{body}</p>;
+}
 
 /** Snapshot header / theme labels: "Moderate" not "Moderate confidence". */
 function confidenceLevelWord(level: ConfidenceLevel): string {
@@ -790,7 +819,7 @@ export default function OrganisationIntelligencePage() {
                       ) {
                         sections.push({
                           title: lines[0],
-                          body: lines.slice(1).join(" "),
+                          body: lines.slice(1).join("\n"),
                         });
                       } else {
                         sections.push({ body: block });
@@ -801,8 +830,14 @@ export default function OrganisationIntelligencePage() {
                   )
                   .map((section, index) => (
                     <article key={`brief-${index}`} className="org-intelligence-brief__section">
-                      {section.title ? <h3>{section.title}</h3> : null}
-                      <p>{section.body}</p>
+                      {section.title ? (
+                        <h3>
+                          {section.title === "Evidence posture"
+                            ? "What this evidence tells us"
+                            : section.title}
+                        </h3>
+                      ) : null}
+                      {renderExecutiveBriefSectionBody(section.body)}
                     </article>
                   ))}
               </div>

@@ -11962,6 +11962,12 @@ button.coaching-moments-section__item:focus-visible {
   color: var(--identity-navy, #0f2340);
 }
 
+.org-intelligence-brief__section h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  color: var(--identity-navy, #0f2340);
+}
+
 .checkbox-row {
   display: flex;
   align-items: center;

@@ -65,28 +65,24 @@ function joinUk(parts: string[]): string {
   return `${unique.slice(0, -1).join(", ")} and ${unique[unique.length - 1]}`;
 }
 
-function posturePhrase(posture: string | null | undefined, themeLabel: string): string {
-  if (posture === "developing") {
-    return `Authorised evidence for ${themeLabel} comes from more than one supported evidence modality.`;
-  }
-  if (posture === "emerging" || !posture) {
-    return `Evidence is sufficient to surface ${themeLabel} as an emerging organisational development theme.`;
-  }
-  return `There is not enough reportable authorised evidence to draw an organisational conclusion about ${themeLabel}.`;
-}
-
-function prevalenceSentence(theme: ExecutiveBriefThemeInput): string {
-  const label = theme.label;
-  if (theme.direction === "increasing_prevalence") {
-    return `${label} appears across more reportable development relationships than in the previous comparable period.`;
-  }
-  if (theme.direction === "decreasing_prevalence") {
-    return `${label} appears across fewer reportable development relationships than in the previous comparable period.`;
-  }
-  if (theme.direction === "unchanged_prevalence") {
-    return `${label} continues to recur across a similar number of reportable development relationships.`;
-  }
-  return `${label} is reportable in the current period, but there is not yet enough comparable earlier evidence to describe a prevalence change.`;
+function themePhrase(labels: string[]): {
+  name: string;
+  isAre: "is" | "are";
+  itThey: "It" | "They";
+  themeNoun: string;
+  emergingNoun: string;
+} {
+  const name = joinUk(labels);
+  const singular = labels.length === 1;
+  return {
+    name,
+    isAre: singular ? "is" : "are",
+    itThey: singular ? "It" : "They",
+    themeNoun: singular ? "theme" : "themes",
+    emergingNoun: singular
+      ? "an emerging development theme"
+      : "emerging development themes",
+  };
 }
 
 /**
@@ -99,9 +95,6 @@ export function buildPremiumExecutiveBrief(
   const confidence = confidenceDisplayLabel(input.confidenceLevel);
   const themes = input.visibleThemes ?? [];
 
-  const increasing = themes.filter(t => t.direction === "increasing_prevalence");
-  const decreasing = themes.filter(t => t.direction === "decreasing_prevalence");
-  const unchanged = themes.filter(t => t.direction === "unchanged_prevalence");
   const monitor = themes.filter(
     t =>
       t.recurring === true ||
@@ -113,83 +106,49 @@ export function buildPremiumExecutiveBrief(
   const legacyIncreasing = input.strengthening ?? [];
   const legacyMonitor = input.attention ?? [];
 
+  const visibleLabels = themes.map(theme => theme.label);
+  const monitorLabels =
+    monitor.length > 0
+      ? monitor.map(theme => theme.label)
+      : legacyMonitor.length > 0
+        ? legacyMonitor
+        : visibleLabels;
+  const prevalenceLabels =
+    visibleLabels.length > 0
+      ? visibleLabels
+      : legacyIncreasing;
+  const postureThemes = themes.slice(0, 4);
+  const postureLabels =
+    postureThemes.length > 0
+      ? postureThemes.map(theme => theme.label)
+      : input.strongEvidenceAreas ?? [];
+
+  const prevalence = themePhrase(prevalenceLabels);
+  const watch = themePhrase(monitorLabels);
+  const posture = themePhrase(postureLabels);
+
   const changingBody =
-    themes.length > 0
-      ? [
-          increasing.length > 0
-            ? `${joinUk(increasing.map(t => t.label))} ${
-                increasing.length === 1 ? "appears" : "appear"
-              } across more reportable development relationships than in the previous comparable period.`
-            : null,
-          unchanged.length > 0
-            ? `${joinUk(unchanged.map(t => t.label))} ${
-                unchanged.length === 1 ? "continues" : "continue"
-              } to recur across a similar number of reportable development relationships.`
-            : null,
-          decreasing.length > 0
-            ? `${joinUk(decreasing.map(t => t.label))} ${
-                decreasing.length === 1 ? "appears" : "appear"
-              } across fewer reportable development relationships than previously.`
-            : null,
-          increasing.length === 0 &&
-          unchanged.length === 0 &&
-          decreasing.length === 0
-            ? `Reportable organisational themes are visible for ${input.organisationName} in ${input.periodLabel.toLowerCase()}, but comparable prevalence change is not yet established.`
-            : null,
-          "Prevalence describes how widely authorised signals appear. It is not proof of behavioural improvement or deterioration.",
-          `Evidence Confidence: ${confidence}.`,
-        ]
-          .filter(Boolean)
-          .join(" ")
-      : legacyIncreasing.length > 0
-        ? `Reportable themes with increasing prevalence: ${joinUk(legacyIncreasing)}. Prevalence is not proof of behavioural improvement. Evidence Confidence: ${confidence}.`
-        : `There is not enough reportable authorised evidence to describe organisation-wide theme prevalence for ${input.organisationName} in ${input.periodLabel.toLowerCase()}. Evidence Confidence: ${confidence}.`;
+    prevalenceLabels.length > 0
+      ? `${prevalence.name} ${prevalence.isAre} emerging as a recurring development ${prevalence.themeNoun}. Similar signals are appearing across several development relationships. This suggests ${prevalence.name} may be worth paying attention to, but the evidence does not yet tell us whether ${prevalence.name} ${prevalence.isAre} improving or declining.`
+      : "There is not yet enough evidence to identify a recurring development theme.";
 
   const attentionBody =
-    themes.length > 0
-      ? monitor.length > 0
-        ? `${joinUk(monitor.map(t => t.label))} ${
-            monitor.length === 1 ? "is" : "are"
-          } a recurring or widening organisational theme to monitor. This does not establish difficulty, weakness or poor performance. Where the sample remains limited, organisation-wide conclusions would be premature.`
-        : `No additional reportable themes are flagged for monitoring beyond the prevalence picture above. Continue gathering authorised development evidence before drawing firmer conclusions.`
-      : legacyMonitor.length > 0
-        ? `${joinUk(legacyMonitor)} ${
-            legacyMonitor.length === 1 ? "is" : "are"
-          } a theme to monitor. This does not establish difficulty or weakness.`
-        : `No organisation-wide monitoring signal is visible yet. Continue gathering authorised development evidence before drawing firmer conclusions.`;
+    monitorLabels.length > 0
+      ? `${watch.name} ${watch.isAre} a ${watch.themeNoun} worth watching. ${watch.itThey} ${watch.isAre} appearing repeatedly in the available evidence. This does not mean there is an organisation-wide problem or that managers are performing poorly. More evidence is needed before drawing wider conclusions.`
+      : "There is not yet a theme worth watching. More evidence is needed before drawing wider conclusions.";
 
-  const postureThemes = themes.slice(0, 4);
   const strongBody =
-    postureThemes.length > 0
-      ? postureThemes.map(t => posturePhrase(t.evidencePosture, t.label)).join(" ")
-      : input.strongEvidenceAreas && input.strongEvidenceAreas.length > 0
-        ? `Reportable themes include ${joinUk(input.strongEvidenceAreas)}. Treat posture as emerging unless a broader evidence modality is recorded.`
-        : `There is not enough reportable authorised evidence to describe theme evidence posture yet.`;
+    postureLabels.length > 0
+      ? `What we can say\nThere is enough evidence to identify ${posture.name} as ${posture.emergingNoun}.`
+      : "What we can say\nThere is not yet enough evidence to identify an emerging development theme.";
 
-  const emergingOnly = themes.filter(
-    t => !t.evidencePosture || t.evidencePosture === "emerging" || t.evidencePosture === "observed"
-  );
   const limitedBody =
-    themes.length > 0
-      ? emergingOnly.length > 0
-        ? `Evidence posture remains limited (emerging) for ${joinUk(
-            emergingOnly.map(t => t.label)
-          )}. Treat related recommendations as exploratory.`
-        : `Reportable themes have been surfaced; continue monitoring whether authorised evidence modalities broaden over time.`
-      : input.limitedEvidenceAreas && input.limitedEvidenceAreas.length > 0
-        ? `Evidence remains limited around ${joinUk(input.limitedEvidenceAreas)}. Treat related recommendations as exploratory.`
-        : `Coverage depends on consistency and recency of authorised evidence.`;
+    "What we do not know yet\nThe current evidence is still limited. Any recommendations should therefore be treated as areas to explore rather than firm conclusions.";
 
   const recommendationLines =
-    input.recommendations.length > 0
-      ? input.recommendations
-          .slice(0, 3)
-          .map(
-            item =>
-              `Consider: ${item.recommendation} (${confidenceDisplayLabel(item.confidenceLevel)}).`
-          )
-          .join(" ")
-      : "Recommended next focus is continued monitoring and additional authorised evidence gathering where samples remain small.";
+    monitorLabels.length > 0
+      ? `What to do next\nContinue to monitor the ${watch.themeNoun} and gather more evidence before making changes to organisational practice.`
+      : "What to do next\nContinue to gather more evidence before making changes to organisational practice.";
 
   const evidenceBase = [
     `Evidence base for ${input.periodLabel.toLowerCase()}: ${input.sourceRelationshipCount} contributing relationships, ${input.sourceConversationCount} conversations, ${input.sourceEvidenceCount} reviewed evidence items.`,
@@ -212,7 +171,7 @@ export function buildPremiumExecutiveBrief(
     },
     {
       key: "where_evidence_is_strong",
-      title: "Evidence posture",
+      title: "What this evidence tells us",
       body: strongBody,
     },
     {
@@ -264,6 +223,7 @@ function firstBriefParagraph(executiveBrief: string | null | undefined): string 
     "Themes to monitor",
     "Where evidence is strong",
     "Evidence posture",
+    "What this evidence tells us",
     "Where evidence is limited",
     "Recommended questions / actions",
     "Evidence base",
