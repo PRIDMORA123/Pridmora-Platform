@@ -818,7 +818,10 @@ export default function OrganisationIntelligencePage() {
                         )
                       ) {
                         sections.push({
-                          title: lines[0],
+                          title:
+                            lines[0] === "Evidence posture"
+                              ? "What this evidence tells us"
+                              : lines[0],
                           body: lines.slice(1).join("\n"),
                         });
                       } else {
@@ -830,13 +833,7 @@ export default function OrganisationIntelligencePage() {
                   )
                   .map((section, index) => (
                     <article key={`brief-${index}`} className="org-intelligence-brief__section">
-                      {section.title ? (
-                        <h3>
-                          {section.title === "Evidence posture"
-                            ? "What this evidence tells us"
-                            : section.title}
-                        </h3>
-                      ) : null}
+                      {section.title ? <h3>{section.title}</h3> : null}
                       {renderExecutiveBriefSectionBody(section.body)}
                     </article>
                   ))}
