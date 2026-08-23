@@ -50,6 +50,7 @@ describe("owner console routing contracts", () => {
     expect(home).toContain("HomeApp");
     expect(home).toContain("resolveAuthoritativePostLoginDestination");
     expect(home).toContain("isHomeWorkspacePath");
+    expect(home).toContain("requestedNext");
     // Destination paths live in the shared helper — not hard-coded on the page.
     expect(home).not.toContain('"/owner"');
     expect(home).not.toContain("'/owner'");

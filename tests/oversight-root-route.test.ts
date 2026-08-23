@@ -77,6 +77,9 @@ describe("oversight root route — active membership workspace", () => {
     expect(page).toContain("isHomeWorkspacePath");
     expect(page).toContain("redirect(destination)");
     expect(page).toContain("HomeApp");
+    expect(page).toContain("requestedNext");
+    expect(page).toContain("searchParams");
+    expect(page).not.toMatch(/user\.id,\s*"\/"/);
 
     const signIn = read("components/auth/sign-in-form.tsx");
     expect(signIn).toContain("resolveAuthoritativePostLoginDestination");

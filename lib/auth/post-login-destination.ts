@@ -37,6 +37,11 @@ export function resolvePostLoginDestination(input: {
   }
 
   if (input.isPlatformOwner) {
+    // Explicit Manager workspace (Exit to workspace) wins; bare `/` still
+    // sends platform owners to the Owner Console.
+    if (requested === MANAGER_WORKSPACE_PATH) {
+      return MANAGER_WORKSPACE_PATH;
+    }
     return OWNER_CONSOLE_PATH;
   }
 

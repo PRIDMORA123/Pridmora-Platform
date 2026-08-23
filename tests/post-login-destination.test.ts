@@ -20,6 +20,36 @@ describe("authoritative post-login destination", () => {
     ).toBe(OWNER_CONSOLE_PATH);
   });
 
+  it("honours explicit Manager workspace for a platform owner", () => {
+    expect(
+      resolvePostLoginDestination({
+        requestedNext: MANAGER_WORKSPACE_PATH,
+        isPlatformOwner: true,
+        membershipRole: null,
+        professionalRole: null,
+      })
+    ).toBe(MANAGER_WORKSPACE_PATH);
+  });
+
+  it("keeps a normal Manager on Manager home for / and /?view=dashboard", () => {
+    expect(
+      resolvePostLoginDestination({
+        requestedNext: "/",
+        isPlatformOwner: false,
+        membershipRole: "practitioner",
+        professionalRole: "manager",
+      })
+    ).toBe(MANAGER_WORKSPACE_PATH);
+    expect(
+      resolvePostLoginDestination({
+        requestedNext: MANAGER_WORKSPACE_PATH,
+        isPlatformOwner: false,
+        membershipRole: "practitioner",
+        professionalRole: "manager",
+      })
+    ).toBe(MANAGER_WORKSPACE_PATH);
+  });
+
   it("routes oversight Lead to /organisation", () => {
     expect(
       resolvePostLoginDestination({
