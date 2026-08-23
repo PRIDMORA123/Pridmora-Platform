@@ -160,24 +160,18 @@ export function HomeApp() {
     window.location.assign("/auth/sign-in?next=/?view=dashboard");
   }, []);
 
-  const handleAuthFailure = useCallback(
-    (error?: unknown) => {
-      activeRef.current = false;
-      setClients([]);
-      setSelectedId("");
-      setProfile(null);
-
-      // Expected 401 / missing session → quiet redirect, not a console Error.
-      if (!error || error instanceof AuthRequiredError) {
-        leaveToSignIn();
-        return;
-      }
-
-      setAuthError(errorMessage(error, "Unable to verify your session. Please sign in again."));
-      setAuthReady(true);
-    },
-    [leaveToSignIn]
-  );
+  const handleAuthFailure = useCallback((error?: unknown) => {
+    activeRef.current = false;
+    setClients([]);
+    setSelectedId("");
+    setProfile(null);
+    // Stay on this document. Automatic /auth/sign-in navigation loops with
+    // middleware bouncing an authenticated cookie session back to `/`.
+    setAuthError(
+      errorMessage(error, "Unable to verify your session. Please sign in again.")
+    );
+    setAuthReady(true);
+  }, []);
 
   const refreshClients = useCallback(async () => {
     if (!authReady || !profile || !activeRef.current) return;
@@ -230,7 +224,7 @@ export function HomeApp() {
         if (cancelled || !activeRef.current) return;
 
         if (!user) {
-          leaveToSignIn();
+          handleAuthFailure();
           return;
         }
 
@@ -292,7 +286,7 @@ export function HomeApp() {
         } catch (error) {
           if (cancelled || !activeRef.current) return;
           if (error instanceof AuthRequiredError) {
-            leaveToSignIn();
+            handleAuthFailure(error);
             return;
           }
           setClients([]);
@@ -320,7 +314,7 @@ export function HomeApp() {
       cancelled = true;
       activeRef.current = false;
     };
-  }, [leaveToSignIn, handleAuthFailure]);
+  }, [handleAuthFailure]);
 
   const selected =
     (selectedId && clients.find(client => client.id === selectedId)) || undefined;

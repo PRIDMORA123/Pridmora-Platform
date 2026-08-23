@@ -23,20 +23,24 @@ export default async function HomePage() {
     return <MarketingHomepage />;
   }
 
+  let destination = "/";
   try {
     const supabase = await createAuthenticatedServerClient();
-    const destination = await resolveAuthoritativePostLoginDestination(
+    destination = await resolveAuthoritativePostLoginDestination(
       supabase,
       user.id,
       "/"
     );
-    // Post-login routing previously ran only at sign-in. Authenticated
-    // navigations to `/` must honour the active organisation membership.
-    if (!isHomeWorkspacePath(destination)) {
-      redirect(destination);
-    }
   } catch {
     // Fall through to Manager home if session/org routing cannot be resolved.
+    return <HomeApp />;
+  }
+
+  // Post-login routing previously ran only at sign-in. Authenticated
+  // navigations to `/` must honour the active organisation membership.
+  // redirect() must stay outside try/catch — Next.js implements it by throwing.
+  if (!isHomeWorkspacePath(destination)) {
+    redirect(destination);
   }
 
   return <HomeApp />;
