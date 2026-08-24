@@ -238,6 +238,7 @@ describe("AI identity boundary", () => {
       organisation: "Trust",
     });
     expect(blocked.aiDisplayName).toBe("Ops programme");
+    expect(blocked.allowedClientName).toBe("Alex Rivera");
 
     const allowed = buildRelationshipAiContext({
       name: "Alex Rivera",
@@ -248,6 +249,22 @@ describe("AI identity boundary", () => {
       organisation: "Trust",
     });
     expect(allowed.aiDisplayName).toBe("Alex Rivera");
+  });
+
+  it("does not send legal name when display_label equals name and ai_name_allowed is false", () => {
+    const context = buildRelationshipAiContext({
+      name: "Sarah Chen",
+      displayLabel: "Sarah Chen",
+      identityMode: "standard",
+      aiNameAllowed: false,
+      role: "Manager",
+      organisation: "Trust",
+    });
+    expect(context.aiDisplayName).toBe("[SUBJECT]");
+    expect(context.allowedClientName).toBe("Sarah Chen");
+    const lines = formatRelationshipAiPersonContext(context).join("\n");
+    expect(lines).toContain("Person reference: [SUBJECT]");
+    expect(lines).not.toContain("Sarah Chen");
   });
 
   it("never includes email or phone in formatted AI person context", () => {

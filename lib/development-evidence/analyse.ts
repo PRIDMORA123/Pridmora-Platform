@@ -29,6 +29,10 @@ import {
 } from "@/lib/development-evidence/repository";
 import type { StructuredEvidence } from "@/lib/development-evidence/types";
 import type { PrivateIdentityFields } from "@/lib/relationship-identity";
+import {
+  createPersonLevelChatCompletion,
+} from "@/lib/ai/person-level-openai";
+import { knownIdentitiesFromPublicClient } from "@/lib/ai/minimise-for-external";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /** AI analysis attempts including the first try (one bounded retry). */
@@ -243,7 +247,8 @@ export async function analyseEvidenceDocument(input: {
         let finishReason: string | null = null;
         let completionTokens: number | null = null;
         try {
-          const completion = await openai.chat.completions.create(
+          const completion = await createPersonLevelChatCompletion(
+            openai,
             {
               model: process.env.OPENAI_EVIDENCE_MODEL?.trim() || "gpt-4.1-mini",
               temperature: 0.2,
@@ -256,23 +261,23 @@ export async function analyseEvidenceDocument(input: {
                 { role: "user", content: aiContext.userPrompt },
               ],
               response_format: { type: "json_object" },
-              store: false,
             },
+            knownIdentitiesFromPublicClient(input.client),
             { signal: AbortSignal.timeout(EVIDENCE_ANALYSIS_ATTEMPT_TIMEOUT_MS) }
           );
 
-          finishReason = completion.choices[0]?.finish_reason ?? null;
-          completionTokens = completion.usage?.completion_tokens ?? null;
+          finishReason = completion.finishReason;
+          completionTokens = completion.completionTokens;
           attemptDiagnostics.push({
             attempt,
             elapsedMs: Date.now() - startedAt,
             finishReason,
-            promptTokens: completion.usage?.prompt_tokens ?? null,
+            promptTokens: completion.promptTokens,
             completionTokens,
             model: completion.model,
           });
 
-          const content = completion.choices[0]?.message?.content ?? "{}";
+          const content = completion.content || "{}";
           lastStructured = constrainStructuredEvidenceObservations(
             validateStructuredPsychometricEvidence(
               detail.evidence.evidenceType,
@@ -291,7 +296,7 @@ export async function analyseEvidenceDocument(input: {
             evidenceId: detail.evidence.id,
             usageKind: "evidence_processing",
             model: completion.model,
-            promptTokens: completion.usage?.prompt_tokens ?? null,
+            promptTokens: completion.promptTokens,
             completionTokens,
             contentHash: detail.evidence.contentHash,
           });

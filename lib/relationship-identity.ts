@@ -42,6 +42,8 @@ export type RelationshipPublicIdentity = {
   initials: string;
 };
 
+export const AI_SUBJECT_REFERENCE = "[SUBJECT]";
+
 export type RelationshipAiContext = {
   identityMode: IdentityMode;
   /** Name/label permitted in AI prompts — never private real name. */
@@ -51,8 +53,12 @@ export type RelationshipAiContext = {
   role: string;
   /** Employer/org string only when already present on the public client. */
   organisation: string;
-  /** Isolation allow-list for relationship-scope checks. */
+  /**
+   * Isolation allow-list — may remain the public/legal name.
+   * Distinct from aiDisplayName so isolation is not redesigned.
+   */
   allowedClientName: string;
+  aiNameAllowed: boolean;
 };
 
 export function isIdentityMode(value: unknown): value is IdentityMode {
@@ -235,12 +241,21 @@ export function buildRelationshipAiContext(
       role,
       organisation,
       allowedClientName: aiDisplayName,
+      aiNameAllowed: false,
     };
   }
 
   const preferredName = client.name.trim() || displayLabel;
   const safeDisplayLabel = displayLabel || preferredName || "Client";
-  const aiDisplayName = client.aiNameAllowed ? preferredName : safeDisplayLabel;
+  const labelMatchesLegalName =
+    Boolean(preferredName) &&
+    safeDisplayLabel.trim().toLowerCase() === preferredName.trim().toLowerCase();
+  const aiNameAllowed = Boolean(client.aiNameAllowed);
+  const aiDisplayName = aiNameAllowed
+    ? preferredName
+    : labelMatchesLegalName
+      ? AI_SUBJECT_REFERENCE
+      : safeDisplayLabel;
 
   return {
     identityMode,
@@ -249,7 +264,8 @@ export function buildRelationshipAiContext(
     displayLabel: safeDisplayLabel,
     role,
     organisation,
-    allowedClientName: aiDisplayName,
+    allowedClientName: preferredName || safeDisplayLabel,
+    aiNameAllowed,
   };
 }
 
@@ -268,6 +284,11 @@ export function formatRelationshipAiPersonContext(
       lines.push(`Confidential reference: ${context.confidentialReference}`);
     }
     lines.push(`Display label: ${context.aiDisplayName}`);
+  } else if (
+    context.aiDisplayName === AI_SUBJECT_REFERENCE ||
+    context.aiDisplayName !== context.allowedClientName
+  ) {
+    lines.push(`Person reference: ${context.aiDisplayName}`);
   } else {
     lines.push(`Name: ${context.aiDisplayName}`);
   }

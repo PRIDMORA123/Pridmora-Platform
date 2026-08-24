@@ -1,6 +1,8 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import { IDENTITY_SYSTEM_PROMPT } from "@/lib/ai/identity-system-prompt";
+import { createPersonLevelResponse } from "@/lib/ai/person-level-openai";
+import { knownIdentitiesFromPublicClient } from "@/lib/ai/minimise-for-external";
 import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 
 type CoachingQuestionsRequest = {
@@ -76,6 +78,14 @@ export async function POST(request: Request) {
 
   const openai = new OpenAI({ apiKey });
 
+  const { data: publicClient } = await access.context.supabase
+    .from("clients")
+    .select(
+      "name, identity_mode, display_label, organisation, role, ai_name_allowed"
+    )
+    .eq("id", access.clientId)
+    .maybeSingle();
+
   const input = `${COACHING_QUESTIONS_TASK_PROMPT}
 
 Session notes:
@@ -83,12 +93,28 @@ Session notes:
 ${notes.trim()}`;
 
   try {
-    const response = await openai.responses.create({
-      model: "gpt-5.5",
-      instructions: IDENTITY_SYSTEM_PROMPT,
-      input,
-      store: false,
-    });
+    const response = await createPersonLevelResponse(
+      openai,
+      {
+        model: "gpt-5.5",
+        instructions: IDENTITY_SYSTEM_PROMPT,
+        input,
+      },
+      knownIdentitiesFromPublicClient({
+        name: publicClient?.name ? String(publicClient.name) : "",
+        displayLabel: publicClient?.display_label
+          ? String(publicClient.display_label)
+          : null,
+        organisation: publicClient?.organisation
+          ? String(publicClient.organisation)
+          : null,
+        role: publicClient?.role ? String(publicClient.role) : null,
+        identityMode: publicClient?.identity_mode
+          ? String(publicClient.identity_mode)
+          : "standard",
+        aiNameAllowed: Boolean(publicClient?.ai_name_allowed),
+      })
+    );
 
     const questions = response.output_text?.trim();
     if (!questions) {

@@ -6,6 +6,8 @@ import {
   DEVELOPMENT_UPDATE_SYSTEM_PROMPT,
   formatProfileForPrompt,
 } from "@/lib/ai/development-update-prompt";
+import { createPersonLevelResponse } from "@/lib/ai/person-level-openai";
+import { knownIdentitiesFromPublicClient } from "@/lib/ai/minimise-for-external";
 import { developmentUpdateErrorResponse } from "@/lib/development-updates/api-response";
 import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
 import {
@@ -341,12 +343,14 @@ export async function POST(request: Request) {
     });
 
     const isolationContext = {
-      allowedClientName: clientName,
+      allowedClientName: aiContext.allowedClientName,
       knownOtherNames,
       organisationName,
-      authorisedNames: [clientName, organisationName, authorisedEvidenceText].filter(
-        Boolean
-      ) as string[],
+      authorisedNames: [
+        aiContext.allowedClientName,
+        organisationName,
+        authorisedEvidenceText,
+      ].filter(Boolean) as string[],
     };
 
     const promptInput = buildDevelopmentUpdateInput({
@@ -361,6 +365,23 @@ export async function POST(request: Request) {
     });
 
     const openai = new OpenAI({ apiKey });
+    const identities = knownIdentitiesFromPublicClient(
+      {
+        name: String(client.name ?? ""),
+        displayLabel: client.display_label
+          ? String(client.display_label)
+          : null,
+        organisation: client.organisation
+          ? String(client.organisation)
+          : null,
+        role: client.role ? String(client.role) : null,
+        identityMode: client.identity_mode
+          ? String(client.identity_mode)
+          : null,
+        aiNameAllowed: Boolean(client.ai_name_allowed),
+      },
+      { otherPersonNames: knownOtherNames }
+    );
 
     async function generateAttempt(isolationRetry: boolean) {
       const instructions = isolationRetry
@@ -368,12 +389,15 @@ export async function POST(request: Request) {
             clientName
           )}`
         : DEVELOPMENT_UPDATE_SYSTEM_PROMPT;
-      const response = await openai.responses.create({
-        model: "gpt-5.5",
-        instructions,
-        input: promptInput,
-        store: false,
-      });
+      const response = await createPersonLevelResponse(
+        openai,
+        {
+          model: "gpt-5.5",
+          instructions,
+          input: promptInput,
+        },
+        identities
+      );
       return {
         outputText: response.output_text?.trim() ?? "",
         responseId: response.id ?? null,

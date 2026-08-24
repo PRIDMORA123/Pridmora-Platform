@@ -81,12 +81,20 @@ function productionOpenAiCreateBodies(): Array<{
 describe("OpenAI store: false privacy hardening", () => {
   it("finds every production Responses and Chat Completions create call", () => {
     const calls = productionOpenAiCreateBodies();
-    expect(calls.length).toBeGreaterThanOrEqual(15);
+    expect(calls.length).toBeGreaterThanOrEqual(3);
     expect(calls.some(c => c.api === "chat.completions")).toBe(true);
-    expect(calls.some(c => c.file.includes("aurelia/chat"))).toBe(true);
+    expect(calls.some(c => c.api === "responses")).toBe(true);
+    expect(calls.some(c => c.file.includes("person-level-openai"))).toBe(true);
     expect(calls.some(c => c.file.includes("organisation-intelligence"))).toBe(
       true
     );
+    expect(
+      calls.every(
+        c =>
+          c.file.includes("person-level-openai") ||
+          c.file.includes("organisation-intelligence")
+      )
+    ).toBe(true);
   });
 
   it("sets store: false on every production OpenAI create call body", () => {
@@ -96,6 +104,11 @@ describe("OpenAI store: false privacy hardening", () => {
   });
 
   it("keeps Manager Aurelia Responses calls on store: false", () => {
+    const wrapper = readFileSync(
+      join(root, "lib/ai/person-level-openai.ts"),
+      "utf8"
+    );
+    expect(wrapper).toContain("store: false");
     const chat = readFileSync(
       join(root, "app/api/my-development/aurelia/chat/route.ts"),
       "utf8"
@@ -104,7 +117,7 @@ describe("OpenAI store: false privacy hardening", () => {
       join(root, "app/api/my-development/aurelia/propose-capture/route.ts"),
       "utf8"
     );
-    expect(chat).toContain("store: false");
-    expect(propose).toContain("store: false");
+    expect(chat).toContain("createPersonLevelResponse");
+    expect(propose).toContain("createPersonLevelResponse");
   });
 });

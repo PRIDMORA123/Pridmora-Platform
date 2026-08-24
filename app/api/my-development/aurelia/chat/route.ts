@@ -12,6 +12,7 @@ import {
 } from "@/lib/ai/manager-aurelia-conversation";
 import { loadManagerAureliaDevelopmentContext } from "@/lib/my-development/aurelia-context";
 import { checkManagerAureliaRateLimit } from "@/lib/my-development/aurelia-rate-limit";
+import { createPersonLevelResponse } from "@/lib/ai/person-level-openai";
 import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
 
 export const runtime = "nodejs";
@@ -119,12 +120,11 @@ export async function POST(request: Request) {
   );
 
   try {
-    const response = await openai.responses.create({
+    const response = await createPersonLevelResponse(openai, {
       model: "gpt-5.5",
       instructions: buildManagerAureliaInstructions(),
       input,
       max_output_tokens: MANAGER_AURELIA_MAX_OUTPUT_TOKENS,
-      store: false,
     });
 
     const reply = boundManagerAureliaReply(response.output_text ?? "");

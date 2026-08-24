@@ -165,8 +165,8 @@ describe("Stage 2.2.2 Manager Aurelia API contract", () => {
     expect(route).toContain("rejectPersonIdentifiers");
     expect(route).toContain("rejectClientSuppliedDevelopmentContext");
     expect(route).toContain("loadManagerAureliaDevelopmentContext");
-    expect(route).toContain("openai.responses.create");
-    expect(route).toContain("store: false");
+    expect(route).toContain("createPersonLevelResponse");
+    expect(route).not.toContain("openai.responses.create");
     expect(route).toContain("buildManagerAureliaInstructions");
     expect(route).toContain("boundManagerAureliaReply");
     expect(route).toContain('errorCode: "MANAGER_AURELIA_AI_FAILED"');
@@ -180,14 +180,9 @@ describe("Stage 2.2.2 Manager Aurelia API contract", () => {
   });
 
   it("disables OpenAI Responses storage on Manager Aurelia chat", () => {
-    const route = read("app/api/my-development/aurelia/chat/route.ts");
-    const createBlocks = [
-      ...route.matchAll(/openai\.responses\.create\(\{[\s\S]*?\}\)/g),
-    ].map(match => match[0]);
-    expect(createBlocks.length).toBeGreaterThanOrEqual(1);
-    for (const block of createBlocks) {
-      expect(block).toContain("store: false");
-    }
+    const wrapper = read("lib/ai/person-level-openai.ts");
+    expect(wrapper).toContain("store: false");
+    expect(wrapper).toContain("createPersonLevelResponse");
   });
 
   it("keeps dedicated prompt layer separate from prepare prompts", () => {

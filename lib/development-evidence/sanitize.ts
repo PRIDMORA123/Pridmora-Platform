@@ -1,21 +1,17 @@
 /**
  * Evidence text sanitisation before AI use.
- * Removes emails, phones, and known private identity fields.
+ * Delegates contact/identifier redaction to the shared person-level boundary.
  */
 
 import type { PrivateIdentityFields } from "@/lib/relationship-identity";
-
-const EMAIL_PATTERN = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
-const PHONE_PATTERN =
-  /(?:\+?\d{1,3}[\s.-]?)?(?:\(?\d{2,5}\)?[\s.-]?)?\d{3,4}[\s.-]?\d{3,4}\b/g;
-const UUID_PATTERN =
-  /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/gi;
+import {
+  minimiseForExternalAi,
+  redactContactIdentifiers as redactContactIdentifiersShared,
+  type ExternalAiKnownIdentities,
+} from "@/lib/ai/minimise-for-external";
 
 export function redactContactIdentifiers(text: string): string {
-  return text
-    .replace(EMAIL_PATTERN, "[redacted-email]")
-    .replace(PHONE_PATTERN, "[redacted-phone]")
-    .replace(UUID_PATTERN, "[redacted-id]");
+  return redactContactIdentifiersShared(text);
 }
 
 export function redactPrivateIdentityValues(
@@ -46,10 +42,11 @@ export function redactPrivateIdentityValues(
  */
 export function sanitizeEvidenceTextForAi(
   text: string,
-  privateIdentity?: Partial<PrivateIdentityFields> | null
+  privateIdentity?: Partial<PrivateIdentityFields> | null,
+  knownIdentities?: ExternalAiKnownIdentities
 ): string {
   const withoutPrivate = redactPrivateIdentityValues(text, privateIdentity);
-  return redactContactIdentifiers(withoutPrivate).trim();
+  return minimiseForExternalAi(withoutPrivate, knownIdentities ?? {}).text.trim();
 }
 
 /** Forbidden field names that must never appear as prompt keys for private identity. */

@@ -54,6 +54,12 @@ const { parseDevelopmentUpdateGeneration } = await import(
 const { hasAnyProposedChanges } = await import(
   "../lib/development-updates/types.ts"
 );
+const { createPersonLevelResponse } = await import(
+  "../lib/ai/person-level-openai.ts"
+);
+const { knownIdentitiesFromPublicClient } = await import(
+  "../lib/ai/minimise-for-external.ts"
+);
 
 const ORGANISATION_LABEL = "Northbridge Healthcare Trust";
 const PACK_VERSION = "2.0.0";
@@ -479,6 +485,17 @@ function personLabel(rel) {
   return rel.identityMode === "confidential" ? rel.displayLabel : rel.name;
 }
 
+function identitiesForRelationship(rel) {
+  return knownIdentitiesFromPublicClient({
+    name: rel.name || "",
+    displayLabel: rel.displayLabel || null,
+    organisation: rel.organisationLabel || null,
+    role: rel.role || null,
+    identityMode: rel.identityMode || "standard",
+    aiNameAllowed: Boolean(rel.aiNameAllowed),
+  });
+}
+
 function buildCoachNotes(rel, sessionIndex, themeKey, priorSummaries) {
   const arc = ARC[themeKey] || ARC.confidence;
   const focus = arc.foci[sessionIndex] || arc.foci[0];
@@ -605,12 +622,16 @@ function reviewDevelopment(generation) {
   return issues;
 }
 
-async function callOpenAI(openai, { instructions, input }) {
-  const response = await openai.responses.create({
-    model: MODEL,
-    instructions,
-    input,
-  });
+async function callOpenAI(openai, { instructions, input }, identities = {}) {
+  const response = await createPersonLevelResponse(
+    openai,
+    {
+      model: MODEL,
+      instructions,
+      input,
+    },
+    identities
+  );
   const text = response.output_text?.trim();
   if (!text) throw new Error("Empty model response.");
   return text;
@@ -624,7 +645,7 @@ function coachReviewSummary(content) {
   return { content, coachReviewed: true, attempt: 1 };
 }
 
-async function generateSummary(openai, notes, composeInput = null) {
+async function generateSummary(openai, notes, composeInput = null, identities = {}) {
   if (composeMode || !openai) {
     if (!composeInput) throw new Error("composeInput required in compose mode");
     const content = composeSummaryContent(composeInput);
@@ -651,10 +672,14 @@ async function generateSummary(openai, notes, composeInput = null) {
       attempt === 1
         ? DEMO_SUMMARY_ADDENDUM
         : `${DEMO_SUMMARY_ADDENDUM}\nPrevious draft failed coach review: ${lastIssues.join("; ")}. Improve specificity and completeness.`;
-    const raw = await callOpenAI(openai, {
-      instructions: `${DRAFT_SUMMARY_INSTRUCTIONS}\n${addon}`,
-      input: buildDraftSummaryInput(notes),
-    });
+    const raw = await callOpenAI(
+      openai,
+      {
+        instructions: `${DRAFT_SUMMARY_INSTRUCTIONS}\n${addon}`,
+        input: buildDraftSummaryInput(notes),
+      },
+      identities
+    );
     const content = parseSummaryInsightsFromModel(raw);
     if (!content) {
       lastIssues = ["unparseable JSON"];
@@ -669,7 +694,7 @@ async function generateSummary(openai, notes, composeInput = null) {
   throw new Error(`Summary failed coach review: ${lastIssues.join("; ")}`);
 }
 
-async function generateDevelopmentUpdate(openai, input, composeInput = null) {
+async function generateDevelopmentUpdate(openai, input, composeInput = null, identities = {}) {
   if (composeMode || !openai) {
     if (!composeInput) throw new Error("composeInput required in compose mode");
     const generation = composeDevelopmentUpdate(composeInput);
@@ -693,10 +718,14 @@ Return valid JSON only.
 Every add item must include value (string) and status (emerging|supported|well_established).
 evidence[].changeKey must look like emergingThemes.add.0 or strengths.add.0.
 Propose at least two evidenced adds across emergingThemes, strengths and growthAreas.`;
-    const raw = await callOpenAI(openai, {
-      instructions: `${DEVELOPMENT_UPDATE_SYSTEM_PROMPT}\n${addon}`,
-      input: buildDevelopmentUpdateInput(input),
-    });
+    const raw = await callOpenAI(
+      openai,
+      {
+        instructions: `${DEVELOPMENT_UPDATE_SYSTEM_PROMPT}\n${addon}`,
+        input: buildDevelopmentUpdateInput(input),
+      },
+      identities
+    );
     let generation;
     try {
       generation = parseDevelopmentUpdateGeneration(raw);
@@ -822,7 +851,11 @@ async function rebuildRelationship(openai, rel, checkpoint) {
     const coachNotes = buildCoachNotes(rel, i, themeKey, priorSummaries);
     const notesForAi = buildDebriefNotes(coachNotes, agreedAction);
 
-    const { content } = await generateSummary(openai, notesForAi, {
+    const identities = identitiesForRelationship(rel);
+    const { content } = await generateSummary(
+      openai,
+      notesForAi,
+      {
       personName: personLabel(rel),
       role: rel.role,
       organisationLabel: rel.organisationLabel,
@@ -833,7 +866,9 @@ async function rebuildRelationship(openai, rel, checkpoint) {
       sessionIndex: i,
       agreedAction,
       priorSummary: priorSummaries[priorSummaries.length - 1] || "",
-    });
+      },
+      identities
+    );
     const fields = serialiseSummaryContent(content);
     priorSummaries.push(fields.summary);
 
@@ -923,7 +958,8 @@ async function rebuildRelationship(openai, rel, checkpoint) {
           sessionIndex: i,
           summary: fields.summary,
           profile,
-        }
+        },
+        identities
       );
 
       Object.assign(profile, applyProposedChanges(profile, generation.proposedChanges));

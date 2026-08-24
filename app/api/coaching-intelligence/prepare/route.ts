@@ -24,6 +24,8 @@ import {
   assertRelationshipOwnership,
   logRelationshipIsolationRejection,
 } from "@/lib/relationship-scope";
+import { createPersonLevelResponse } from "@/lib/ai/person-level-openai";
+import { knownIdentitiesFromPublicClient } from "@/lib/ai/minimise-for-external";
 import {
   buildRelationshipAiContext,
   formatRelationshipAiPersonContext,
@@ -184,6 +186,7 @@ async function generatePreparationDraft(input: {
   coachingPurpose: string;
   sources: Awaited<ReturnType<typeof resolveIntelligenceSources>>;
   isolationRetry: boolean;
+  identities: ReturnType<typeof knownIdentitiesFromPublicClient>;
 }): Promise<{ outputText: string; responseId: string }> {
   const modelInput = buildPreparationIntelligenceInput({
     mode: input.mode,
@@ -194,20 +197,23 @@ async function generatePreparationDraft(input: {
     isolationRetry: input.isolationRetry,
   });
 
-  const response = await input.openai.responses.create({
-    model: "gpt-5.5",
-    instructions: buildPreparationIntelligenceInstructions({
-      mode: input.mode,
-      clientDisplayName: input.clientDisplayName,
-      isolationRetry: input.isolationRetry,
-    }),
-    input: modelInput,
-    store: false,
-  });
+  const response = await createPersonLevelResponse(
+    input.openai,
+    {
+      model: "gpt-5.5",
+      instructions: buildPreparationIntelligenceInstructions({
+        mode: input.mode,
+        clientDisplayName: input.clientDisplayName,
+        isolationRetry: input.isolationRetry,
+      }),
+      input: modelInput,
+    },
+    input.identities
+  );
 
   return {
     outputText: response.output_text?.trim() ?? "",
-    responseId: response.id,
+    responseId: response.id ?? "",
   };
 }
 
@@ -385,6 +391,17 @@ export async function POST(request: Request) {
     );
 
     const openai = new OpenAI({ apiKey });
+    const identities = knownIdentitiesFromPublicClient(
+      {
+        name: String(client.name ?? ""),
+        displayLabel: client.display_label ? String(client.display_label) : null,
+        organisation: client.organisation ? String(client.organisation) : null,
+        role: client.role ? String(client.role) : null,
+        identityMode: client.identity_mode ? String(client.identity_mode) : null,
+        aiNameAllowed: Boolean(client.ai_name_allowed),
+      },
+      { otherPersonNames: knownOtherNames }
+    );
     const generationBase = {
       openai,
       mode,
@@ -392,6 +409,7 @@ export async function POST(request: Request) {
       personContext,
       coachingPurpose: String(client.current_focus ?? ""),
       sources,
+      identities,
     } as const;
 
     let outputText = "";
@@ -453,7 +471,7 @@ export async function POST(request: Request) {
     });
 
     const isolationContext = {
-      allowedClientName: clientDisplayName,
+      allowedClientName: aiContext.allowedClientName,
       knownOtherNames,
       organisationName,
       // Organisation + current-relationship evidence tokens. Other-client name

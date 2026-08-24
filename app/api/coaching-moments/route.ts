@@ -33,6 +33,8 @@ import {
   startCoachingMoment,
 } from "@/lib/coaching-moments/repository";
 import { containsUnexpectedPersonName } from "@/lib/relationship-scope";
+import { createPersonLevelResponse } from "@/lib/ai/person-level-openai";
+import { knownIdentitiesFromPublicClient } from "@/lib/ai/minimise-for-external";
 import { buildRelationshipAiContext } from "@/lib/relationship-identity";
 import { isUuid } from "@/lib/uuid";
 
@@ -309,21 +311,37 @@ export async function POST(request: Request) {
           confidentialReference: client.confidential_reference,
           aiNameAllowed: client.ai_name_allowed,
         });
-        const response = await openai.responses.create({
-          model: "gpt-5.5",
-          instructions: COACHING_MOMENT_PREPARATION_PROMPT,
-          input: buildCoachingMomentPreparationInput({
-            personName: momentAiContext.aiDisplayName,
-            organisation: momentAiContext.organisation || null,
-            role: momentAiContext.role || null,
-            situation,
-            desiredOutcome,
-            authorisedEvidence: context.authorisedEvidenceText,
-            acceptedPatterns: context.acceptedPatternsText,
-            confirmedCommitments: context.commitmentsText,
-          }),
-          store: false,
-        });
+        const response = await createPersonLevelResponse(
+          openai,
+          {
+            model: "gpt-5.5",
+            instructions: COACHING_MOMENT_PREPARATION_PROMPT,
+            input: buildCoachingMomentPreparationInput({
+              personName: momentAiContext.aiDisplayName,
+              organisation: momentAiContext.organisation || null,
+              role: momentAiContext.role || null,
+              situation,
+              desiredOutcome,
+              authorisedEvidence: context.authorisedEvidenceText,
+              acceptedPatterns: context.acceptedPatternsText,
+              confirmedCommitments: context.commitmentsText,
+            }),
+          },
+          knownIdentitiesFromPublicClient({
+            name: String(client.name ?? ""),
+            displayLabel: client.display_label
+              ? String(client.display_label)
+              : null,
+            organisation: client.organisation
+              ? String(client.organisation)
+              : null,
+            role: client.role ? String(client.role) : null,
+            identityMode: client.identity_mode
+              ? String(client.identity_mode)
+              : null,
+            aiNameAllowed: Boolean(client.ai_name_allowed),
+          })
+        );
 
         const outputText = response.output_text?.trim();
         if (!outputText) {
@@ -549,23 +567,39 @@ export async function POST(request: Request) {
         });
 
         const openai = new OpenAI({ apiKey });
-        const response = await openai.responses.create({
-          model: "gpt-5.5",
-          instructions: COACHING_MOMENT_INSIGHT_PROMPT,
-          input: buildCoachingMomentInsightInput({
-            personName: insightAiContext.aiDisplayName,
-            situation: existing.situation,
-            desiredOutcome: existing.desiredOutcome,
-            outcomeNotes: existing.outcomeNotes,
-            agreedCommitment: existing.agreedCommitment,
-            noCommitmentAgreed: existing.noCommitmentAgreed,
-            followUp: existing.followUp,
-            inferredType: existing.inferredType,
-            authorisedEvidence: context.authorisedEvidenceText,
-            acceptedPatterns: context.acceptedPatternsText,
-          }),
-          store: false,
-        });
+        const response = await createPersonLevelResponse(
+          openai,
+          {
+            model: "gpt-5.5",
+            instructions: COACHING_MOMENT_INSIGHT_PROMPT,
+            input: buildCoachingMomentInsightInput({
+              personName: insightAiContext.aiDisplayName,
+              situation: existing.situation,
+              desiredOutcome: existing.desiredOutcome,
+              outcomeNotes: existing.outcomeNotes,
+              agreedCommitment: existing.agreedCommitment,
+              noCommitmentAgreed: existing.noCommitmentAgreed,
+              followUp: existing.followUp,
+              inferredType: existing.inferredType,
+              authorisedEvidence: context.authorisedEvidenceText,
+              acceptedPatterns: context.acceptedPatternsText,
+            }),
+          },
+          knownIdentitiesFromPublicClient({
+            name: String(client.name ?? ""),
+            displayLabel: client.display_label
+              ? String(client.display_label)
+              : null,
+            organisation: client.organisation
+              ? String(client.organisation)
+              : null,
+            role: client.role ? String(client.role) : null,
+            identityMode: client.identity_mode
+              ? String(client.identity_mode)
+              : null,
+            aiNameAllowed: Boolean(client.ai_name_allowed),
+          })
+        );
 
         const outputText = response.output_text?.trim();
         if (!outputText) {

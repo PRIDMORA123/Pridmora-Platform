@@ -9,6 +9,8 @@ import {
   type CoachingReportAiEvidence,
   type ReportType,
 } from "@/lib/coaching-report";
+import { createPersonLevelResponse } from "@/lib/ai/person-level-openai";
+import { knownIdentitiesFromPublicClient } from "@/lib/ai/minimise-for-external";
 import { buildRelationshipAiContext } from "@/lib/relationship-identity";
 
 type CoachingReportRequest = {
@@ -189,12 +191,28 @@ export async function POST(request: Request) {
     .join("\n");
 
   try {
-    const response = await openai.responses.create({
-      model: "gpt-5.5",
-      instructions: IDENTITY_SYSTEM_PROMPT,
-      input,
-      store: false,
-    });
+    const response = await createPersonLevelResponse(
+      openai,
+      {
+        model: "gpt-5.5",
+        instructions: IDENTITY_SYSTEM_PROMPT,
+        input,
+      },
+      knownIdentitiesFromPublicClient({
+        name: String(clientRow.name ?? ""),
+        displayLabel: clientRow.display_label
+          ? String(clientRow.display_label)
+          : null,
+        organisation: clientRow.organisation
+          ? String(clientRow.organisation)
+          : null,
+        role: clientRow.role ? String(clientRow.role) : null,
+        identityMode: clientRow.identity_mode
+          ? String(clientRow.identity_mode)
+          : null,
+        aiNameAllowed: Boolean(clientRow.ai_name_allowed),
+      })
+    );
 
     const raw = response.output_text?.trim();
     if (!raw) {

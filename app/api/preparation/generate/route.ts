@@ -5,6 +5,8 @@ import {
   buildPreparationBriefInput,
   PREPARATION_BRIEF_SYSTEM_PROMPT,
 } from "@/lib/ai/preparation-brief-prompt";
+import { createPersonLevelResponse } from "@/lib/ai/person-level-openai";
+import { knownIdentitiesFromPublicClient } from "@/lib/ai/minimise-for-external";
 import { getCoachProfile } from "@/lib/auth/session";
 import {
   requireAssignedClientAccess,
@@ -341,28 +343,38 @@ export async function POST(request: Request) {
       )
       .join("\n\n");
 
-    const response = await openai.responses.create({
-      model: "gpt-5.5",
-      instructions: PREPARATION_BRIEF_SYSTEM_PROMPT,
-      input: buildPreparationBriefInput({
-        style: requestedStyle,
-        personContext,
-        coachingPurpose: adapter.prompt.coachingPurpose,
-        currentFocus: adapter.prompt.currentFocus,
-        journeyStage: journey.stage.label,
-        latestConversation,
-        approvedSummary: latest?.summary ?? "",
-        commitments: adapter.prompt.commitments,
-        developmentProfile: adapter.prompt.developmentProfile,
-        previousSessions: previousSessionsText,
-        // Private preparation notes are never sent to AI models.
-        coachNotes: "",
-        supportingContext: supportingContextText,
-        preparationContext: adapter.prompt.preparationContext,
-        authorisedDevelopmentEvidence: authorisedDevelopmentEvidenceText,
-      }),
-      store: false,
-    });
+    const response = await createPersonLevelResponse(
+      openai,
+      {
+        model: "gpt-5.5",
+        instructions: PREPARATION_BRIEF_SYSTEM_PROMPT,
+        input: buildPreparationBriefInput({
+          style: requestedStyle,
+          personContext,
+          coachingPurpose: adapter.prompt.coachingPurpose,
+          currentFocus: adapter.prompt.currentFocus,
+          journeyStage: journey.stage.label,
+          latestConversation,
+          approvedSummary: latest?.summary ?? "",
+          commitments: adapter.prompt.commitments,
+          developmentProfile: adapter.prompt.developmentProfile,
+          previousSessions: previousSessionsText,
+          // Private preparation notes are never sent to AI models.
+          coachNotes: "",
+          supportingContext: supportingContextText,
+          preparationContext: adapter.prompt.preparationContext,
+          authorisedDevelopmentEvidence: authorisedDevelopmentEvidenceText,
+        }),
+      },
+      knownIdentitiesFromPublicClient({
+        name: String(client.name ?? ""),
+        displayLabel: client.display_label ? String(client.display_label) : null,
+        organisation: client.organisation ? String(client.organisation) : null,
+        role: client.role ? String(client.role) : null,
+        identityMode: client.identity_mode ? String(client.identity_mode) : null,
+        aiNameAllowed: Boolean(client.ai_name_allowed),
+      })
+    );
 
     const outputText = response.output_text?.trim();
     if (!outputText) {

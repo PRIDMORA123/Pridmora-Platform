@@ -61,14 +61,14 @@ describe("Manager person / AI access scoping", () => {
       draft.indexOf("new OpenAI")
     );
     expect(draft.indexOf("requireAssignedPersonInOrganisation")).toBeLessThan(
-      draft.indexOf("openai.responses.create")
+      draft.indexOf("await createPersonLevelResponse")
     );
     expect(
       questions.indexOf("requireAssignedPersonInOrganisation")
     ).toBeLessThan(questions.indexOf("new OpenAI"));
     expect(
       questions.indexOf("requireAssignedPersonInOrganisation")
-    ).toBeLessThan(questions.indexOf("openai.responses.create"));
+    ).toBeLessThan(questions.indexOf("await createPersonLevelResponse"));
     expect(
       patterns.indexOf("requireAssignedPersonInOrganisation")
     ).toBeLessThan(patterns.indexOf("new OpenAI"));

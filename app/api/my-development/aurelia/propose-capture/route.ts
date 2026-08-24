@@ -8,6 +8,7 @@ import {
   parseManagerAureliaProposeCaptureDraft,
   validateManagerAureliaCaptureTurns,
 } from "@/lib/ai/manager-aurelia-propose-capture";
+import { createPersonLevelResponse } from "@/lib/ai/person-level-openai";
 import {
   rejectClientSuppliedDevelopmentContext,
   rejectPersonIdentifiers,
@@ -106,12 +107,11 @@ export async function POST(request: Request) {
   const captureType = body.captureType;
 
   try {
-    const response = await openai.responses.create({
+    const response = await createPersonLevelResponse(openai, {
       model: "gpt-5.5",
       instructions: buildManagerAureliaProposeCaptureInstructions(captureType),
       input: buildManagerAureliaProposeCaptureInput(turnsResult.turns, captureType),
       max_output_tokens: MANAGER_AURELIA_PROPOSE_CAPTURE_MAX_OUTPUT_TOKENS,
-      store: false,
     });
 
     const parsed = parseManagerAureliaProposeCaptureDraft(

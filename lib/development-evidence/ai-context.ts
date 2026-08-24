@@ -19,6 +19,8 @@ import {
   assertNoForbiddenEvidenceAiFields,
   sanitizeEvidenceTextForAi,
 } from "@/lib/development-evidence/sanitize";
+import { knownIdentitiesFromPublicClient } from "@/lib/ai/minimise-for-external";
+import type { ExternalAiKnownIdentities } from "@/lib/ai/minimise-for-external";
 import {
   EVIDENCE_TYPE_LABELS,
   EXTRACTION_VERSION,
@@ -141,6 +143,14 @@ export function buildEvidenceAiContext(
     input.client,
     input.privateIdentity
   );
+  const knownIdentities = knownIdentitiesFromPublicClient({
+    name: input.client.name,
+    displayLabel: input.client.displayLabel,
+    organisation: input.client.organisation,
+    role: input.client.role,
+    identityMode: input.client.identityMode,
+    aiNameAllowed: input.client.aiNameAllowed,
+  });
 
   const budget = input.tokenBudgetChars ?? 12000;
   const personLines = formatRelationshipAiPersonContext(relationship, {
@@ -171,7 +181,8 @@ export function buildEvidenceAiContext(
   if (input.document) {
     const sanitized = sanitizeEvidenceTextForAi(
       input.document.extractedText,
-      input.privateIdentity
+      input.privateIdentity,
+      knownIdentities
     );
     const clipped = clip(sanitized, Math.floor(budget * 0.55));
     sections.push(
@@ -183,7 +194,7 @@ export function buildEvidenceAiContext(
     );
     if (input.document.purpose) {
       sections.push(
-        `Purpose: ${sanitizeEvidenceTextForAi(input.document.purpose, input.privateIdentity)}`
+        `Purpose: ${sanitizeEvidenceTextForAi(input.document.purpose, input.privateIdentity, knownIdentities)}`
       );
     }
     if (input.document.fileName) {
@@ -198,7 +209,8 @@ export function buildEvidenceAiContext(
       clip(
         sanitizeEvidenceTextForAi(
           input.longitudinalSummary,
-          input.privateIdentity
+          input.privateIdentity,
+          knownIdentities
         ),
         Math.floor(budget * 0.15)
       ),
@@ -212,7 +224,11 @@ export function buildEvidenceAiContext(
     let used = 0;
     const approvedBudget = Math.floor(budget * 0.25);
     for (const item of approved.slice(0, 8)) {
-      const block = formatApprovedEvidenceBlock(item, input.privateIdentity);
+      const block = formatApprovedEvidenceBlock(
+        item,
+        input.privateIdentity,
+        knownIdentities
+      );
       if (used + block.length > approvedBudget) break;
       sections.push(block, "");
       used += block.length;
@@ -226,7 +242,7 @@ export function buildEvidenceAiContext(
         .slice(0, 6)
         .map(
           item =>
-            `- ${sanitizeEvidenceTextForAi(item, input.privateIdentity)}`
+            `- ${sanitizeEvidenceTextForAi(item, input.privateIdentity, knownIdentities)}`
         ),
       ""
     );
@@ -329,19 +345,20 @@ export function buildEvidenceAiContext(
 
 function formatApprovedEvidenceBlock(
   item: EvidenceAiApprovedItem,
-  privateIdentity?: Partial<PrivateIdentityFields> | null
+  privateIdentity?: Partial<PrivateIdentityFields> | null,
+  knownIdentities?: ExternalAiKnownIdentities
 ): string {
   const lines = [
     `- ${item.title} (${EVIDENCE_TYPE_LABELS[item.evidenceType]}, ${item.freshnessClass})`,
   ];
   if (item.sourceSummary) {
     lines.push(
-      `  Summary: ${sanitizeEvidenceTextForAi(item.sourceSummary, privateIdentity)}`
+      `  Summary: ${sanitizeEvidenceTextForAi(item.sourceSummary, privateIdentity, knownIdentities)}`
     );
   }
   for (const observation of (item.observations ?? []).slice(0, 3)) {
     lines.push(
-      `  Observation: ${sanitizeEvidenceTextForAi(observation.title, privateIdentity)} — ${sanitizeEvidenceTextForAi(observation.description, privateIdentity)}`
+      `  Observation: ${sanitizeEvidenceTextForAi(observation.title, privateIdentity, knownIdentities)} — ${sanitizeEvidenceTextForAi(observation.description, privateIdentity, knownIdentities)}`
     );
   }
   return lines.join("\n");

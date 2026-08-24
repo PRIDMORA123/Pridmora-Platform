@@ -14,6 +14,8 @@ import {
 import {
   containsUnexpectedPersonName,
 } from "@/lib/relationship-scope";
+import { createPersonLevelResponse } from "@/lib/ai/person-level-openai";
+import { knownIdentitiesFromPublicClient } from "@/lib/ai/minimise-for-external";
 import { buildRelationshipAiContext } from "@/lib/relationship-identity";
 import { REPORT_TYPE_LABELS, type ReportEvidenceItem } from "@/lib/reports/types";
 
@@ -105,7 +107,7 @@ export async function POST(request: Request, { params }: Params) {
       .eq("coach_id", access.context.coachId)
       .maybeSingle();
 
-    const coacheeName = person
+    const personAiContext = person
       ? buildRelationshipAiContext({
           name: String(person.name ?? ""),
           organisation: person.organisation ? String(person.organisation) : "",
@@ -114,8 +116,9 @@ export async function POST(request: Request, { params }: Params) {
           displayLabel: person.display_label,
           confidentialReference: person.confidential_reference,
           aiNameAllowed: person.ai_name_allowed,
-        }).aiDisplayName
-      : "";
+        })
+      : null;
+    const coacheeName = personAiContext?.aiDisplayName ?? "";
     const { data: otherClients } = await access.context.supabase
       .from("clients")
       .select("name")
@@ -133,7 +136,6 @@ export async function POST(request: Request, { params }: Params) {
     const input = [
       DEVELOPMENT_REPORT_TASK_PROMPT,
       "",
-      `relationshipId: ${existing.relationshipId}`,
       `coacheeName: ${coacheeName}`,
       `Report type: ${REPORT_TYPE_LABELS[existing.type]}`,
       `Audience: ${existing.audience}`,
@@ -145,19 +147,42 @@ export async function POST(request: Request, { params }: Params) {
     ].join("\n");
 
     const openai = new OpenAI({ apiKey });
-    const response = await openai.responses.create({
-      model: "gpt-5.5",
-      instructions: IDENTITY_SYSTEM_PROMPT,
-      input,
-      store: false,
-    });
+    const response = await createPersonLevelResponse(
+      openai,
+      {
+        model: "gpt-5.5",
+        instructions: IDENTITY_SYSTEM_PROMPT,
+        input,
+      },
+      knownIdentitiesFromPublicClient(
+        {
+          name: person ? String(person.name ?? "") : "",
+          displayLabel: person?.display_label
+            ? String(person.display_label)
+            : null,
+          organisation: person?.organisation
+            ? String(person.organisation)
+            : null,
+          role: person?.role ? String(person.role) : null,
+          identityMode: person?.identity_mode
+            ? String(person.identity_mode)
+            : null,
+          aiNameAllowed: Boolean(person?.ai_name_allowed),
+        },
+        { otherPersonNames: knownOtherNames }
+      )
+    );
 
     const raw =
       typeof response.output_text === "string" ? response.output_text : "";
 
     if (
-      coacheeName &&
-      containsUnexpectedPersonName(raw, coacheeName, knownOtherNames)
+      personAiContext?.allowedClientName &&
+      containsUnexpectedPersonName(
+        raw,
+        personAiContext.allowedClientName,
+        knownOtherNames
+      )
     ) {
       console.error(
         "[relationship-isolation] Report draft named unexpected person",

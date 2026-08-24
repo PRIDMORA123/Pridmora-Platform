@@ -15,6 +15,8 @@ import {
   assertRelationshipOwnership,
   validateGeneratedJourney,
 } from "@/lib/relationship-scope";
+import { createPersonLevelResponse } from "@/lib/ai/person-level-openai";
+import { knownIdentitiesFromPublicClient } from "@/lib/ai/minimise-for-external";
 import { buildRelationshipAiContext } from "@/lib/relationship-identity";
 import { isUuid } from "@/lib/uuid";
 
@@ -169,9 +171,9 @@ export async function POST(request: Request) {
   const openai = new OpenAI({ apiKey });
 
   const evidenceBlock = scopedEvidence
-    .map(item =>
+    .map((item, index) =>
       [
-        `Conversation ${item.id}`,
+        `Conversation ${index + 1}`,
         item.focus ? `Focus: ${item.focus}` : null,
         item.summary ? `Approved summary: ${item.summary}` : null,
       ]
@@ -183,7 +185,6 @@ export async function POST(request: Request) {
   const input = [
     IDENTITY_JOURNEY_TASK_PROMPT,
     "",
-    `relationshipId: ${relationshipId}`,
     `coacheeName: ${coacheeName}`,
     "",
     "Approved session evidence:",
@@ -191,12 +192,31 @@ export async function POST(request: Request) {
   ].join("\n");
 
   try {
-    const response = await openai.responses.create({
-      model: "gpt-5.5",
-      instructions: IDENTITY_SYSTEM_PROMPT,
-      input,
-      store: false,
-    });
+    const response = await createPersonLevelResponse(
+      openai,
+      {
+        model: "gpt-5.5",
+        instructions: IDENTITY_SYSTEM_PROMPT,
+        input,
+      },
+      knownIdentitiesFromPublicClient(
+        {
+          name: String(client.name ?? ""),
+          displayLabel: client.display_label
+            ? String(client.display_label)
+            : null,
+          organisation: client.organisation
+            ? String(client.organisation)
+            : null,
+          role: client.role ? String(client.role) : null,
+          identityMode: client.identity_mode
+            ? String(client.identity_mode)
+            : null,
+          aiNameAllowed: Boolean(client.ai_name_allowed),
+        },
+        { otherPersonNames: knownOtherNames }
+      )
+    );
 
     const raw = response.output_text?.trim();
     if (!raw) {
@@ -207,7 +227,7 @@ export async function POST(request: Request) {
     }
 
     const nameCheck = validateGeneratedJourney({
-      coacheeName,
+      coacheeName: aiContext.allowedClientName,
       text: raw,
       knownOtherNames,
     });

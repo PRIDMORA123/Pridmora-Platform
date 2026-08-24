@@ -22,6 +22,8 @@ import {
 import { parsePatternCandidatesFromModel } from "@/lib/patterns/schema";
 import { parseSupportingContext } from "@/lib/relationship-meta";
 import { assertRelationshipOwnership } from "@/lib/relationship-scope";
+import { createPersonLevelResponse } from "@/lib/ai/person-level-openai";
+import { knownIdentitiesFromPublicClient } from "@/lib/ai/minimise-for-external";
 import { buildRelationshipAiContext } from "@/lib/relationship-identity";
 import { rowToSession } from "@/lib/supabase/map";
 
@@ -167,27 +169,43 @@ export async function POST(request: Request) {
           })
           .join("\n");
 
-        const response = await openai.responses.create({
-          model: "gpt-5.5",
-          instructions: PATTERN_RECOGNITION_SYSTEM_PROMPT,
-          input: buildPatternRecognitionInput({
-            personName: buildRelationshipAiContext({
-              name: String(client.name ?? "Client"),
-              organisation: client.organisation
-                ? String(client.organisation)
-                : "",
-              role: client.role ? String(client.role) : "",
-              identityMode: client.identity_mode,
-              displayLabel: client.display_label,
-              confidentialReference: client.confidential_reference,
-              aiNameAllowed: client.ai_name_allowed,
-            }).aiDisplayName,
-            coachingGoal: String(client.current_focus ?? profile.currentFocus ?? ""),
-            evidenceCatalogue: formatEvidenceCatalogue(points),
-            existingAcceptedPatterns: existingSummary,
-          }),
-          store: false,
-        });
+        const response = await createPersonLevelResponse(
+          openai,
+          {
+            model: "gpt-5.5",
+            instructions: PATTERN_RECOGNITION_SYSTEM_PROMPT,
+            input: buildPatternRecognitionInput({
+              personName: buildRelationshipAiContext({
+                name: String(client.name ?? "Client"),
+                organisation: client.organisation
+                  ? String(client.organisation)
+                  : "",
+                role: client.role ? String(client.role) : "",
+                identityMode: client.identity_mode,
+                displayLabel: client.display_label,
+                confidentialReference: client.confidential_reference,
+                aiNameAllowed: client.ai_name_allowed,
+              }).aiDisplayName,
+              coachingGoal: String(client.current_focus ?? profile.currentFocus ?? ""),
+              evidenceCatalogue: formatEvidenceCatalogue(points),
+              existingAcceptedPatterns: existingSummary,
+            }),
+          },
+          knownIdentitiesFromPublicClient({
+            name: String(client.name ?? ""),
+            displayLabel: client.display_label
+              ? String(client.display_label)
+              : null,
+            organisation: client.organisation
+              ? String(client.organisation)
+              : null,
+            role: client.role ? String(client.role) : null,
+            identityMode: client.identity_mode
+              ? String(client.identity_mode)
+              : null,
+            aiNameAllowed: Boolean(client.ai_name_allowed),
+          })
+        );
 
         const text =
           typeof response.output_text === "string" ? response.output_text : "";
