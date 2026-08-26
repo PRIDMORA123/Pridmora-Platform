@@ -3,10 +3,13 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import {
   DEVELOPMENT_EVIDENCE_STORAGE_BUCKET,
+  MANAGER_EVIDENCE_UPLOAD_ERROR,
   assertDevelopmentEvidenceStoragePathMatches,
   buildDevelopmentEvidenceStoragePath,
   organisationSegmentForEvidenceStorage,
   parseDevelopmentEvidenceStoragePath,
+  sanitizeEvidenceStorageFileName,
+  toManagerEvidenceUploadError,
 } from "@/lib/development-evidence/storage-path";
 
 const root = join(__dirname, "..");
@@ -81,6 +84,116 @@ describe("SEC-1 Development Evidence storage path model", () => {
         clientId: CLIENT_A,
       })
     ).toThrow(/relationship/);
+  });
+});
+
+describe("SEC-1 builder filename canonicalisation", () => {
+  const cases: Array<{ fileName: string; objectSuffix: string }> = [
+    { fileName: "notes.docx", objectSuffix: "notes.docx" },
+    { fileName: "Alex feedback.docx", objectSuffix: "Alex_feedback.docx" },
+    { fileName: "../x.docx", objectSuffix: "x.docx" },
+    { fileName: "..\\x.docx", objectSuffix: "x.docx" },
+    { fileName: "report..final.docx", objectSuffix: "report_final.docx" },
+    { fileName: "foo/bar.docx", objectSuffix: "bar.docx" },
+    { fileName: "file.v1.2.docx", objectSuffix: "file.v1.2.docx" },
+  ];
+
+  it("canonicalises object names so builder paths round-trip the parser", () => {
+    for (const { fileName, objectSuffix } of cases) {
+      expect(sanitizeEvidenceStorageFileName(fileName)).toBe(objectSuffix);
+
+      const orgPath = buildDevelopmentEvidenceStoragePath({
+        organisationId: ORG_A,
+        clientId: CLIENT_A,
+        contentHash: HASH,
+        fileName,
+      });
+      expect(orgPath).not.toContain("..");
+      expect(orgPath).not.toContain("\\");
+      expect(orgPath.split("/")).toHaveLength(3);
+      expect(parseDevelopmentEvidenceStoragePath(orgPath)).toEqual({
+        organisationSegment: ORG_A,
+        clientId: CLIENT_A,
+        objectName: `abcdef0123456789-${objectSuffix}`,
+      });
+      expect(() =>
+        assertDevelopmentEvidenceStoragePathMatches({
+          storagePath: orgPath,
+          organisationId: ORG_A,
+          clientId: CLIENT_A,
+        })
+      ).not.toThrow();
+
+      const personalPath = buildDevelopmentEvidenceStoragePath({
+        organisationId: null,
+        clientId: CLIENT_A,
+        contentHash: HASH,
+        fileName,
+      });
+      expect(personalPath.startsWith("personal/")).toBe(true);
+      expect(parseDevelopmentEvidenceStoragePath(personalPath)).toEqual({
+        organisationSegment: "personal",
+        clientId: CLIENT_A,
+        objectName: `abcdef0123456789-${objectSuffix}`,
+      });
+    }
+  });
+
+  it("still rejects malformed, traversal, and foreign tenancy paths", () => {
+    expect(parseDevelopmentEvidenceStoragePath("../etc/passwd")).toBeNull();
+    expect(
+      parseDevelopmentEvidenceStoragePath(`${ORG_A}/${CLIENT_A}`)
+    ).toBeNull();
+    expect(
+      parseDevelopmentEvidenceStoragePath(
+        `${ORG_A}/${CLIENT_A}/extra/file.txt`
+      )
+    ).toBeNull();
+    expect(
+      parseDevelopmentEvidenceStoragePath(
+        `${ORG_A}/${CLIENT_A}/abcdef0123456789-../x.docx`
+      )
+    ).toBeNull();
+    expect(
+      parseDevelopmentEvidenceStoragePath(
+        `personal/${CLIENT_A}/abcdef0123456789-foo/bar.docx`
+      )
+    ).toBeNull();
+
+    const foreignPath = buildDevelopmentEvidenceStoragePath({
+      organisationId: ORG_B,
+      clientId: CLIENT_B,
+      contentHash: HASH,
+      fileName: "secret.pdf",
+    });
+    expect(() =>
+      assertDevelopmentEvidenceStoragePathMatches({
+        storagePath: foreignPath,
+        organisationId: ORG_A,
+        clientId: CLIENT_A,
+      })
+    ).toThrow(/does not match authorised/);
+    expect(() =>
+      assertDevelopmentEvidenceStoragePathMatches({
+        storagePath: `${ORG_A}/${CLIENT_B}/abcdef0123456789-x.pdf`,
+        organisationId: ORG_A,
+        clientId: CLIENT_A,
+      })
+    ).toThrow(/relationship/);
+  });
+
+  it("maps technical storage/path errors without exposing internals", () => {
+    expect(
+      toManagerEvidenceUploadError(
+        new Error("Invalid development evidence storage path.")
+      )
+    ).toBe(MANAGER_EVIDENCE_UPLOAD_ERROR);
+    expect(
+      toManagerEvidenceUploadError("Storage path does not match authorised organisation.")
+    ).toBe(MANAGER_EVIDENCE_UPLOAD_ERROR);
+    expect(toManagerEvidenceUploadError("A file is required.")).toBe(
+      "A file is required."
+    );
   });
 });
 
@@ -212,6 +325,16 @@ describe("SEC-1 application / API enforcement", () => {
     expect(env).not.toContain("NEXT_PUBLIC_SUPABASE_SERVICE_ROLE");
     expect(uploadRoute).toContain("getSupabaseServiceClient");
     expect(uploadRoute).toContain("await uploadAuthorisedEvidenceObject");
+    const assertIdx = uploadRoute.indexOf(
+      "assertDevelopmentEvidenceStoragePathMatches"
+    );
+    const storageUploadIdx = uploadRoute.indexOf(
+      "await uploadAuthorisedEvidenceObject"
+    );
+    expect(assertIdx).toBeGreaterThan(-1);
+    expect(assertIdx).toBeLessThan(storageUploadIdx);
+    expect(uploadRoute).toContain("toManagerEvidenceUploadError");
+    expect(uploadRoute).toContain("console.error");
     expect(uploadRoute).not.toContain("startAuthorisedStorageUpload");
     expect(fileRoute).not.toContain("getSupabaseServiceRoleKey");
     expect(fileRoute).not.toContain("getSupabaseServiceClient");

@@ -18,6 +18,7 @@ import {
   buildObservationReviewDecisions,
   capabilityKeyForReviewSubmission,
   mapToPridmoraCapabilityKey,
+  toManagerEvidenceUploadError,
   type DevelopmentEvidenceObservation,
   type DevelopmentEvidenceRecord,
   type EvidenceConfidenceResult,
@@ -319,7 +320,11 @@ export function DevelopmentEvidenceView({
             : "Evidence upload timed out. Check the file size and try again."
         );
       } else {
-        setError(errorMessage(err, "Unable to process evidence."));
+        setError(
+          toManagerEvidenceUploadError(
+            errorMessage(err, "Unable to process evidence.")
+          )
+        );
       }
       setProgressLabel("");
       if (createdEvidenceId) {
@@ -612,7 +617,7 @@ export function DevelopmentEvidenceView({
           {step === "purpose" ? (
             <>
               <label className="field">
-                <span>Why is this being added?</span>
+                <span>Why is this being added? (required)</span>
                 <textarea
                   rows={3}
                   value={purpose}

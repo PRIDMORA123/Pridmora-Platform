@@ -488,7 +488,7 @@ describe("DevelopmentEvidenceView Analyse upload", () => {
       analyse.click();
     });
 
-    expect(container.textContent).toContain("Why is this being added?");
+    expect(container.textContent).toContain("Why is this being added? (required)");
     expect(container.textContent).toMatch(/Aurelia is working|Reviewing evidence/);
     expect(container.textContent).not.toMatch(/Retry analysis/);
 
@@ -502,6 +502,38 @@ describe("DevelopmentEvidenceView Analyse upload", () => {
     });
 
     expect(container.textContent).toContain("Unable to upload evidence.");
-    expect(container.textContent).toContain("Why is this being added?");
+    expect(container.textContent).toContain("Why is this being added? (required)");
+  });
+
+  it("does not surface technical storage-path errors to the manager", async () => {
+    const file = new File(["hello evidence"], "notes.txt", {
+      type: "text/plain",
+    });
+
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({
+        error: "Invalid development evidence storage path.",
+      }),
+    });
+
+    await openWizardToPurpose(file);
+
+    const analyse = Array.from(container.querySelectorAll("button")).find(
+      button => button.textContent === "Analyse"
+    ) as HTMLButtonElement;
+
+    await act(async () => {
+      analyse.click();
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).not.toContain(
+      "Invalid development evidence storage path."
+    );
+    expect(container.textContent).toContain(
+      "Unable to store this evidence file. Try again, or upload a PDF, DOCX or plain-text file."
+    );
   });
 });

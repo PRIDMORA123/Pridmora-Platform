@@ -23,14 +23,26 @@ export function organisationSegmentForEvidenceStorage(
   return trimmed && UUID_RE.test(trimmed) ? trimmed : "personal";
 }
 
+/**
+ * Canonical object-name segment only. Path separators and `..` are stripped
+ * here so the completed key can pass SEC-1 parse rules. Full-key traversal
+ * rejection in parseDevelopmentEvidenceStoragePath is unchanged.
+ */
 export function sanitizeEvidenceStorageFileName(fileName: string): string {
-  const base = fileName.trim().replace(/[^\w.\-]+/g, "_");
-  const cleaned = base.replace(/^\.+/, "").slice(0, 180);
+  const normalised = fileName.trim().replace(/\\/g, "/");
+  const segments = normalised.split("/").filter(segment => segment.length > 0);
+  const baseName = segments.at(-1) ?? "";
+  let cleaned = baseName.replace(/[^\w.\-]+/g, "_");
+  while (cleaned.includes("..")) {
+    cleaned = cleaned.replaceAll("..", "_");
+  }
+  cleaned = cleaned.replace(/^\.+/, "").slice(0, 180);
   return cleaned || "evidence.bin";
 }
 
 /**
  * Build a storage object path from server-validated ownership only.
+ * The returned key is asserted against the parser before callers upload.
  */
 export function buildDevelopmentEvidenceStoragePath(input: {
   organisationId: string | null | undefined;
@@ -50,7 +62,13 @@ export function buildDevelopmentEvidenceStoragePath(input: {
     input.organisationId
   );
   const safeName = sanitizeEvidenceStorageFileName(input.fileName);
-  return `${organisationSegment}/${clientId}/${hashPrefix}-${safeName}`;
+  const storagePath = `${organisationSegment}/${clientId}/${hashPrefix}-${safeName}`;
+  assertDevelopmentEvidenceStoragePathMatches({
+    storagePath,
+    organisationId: input.organisationId,
+    clientId,
+  });
+  return storagePath;
 }
 
 /**
@@ -98,4 +116,43 @@ export function assertDevelopmentEvidenceStoragePathMatches(input: {
     throw new Error("Storage path does not match authorised organisation.");
   }
   return parsed;
+}
+
+export const MANAGER_EVIDENCE_UPLOAD_ERROR =
+  "Unable to store this evidence file. Try again, or upload a PDF, DOCX or plain-text file.";
+
+function isTechnicalEvidenceStorageError(message: string): boolean {
+  return (
+    /invalid development evidence storage path/i.test(message) ||
+    /invalid client id for evidence storage path/i.test(message) ||
+    /invalid content hash for evidence storage path/i.test(message) ||
+    /storage path does not match authorised/i.test(message) ||
+    /unable to store the evidence file/i.test(message) ||
+    /row-level security/i.test(message) ||
+    /\brls\b/i.test(message) ||
+    /service[_ ]role/i.test(message) ||
+    /\bjwt\b/i.test(message) ||
+    /permission denied/i.test(message) ||
+    /bucket not found/i.test(message) ||
+    /storage bucket/i.test(message) ||
+    /storage\.objects/i.test(message)
+  );
+}
+
+/**
+ * Map technical storage/path failures to a safe manager message.
+ * Callers must still log the original error on the server.
+ */
+export function toManagerEvidenceUploadError(error: unknown): string {
+  const message =
+    error instanceof Error
+      ? error.message.trim()
+      : typeof error === "string"
+        ? error.trim()
+        : "";
+  if (!message) return "Unable to upload evidence.";
+  if (isTechnicalEvidenceStorageError(message)) {
+    return MANAGER_EVIDENCE_UPLOAD_ERROR;
+  }
+  return message;
 }

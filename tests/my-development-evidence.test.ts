@@ -114,9 +114,12 @@ describe("My Development self evidence wiring", () => {
     const uploadIdx = upload.indexOf("await uploadAuthorisedEvidenceObject(");
     const createIdx = upload.indexOf("await createUploadedEvidence(");
     const extractIdx = upload.indexOf("await extractEvidenceDocumentText(");
+    const assertIdx = upload.indexOf("assertDevelopmentEvidenceStoragePathMatches");
     expect(uploadIdx).toBeGreaterThan(-1);
     expect(createIdx).toBeGreaterThan(-1);
     expect(extractIdx).toBeGreaterThan(-1);
+    expect(assertIdx).toBeGreaterThan(-1);
+    expect(assertIdx).toBeLessThan(uploadIdx);
     expect(uploadIdx).toBeLessThan(createIdx);
     expect(createIdx).toBeLessThan(extractIdx);
     expect(upload).toContain("getSupabaseServiceClient");

@@ -2,11 +2,13 @@ import { NextResponse } from "next/server";
 import { notFoundOrForbidden } from "@/lib/auth/session";
 import {
   UPLOADABLE_EVIDENCE_TYPES,
+  assertDevelopmentEvidenceStoragePathMatches,
   buildDevelopmentEvidenceStoragePath,
   createUploadedEvidence,
   extractEvidenceDocumentText,
   hashEvidenceBytes,
   isSupportedEvidenceUpload,
+  toManagerEvidenceUploadError,
   updateDocumentExtraction,
   type DevelopmentEvidenceType,
   DEVELOPMENT_EVIDENCE_STORAGE_BUCKET,
@@ -122,6 +124,11 @@ export async function POST(request: Request, { params }: Params) {
       clientId,
       contentHash,
       fileName: file.name,
+    });
+    assertDevelopmentEvidenceStoragePathMatches({
+      storagePath,
+      organisationId,
+      clientId,
     });
 
     await uploadAuthorisedEvidenceObject({
@@ -239,10 +246,7 @@ export async function POST(request: Request, { params }: Params) {
     );
     return NextResponse.json(
       {
-        error:
-          error instanceof Error && error.message.trim()
-            ? error.message
-            : "Unable to upload evidence.",
+        error: toManagerEvidenceUploadError(error),
       },
       { status: 500 }
     );
