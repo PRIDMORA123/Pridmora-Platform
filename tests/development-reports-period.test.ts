@@ -7,6 +7,7 @@ import {
   reportingPeriodFieldsForEvidenceResave,
 } from "@/lib/reports/draft-patch";
 import { formatReportPeriod } from "@/lib/reports/format";
+import { isoDateFromUkInput, ukDateFromIso } from "@/lib/reports/uk-date-input";
 import {
   buildDevelopmentReportGenerateInput,
   formatReportingPeriodForGenerate,
@@ -105,6 +106,22 @@ describe("formatReportPeriod UAT dates", () => {
   });
 });
 
+describe("UK report-period date entry", () => {
+  it("maps 01/08/2026 and 27/08/2026 to ISO dates", () => {
+    expect(isoDateFromUkInput("01/08/2026")).toBe(UAT_START);
+    expect(isoDateFromUkInput("27/08/2026")).toBe(UAT_END);
+    expect(ukDateFromIso(UAT_START)).toBe("01/08/2026");
+    expect(ukDateFromIso(UAT_END)).toBe("27/08/2026");
+  });
+
+  it("rejects invalid or incomplete dates without inferring a value", () => {
+    expect(isoDateFromUkInput("")).toBeNull();
+    expect(isoDateFromUkInput("32/08/2026")).toBeNull();
+    expect(isoDateFromUkInput("27/08")).toBeNull();
+    expect(isoDateFromUkInput("27/13/2026")).toBeNull();
+  });
+});
+
 describe("Step 1 POST and Evidence-step date payload", () => {
   it("includes both dates in the Step 1 create payload", () => {
     expect(
@@ -176,6 +193,7 @@ describe("Step 1 POST and Evidence-step date payload", () => {
     expect(source).toContain("...createPeriodFields");
     expect(source).toContain("reportingPeriodFieldsForEvidenceResave(details)");
     expect(source).not.toContain("logReportPeriodDebug");
+    expect(source).not.toContain('type="date"');
     expect(source).not.toContain(
       "reportingPeriodStart: reportingPeriodStartInputRef"
     );

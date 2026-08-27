@@ -7,10 +7,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CreateReportFlow } from "@/components/reports/create-report-flow";
 import { ToastProvider } from "@/components/feedback/toast-provider";
 import type { Client } from "@/lib/types";
+import { formatReportPeriod } from "@/lib/reports/format";
+import { isoDateFromUkInput } from "@/lib/reports/uk-date-input";
 import type { DevelopmentReport } from "@/lib/reports/types";
 
 const UAT_START = "2026-08-01";
 const UAT_END = "2026-08-27";
+const UAT_START_UK = "01/08/2026";
+const UAT_END_UK = "27/08/2026";
 
 const apiJson = vi.fn();
 
@@ -103,7 +107,7 @@ function dateInput(container: HTMLElement, label: string): HTMLInputElement {
   const field = [...container.querySelectorAll("label")].find(node =>
     node.textContent?.includes(label)
   );
-  const input = field?.querySelector('input[type="date"]') as HTMLInputElement;
+  const input = field?.querySelector('input[type="text"]') as HTMLInputElement;
   expect(input).toBeTruthy();
   return input;
 }
@@ -157,7 +161,7 @@ describe("Step 1 reporting period controls", () => {
     }
   });
 
-  it("sends both committed dates in the Create payload", async () => {
+  it("sends ISO dates after UK entry through the period controls", async () => {
     const container = await renderView(
       <ToastProvider>
         <CreateReportFlow
@@ -170,10 +174,18 @@ describe("Step 1 reporting period controls", () => {
       </ToastProvider>
     );
 
+    const start = dateInput(container, "Reporting period start");
+    const end = dateInput(container, "Reporting period end");
+    expect(start.getAttribute("type")).toBe("text");
+    expect(end.getAttribute("type")).toBe("text");
+
     await act(async () => {
-      setInputValue(dateInput(container, "Reporting period start"), UAT_START);
-      setInputValue(dateInput(container, "Reporting period end"), UAT_END);
+      setInputValue(start, UAT_START_UK);
+      setInputValue(end, UAT_END_UK);
     });
+
+    expect(isoDateFromUkInput(start.value)).toBe(UAT_START);
+    expect(isoDateFromUkInput(end.value)).toBe(UAT_END);
 
     const createButton = [...container.querySelectorAll("button")].find(button =>
       button.textContent?.includes("Create report")
@@ -190,9 +202,15 @@ describe("Step 1 reporting period controls", () => {
     );
     expect(body.reportingPeriodStart).toBe(UAT_START);
     expect(body.reportingPeriodEnd).toBe(UAT_END);
+    expect(
+      formatReportPeriod({
+        reportingPeriodStart: body.reportingPeriodStart,
+        reportingPeriodEnd: body.reportingPeriodEnd,
+      })
+    ).toBe("1 Aug 2026 – 27 Aug 2026");
   });
 
-  it("blocks Create when the end date is uncommitted", async () => {
+  it("blocks Create when the end date is missing", async () => {
     const container = await renderView(
       <ToastProvider>
         <CreateReportFlow
@@ -206,7 +224,7 @@ describe("Step 1 reporting period controls", () => {
     );
 
     await act(async () => {
-      setInputValue(dateInput(container, "Reporting period start"), UAT_START);
+      setInputValue(dateInput(container, "Reporting period start"), UAT_START_UK);
     });
 
     const createButton = [...container.querySelectorAll("button")].find(button =>
@@ -225,5 +243,39 @@ describe("Step 1 reporting period controls", () => {
       "Enter a reporting period start and end date."
     );
     expect(container.textContent).not.toContain("Select approved evidence");
+  });
+
+  it("blocks Create when the end date is invalid", async () => {
+    const container = await renderView(
+      <ToastProvider>
+        <CreateReportFlow
+          client={client()}
+          coachName="Jordan"
+          initialType="progress_snapshot"
+          onCancel={() => undefined}
+          onCompleted={() => undefined}
+        />
+      </ToastProvider>
+    );
+
+    await act(async () => {
+      setInputValue(dateInput(container, "Reporting period start"), UAT_START_UK);
+      setInputValue(dateInput(container, "Reporting period end"), "32/08/2026");
+    });
+
+    const createButton = [...container.querySelectorAll("button")].find(button =>
+      button.textContent?.includes("Create report")
+    );
+    expect(createButton).toBeTruthy();
+
+    await act(async () => {
+      createButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(createCalls()).toHaveLength(0);
+    expect(container.textContent).toContain("Step 1");
+    expect(container.textContent).toContain(
+      "Enter a reporting period start and end date."
+    );
   });
 });

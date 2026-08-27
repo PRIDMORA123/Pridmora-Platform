@@ -18,6 +18,7 @@ import {
   reportingPeriodFieldsForCreate,
   reportingPeriodFieldsForEvidenceResave,
 } from "@/lib/reports/draft-patch";
+import { isoDateFromUkInput, ukDateFromIso } from "@/lib/reports/uk-date-input";
 import type {
   AssociatedIndicator,
   AvailableEvidenceItem,
@@ -131,6 +132,12 @@ export function CreateReportFlow({
       includeCoachStatement: existingReport?.includeCoachStatement ?? false,
     };
   });
+  const [periodStartText, setPeriodStartText] = useState(
+    ukDateFromIso(existingReport?.reportingPeriodStart ?? "")
+  );
+  const [periodEndText, setPeriodEndText] = useState(
+    ukDateFromIso(existingReport?.reportingPeriodEnd ?? "")
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -217,17 +224,33 @@ export function CreateReportFlow({
     });
   }
 
+  function updatePeriodField(
+    key: "reportingPeriodStart" | "reportingPeriodEnd",
+    text: string
+  ) {
+    if (key === "reportingPeriodStart") setPeriodStartText(text);
+    else setPeriodEndText(text);
+    updateDetails(key, isoDateFromUkInput(text) ?? "");
+  }
+
   async function createOrUpdateDetails() {
     if (createFeedback.isLoading) return;
 
-    const startInputValue =
-      reportingPeriodStartInputRef.current?.value.trim() ?? "";
-    const endInputValue =
-      reportingPeriodEndInputRef.current?.value.trim() ?? "";
-    const startState = details.reportingPeriodStart.trim();
-    const endState = details.reportingPeriodEnd.trim();
+    const startFromInput = isoDateFromUkInput(
+      reportingPeriodStartInputRef.current?.value ?? ""
+    );
+    const endFromInput = isoDateFromUkInput(
+      reportingPeriodEndInputRef.current?.value ?? ""
+    );
+    const startState = isoDateFromUkInput(details.reportingPeriodStart);
+    const endState = isoDateFromUkInput(details.reportingPeriodEnd);
 
-    if (!startInputValue || !endInputValue || !startState || !endState) {
+    if (
+      !startFromInput ||
+      !endFromInput ||
+      startFromInput !== startState ||
+      endFromInput !== endState
+    ) {
       setError("Enter a reporting period start and end date.");
       return;
     }
@@ -605,10 +628,16 @@ export function CreateReportFlow({
                 Reporting period start
                 <input
                   ref={reportingPeriodStartInputRef}
-                  type="date"
-                  value={details.reportingPeriodStart}
+                  type="text"
+                  inputMode="text"
+                  autoComplete="off"
+                  placeholder="dd/mm/yyyy"
+                  value={periodStartText}
                   onChange={event =>
-                    updateDetails("reportingPeriodStart", event.target.value)
+                    updatePeriodField(
+                      "reportingPeriodStart",
+                      event.target.value
+                    )
                   }
                 />
               </label>
@@ -616,10 +645,13 @@ export function CreateReportFlow({
                 Reporting period end
                 <input
                   ref={reportingPeriodEndInputRef}
-                  type="date"
-                  value={details.reportingPeriodEnd}
+                  type="text"
+                  inputMode="text"
+                  autoComplete="off"
+                  placeholder="dd/mm/yyyy"
+                  value={periodEndText}
                   onChange={event =>
-                    updateDetails("reportingPeriodEnd", event.target.value)
+                    updatePeriodField("reportingPeriodEnd", event.target.value)
                   }
                 />
               </label>
