@@ -18,7 +18,6 @@ import {
   reportingPeriodFieldsForCreate,
   reportingPeriodFieldsForEvidenceResave,
 } from "@/lib/reports/draft-patch";
-import { logReportPeriodDebug } from "@/lib/reports/report-period-debug";
 import type {
   AssociatedIndicator,
   AvailableEvidenceItem,
@@ -220,6 +219,19 @@ export function CreateReportFlow({
 
   async function createOrUpdateDetails() {
     if (createFeedback.isLoading) return;
+
+    const startInputValue =
+      reportingPeriodStartInputRef.current?.value.trim() ?? "";
+    const endInputValue =
+      reportingPeriodEndInputRef.current?.value.trim() ?? "";
+    const startState = details.reportingPeriodStart.trim();
+    const endState = details.reportingPeriodEnd.trim();
+
+    if (!startInputValue || !endInputValue || !startState || !endState) {
+      setError("Enter a reporting period start and end date.");
+      return;
+    }
+
     setError("");
 
     const created = await createFeedback.runAction(
@@ -267,17 +279,6 @@ export function CreateReportFlow({
           );
           nextReport = data.report;
         }
-
-        logReportPeriodDebug({
-          stage: "create",
-          startInputValue: reportingPeriodStartInputRef.current?.value ?? null,
-          endInputValue: reportingPeriodEndInputRef.current?.value ?? null,
-          detailsStart: details.reportingPeriodStart,
-          detailsEnd: details.reportingPeriodEnd,
-          payload: createPeriodFields,
-          responseStart: nextReport.reportingPeriodStart,
-          responseEnd: nextReport.reportingPeriodEnd,
-        });
 
         setReport(nextReport);
         setStep("evidence");
@@ -338,12 +339,7 @@ export function CreateReportFlow({
           reportingPeriodStart: details.reportingPeriodStart || null,
           reportingPeriodEnd: details.reportingPeriodEnd || null,
         });
-        const evidencePeriodFields =
-          reportingPeriodFieldsForEvidenceResave(details);
-
-        const evidencePatchData = await apiJson<{
-          report?: DevelopmentReport;
-        }>(`/api/development-reports/${report.id}`, {
+        await apiJson(`/api/development-reports/${report.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -356,19 +352,8 @@ export function CreateReportFlow({
               )?.evidence ??
               report.coachingPurpose ??
               client.currentFocus,
-            ...evidencePeriodFields,
+            ...reportingPeriodFieldsForEvidenceResave(details),
           }),
-        });
-
-        logReportPeriodDebug({
-          stage: "evidence-patch",
-          startInputValue: reportingPeriodStartInputRef.current?.value ?? null,
-          endInputValue: reportingPeriodEndInputRef.current?.value ?? null,
-          detailsStart: details.reportingPeriodStart,
-          detailsEnd: details.reportingPeriodEnd,
-          payload: evidencePeriodFields,
-          responseStart: evidencePatchData.report?.reportingPeriodStart ?? null,
-          responseEnd: evidencePatchData.report?.reportingPeriodEnd ?? null,
         });
 
         const data = await apiJson<{ report: DevelopmentReport }>(
