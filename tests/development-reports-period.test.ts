@@ -1,11 +1,15 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   applyDevelopmentReportDraftPatch,
   reportingPeriodFieldsForCreate,
   reportingPeriodFieldsForEvidenceResave,
 } from "@/lib/reports/draft-patch";
+import {
+  isReportPeriodDebugEnabled,
+  logReportPeriodDebug,
+} from "@/lib/reports/report-period-debug";
 import { formatReportPeriod } from "@/lib/reports/format";
 import {
   buildDevelopmentReportGenerateInput,
@@ -166,6 +170,128 @@ describe("Step 1 POST and Evidence-step date payload", () => {
     );
     expect(source).toContain("reportingPeriodFieldsForEvidenceResave(details)");
     expect(source).toContain("reportingPeriodFieldsForCreate(details)");
+  });
+
+  it("does not submit date values from diagnostic input refs", () => {
+    const source = readFileSync(
+      join(root, "components/reports/create-report-flow.tsx"),
+      "utf8"
+    );
+    expect(source).toContain("...createPeriodFields");
+    expect(source).toContain("...evidencePeriodFields");
+    expect(source).not.toContain("onInput");
+    expect(source).not.toMatch(/type="date"[\s\S]{0,200}onBlur/);
+    expect(source).not.toContain(
+      "reportingPeriodStart: reportingPeriodStartInputRef"
+    );
+    expect(source).not.toContain(
+      "reportingPeriodEnd: reportingPeriodEndInputRef"
+    );
+  });
+});
+
+describe("report period debug logger", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  function periodSnapshot(
+    payload: {
+      reportingPeriodStart?: string | null;
+      reportingPeriodEnd?: string | null;
+    },
+    stage: "create" | "evidence-patch" = "create"
+  ) {
+    return {
+      stage,
+      startInputValue: UAT_START,
+      endInputValue: UAT_END,
+      detailsStart: UAT_START,
+      detailsEnd: UAT_END,
+      payload,
+      responseStart: UAT_START,
+      responseEnd: UAT_END,
+    };
+  }
+
+  it("is off by default", () => {
+    const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    expect(isReportPeriodDebugEnabled()).toBe(false);
+    expect(
+      isReportPeriodDebugEnabled({ search: "?view=dashboard", hash: "" })
+    ).toBe(false);
+
+    logReportPeriodDebug(
+      periodSnapshot(
+        reportingPeriodFieldsForCreate({
+          reportingPeriodStart: UAT_START,
+          reportingPeriodEnd: UAT_END,
+        })
+      )
+    );
+
+    expect(info).not.toHaveBeenCalled();
+  });
+
+  it("can be explicitly enabled with reportPeriodDebug=1", () => {
+    vi.stubGlobal("window", {
+      location: { search: "?view=dashboard&reportPeriodDebug=1", hash: "" },
+    });
+    const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    const payload = reportingPeriodFieldsForCreate({
+      reportingPeriodStart: UAT_START,
+      reportingPeriodEnd: UAT_END,
+    });
+
+    expect(isReportPeriodDebugEnabled()).toBe(true);
+    logReportPeriodDebug(periodSnapshot(payload));
+
+    expect(info).toHaveBeenCalledTimes(1);
+    expect(info.mock.calls[0][0]).toBe("[report-period-debug]");
+    expect(info.mock.calls[0][1]).toEqual(periodSnapshot(payload));
+    expect(
+      isReportPeriodDebugEnabled({
+        search: "?view=dashboard",
+        hash: "#reportPeriodDebug=1",
+      })
+    ).toBe(true);
+  });
+
+  it("enabling debug does not alter create or evidence PATCH payloads", () => {
+    vi.stubGlobal("window", {
+      location: { search: "?reportPeriodDebug=1", hash: "" },
+    });
+    const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    const createPayload = reportingPeriodFieldsForCreate({
+      reportingPeriodStart: UAT_START,
+      reportingPeriodEnd: UAT_END,
+    });
+    const evidencePayload = reportingPeriodFieldsForEvidenceResave({
+      reportingPeriodStart: UAT_START,
+      reportingPeriodEnd: UAT_END,
+    });
+    const createBefore = { ...createPayload };
+    const evidenceBefore = { ...evidencePayload };
+
+    logReportPeriodDebug(periodSnapshot(createPayload, "create"));
+    logReportPeriodDebug(periodSnapshot(evidencePayload, "evidence-patch"));
+
+    expect(info).toHaveBeenCalledTimes(2);
+    expect(createPayload).toEqual(createBefore);
+    expect(evidencePayload).toEqual(evidenceBefore);
+    expect(createPayload).toEqual(
+      reportingPeriodFieldsForCreate({
+        reportingPeriodStart: UAT_START,
+        reportingPeriodEnd: UAT_END,
+      })
+    );
+    expect(evidencePayload).toEqual(
+      reportingPeriodFieldsForEvidenceResave({
+        reportingPeriodStart: UAT_START,
+        reportingPeriodEnd: UAT_END,
+      })
+    );
   });
 });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { apiJson, errorMessage, toError } from "@/lib/api-client";
 import type { Client } from "@/lib/types";
 import type {
@@ -18,6 +18,7 @@ import {
   reportingPeriodFieldsForCreate,
   reportingPeriodFieldsForEvidenceResave,
 } from "@/lib/reports/draft-patch";
+import { logReportPeriodDebug } from "@/lib/reports/report-period-debug";
 import type {
   AssociatedIndicator,
   AvailableEvidenceItem,
@@ -115,6 +116,9 @@ export function CreateReportFlow({
     currentValue: "",
     context: "",
   });
+
+  const reportingPeriodStartInputRef = useRef<HTMLInputElement>(null);
+  const reportingPeriodEndInputRef = useRef<HTMLInputElement>(null);
 
   const [details, setDetails] = useState<ReportDetailsForm>(() => {
     const type = existingReport?.type ?? initialType ?? "progress_snapshot";
@@ -222,6 +226,7 @@ export function CreateReportFlow({
       async () => {
         const coachingPurpose =
           (profile?.currentFocus || client.currentFocus || "").trim() || null;
+        const createPeriodFields = reportingPeriodFieldsForCreate(details);
 
         let nextReport: DevelopmentReport;
         if (report) {
@@ -233,7 +238,7 @@ export function CreateReportFlow({
               body: JSON.stringify({
                 title: details.title.trim(),
                 audience: details.audience,
-                ...reportingPeriodFieldsForCreate(details),
+                ...createPeriodFields,
                 includeCoachStatement: details.includeCoachStatement,
                 coachingPurpose,
               }),
@@ -253,7 +258,7 @@ export function CreateReportFlow({
                 type: details.type,
                 audience: details.audience,
                 title: details.title.trim(),
-                ...reportingPeriodFieldsForCreate(details),
+                ...createPeriodFields,
                 includeCoachStatement: details.includeCoachStatement,
                 coachingPurpose,
                 personName: client.name,
@@ -262,6 +267,17 @@ export function CreateReportFlow({
           );
           nextReport = data.report;
         }
+
+        logReportPeriodDebug({
+          stage: "create",
+          startInputValue: reportingPeriodStartInputRef.current?.value ?? null,
+          endInputValue: reportingPeriodEndInputRef.current?.value ?? null,
+          detailsStart: details.reportingPeriodStart,
+          detailsEnd: details.reportingPeriodEnd,
+          payload: createPeriodFields,
+          responseStart: nextReport.reportingPeriodStart,
+          responseEnd: nextReport.reportingPeriodEnd,
+        });
 
         setReport(nextReport);
         setStep("evidence");
@@ -322,8 +338,12 @@ export function CreateReportFlow({
           reportingPeriodStart: details.reportingPeriodStart || null,
           reportingPeriodEnd: details.reportingPeriodEnd || null,
         });
+        const evidencePeriodFields =
+          reportingPeriodFieldsForEvidenceResave(details);
 
-        await apiJson(`/api/development-reports/${report.id}`, {
+        const evidencePatchData = await apiJson<{
+          report?: DevelopmentReport;
+        }>(`/api/development-reports/${report.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -336,8 +356,19 @@ export function CreateReportFlow({
               )?.evidence ??
               report.coachingPurpose ??
               client.currentFocus,
-            ...reportingPeriodFieldsForEvidenceResave(details),
+            ...evidencePeriodFields,
           }),
+        });
+
+        logReportPeriodDebug({
+          stage: "evidence-patch",
+          startInputValue: reportingPeriodStartInputRef.current?.value ?? null,
+          endInputValue: reportingPeriodEndInputRef.current?.value ?? null,
+          detailsStart: details.reportingPeriodStart,
+          detailsEnd: details.reportingPeriodEnd,
+          payload: evidencePeriodFields,
+          responseStart: evidencePatchData.report?.reportingPeriodStart ?? null,
+          responseEnd: evidencePatchData.report?.reportingPeriodEnd ?? null,
         });
 
         const data = await apiJson<{ report: DevelopmentReport }>(
@@ -588,6 +619,7 @@ export function CreateReportFlow({
               <label>
                 Reporting period start
                 <input
+                  ref={reportingPeriodStartInputRef}
                   type="date"
                   value={details.reportingPeriodStart}
                   onChange={event =>
@@ -598,6 +630,7 @@ export function CreateReportFlow({
               <label>
                 Reporting period end
                 <input
+                  ref={reportingPeriodEndInputRef}
                   type="date"
                   value={details.reportingPeriodEnd}
                   onChange={event =>
