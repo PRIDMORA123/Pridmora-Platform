@@ -1081,6 +1081,53 @@ export const FUTURE_PURGE_TRANSITIONS: Array<{
   },
 ];
 
+export const POST_PURGE_LIFECYCLE_AUDIT_ACTIONS = [
+  "organisation.tenant_rows_purged",
+  "organisation.storage_cleanup_verified",
+] as const;
+
+export const FUTURE_FINALISATION_AUDIT_ACTIONS = [
+  "organisation.purge_completed",
+] as const;
+
+export const DELETION_LIFECYCLE_AUDIT_SQL_MINIMISERS = [
+  "minimise_platform_audit_entity_id",
+  "minimise_platform_audit_metadata",
+] as const;
+
+export const FUTURE_FINALISATION_AUDIT_REQUIRES_SLICE2_MINIMISERS = true;
+
+export const WRITE_MINIMISED_DELETION_LIFECYCLE_AUDIT_SQL =
+  "write_minimised_deletion_lifecycle_audit";
+
+/**
+ * Future certificate/finalisation audit rows must be created already
+ * minimised. This slice does not insert organisation.purge_completed.
+ */
+export function futureFinalisationAuditSourceIsContracted(source: string): boolean {
+  if (!FUTURE_FINALISATION_AUDIT_REQUIRES_SLICE2_MINIMISERS) return false;
+  if (!source.includes("organisation.purge_completed")) return true;
+  if (!/insert\s+into\s+public\.platform_audit_events/i.test(source)) {
+    return true;
+  }
+  const insertWindows = source.split(/insert\s+into\s+public\.platform_audit_events/i);
+  return insertWindows.every((window, index) => {
+    if (index === 0) return true;
+    if (!window.includes("'organisation.purge_completed'")) return true;
+    return DELETION_LIFECYCLE_AUDIT_SQL_MINIMISERS.every(helper =>
+      window.includes(helper)
+    );
+  });
+}
+
+export function lifecycleAuditWriteTimeUsesAcceptedMinimisers(source: string): boolean {
+  return (
+    source.includes(WRITE_MINIMISED_DELETION_LIFECYCLE_AUDIT_SQL) &&
+    DELETION_LIFECYCLE_AUDIT_SQL_MINIMISERS.every(helper => source.includes(helper)) &&
+    /former_organisation_id is not null/i.test(source)
+  );
+}
+
 export const OWNER_PURGE_AUTHORISATION = {
   requirePlatformOwnerFirst: true,
   sqlMustCheckAuthUid: true,

@@ -284,6 +284,7 @@ describe("DL-07 Auth, Storage, minimise, and claims", () => {
       "lib/owner/organisation-retain-minimise.ts",
       "lib/owner/organisation-tenant-purge.ts",
       "lib/owner/organisation-final-verification.ts",
+      "lib/owner/organisation-audit-reminimise.ts",
     ];
     for (const path of deletionLibs) {
       const source = read(path);

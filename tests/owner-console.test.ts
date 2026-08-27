@@ -109,6 +109,7 @@ describe("owner console foundation", () => {
       "app/api/owner/organisations/[id]/retain-minimise/route.ts",
       "app/api/owner/organisations/[id]/tenant-purge/route.ts",
       "app/api/owner/organisations/[id]/final-verification/route.ts",
+      "app/api/owner/organisations/[id]/audit-reminimise/route.ts",
     ];
     for (const path of routes) {
       const source = read(path);
@@ -118,7 +119,8 @@ describe("owner console foundation", () => {
         !path.includes("commercial-retention") &&
         !path.includes("retain-minimise") &&
         !path.includes("tenant-purge") &&
-        !path.includes("final-verification")
+        !path.includes("final-verification") &&
+        !path.includes("audit-reminimise")
       ) {
         expect(source).not.toContain("organisation_deletion");
       }
