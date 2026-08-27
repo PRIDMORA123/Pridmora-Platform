@@ -28,6 +28,7 @@ import type {
 import type { OrganisationDeletionPreflight } from "@/lib/owner/organisation-deletion-preflight";
 import type { OrganisationDeletionRunSummary } from "@/lib/owner/organisation-deletion-initiation";
 import type { CommercialRetentionState } from "@/lib/owner/organisation-commercial-retention";
+import type { RetainMinimiseState } from "@/lib/owner/organisation-retain-minimise";
 import { ACCOUNT_STATUS_LABELS } from "@/lib/owner/types";
 
 type OrganisationInvitationRow = {
@@ -144,6 +145,13 @@ export default function OwnerOrganisationDetailPage() {
     useState(false);
   const [copyingCommercial, setCopyingCommercial] = useState(false);
   const [commercialCopySuccess, setCommercialCopySuccess] = useState(false);
+  const [retainMinimise, setRetainMinimise] =
+    useState<RetainMinimiseState | null>(null);
+  const [retainMinimiseError, setRetainMinimiseError] = useState("");
+  const [retainMinimiseAcknowledged, setRetainMinimiseAcknowledged] =
+    useState(false);
+  const [minimisingRetain, setMinimisingRetain] = useState(false);
+  const [retainMinimiseSuccess, setRetainMinimiseSuccess] = useState(false);
 
   async function loadInvitations() {
     try {
@@ -220,6 +228,22 @@ export default function OwnerOrganisationDetailPage() {
         err instanceof Error
           ? err.message
           : "Unable to load commercial retention status."
+      );
+    }
+
+    try {
+      const minimise = await apiJson<RetainMinimiseState>(
+        `/api/owner/organisations/${params.id}/retain-minimise`
+      );
+      setRetainMinimise(minimise);
+      setRetainMinimiseError("");
+      if (minimise.alreadyMinimised) setRetainMinimiseSuccess(true);
+    } catch (err) {
+      setRetainMinimise(null);
+      setRetainMinimiseError(
+        err instanceof Error
+          ? err.message
+          : "Unable to load retain_minimise status."
       );
     }
   }
@@ -307,6 +331,53 @@ export default function OwnerOrganisationDetailPage() {
       );
     } finally {
       setCopyingCommercial(false);
+    }
+  }
+
+  async function submitRetainMinimise(event: FormEvent) {
+    event.preventDefault();
+    if (!retainMinimise?.deletionRunId) return;
+    setMinimisingRetain(true);
+    setRetainMinimiseError("");
+    try {
+      const payload = await apiJson<RetainMinimiseState & { ok?: boolean }>(
+        `/api/owner/organisations/${params.id}/retain-minimise`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            deletionRunId: retainMinimise.deletionRunId,
+            minimiseAcknowledged: true,
+          }),
+        }
+      );
+      setRetainMinimise({
+        organisationId: payload.organisationId,
+        organisationStatus: payload.organisationStatus,
+        deletionRunId: payload.deletionRunId,
+        runStatus: payload.runStatus,
+        stage: payload.stage,
+        minimiseAvailable: false,
+        alreadyMinimised: true,
+        surfaces: payload.surfaces,
+        pendingTotal: payload.pendingTotal ?? 0,
+        minimisedTotal: payload.minimisedTotal ?? 0,
+        runStatusUnchanged: true,
+        tenantRowsDeleted: false,
+        storageDeleted: false,
+        authUsersDeleted: false,
+        permanentDeletionOccurred: false,
+      });
+      setRetainMinimiseSuccess(true);
+      setRetainMinimiseAcknowledged(false);
+      await loadPreflight();
+    } catch (err) {
+      setRetainMinimiseError(
+        err instanceof Error
+          ? err.message
+          : "Unable to minimise retained support and audit records."
+      );
+    } finally {
+      setMinimisingRetain(false);
     }
   }
 
@@ -929,6 +1000,20 @@ export default function OwnerOrganisationDetailPage() {
                     onAcknowledgedChange={setCommercialCopyAcknowledged}
                     onSubmit={submitCommercialRetention}
                   />
+                  <RetainMinimisePanel
+                    organisationStatus={
+                      retainMinimise?.organisationStatus ??
+                      preflight.organisation?.status ??
+                      ""
+                    }
+                    state={retainMinimise}
+                    error={retainMinimiseError}
+                    acknowledged={retainMinimiseAcknowledged}
+                    minimising={minimisingRetain}
+                    succeeded={retainMinimiseSuccess}
+                    onAcknowledgedChange={setRetainMinimiseAcknowledged}
+                    onSubmit={submitRetainMinimise}
+                  />
                 </>
               ) : null}
             </section>
@@ -1310,6 +1395,119 @@ function CommercialRetentionPanel(props: {
         </p>
       ) : (
         <p className="owner-muted">Loading commercial retention status…</p>
+      )}
+    </section>
+  );
+}
+
+function RetainMinimisePanel(props: {
+  organisationStatus: string;
+  state: RetainMinimiseState | null;
+  error: string;
+  acknowledged: boolean;
+  minimising: boolean;
+  succeeded: boolean;
+  onAcknowledgedChange: (value: boolean) => void;
+  onSubmit: (event: FormEvent) => void;
+}) {
+  const frozen = props.organisationStatus === "pending_closure";
+  if (!frozen) return null;
+
+  const state = props.state;
+  const done = Boolean(state?.alreadyMinimised || props.succeeded);
+  const canSubmit =
+    Boolean(state?.minimiseAvailable) &&
+    props.acknowledged &&
+    !props.minimising &&
+    !done;
+
+  return (
+    <section className="owner-panel" style={{ marginTop: "1.5rem" }}>
+      <h2 className="owner-panel__title">Support and audit retain / minimise</h2>
+      <p className="owner-muted">
+        This stage keeps support cases and platform audit events as a minimum
+        operational record. It removes free text, notes, and non-allowlisted
+        metadata. It does not delete those rows, tenant data, storage, or Auth
+        users, and it does not advance purge.
+      </p>
+      {state ? (
+        <>
+          <dl className="owner-metrics" style={{ margin: "1rem 0" }}>
+            <Detail
+              label="Run status"
+              value={(state.runStatus ?? "unknown").replaceAll("_", " ")}
+            />
+            <Detail
+              label="Pending rows"
+              value={String(state.pendingTotal)}
+            />
+            <Detail
+              label="Minimised rows"
+              value={String(state.minimisedTotal)}
+            />
+            <Detail
+              label="Minimise status"
+              value={done ? "completed" : "not completed"}
+            />
+          </dl>
+          <ul className="owner-muted">
+            {state.surfaces.map(item => (
+              <li key={item.table}>
+                {item.table}: {item.pendingCount} pending, {item.minimisedCount}{" "}
+                minimised
+              </li>
+            ))}
+          </ul>
+          {done ? (
+            <ul className="owner-muted">
+              <li>Support body text and resolution notes are cleared.</li>
+              <li>Platform audit metadata is allowlisted only.</li>
+              <li>The deletion run status is unchanged.</li>
+              <li>No tenant database rows were deleted.</li>
+              <li>There is no destructive action on this screen.</li>
+            </ul>
+          ) : state.minimiseAvailable ? (
+            <form onSubmit={props.onSubmit}>
+              <label
+                className="owner-muted"
+                style={{ display: "block", margin: "1rem 0" }}
+              >
+                <input
+                  type="checkbox"
+                  checked={props.acknowledged}
+                  onChange={event =>
+                    props.onAcknowledgedChange(event.target.checked)
+                  }
+                  disabled={props.minimising}
+                />{" "}
+                I understand this minimises support and audit records only and
+                does not delete tenant data, storage, or Auth users.
+              </label>
+              {props.error ? (
+                <p className="owner-muted" role="alert">
+                  {props.error}
+                </p>
+              ) : null}
+              <button
+                type="submit"
+                className="owner-button"
+                disabled={!canSubmit}
+              >
+                Minimise retained support and audit records
+              </button>
+            </form>
+          ) : (
+            <p className="owner-muted">
+              retain_minimise is not available for this run state.
+            </p>
+          )}
+        </>
+      ) : props.error ? (
+        <p className="owner-muted" role="alert">
+          {props.error}
+        </p>
+      ) : (
+        <p className="owner-muted">Loading retain_minimise status…</p>
       )}
     </section>
   );

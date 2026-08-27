@@ -712,7 +712,8 @@ export const ORGANISATION_PURGE_MANIFEST: readonly PurgeManifestEntry[] = [
     fkBehaviour: "SET NULL",
     deletionOrder: 140,
     deletionMode: "retain_minimise",
-    verification: "organisation_id IS NULL; description/resolution_notes empty; cases remain",
+    verification:
+      "organisation_id IS NULL; former_organisation_id set; description/resolution_notes empty; subject minimised; cases remain",
     failureCondition: "free text remains or cases deleted without minimise",
     treatment: "RETAIN",
   },
@@ -723,8 +724,10 @@ export const ORGANISATION_PURGE_MANIFEST: readonly PurgeManifestEntry[] = [
     fkBehaviour: "SET NULL",
     deletionOrder: 141,
     deletionMode: "retain_minimise",
-    verification: "organisation_id IS NULL; events remain; no forbidden metadata keys",
-    failureCondition: "events deleted or coaching keys present",
+    verification:
+      "organisation_id IS NULL; former_organisation_id set; events remain; metadata allowlisted only; entity_id retained only for PLATFORM_AUDIT_ENTITY_ID_RETAIN_TYPES else NULL",
+    failureCondition:
+      "events deleted, non-allowlisted metadata remains, or entity_id retained outside the fail-closed allowlist",
     treatment: "RETAIN",
   },
   {
@@ -823,9 +826,41 @@ export const KNOWN_STORAGE_BUCKETS = [
 
 export type MinimiseAction = "RETAIN" | "MINIMISE" | "NULL" | "PURGE" | "REVIEW";
 
+export const MINIMISED_SUPPORT_CASE_SUBJECT = "Minimised support case";
+
+export const SUPPORT_CASE_SCHEMA_COLUMNS = [
+  "id",
+  "organisation_id",
+  "former_organisation_id",
+  "user_id",
+  "category",
+  "subject",
+  "description",
+  "status",
+  "priority",
+  "assigned_to",
+  "resolution_notes",
+  "created_by",
+  "created_at",
+  "updated_at",
+] as const;
+
+export const PLATFORM_AUDIT_SCHEMA_COLUMNS = [
+  "id",
+  "actor_user_id",
+  "action",
+  "entity_type",
+  "entity_id",
+  "organisation_id",
+  "former_organisation_id",
+  "metadata",
+  "created_at",
+] as const;
+
 export const SUPPORT_CASE_FIELD_TREATMENT: Record<string, MinimiseAction> = {
   id: "RETAIN",
   organisation_id: "NULL",
+  former_organisation_id: "RETAIN",
   user_id: "NULL",
   category: "RETAIN",
   subject: "MINIMISE",
@@ -844,11 +879,58 @@ export const PLATFORM_AUDIT_FIELD_TREATMENT: Record<string, MinimiseAction> = {
   actor_user_id: "RETAIN",
   action: "RETAIN",
   entity_type: "RETAIN",
-  entity_id: "RETAIN",
+  entity_id: "MINIMISE",
   organisation_id: "NULL",
+  former_organisation_id: "RETAIN",
   metadata: "MINIMISE",
   created_at: "RETAIN",
 };
+
+export const PLATFORM_AUDIT_ENTITY_ID_RETAIN_TYPES = [
+  "organisation_deletion_run",
+  "support_case",
+  "organisation_subscription",
+  "invoice",
+  "organisation_payment_method",
+  "purchase_order",
+  "organisation_contract",
+  "organisation_trial",
+] as const;
+
+export const PLATFORM_AUDIT_METADATA_ALLOWLIST = [
+  "deletionRunId",
+  "formerOrganisationId",
+  "organisationId",
+  "instructionReference",
+  "runStatus",
+  "stage",
+  "organisationStatus",
+  "previousStatus",
+  "permanentDeletionOccurred",
+  "alreadyCopied",
+  "alreadyMinimised",
+  "repaired",
+  "category",
+  "status",
+  "priority",
+  "conversionStatus",
+  "licenceStatus",
+  "previousLicenceStatus",
+  "trialConversionStatus",
+  "licencePlanName",
+  "planCode",
+  "methodType",
+  "fields",
+  "role",
+  "aiEnabled",
+  "key",
+  "licenceEndsAt",
+  "previousLicenceEndsAt",
+  "sourceCounts",
+  "retainedCounts",
+  "supportCasesMinimised",
+  "auditEventsMinimised",
+] as const;
 
 export type LiveCommercialPurgePreconditions = {
   organisationStatus: string | null;

@@ -12,6 +12,7 @@ import {
   ORGANISATION_PURGE_MANIFEST,
   ORGANISATION_PURGE_MUST_NEVER_DELETE_AUTH_USERS,
   OWNER_PURGE_AUTHORISATION,
+  PLATFORM_AUDIT_ENTITY_ID_RETAIN_TYPES,
   PLATFORM_AUDIT_FIELD_TREATMENT,
   RETAINED_SURVIVAL_TABLES,
   SUPPORT_CASE_FIELD_TREATMENT,
@@ -264,6 +265,7 @@ describe("DL-07 Auth, Storage, minimise, and claims", () => {
       "lib/owner/organisation-commercial-retention.ts",
       "lib/owner/organisation-purge-architecture.ts",
       "lib/owner/organisation-migration-review-attribution.ts",
+      "lib/owner/organisation-retain-minimise.ts",
     ];
     for (const path of deletionLibs) {
       const source = read(path);
@@ -296,10 +298,22 @@ describe("DL-07 Auth, Storage, minimise, and claims", () => {
     expect(SUPPORT_CASE_FIELD_TREATMENT.resolution_notes).toBe("NULL");
     expect(SUPPORT_CASE_FIELD_TREATMENT.subject).toBe("MINIMISE");
     expect(SUPPORT_CASE_FIELD_TREATMENT.user_id).toBe("NULL");
+    expect(SUPPORT_CASE_FIELD_TREATMENT.former_organisation_id).toBe("RETAIN");
     expect(SUPPORT_CASE_FIELD_TREATMENT.id).toBe("RETAIN");
     expect(PLATFORM_AUDIT_FIELD_TREATMENT.metadata).toBe("MINIMISE");
     expect(PLATFORM_AUDIT_FIELD_TREATMENT.organisation_id).toBe("NULL");
     expect(PLATFORM_AUDIT_FIELD_TREATMENT.actor_user_id).toBe("RETAIN");
+    expect(PLATFORM_AUDIT_FIELD_TREATMENT.entity_id).toBe("MINIMISE");
+    expect([...PLATFORM_AUDIT_ENTITY_ID_RETAIN_TYPES]).toEqual([
+      "organisation_deletion_run",
+      "support_case",
+      "organisation_subscription",
+      "invoice",
+      "organisation_payment_method",
+      "purchase_order",
+      "organisation_contract",
+      "organisation_trial",
+    ]);
     expect(
       ORGANISATION_PURGE_MANIFEST.find(item => item.table === "support_cases")
         ?.deletionMode

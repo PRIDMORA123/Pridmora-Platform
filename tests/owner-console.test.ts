@@ -106,11 +106,12 @@ describe("owner console foundation", () => {
       "app/api/owner/organisations/[id]/deletion-preflight/route.ts",
       "app/api/owner/organisations/[id]/deletion-initiation/route.ts",
       "app/api/owner/organisations/[id]/commercial-retention/route.ts",
+      "app/api/owner/organisations/[id]/retain-minimise/route.ts",
     ];
     for (const path of routes) {
       const source = read(path);
       expect(source).toContain("requirePlatformOwner");
-      if (!path.includes("deletion-") && !path.includes("commercial-retention")) {
+      if (!path.includes("deletion-") && !path.includes("commercial-retention") && !path.includes("retain-minimise")) {
         expect(source).not.toContain("organisation_deletion");
       }
     }
