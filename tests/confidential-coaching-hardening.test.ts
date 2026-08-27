@@ -112,6 +112,11 @@ describe("private identity access — org role regressions", () => {
     expect(foundation).toMatch(
       /user_can_access_client_content[\s\S]*coach_id = p_user_id[\s\S]*not exists/
     );
+    const freeze = read(
+      "supabase/migrations/20260827200000_organisation_deletion_foundation.sql"
+    );
+    expect(freeze).toContain("client_organisation_allows_member_access(p_client_id)");
+    expect(freeze).toContain("pending_closure organisations fail closed");
   });
 });
 

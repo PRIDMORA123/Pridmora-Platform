@@ -9,6 +9,7 @@ import {
   canAccessCoachingContent,
   canAccessPrivateNotes,
   hasPermission,
+  organisationAllowsMemberAccess,
 } from "@/lib/organisations/permissions";
 import {
   getActiveAssignment,
@@ -112,6 +113,16 @@ export async function requireOrganisationContext(options?: {
     };
   }
 
+  if (!organisationAllowsMemberAccess(resolved.context.organisation.status)) {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { error: "Organisation access required." },
+        { status: 403 }
+      ),
+    };
+  }
+
   return {
     ok: true,
     context: {
@@ -125,6 +136,9 @@ export function requireOrganisationPermission(
   context: OrganisationRequestContext,
   permission: OrganisationPermission
 ): NextResponse | null {
+  if (!organisationAllowsMemberAccess(context.organisation.organisation.status)) {
+    return NextResponse.json({ error: "Permission denied." }, { status: 403 });
+  }
   if (!hasPermission(context.organisation.role, permission)) {
     return NextResponse.json({ error: "Permission denied." }, { status: 403 });
   }
@@ -164,6 +178,14 @@ export async function requireAssignedClientAccess(input: {
   }
 
   if (!client) {
+    return { ok: false, response: notFoundOrForbidden() };
+  }
+
+  if (
+    !organisationAllowsMemberAccess(
+      input.context.organisation.organisation.status
+    )
+  ) {
     return { ok: false, response: notFoundOrForbidden() };
   }
 

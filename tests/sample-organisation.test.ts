@@ -27,6 +27,22 @@ function read(pathFromRoot: string): string {
   return readFileSync(join(root, pathFromRoot), "utf8");
 }
 
+function extractHasOrganisationPermissionSql(sql: string): string {
+  const start = sql.search(
+    /create\s+or\s+replace\s+function\s+public\.has_organisation_permission/i
+  );
+  if (start < 0) {
+    throw new Error("has_organisation_permission not found in migration");
+  }
+  const rest = sql.slice(start);
+  const bodyStart = rest.search(/as\s+\$\$/i);
+  const bodyEnd = rest.indexOf("$$;", bodyStart);
+  if (bodyStart < 0 || bodyEnd < 0) {
+    throw new Error("has_organisation_permission body not found");
+  }
+  return rest.slice(0, bodyEnd + 3);
+}
+
 function latestHasOrganisationPermissionReplacement(): {
   file: string;
   sql: string;
@@ -43,7 +59,7 @@ function latestHasOrganisationPermissionReplacement(): {
         sql
       )
     ) {
-      latest = { file, sql };
+      latest = { file, sql: extractHasOrganisationPermissionSql(sql) };
     }
   }
   if (!latest) {

@@ -50,6 +50,7 @@ export {
 
 export {
   hasPermission,
+  organisationAllowsMemberAccess,
   canSeeOrganisationNav,
   canEnterManagerPeopleWorkspace,
   requiresAssignedOnlyPeopleList,

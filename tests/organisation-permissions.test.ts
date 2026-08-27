@@ -7,6 +7,7 @@ import {
   canSeeOrganisationNav,
   hasPermission,
   invitableRoles,
+  organisationAllowsMemberAccess,
 } from "@/lib/organisations/permissions";
 import {
   generateInvitationToken,
@@ -138,5 +139,13 @@ describe("invitation tokens", () => {
     const b = generateInvitationToken();
     expect(a.token).not.toBe(b.token);
     expect(a.tokenHash).not.toBe(b.tokenHash);
+  });
+
+  it("fails closed for pending_closure without changing role grants", () => {
+    expect(organisationAllowsMemberAccess("active")).toBe(true);
+    expect(organisationAllowsMemberAccess("archived")).toBe(true);
+    expect(organisationAllowsMemberAccess("pending_closure")).toBe(false);
+    expect(hasPermission("owner", "organisation.manage")).toBe(true);
+    expect(hasPermission("practitioner", "coaching_content.view")).toBe(true);
   });
 });

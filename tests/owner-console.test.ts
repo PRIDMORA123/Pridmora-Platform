@@ -107,6 +107,7 @@ describe("owner console foundation", () => {
     for (const path of routes) {
       const source = read(path);
       expect(source).toContain("requirePlatformOwner");
+      expect(source).not.toContain("organisation_deletion");
     }
   });
 

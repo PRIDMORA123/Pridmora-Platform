@@ -10,7 +10,10 @@ import type {
   ProfessionalRole,
   RelationshipAssignment,
 } from "@/lib/organisations/types";
-import { parseMembershipRole } from "@/lib/organisations/permissions";
+import {
+  organisationAllowsMemberAccess,
+  parseMembershipRole,
+} from "@/lib/organisations/permissions";
 import { mapOrganisationLicence } from "@/lib/organisations/licence";
 
 type OrgRow = {
@@ -231,7 +234,13 @@ export async function listUserMemberships(
     } & MembershipRow;
     const orgRaw = typed.organisations;
     const org = Array.isArray(orgRaw) ? orgRaw[0] : orgRaw;
-    if (!org || org.status !== "active") continue;
+    if (
+      !org ||
+      org.status !== "active" ||
+      !organisationAllowsMemberAccess(org.status)
+    ) {
+      continue;
+    }
     results.push({
       membership: mapMembership(typed),
       organisation: mapOrganisation(org),
@@ -400,6 +409,14 @@ export async function setCurrentOrganisationPreference(
     (await getMembership(supabase, organisationId, userId))?.role
   );
   if (!role) {
+    throw new Error("Not an active member of that organisation.");
+  }
+
+  const organisation = await getOrganisation(supabase, organisationId);
+  if (
+    !organisation ||
+    !organisationAllowsMemberAccess(organisation.status)
+  ) {
     throw new Error("Not an active member of that organisation.");
   }
 

@@ -1,6 +1,7 @@
 import type {
   AssignmentRole,
   MembershipRole,
+  Organisation,
   OrganisationPermission,
 } from "@/lib/organisations/types";
 
@@ -93,6 +94,17 @@ export function hasPermission(
   permission: OrganisationPermission
 ): boolean {
   return permissionsForRole(role).includes(permission);
+}
+
+/**
+ * Ordinary member/coaching/development access is allowed only when the
+ * organisation is not frozen for deletion.
+ * Role permissions are unchanged for active and archived organisations.
+ */
+export function organisationAllowsMemberAccess(
+  status: Organisation["status"]
+): boolean {
+  return status !== "pending_closure";
 }
 
 export function canManageOrganisation(role: MembershipRole): boolean {
