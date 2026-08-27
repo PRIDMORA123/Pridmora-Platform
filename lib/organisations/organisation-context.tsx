@@ -23,6 +23,8 @@ export type OrganisationWorkspaceState = {
   membership: OrganisationMembership;
   role: MembershipRole;
   professionalRole: ProfessionalRole | null;
+  /** Current org is an openable sample installation. Routing only — not content access. */
+  isSampleOrganisation?: boolean;
   organisations: Array<{
     organisation: Organisation;
     membership: OrganisationMembership;
@@ -67,6 +69,7 @@ export function OrganisationProvider({
       membership: payload.current.membership,
       role: payload.current.role,
       professionalRole: payload.current.professionalRole,
+      isSampleOrganisation: payload.current.isSampleOrganisation,
       organisations: payload.organisations,
     });
   }, []);

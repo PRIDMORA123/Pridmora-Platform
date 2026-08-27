@@ -37,6 +37,7 @@ export function OrganisationWorkspaceProvider({
           membership: payload.current.membership,
           role: payload.current.role,
           professionalRole: payload.current.professionalRole,
+          isSampleOrganisation: payload.current.isSampleOrganisation,
           organisations: payload.organisations,
         });
       } catch {

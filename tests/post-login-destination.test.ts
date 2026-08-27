@@ -83,6 +83,15 @@ describe("authoritative post-login destination", () => {
         organisationType: "business",
       })
     ).toBe(LEAD_WORKSPACE_PATH);
+    expect(
+      resolvePostLoginDestination({
+        requestedNext: MANAGER_WORKSPACE_PATH,
+        isPlatformOwner: false,
+        membershipRole: "owner",
+        professionalRole: "manager",
+        organisationType: "business",
+      })
+    ).toBe(LEAD_WORKSPACE_PATH);
   });
 
   it("treats / and /?view=dashboard as home workspace paths", async () => {

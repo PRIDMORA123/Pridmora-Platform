@@ -42,6 +42,7 @@ export {
 export {
   getInstallationById,
   getActiveInstallationForPack,
+  isOpenableSampleOrganisation,
   verifyInstalledDataset,
 } from "@/lib/sample-organisations/status";
 export {

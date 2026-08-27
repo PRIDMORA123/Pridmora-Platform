@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import {
   canManageSampleOrganisation,
@@ -25,6 +25,48 @@ const root = process.cwd();
 
 function read(pathFromRoot: string): string {
   return readFileSync(join(root, pathFromRoot), "utf8");
+}
+
+function latestHasOrganisationPermissionReplacement(): {
+  file: string;
+  sql: string;
+} {
+  const dir = join(root, "supabase/migrations");
+  const files = readdirSync(dir)
+    .filter(name => name.endsWith(".sql"))
+    .sort();
+  let latest: { file: string; sql: string } | null = null;
+  for (const file of files) {
+    const sql = readFileSync(join(dir, file), "utf8");
+    if (
+      /create\s+or\s+replace\s+function\s+public\.has_organisation_permission/i.test(
+        sql
+      )
+    ) {
+      latest = { file, sql };
+    }
+  }
+  if (!latest) {
+    throw new Error("has_organisation_permission replacement not found");
+  }
+  return latest;
+}
+
+function sqlRolesForPermission(sql: string, permission: string): string[] {
+  const escaped = permission.replace(/\./g, "\\.");
+  const inList = sql.match(
+    new RegExp(
+      `p_permission = '${escaped}' and m\\.role in \\(([^)]+)\\)`,
+      "i"
+    )
+  );
+  if (inList) {
+    return [...inList[1].matchAll(/'([^']+)'/g)].map(match => match[1]);
+  }
+  const equals = sql.match(
+    new RegExp(`p_permission = '${escaped}' and m\\.role = '([^']+)'`, "i")
+  );
+  return equals ? [equals[1]] : [];
 }
 
 describe("sample organisation access", () => {
@@ -319,6 +361,72 @@ describe("sample organisation migration", () => {
       "p_permission = 'coaching_content.view' and m.role in ('practitioner', 'owner', 'administrator')"
     );
   });
+
+  it("ships an additive repair restoring sample_organisation.manage on the live helper", () => {
+    const path =
+      "supabase/migrations/20260827120000_restore_sample_organisation_manage_permission.sql";
+    expect(existsSync(join(root, path))).toBe(true);
+    const sql = read(path);
+    expect(sql).toContain(
+      "create or replace function public.has_organisation_permission"
+    );
+    expect(sql).toContain("security definer");
+    expect(sql).toContain("set search_path = public");
+    expect(sql).not.toMatch(/\bdrop table\b/i);
+    expect(sql).not.toMatch(/\balter table\b/i);
+    expect(sql).not.toContain("begin_sample_organisation_installation");
+    expect(sql).not.toContain("is_platform_owner");
+  });
+
+  it("latest effective has_organisation_permission grants sample install to owner and administrator only", () => {
+    const { sql } = latestHasOrganisationPermissionReplacement();
+    const sampleRoles = sqlRolesForPermission(sql, "sample_organisation.manage");
+    expect(sampleRoles).toEqual(["owner", "administrator"]);
+    expect(sampleRoles).not.toContain("oversight");
+    expect(sampleRoles).not.toContain("practitioner");
+    expect(sampleRoles).not.toContain("viewer");
+  });
+
+  it("latest effective has_organisation_permission keeps Organisation Lead administration", () => {
+    const { sql } = latestHasOrganisationPermissionReplacement();
+    for (const permission of [
+      "organisation.view_usage",
+      "organisation.view_safe_oversight",
+      "intelligence.organisation.read",
+      "members.invite",
+      "members.manage",
+      "members.deactivate",
+      "assignments.manage",
+    ] as const) {
+      const roles = sqlRolesForPermission(sql, permission);
+      expect(roles).toEqual(["owner", "administrator", "oversight"]);
+    }
+    expect(sqlRolesForPermission(sql, "organisation.manage")).toEqual([
+      "owner",
+      "administrator",
+    ]);
+    expect(sqlRolesForPermission(sql, "coaching_content.view")).toEqual([
+      "practitioner",
+      "owner",
+      "administrator",
+    ]);
+    expect(sqlRolesForPermission(sql, "private_notes.view")).toEqual([
+      "practitioner",
+      "owner",
+      "administrator",
+    ]);
+    expect(sql).not.toMatch(
+      /coaching_content\.view' and m\.role in \([^)]*oversight/
+    );
+    expect(sql).not.toMatch(/is_platform_owner/);
+  });
+
+  it("fails if a later has_organisation_permission replacement drops sample_organisation.manage", () => {
+    const { sql } = latestHasOrganisationPermissionReplacement();
+    expect(sql).toMatch(
+      /p_permission = 'sample_organisation\.manage' and m\.role in \('owner', 'administrator'\)/
+    );
+  });
 });
 
 
@@ -470,5 +578,14 @@ describe("sample organisation privacy regression contracts", () => {
     expect(open).toContain('installation.status !== "intelligence_pending"');
     expect(open).toContain("Sample organisation is not ready.");
     expect(open).toContain("NOT_READY");
+  });
+
+  it("Open sample organisation uses the sampleOpen Manager-home destination", () => {
+    const page = read(
+      "components/sample-organisation/sample-organisation-page.tsx"
+    );
+    expect(page).toContain("SAMPLE_ORGANISATION_OPEN_PATH");
+    expect(page).toContain("window.location.assign(SAMPLE_ORGANISATION_OPEN_PATH)");
+    expect(page).not.toContain('window.location.assign("/?view=dashboard")');
   });
 });

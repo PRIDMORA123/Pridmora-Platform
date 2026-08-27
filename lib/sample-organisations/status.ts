@@ -123,6 +123,33 @@ export async function getActiveInstallationForPack(
   return mapInstallationRow(data as InstallationRow);
 }
 
+/**
+ * True when the organisation is a sample installation that Open may land on
+ * Manager home. Fail closed. Does not grant coaching content.
+ */
+export async function isOpenableSampleOrganisation(
+  supabase: SupabaseClient,
+  organisationId: string | null | undefined
+): Promise<boolean> {
+  const id =
+    typeof organisationId === "string" ? organisationId.trim() : "";
+  if (!id) return false;
+
+  try {
+    const { data, error } = await supabase
+      .from("sample_organisation_installations")
+      .select("id")
+      .eq("organisation_id", id)
+      .in("status", ["ready", "intelligence_pending"])
+      .limit(1)
+      .maybeSingle();
+
+    return Boolean(!error && data);
+  } catch {
+    return false;
+  }
+}
+
 export async function updateInstallationStage(input: {
   supabase: SupabaseClient;
   installationId: string;

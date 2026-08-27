@@ -67,6 +67,7 @@ import { SessionsLoadError } from "@/components/feedback/sessions-load-error";
 import { ApiRequestError } from "@/lib/api-failure";
 import {
   isHomeWorkspacePath,
+  isSampleOrganisationOpenPath,
   LEAD_WORKSPACE_PATH,
   resolvePostLoginDestination,
 } from "@/lib/auth/post-login-destination";
@@ -351,14 +352,24 @@ export function HomeApp() {
 
   // Defence in depth: Lead/admin memberships must not stay on Manager home
   // (server `/` also redirects; this covers client-side org switches).
+  // Sample Open (`sampleOpen=1` on an openable sample org) is the only
+  // business-owner exception — assignment gates still control People content.
   useEffect(() => {
     if (!membershipRole) return;
+    const requestedNext =
+      typeof window === "undefined"
+        ? "/"
+        : `${window.location.pathname}${window.location.search}`;
     const destination = resolvePostLoginDestination({
-      requestedNext: "/",
+      requestedNext,
       isPlatformOwner: false,
       membershipRole,
       professionalRole: organisationRole,
       organisationType: organisationState?.organisation.organisationType,
+      allowSampleOrganisationOpen: Boolean(
+        organisationState?.isSampleOrganisation &&
+          isSampleOrganisationOpenPath(requestedNext)
+      ),
     });
     if (!isHomeWorkspacePath(destination)) {
       window.location.assign(destination);
@@ -367,6 +378,7 @@ export function HomeApp() {
     membershipRole,
     organisationRole,
     organisationState?.organisation.organisationType,
+    organisationState?.isSampleOrganisation,
   ]);
 
   useEffect(() => {

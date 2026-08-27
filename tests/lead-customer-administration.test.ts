@@ -24,6 +24,28 @@ function read(pathFromRoot: string): string {
   return readFileSync(join(root, pathFromRoot), "utf8");
 }
 
+function latestHasOrganisationPermissionSql(): string {
+  const dir = join(root, "supabase/migrations");
+  const files = readdirSync(dir)
+    .filter(name => name.endsWith(".sql"))
+    .sort();
+  let latest: string | null = null;
+  for (const file of files) {
+    const sql = readFileSync(join(dir, file), "utf8");
+    if (
+      /create\s+or\s+replace\s+function\s+public\.has_organisation_permission/i.test(
+        sql
+      )
+    ) {
+      latest = sql;
+    }
+  }
+  if (!latest) {
+    throw new Error("has_organisation_permission replacement not found");
+  }
+  return latest;
+}
+
 describe("Organisation Lead (oversight) customer administration", () => {
   it("A. oversight Lead can invite Manager (practitioner)", () => {
     expect(canInviteMembers("oversight")).toBe(true);
@@ -186,9 +208,7 @@ describe("Organisation Lead (oversight) customer administration", () => {
   });
 
   it("O. organisation isolation remains enforced (permission helper is org-scoped)", () => {
-    const migration = read(
-      "supabase/migrations/20260814120000_oversight_lead_administration.sql"
-    );
+    const migration = latestHasOrganisationPermissionSql();
     expect(migration).toContain("m.organisation_id = p_organisation_id");
     expect(migration).toContain("m.user_id = p_user_id");
     expect(migration).toContain("m.status = 'active'");
@@ -201,8 +221,14 @@ describe("Organisation Lead (oversight) customer administration", () => {
     expect(migration).toContain(
       "coaching_content.view' and m.role in ('practitioner', 'owner', 'administrator')"
     );
+    expect(migration).toContain(
+      "p_permission = 'sample_organisation.manage' and m.role in ('owner', 'administrator')"
+    );
     expect(migration).not.toMatch(
       /coaching_content\.view' and m\.role in \([^)]*oversight/
+    );
+    expect(migration).not.toMatch(
+      /sample_organisation\.manage' and m\.role in \([^)]*oversight/
     );
   });
 
@@ -211,9 +237,10 @@ describe("Organisation Lead (oversight) customer administration", () => {
     expect(migrations).toContain(
       "20260814120000_oversight_lead_administration.sql"
     );
-    const sql = read(
-      "supabase/migrations/20260814120000_oversight_lead_administration.sql"
+    expect(migrations).toContain(
+      "20260827120000_restore_sample_organisation_manage_permission.sql"
     );
+    const sql = latestHasOrganisationPermissionSql();
     expect(sql).toContain("create or replace function public.has_organisation_permission");
   });
 

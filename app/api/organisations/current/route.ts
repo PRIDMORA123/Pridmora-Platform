@@ -8,6 +8,7 @@ import {
   listUserMemberships,
   setCurrentOrganisationPreference,
 } from "@/lib/organisations/repository";
+import { isOpenableSampleOrganisation } from "@/lib/sample-organisations/status";
 
 export const runtime = "nodejs";
 
@@ -22,6 +23,10 @@ export async function GET() {
       auth.context.user.id
     );
     const role = auth.context.organisation.role;
+    const isSampleOrganisation = await isOpenableSampleOrganisation(
+      auth.context.supabase,
+      auth.context.organisation.organisationId
+    );
 
     return NextResponse.json({
       current: {
@@ -30,6 +35,7 @@ export async function GET() {
         role,
         professionalRole: auth.context.organisation.professionalRole,
         canManageSampleOrganisation: canManageSampleOrganisation(role),
+        isSampleOrganisation,
         organisations,
       },
       organisations,

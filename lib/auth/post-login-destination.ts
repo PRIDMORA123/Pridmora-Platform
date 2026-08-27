@@ -1,14 +1,33 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sanitizeNextPath } from "@/lib/auth/email-link";
 import { isPlatformOwner } from "@/lib/owner/platform-owner";
+import { isOpenableSampleOrganisation } from "@/lib/sample-organisations/status";
 
 export const MANAGER_WORKSPACE_PATH = "/?view=dashboard";
 export const LEAD_WORKSPACE_PATH = "/organisation";
 export const OWNER_CONSOLE_PATH = "/owner";
+export const SAMPLE_ORGANISATION_OPEN_QUERY = "sampleOpen";
+export const SAMPLE_ORGANISATION_OPEN_PATH = `${MANAGER_WORKSPACE_PATH}&${SAMPLE_ORGANISATION_OPEN_QUERY}=1`;
 
 /** True for `/` and `/?…` Manager home paths (not Lead/Owner destinations). */
 export function isHomeWorkspacePath(path: string): boolean {
   return path === "/" || path.startsWith("/?");
+}
+
+/** Explicit Sample organisation → Open sample organisation destination only. */
+export function isSampleOrganisationOpenPath(path: string): boolean {
+  const sanitized = sanitizeNextPath(path, "/");
+  if (!isHomeWorkspacePath(sanitized)) return false;
+  try {
+    const url = new URL(sanitized, "https://identity.local");
+    return url.searchParams.get(SAMPLE_ORGANISATION_OPEN_QUERY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function sampleOrganisationOpenMayStayOnManagerHome(role: string): boolean {
+  return role === "owner" || role === "practitioner";
 }
 
 /**
@@ -18,6 +37,8 @@ export function isHomeWorkspacePath(path: string): boolean {
  * - Organisation Lead (oversight) / business owner / administrator → /organisation
  * - Personal-workspace owner → Manager home (coaching workspace)
  * - Manager (practitioner + professional_role manager) → Manager workspace
+ * - Sample Open (`sampleOpen=1`) may keep a sample-org owner/practitioner on
+ *   Manager home. Oversight/admin and normal login/workspace switch are unchanged.
  *
  * Deep links (invitations, etc.) win over role defaults when `requestedNext`
  * is a non-home path.
@@ -29,11 +50,30 @@ export function resolvePostLoginDestination(input: {
   professionalRole?: string | null;
   /** When set, personal owners land on Manager home rather than Lead shell. */
   organisationType?: string | null;
+  /**
+   * When true, the current organisation is an openable sample installation.
+   * Required together with `sampleOpen=1`. Does not grant content access.
+   */
+  allowSampleOrganisationOpen?: boolean;
 }): string {
   const requested = sanitizeNextPath(input.requestedNext, "/");
 
   if (!isHomeWorkspacePath(requested)) {
     return requested;
+  }
+
+  const role = (input.membershipRole || "").toLowerCase();
+
+  if (
+    input.allowSampleOrganisationOpen &&
+    isSampleOrganisationOpenPath(requested)
+  ) {
+    if (sampleOrganisationOpenMayStayOnManagerHome(role)) {
+      return requested;
+    }
+    if (role === "oversight" || role === "administrator") {
+      return LEAD_WORKSPACE_PATH;
+    }
   }
 
   if (input.isPlatformOwner) {
@@ -45,7 +85,6 @@ export function resolvePostLoginDestination(input: {
     return OWNER_CONSOLE_PATH;
   }
 
-  const role = (input.membershipRole || "").toLowerCase();
   const professional = (input.professionalRole || "").toLowerCase();
   const organisationType = (input.organisationType || "").toLowerCase();
 
@@ -88,9 +127,15 @@ export async function loadActiveMembershipForRouting(
   role: string | null;
   professionalRole: string | null;
   organisationType: string | null;
+  organisationId: string | null;
 }> {
   if (!userId) {
-    return { role: null, professionalRole: null, organisationType: null };
+    return {
+      role: null,
+      professionalRole: null,
+      organisationType: null,
+      organisationId: null,
+    };
   }
 
   const { data: profile } = await supabase
@@ -113,7 +158,12 @@ export async function loadActiveMembershipForRouting(
     .limit(20);
 
   if (error || !data?.length) {
-    return { role: null, professionalRole: null, organisationType: null };
+    return {
+      role: null,
+      professionalRole: null,
+      organisationType: null,
+      organisationId: null,
+    };
   }
 
   const rows = data as MembershipRow[];
@@ -132,6 +182,7 @@ export async function loadActiveMembershipForRouting(
     professionalRole: preferred?.professional_role ?? null,
     organisationType:
       typeof organisationType === "string" ? organisationType : null,
+    organisationId: preferred?.organisation_id ?? null,
   };
 }
 
@@ -148,11 +199,16 @@ export async function resolveAuthoritativePostLoginDestination(
     loadActiveMembershipForRouting(supabase, userId),
   ]);
 
+  const allowSampleOrganisationOpen =
+    isSampleOrganisationOpenPath(requestedNext ?? "/") &&
+    (await isOpenableSampleOrganisation(supabase, membership.organisationId));
+
   return resolvePostLoginDestination({
     requestedNext,
     isPlatformOwner: owner,
     membershipRole: membership.role,
     professionalRole: membership.professionalRole,
     organisationType: membership.organisationType,
+    allowSampleOrganisationOpen,
   });
 }

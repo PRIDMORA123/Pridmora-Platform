@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { IdentityButton } from "@/components/identity/button";
 import { OrganisationShell } from "@/components/organisation/organisation-shell";
 import { apiJson } from "@/lib/api-client";
+import { SAMPLE_ORGANISATION_OPEN_PATH } from "@/lib/auth/post-login-destination";
 import {
   DEFAULT_SAMPLE_PACK_KEY,
   SAMPLE_ORGANISATION_SETUP_ESTIMATE,
@@ -224,7 +225,7 @@ export function SampleOrganisationPage() {
         `/api/sample-organisations/installations/${installation.id}/open`,
         { method: "POST", body: JSON.stringify({}) }
       );
-      window.location.assign("/?view=dashboard");
+      window.location.assign(SAMPLE_ORGANISATION_OPEN_PATH);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to open sample organisation.");
       setBusy(false);
@@ -241,7 +242,7 @@ export function SampleOrganisationPage() {
         `/api/sample-organisations/installations/${legacyInstallation.id}/open`,
         { method: "POST", body: JSON.stringify({}) }
       );
-      window.location.assign("/?view=dashboard");
+      window.location.assign(SAMPLE_ORGANISATION_OPEN_PATH);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to open sample organisation.");
       setBusy(false);
