@@ -5,6 +5,11 @@ import {
   type OrganisationRequestContext,
 } from "@/lib/organisations/current-organisation";
 
+/**
+ * Gates sample organisation GET/install/open/reset/remove.
+ * Authorised role: organisation owner only.
+ * Same rule as canManageSampleOrganisation / SQL sample_organisation.manage.
+ */
 export async function requireSampleOrganisationManage(): Promise<
   | { ok: true; context: OrganisationRequestContext }
   | { ok: false; response: NextResponse }

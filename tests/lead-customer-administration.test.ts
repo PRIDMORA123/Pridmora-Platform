@@ -222,13 +222,16 @@ describe("Organisation Lead (oversight) customer administration", () => {
       "coaching_content.view' and m.role in ('practitioner', 'owner', 'administrator')"
     );
     expect(migration).toContain(
-      "p_permission = 'sample_organisation.manage' and m.role in ('owner', 'administrator')"
+      "p_permission = 'sample_organisation.manage' and m.role = 'owner'"
     );
     expect(migration).not.toMatch(
       /coaching_content\.view' and m\.role in \([^)]*oversight/
     );
     expect(migration).not.toMatch(
       /sample_organisation\.manage' and m\.role in \([^)]*oversight/
+    );
+    expect(migration).not.toMatch(
+      /sample_organisation\.manage' and m\.role in \([^)]*administrator/
     );
   });
 
@@ -239,6 +242,9 @@ describe("Organisation Lead (oversight) customer administration", () => {
     );
     expect(migrations).toContain(
       "20260827120000_restore_sample_organisation_manage_permission.sql"
+    );
+    expect(migrations).toContain(
+      "20260827180000_restrict_sample_organisation_manage_to_owner.sql"
     );
     const sql = latestHasOrganisationPermissionSql();
     expect(sql).toContain("create or replace function public.has_organisation_permission");

@@ -70,19 +70,22 @@ function sqlRolesForPermission(sql: string, permission: string): string[] {
 }
 
 describe("sample organisation access", () => {
-  it("allows owner and authorised administrator only", () => {
+  it("allows organisation owner only", () => {
     expect(canManageSampleOrganisation("owner")).toBe(true);
-    expect(canManageSampleOrganisation("administrator")).toBe(true);
     expect(hasPermission("owner", "sample_organisation.manage")).toBe(true);
-    expect(hasPermission("administrator", "sample_organisation.manage")).toBe(
-      true
-    );
   });
 
-  it("denies practitioner, oversight, viewer", () => {
-    expect(canManageSampleOrganisation("practitioner")).toBe(false);
+  it("denies administrator, Organisation Lead, practitioner, viewer", () => {
+    expect(canManageSampleOrganisation("administrator")).toBe(false);
     expect(canManageSampleOrganisation("oversight")).toBe(false);
+    expect(canManageSampleOrganisation("practitioner")).toBe(false);
     expect(canManageSampleOrganisation("viewer")).toBe(false);
+    expect(hasPermission("administrator", "sample_organisation.manage")).toBe(
+      false
+    );
+    expect(hasPermission("oversight", "sample_organisation.manage")).toBe(
+      false
+    );
     expect(hasPermission("practitioner", "sample_organisation.manage")).toBe(
       false
     );
@@ -378,11 +381,28 @@ describe("sample organisation migration", () => {
     expect(sql).not.toContain("is_platform_owner");
   });
 
-  it("latest effective has_organisation_permission grants sample install to owner and administrator only", () => {
+  it("ships an additive restriction of sample_organisation.manage to owner only", () => {
+    const path =
+      "supabase/migrations/20260827180000_restrict_sample_organisation_manage_to_owner.sql";
+    expect(existsSync(join(root, path))).toBe(true);
+    const sql = read(path);
+    expect(sql).toContain(
+      "create or replace function public.has_organisation_permission"
+    );
+    expect(sql).toContain(
+      "p_permission = 'sample_organisation.manage' and m.role = 'owner'"
+    );
+    expect(sql).not.toMatch(/\bdrop table\b/i);
+    expect(sql).not.toMatch(/\balter table\b/i);
+    expect(sql).not.toContain("begin_sample_organisation_installation");
+  });
+
+  it("latest effective has_organisation_permission grants sample install to owner only", () => {
     const { sql } = latestHasOrganisationPermissionReplacement();
     const sampleRoles = sqlRolesForPermission(sql, "sample_organisation.manage");
-    expect(sampleRoles).toEqual(["owner", "administrator"]);
+    expect(sampleRoles).toEqual(["owner"]);
     expect(sampleRoles).not.toContain("oversight");
+    expect(sampleRoles).not.toContain("administrator");
     expect(sampleRoles).not.toContain("practitioner");
     expect(sampleRoles).not.toContain("viewer");
   });
@@ -424,7 +444,7 @@ describe("sample organisation migration", () => {
   it("fails if a later has_organisation_permission replacement drops sample_organisation.manage", () => {
     const { sql } = latestHasOrganisationPermissionReplacement();
     expect(sql).toMatch(
-      /p_permission = 'sample_organisation\.manage' and m\.role in \('owner', 'administrator'\)/
+      /p_permission = 'sample_organisation\.manage' and m\.role = 'owner'/
     );
   });
 });
@@ -438,6 +458,21 @@ describe("sample organisation API access contracts", () => {
     expect(install).toContain("requireSampleOrganisationManage");
     expect(install).toContain("sourceOrganisationId: auth.context.organisation.organisationId");
     expect(install).not.toMatch(/body\.organisationId/);
+
+    const list = read("app/api/sample-organisations/route.ts");
+    const open = read(
+      "app/api/sample-organisations/installations/[id]/open/route.ts"
+    );
+    const reset = read(
+      "app/api/sample-organisations/installations/[id]/reset/route.ts"
+    );
+    const remove = read(
+      "app/api/sample-organisations/installations/[id]/route.ts"
+    );
+    expect(list).toContain("requireSampleOrganisationManage");
+    expect(open).toContain("requireSampleOrganisationManage");
+    expect(reset).toContain("requireSampleOrganisationManage");
+    expect(remove).toContain("requireSampleOrganisationManage");
   });
 
   it("requires typed REMOVE confirmation on delete", () => {

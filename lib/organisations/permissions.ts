@@ -44,7 +44,6 @@ const ROLE_PERMISSIONS: Record<MembershipRole, readonly OrganisationPermission[]
     "relationships.create",
     "relationships.view_assigned",
     "relationships.transfer",
-    "sample_organisation.manage",
   ],
   oversight: [
     "organisation.view_usage",
@@ -126,6 +125,12 @@ export function canCreateRelationships(role: MembershipRole): boolean {
   return hasPermission(role, "relationships.create");
 }
 
+/**
+ * Controlled sample/demo organisation (install/open/reset/remove).
+ * Membership role owner only.
+ * Organisation Lead (oversight), administrator, practitioner/manager, and viewer
+ * are not authorised.
+ */
 export function canManageSampleOrganisation(role: MembershipRole): boolean {
   return hasPermission(role, "sample_organisation.manage");
 }
