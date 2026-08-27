@@ -104,6 +104,7 @@ function createClient(input?: {
   auditPending?: number;
   auditRows?: unknown[];
   otherOrgResidual?: number;
+  certificateCount?: number;
 }): { client: SupabaseClient; writes: Writes; buckets: string[] } {
   const writes: Writes = {
     insert: 0,
@@ -161,6 +162,9 @@ function createClient(input?: {
         order() {
           return builder;
         },
+        limit() {
+          return builder;
+        },
         range() {
           return builder;
         },
@@ -204,6 +208,18 @@ function createClient(input?: {
             if (!run || former !== run.former_organisation_id) {
               return { data: null, error: null };
             }
+            const neqStatus = filters
+              .filter(item => item[0] === "neq" && item[1] === "status")
+              .map(item => item[2]);
+            const eqStatus = filters.find(
+              item => item[0] === "eq" && item[1] === "status"
+            )?.[2];
+            if (neqStatus.includes(run.status)) {
+              return { data: null, error: null };
+            }
+            if (eqStatus && eqStatus !== run.status) {
+              return { data: null, error: null };
+            }
             return { data: run, error: null };
           }
           return { data: null, error: null };
@@ -230,7 +246,11 @@ function createClient(input?: {
           }
 
           if (table === "organisation_deletion_certificates") {
-            return resolve({ data: [], count: 0, error: null });
+            return resolve({
+              data: [],
+              count: input?.certificateCount ?? 0,
+              error: null,
+            });
           }
           if (table === "organisation_deletion_storage_manifest") {
             const runId = eq("deletion_run_id");
@@ -444,7 +464,7 @@ describe("DL-08 Slice 4A independent final verification GET", () => {
     expect(state.commercialCopyVerificationStatus).toBe("passed");
     expect(state.verificationVersion).toBe(FINAL_VERIFICATION_VERSION);
     expect(state.certificateCreated).toBe(false);
-    expect(state.certificateIssuable).toBe(false);
+    expect(state.certificateIssuable).toBe(true);
     expect(state.runCompleted).toBe(false);
     expect(state.authUsersDeleted).toBe(false);
     expect(state.authStatement).toBe(
@@ -512,12 +532,14 @@ describe("DL-08 Slice 4A independent final verification GET", () => {
     expect(profiles.state.blockingReasons.map(item => item.code)).toContain(
       "RESIDUAL_TENANT_ROWS"
     );
+    expect(profiles.state.certificateIssuable).toBe(false);
 
     const orgRow = await load({ orgPresent: true });
     expect(orgRow.state.organisationRowAbsent).toBe(false);
     expect(orgRow.state.blockingReasons.map(item => item.code)).toContain(
       "ORGANISATION_ROW_REMAINS"
     );
+    expect(orgRow.state.certificateIssuable).toBe(false);
 
     const commercial = await load({
       commercialCounts: { invoices: 1 },
@@ -704,15 +726,16 @@ describe("DL-08 Slice 4A Owner Console, privacy, and contracts", () => {
     expect(detail).toContain("organisation_name_snapshot");
     expect(detail).toContain("former_organisation_id");
     expect(detail).not.toMatch(/\.insert\s*\(/);
-    expect(detail).not.toContain("Issue certificate");
+    expect(detail).not.toContain("Issue deletion certificate");
 
     const page = read("app/owner/organisations/[id]/page.tsx");
     expect(page).toContain("FinalVerificationPanel");
     expect(page).toContain("Deletion certificate");
     expect(page).toContain("organisationNameSnapshot");
     expect(page).toContain("formerOrganisationLifecycle");
-    expect(page).toMatch(/Certificate issuance is not\s+available in this stage/);
-    expect(page).not.toContain("Issue certificate");
+    expect(page).toContain("Issue deletion certificate");
+    expect(page).toContain("certificateIssuable");
+    expect(page).toContain("does not certify complete erasure");
     expect(page).not.toContain("Create deletion certificate");
     expect(page).toContain(
       "controls are not available after those stages complete"
@@ -741,6 +764,6 @@ describe("DL-08 Slice 4A Owner Console, privacy, and contracts", () => {
       existsSync(
         join(root, "app/api/owner/organisations/[id]/deletion-certificate/route.ts")
       )
-    ).toBe(false);
+    ).toBe(true);
   });
 });

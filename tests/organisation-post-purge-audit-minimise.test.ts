@@ -425,6 +425,9 @@ describe("DL-08 Slice 4A verifier remains fail-closed", () => {
             order() {
               return builder;
             },
+            limit() {
+              return builder;
+            },
             range() {
               return builder;
             },
@@ -523,11 +526,15 @@ describe("DL-08 future finalisation audit contract", () => {
   it("requires future purge_completed / certificate audit writers to use Slice 2 minimisers", () => {
     expect(FUTURE_FINALISATION_AUDIT_REQUIRES_SLICE2_MINIMISERS).toBe(true);
     expect(FUTURE_FINALISATION_AUDIT_ACTIONS).toEqual(["organisation.purge_completed"]);
-    const sql = `${read(PURGE_MIGRATION)}\n${read(FIX_MIGRATION)}`;
+    const sql = `${read(PURGE_MIGRATION)}\n${read(FIX_MIGRATION)}\n${read(
+      "supabase/migrations/20260827270000_organisation_deletion_certificate.sql"
+    )}`;
     expect(futureFinalisationAuditSourceIsContracted(sql)).toBe(true);
     expect(sql).not.toMatch(
       /insert\s+into\s+public\.platform_audit_events[\s\S]{0,400}'organisation\.purge_completed'/
     );
+    expect(sql).toContain("write_minimised_deletion_lifecycle_audit");
+    expect(sql).toContain("'organisation.purge_completed'");
     expect(read(FIX_MIGRATION)).toContain(
       "Future organisation.purge_completed must use this helper"
     );
@@ -562,6 +569,6 @@ describe("DL-08 future finalisation audit contract", () => {
     ).not.toThrow();
     const page = read("app/owner/organisations/[id]/page.tsx");
     expect(page).not.toContain("/audit-reminimise");
-    expect(page).not.toContain("Issue certificate");
+    expect(page).not.toContain("Create deletion certificate");
   });
 });

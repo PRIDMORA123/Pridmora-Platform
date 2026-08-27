@@ -121,9 +121,29 @@ export type FinalVerificationState = {
   eligibleErasureClaim: typeof APPLICATION_PURGE_CLAIM | null;
   certificateExists: boolean;
   certificateCreated: false;
-  runCompleted: false;
-  certificateIssuable: false;
+  runCompleted: boolean;
+  certificateIssuable: boolean;
 };
+
+export function isDeletionCertificateIssuable(input: {
+  finalVerificationResult: FinalVerificationResult;
+  blockingReasons: Array<{ code: string }>;
+  runStatus: string | null;
+  stage: string | null;
+  organisationRowAbsent: boolean;
+  certificateExists: boolean;
+  runCompleted: boolean;
+}): boolean {
+  return (
+    input.finalVerificationResult === "passed" &&
+    input.blockingReasons.length === 0 &&
+    input.runStatus === "verifying" &&
+    input.stage === "awaiting_certificate" &&
+    input.organisationRowAbsent &&
+    !input.certificateExists &&
+    !input.runCompleted
+  );
+}
 
 export function storageCaptureWasPerformed(input: {
   stage: string | null;
@@ -294,15 +314,27 @@ export async function loadFinalVerificationState(input: {
     .maybeSingle();
   const organisationRowAbsent = !orgRow;
 
-  const { data: run } = await input.ownerSupabase
+  const runSelect =
+    "id, organisation_id, former_organisation_id, organisation_name_snapshot, status, stage, storage_status, verification_status, inventory, last_error, requested_at, completed_at";
+  const { data: openRun } = await input.ownerSupabase
     .from("organisation_deletion_runs")
-    .select(
-      "id, organisation_id, former_organisation_id, organisation_name_snapshot, status, stage, storage_status, verification_status, inventory, last_error"
-    )
+    .select(runSelect)
     .eq("former_organisation_id", formerOrganisationId)
     .neq("status", "completed")
     .neq("status", "blocked")
     .maybeSingle();
+  let run = openRun;
+  if (!run) {
+    const { data: completedRun } = await input.ownerSupabase
+      .from("organisation_deletion_runs")
+      .select(runSelect)
+      .eq("former_organisation_id", formerOrganisationId)
+      .eq("status", "completed")
+      .order("requested_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    run = completedRun;
+  }
 
   const { count: certificateCount } = await input.ownerSupabase
     .from("organisation_deletion_certificates")
@@ -310,6 +342,7 @@ export async function loadFinalVerificationState(input: {
     .eq("former_organisation_id", formerOrganisationId)
     .eq("deletion_run_id", typeof run?.id === "string" ? run.id : "00000000-0000-4000-8000-000000000000");
 
+  const runCompleted = run?.status === "completed";
   const base = {
     formerOrganisationId,
     organisationRowAbsent,
@@ -329,8 +362,8 @@ export async function loadFinalVerificationState(input: {
     externalFollowUpStatus: "unknown" as const,
     certificateExists: (certificateCount ?? 0) > 0,
     certificateCreated: false as const,
-    runCompleted: false as const,
-    certificateIssuable: false as const,
+    runCompleted,
+    certificateIssuable: false,
   };
 
   if (!run || typeof run.id !== "string") {
@@ -346,6 +379,56 @@ export async function loadFinalVerificationState(input: {
       message: "Deletion run identity does not match this former organisation.",
     });
     return emptyFailedState(base, blockingReasons, "not_ready");
+  }
+  if (runCompleted && !base.certificateExists) {
+    blockingReasons.push({
+      code: "INCONSISTENT_CERTIFICATE_STATE",
+      message: "A completed deletion run must have exactly one certificate.",
+    });
+    return emptyFailedState(base, blockingReasons, "failed");
+  }
+  if (runCompleted && base.certificateExists) {
+    return {
+      ...emptyFailedState(base, [], "passed"),
+      runCompleted: true,
+      certificateExists: true,
+      certificateIssuable: false,
+      blockingReasons: [],
+      eligibleErasureClaim: APPLICATION_PURGE_CLAIM,
+      retainedCommercial: {
+        expectedTotal: null,
+        actualTotal: 0,
+        countsMatch: true,
+        coachingContentAbsent: true,
+        passed: true,
+      },
+      retainedSupportAudit: {
+        supportPending: 0,
+        supportMinimised: 0,
+        supportNonMinimised: 0,
+        auditPending: 0,
+        auditMinimised: 0,
+        auditNonMinimised: 0,
+        passed: true,
+      },
+      storage: {
+        bucket: AUTHORITATIVE_STORAGE_BUCKET,
+        capturePerformed: true,
+        explicitEmptyCapture: false,
+        capturedCount: 0,
+        verifiedAbsentCount: 0,
+        pendingOrUnverifiedCount: 0,
+        prefixRemainderCount: 0,
+        prefixListed: true,
+        passed: true,
+      },
+    };
+  }
+  if (base.certificateExists && run.status === "verifying") {
+    blockingReasons.push({
+      code: "INCONSISTENT_CERTIFICATE_STATE",
+      message: "A certificate already exists for a run that is not completed.",
+    });
   }
   if (run.status !== "verifying" || run.stage !== "awaiting_certificate") {
     blockingReasons.push({
@@ -737,6 +820,19 @@ export async function loadFinalVerificationState(input: {
       }) === APPLICATION_PURGE_CLAIM
         ? APPLICATION_PURGE_CLAIM
         : null,
+    certificateIssuable: isDeletionCertificateIssuable({
+      finalVerificationResult: !verificationGatesReady
+        ? "not_ready"
+        : passed
+          ? "passed"
+          : "failed",
+      blockingReasons,
+      runStatus: typeof run.status === "string" ? run.status : null,
+      stage: typeof run.stage === "string" ? run.stage : null,
+      organisationRowAbsent,
+      certificateExists: base.certificateExists,
+      runCompleted,
+    }),
   };
 }
 

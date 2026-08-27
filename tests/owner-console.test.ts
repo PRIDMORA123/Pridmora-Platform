@@ -175,7 +175,8 @@ describe("owner console foundation", () => {
     expect(page).toContain("organisationNameSnapshot");
     expect(page).toContain("FinalVerificationPanel");
     expect(page).toContain("Deletion certificate");
-    expect(page).not.toContain("Issue certificate");
+    expect(page).toContain("Issue deletion certificate");
+    expect(page).not.toContain("Create deletion certificate");
     expect(page).toContain(
       "controls are not available after those stages complete"
     );

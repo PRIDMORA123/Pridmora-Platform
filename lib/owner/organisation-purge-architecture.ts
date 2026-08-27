@@ -1101,8 +1101,8 @@ export const WRITE_MINIMISED_DELETION_LIFECYCLE_AUDIT_SQL =
   "write_minimised_deletion_lifecycle_audit";
 
 /**
- * Future certificate/finalisation audit rows must be created already
- * minimised. This slice does not insert organisation.purge_completed.
+ * Certificate/finalisation audit rows must be created already
+ * minimised via write_minimised_deletion_lifecycle_audit.
  */
 export function futureFinalisationAuditSourceIsContracted(source: string): boolean {
   if (!FUTURE_FINALISATION_AUDIT_REQUIRES_SLICE2_MINIMISERS) return false;

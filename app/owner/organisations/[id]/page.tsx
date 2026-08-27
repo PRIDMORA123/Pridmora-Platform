@@ -169,6 +169,11 @@ export default function OwnerOrganisationDetailPage() {
   const [finalVerification, setFinalVerification] =
     useState<FinalVerificationState | null>(null);
   const [finalVerificationError, setFinalVerificationError] = useState("");
+  const [issueCertificateAcknowledged, setIssueCertificateAcknowledged] =
+    useState(false);
+  const [issuingCertificate, setIssuingCertificate] = useState(false);
+  const [issueCertificateError, setIssueCertificateError] = useState("");
+  const [issueCertificateSuccess, setIssueCertificateSuccess] = useState(false);
 
   async function loadInvitations() {
     try {
@@ -290,6 +295,10 @@ export default function OwnerOrganisationDetailPage() {
       );
       setFinalVerification(verification);
       setFinalVerificationError("");
+      if (verification.runCompleted && verification.certificateExists) {
+        setIssueCertificateSuccess(true);
+        setIssueCertificateAcknowledged(false);
+      }
     } catch (err) {
       setFinalVerification(null);
       setFinalVerificationError(
@@ -462,6 +471,39 @@ export default function OwnerOrganisationDetailPage() {
     }
   }
 
+  async function submitIssueCertificate(event: FormEvent) {
+    event.preventDefault();
+    if (!finalVerification?.deletionRunId) return;
+    setIssuingCertificate(true);
+    setIssueCertificateError("");
+    try {
+      const payload = await apiJson<{
+        runCompleted: boolean;
+        certificateCreated: boolean;
+      }>(`/api/owner/organisations/${params.id}/deletion-certificate`, {
+        method: "POST",
+        body: JSON.stringify({
+          deletionRunId: finalVerification.deletionRunId,
+          issueCertificateAcknowledged: true,
+        }),
+      });
+      setIssueCertificateSuccess(
+        payload.runCompleted || payload.certificateCreated
+      );
+      setIssueCertificateAcknowledged(false);
+      await load();
+      await loadPreflight();
+    } catch (err) {
+      setIssueCertificateError(
+        err instanceof Error
+          ? err.message
+          : "Unable to issue the deletion certificate."
+      );
+    } finally {
+      setIssuingCertificate(false);
+    }
+  }
+
   async function submitInvite(event: FormEvent) {
     event.preventDefault();
     setInviting(true);
@@ -545,6 +587,7 @@ export default function OwnerOrganisationDetailPage() {
   const hideLifecycleActions =
     formerLifecycle ||
     finalVerification?.runStatus === "verifying" ||
+    Boolean(finalVerification?.runCompleted) ||
     Boolean(tenantPurge?.alreadyPurged);
 
   const settingsActions = useMemo(
@@ -1159,6 +1202,12 @@ export default function OwnerOrganisationDetailPage() {
               <FinalVerificationPanel
                 state={finalVerification}
                 error={finalVerificationError}
+                issueError={issueCertificateError}
+                acknowledged={issueCertificateAcknowledged}
+                issuing={issuingCertificate}
+                succeeded={issueCertificateSuccess}
+                onAcknowledgedChange={setIssueCertificateAcknowledged}
+                onSubmit={submitIssueCertificate}
               />
             </section>
           ) : null}
@@ -1811,13 +1860,28 @@ function TenantPurgePanel(props: {
 function FinalVerificationPanel(props: {
   state: FinalVerificationState | null;
   error: string;
+  issueError: string;
+  acknowledged: boolean;
+  issuing: boolean;
+  succeeded: boolean;
+  onAcknowledgedChange: (value: boolean) => void;
+  onSubmit: (event: FormEvent) => void;
 }) {
+  const completed = Boolean(
+    props.state?.runCompleted && props.state.certificateExists
+  );
+  const canIssue = Boolean(props.state?.certificateIssuable) && !completed;
+  const canSubmit =
+    canIssue && props.acknowledged && !props.issuing && !props.succeeded;
+
   return (
     <section>
       <h2 className="owner-panel__title">Deletion certificate</h2>
       <p className="owner-muted">
-        Independent read-only final verification. Certificate issuance is not
-        available in this stage.
+        Independent final verification. Issuing a certificate records completion
+        of application-data purge only. Auth users are not deleted. Backup
+        status remains unknown. External follow-up status remains unknown. This
+        does not certify complete erasure.
       </p>
       {props.error ? (
         <p className="owner-muted" role="alert">
@@ -1845,6 +1909,18 @@ function FinalVerificationPanel(props: {
             <Detail
               label="Eligible erasure claim"
               value={props.state.eligibleErasureClaim ?? "not eligible"}
+            />
+            <Detail
+              label="Run status"
+              value={(props.state.runStatus ?? "unknown").replaceAll("_", " ")}
+            />
+            <Detail
+              label="Certificate"
+              value={
+                props.state.certificateExists || completed
+                  ? "issued"
+                  : "not issued"
+              }
             />
           </dl>
           <h3 className="owner-panel__title">Blocking codes</h3>
@@ -1918,6 +1994,49 @@ function FinalVerificationPanel(props: {
             Backup status {props.state.backupStatus}. External follow-up{" "}
             {props.state.externalFollowUpStatus}. These remain unverified.
           </p>
+          {completed || props.succeeded ? (
+            <p className="owner-muted">
+              Immutable deletion certificate issued. The run is completed. The
+              claim is APPLICATION DATA PURGED. This does not certify complete
+              erasure.
+            </p>
+          ) : canIssue ? (
+            <form onSubmit={props.onSubmit}>
+              <label
+                className="owner-muted"
+                style={{ display: "block", margin: "1rem 0" }}
+              >
+                <input
+                  type="checkbox"
+                  checked={props.acknowledged}
+                  onChange={event =>
+                    props.onAcknowledgedChange(event.target.checked)
+                  }
+                  disabled={props.issuing}
+                />{" "}
+                I understand this records application-data purge completion
+                only, does not delete Auth users, leaves backup and external
+                follow-up unknown, and does not certify complete erasure.
+              </label>
+              {props.issueError ? (
+                <p className="owner-muted" role="alert">
+                  {props.issueError}
+                </p>
+              ) : null}
+              <button
+                type="submit"
+                className="owner-button"
+                disabled={!canSubmit}
+              >
+                Issue deletion certificate
+              </button>
+            </form>
+          ) : (
+            <p className="owner-muted">
+              Certificate issuance is not available until fresh final
+              verification passes.
+            </p>
+          )}
         </>
       ) : props.error ? null : (
         <p className="owner-muted">Loading final verification…</p>
