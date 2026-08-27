@@ -6,6 +6,7 @@
 import {
   capabilityLabel,
   foundationLabelsForCapability,
+  mapToPridmoraCapabilityKey,
   PRIDMORA_CAPABILITIES,
 } from "@/lib/development-evidence/capabilities";
 import { observationContributesToIntelligence } from "@/lib/development-evidence/authorised-observations";
@@ -55,6 +56,41 @@ export function toEvidenceListItem(
     approvedObservationCount: options?.approvedObservationCount ?? 0,
     fileName: options?.fileName ?? null,
   };
+}
+
+function matchingStructuredObservation(
+  records: DevelopmentEvidenceRecord[],
+  capabilityKey: string
+) {
+  for (const record of records) {
+    const match = (record.structuredEvidence.observations ?? []).find(
+      observation =>
+        mapToPridmoraCapabilityKey(observation.capabilityKey) === capabilityKey
+    );
+    if (match) return match;
+  }
+  return null;
+}
+
+function currentEvidenceForCapability(
+  records: DevelopmentEvidenceRecord[],
+  capabilityKey: string,
+  capabilityLabelText: string
+): string {
+  const match = matchingStructuredObservation(records, capabilityKey);
+  const text =
+    match?.description?.trim() || match?.behaviouralEvidence?.trim() || "";
+  if (text) return text;
+  return `Reviewed evidence is available for ${capabilityLabelText}.`;
+}
+
+function capabilityKeyFromInsight(insight: string): string | null {
+  const trimmed = insight.trim();
+  if (!trimmed) return null;
+  const labelled = PRIDMORA_CAPABILITIES.find(
+    capability => capability.label === trimmed
+  );
+  return labelled?.key ?? mapToPridmoraCapabilityKey(trimmed);
 }
 
 function toConfidenceInputs(records: DevelopmentEvidenceRecord[]) {
@@ -124,17 +160,18 @@ export function buildCapabilityInsights(
     ).length;
 
     let trend: CapabilityEvidenceInsight["trend"] = "insufficient_evidence";
-    if (supporting.length === 0) {
-      trend = "insufficient_evidence";
-    } else if (contradictions.length > 0) {
+    if (contradictions.length > 0) {
       trend = "mixed";
-    } else if (strengthSignals.length >= developmentSignals.length && recentWeighted > 0) {
-      trend = "strengthening";
     } else if (developmentSignals.length > strengthSignals.length) {
       trend = "requiring_attention";
     } else if (ageing > recentWeighted) {
       trend = "mixed";
-    } else {
+    } else if (
+      supporting.length > 1 &&
+      strengthSignals.length > 0 &&
+      strengthSignals.length >= developmentSignals.length &&
+      recentWeighted > 0
+    ) {
       trend = "strengthening";
     }
 
@@ -144,10 +181,11 @@ export function buildCapabilityInsights(
       foundationLabels: foundationLabelsForCapability(capability.key),
       organisationFrameworkLabels:
         organisationFrameworkLabelsByCapability[capability.key] ?? [],
-      currentEvidence:
-        supporting[0]?.sourceSummary ||
-        supporting[0]?.structuredEvidence.observations?.[0]?.description ||
-        `Reviewed evidence is available for ${capability.label}.`,
+      currentEvidence: currentEvidenceForCapability(
+        supporting,
+        capability.key,
+        capability.label
+      ),
       trend,
       confidence,
       coverage,
@@ -302,13 +340,24 @@ export function buildWhyThisPayload(input: {
 
   // Canonical observation rows only — never fall back to structured_evidence
   // observations, which may retain excluded proposals until pruned.
+  const capabilityKey = capabilityKeyFromInsight(input.insight);
   const authorisedObservations = (input.observations ?? []).filter(
-    observationContributesToIntelligence
+    observation => {
+      if (!observationContributesToIntelligence(observation)) return false;
+      if (!capabilityKey) return true;
+      return (
+        mapToPridmoraCapabilityKey(observation.capabilityKey) === capabilityKey
+      );
+    }
   );
 
   const observedBehaviours = authorisedObservations
-    .map(item => item.behaviouralEvidence)
-    .filter((value): value is string => Boolean(value?.trim()))
+    .map(item =>
+      capabilityKey
+        ? item.behaviouralEvidence?.trim() || item.description.trim()
+        : item.behaviouralEvidence?.trim() ?? ""
+    )
+    .filter(value => Boolean(value))
     .slice(0, 8);
 
   const limitations = Array.from(

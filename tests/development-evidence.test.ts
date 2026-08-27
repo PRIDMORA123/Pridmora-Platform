@@ -643,6 +643,166 @@ describe("Development Intelligence evidence contribution", () => {
     expect(strategic?.supportingEvidence.length).toBe(2);
     expect(strategic?.relatedCapabilities.length).toBeGreaterThan(0);
   });
+
+  it("shows distinct matching observations on a multi-capability 360", () => {
+    const listeningLeak =
+      "the person is described as calm and approachable, listening carefully and asking questions before conclusions.";
+    const accountabilityText =
+      "Delays addressing underperformance and performance concerns due to uncertainty.";
+    const feedbackText =
+      "Remains calm and constructive during difficult conversations.";
+    const listeningText =
+      "Calm and approachable, listens carefully and asks questions before conclusions.";
+
+    const view = buildDevelopmentIntelligenceEvidenceView({
+      records: [
+        makeEvidence({
+          id: "jordan-360",
+          evidenceType: "feedback_360",
+          title: "Jordan 360",
+          sourceSummary: listeningLeak,
+          freshnessClass: "current",
+          capabilityKeys: [
+            "accountability",
+            "feedback_difficult_conversations",
+            "listening_presence",
+          ],
+          structuredEvidence: {
+            observations: [
+              {
+                title: "Listening",
+                description: listeningText,
+                behaviouralEvidence: listeningText,
+                capabilityKey: "listening_presence",
+              },
+              {
+                title: "Accountability",
+                description: accountabilityText,
+                behaviouralEvidence: accountabilityText,
+                capabilityKey: "accountability",
+              },
+              {
+                title: "Feedback",
+                description: feedbackText,
+                behaviouralEvidence: feedbackText,
+                capabilityKey: "feedback_difficult_conversations",
+              },
+            ],
+            strengthSignals: [],
+            developmentSignals: [],
+          },
+        }),
+      ],
+    });
+
+    const byKey = Object.fromEntries(
+      view.capabilities.map(item => [item.capabilityKey, item])
+    );
+    expect(byKey.accountability?.currentEvidence).toBe(accountabilityText);
+    expect(byKey.feedback_difficult_conversations?.currentEvidence).toBe(
+      feedbackText
+    );
+    expect(byKey.listening_presence?.currentEvidence).toBe(listeningText);
+    expect(byKey.accountability?.currentEvidence).not.toBe(listeningLeak);
+    expect(byKey.feedback_difficult_conversations?.currentEvidence).not.toBe(
+      listeningLeak
+    );
+    expect(byKey.accountability?.currentEvidence).not.toContain(
+      "listening carefully"
+    );
+    expect(view.capabilities.every(item => item.trend === "insufficient_evidence")).toBe(
+      true
+    );
+    expect(view.developmentTrajectory).not.toMatch(
+      /development is strengthening/i
+    );
+    expect(view.developmentTrajectory).not.toMatch(
+      /Evidence suggests strengthening in/i
+    );
+  });
+
+  it("does not attribute an untagged observation to a capability", () => {
+    const view = buildDevelopmentIntelligenceEvidenceView({
+      records: [
+        makeEvidence({
+          id: "legacy",
+          evidenceType: "feedback_360",
+          sourceSummary:
+            "the person is described as calm and approachable, listening carefully.",
+          capabilityKeys: ["accountability"],
+          structuredEvidence: {
+            observations: [
+              {
+                title: "Untagged listening",
+                description:
+                  "Calm and approachable, listens carefully and asks questions.",
+                behaviouralEvidence:
+                  "Calm and approachable, listens carefully and asks questions.",
+              },
+            ],
+          },
+        }),
+      ],
+    });
+
+    const accountability = view.capabilities.find(
+      item => item.capabilityKey === "accountability"
+    );
+    expect(accountability?.currentEvidence).toBe(
+      "Reviewed evidence is available for Accountability."
+    );
+    expect(accountability?.currentEvidence).not.toMatch(/listens carefully/i);
+    expect(accountability?.trend).toBe("insufficient_evidence");
+  });
+
+  it("still treats mixed freshness with strength signals as strengthening", () => {
+    const view = buildDevelopmentIntelligenceEvidenceView({
+      records: [
+        makeEvidence({
+          id: "recent",
+          evidenceType: "feedback_360",
+          freshnessClass: "current",
+          capabilityKeys: ["delegation"],
+          structuredEvidence: {
+            observations: [
+              {
+                title: "Delegation",
+                description: "Hands work over with a clear outcome.",
+                capabilityKey: "delegation",
+              },
+            ],
+            strengthSignals: ["Clearer handover"],
+            developmentSignals: [],
+          },
+        }),
+        makeEvidence({
+          id: "older",
+          evidenceType: "development_conversation",
+          freshnessClass: "ageing",
+          capabilityKeys: ["delegation"],
+          structuredEvidence: {
+            observations: [
+              {
+                title: "Earlier delegation",
+                description: "Started handing work over with support.",
+                capabilityKey: "delegation",
+              },
+            ],
+            strengthSignals: ["Clearer handover"],
+            developmentSignals: [],
+          },
+        }),
+      ],
+    });
+
+    const delegation = view.capabilities.find(
+      item => item.capabilityKey === "delegation"
+    );
+    expect(delegation?.trend).toBe("strengthening");
+    expect(view.developmentTrajectory).toMatch(
+      /development is strengthening in Delegation/i
+    );
+  });
 });
 
 describe("Team and Organisation evidence aggregation", () => {

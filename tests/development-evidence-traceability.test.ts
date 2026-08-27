@@ -31,7 +31,7 @@ function makeObservation(
     sourceConfidence: "medium",
     assessmentContext: null,
     limitations: null,
-    capabilityKey: null,
+    capabilityKey: overrides.capabilityKey ?? null,
     includeInIntelligence: overrides.includeInIntelligence ?? false,
     reviewStatus: overrides.reviewStatus ?? "proposed",
     sortOrder: 0,
@@ -298,6 +298,92 @@ describe("authorised observation exclusion boundary", () => {
     expect(pruned.observations).toHaveLength(1);
     expect(pruned.observations?.[0]?.title).toBe("Included signal");
     expect(pruned.strengthSignals).toEqual(["Keep strength"]);
+  });
+
+  it("Why this? for a capability exposes only matching authorised observations", () => {
+    const why = buildWhyThisPayload({
+      insight: "Accountability",
+      records: [
+        makeRecord({
+          capabilityKeys: [
+            "accountability",
+            "feedback_difficult_conversations",
+            "listening_presence",
+          ],
+        }),
+      ],
+      observations: [
+        makeObservation({
+          id: "acc",
+          title: "Accountability",
+          description:
+            "Delays addressing underperformance and performance concerns due to uncertainty.",
+          behaviouralEvidence:
+            "Delays addressing underperformance and performance concerns due to uncertainty.",
+          capabilityKey: "accountability",
+          includeInIntelligence: true,
+          reviewStatus: "approved",
+        }),
+        makeObservation({
+          id: "feedback",
+          title: "Feedback",
+          description:
+            "Remains calm and constructive during difficult conversations.",
+          behaviouralEvidence:
+            "Remains calm and constructive during difficult conversations.",
+          capabilityKey: "feedback_difficult_conversations",
+          includeInIntelligence: true,
+          reviewStatus: "approved",
+        }),
+        makeObservation({
+          id: "listen",
+          title: "Listening",
+          description:
+            "Calm and approachable, listens carefully and asks questions.",
+          behaviouralEvidence:
+            "Calm and approachable, listens carefully and asks questions.",
+          capabilityKey: "listening_presence",
+          includeInIntelligence: true,
+          reviewStatus: "approved",
+        }),
+      ],
+    });
+
+    expect(why.observedBehaviours).toEqual([
+      "Delays addressing underperformance and performance concerns due to uncertainty.",
+    ]);
+    expect(why.observedBehaviours.join(" ")).not.toMatch(/listens carefully/i);
+    expect(why.observedBehaviours.join(" ")).not.toMatch(
+      /calm and constructive during difficult conversations/i
+    );
+  });
+
+  it("Why this? without a capability insight still uses all authorised observations", () => {
+    const why = buildWhyThisPayload({
+      insight: "Current position",
+      records: [makeRecord()],
+      observations: [
+        makeObservation({
+          id: "acc",
+          behaviouralEvidence: "Delays addressing underperformance.",
+          capabilityKey: "accountability",
+          includeInIntelligence: true,
+          reviewStatus: "approved",
+        }),
+        makeObservation({
+          id: "listen",
+          behaviouralEvidence: "Listens carefully and asks questions.",
+          capabilityKey: "listening_presence",
+          includeInIntelligence: true,
+          reviewStatus: "approved",
+        }),
+      ],
+    });
+
+    expect(why.observedBehaviours).toEqual([
+      "Delays addressing underperformance.",
+      "Listens carefully and asks questions.",
+    ]);
   });
 
   it("rejected evidence clears structured observations from the pruned blob", () => {
