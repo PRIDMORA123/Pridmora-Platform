@@ -171,8 +171,8 @@ function report(
     type: "progress_snapshot",
     audience: "coachee",
     title: "Progress Snapshot — Alex Morgan",
-    reportingPeriodStart: "2026-01-01",
-    reportingPeriodEnd: "2026-03-31",
+    reportingPeriodStart: "2026-08-01",
+    reportingPeriodEnd: "2026-08-27",
     status: "draft",
     coachingPurpose: "Build confidence in delegation",
     executiveSummary: "Alex is practising clearer recommendations.",
@@ -323,6 +323,8 @@ describe("Progress Snapshot preview, history and generate input", () => {
     expect(container.textContent).toContain("Current coaching focus");
     expect(container.textContent).toContain("Build confidence in delegation");
     expect(container.textContent).toContain(period);
+    expect(container.textContent).toContain("27 Aug 2026");
+    expect(container.textContent).not.toContain("From 1 Aug 2026");
     expect(container.textContent).not.toContain("Reporting period not set");
 
     const bullets = evidenceListItems(container);
@@ -348,6 +350,8 @@ describe("Progress Snapshot preview, history and generate input", () => {
       />
     );
     expect(container.textContent).toContain(formatReportPeriod(approved));
+    expect(container.textContent).toContain("27 Aug 2026");
+    expect(container.textContent).not.toContain("From 1 Aug 2026");
     expect(container.textContent).not.toContain("Reporting period not set");
   });
 
@@ -358,6 +362,8 @@ describe("Progress Snapshot preview, history and generate input", () => {
     );
     expect(container.textContent).toContain("Report history");
     expect(container.textContent).toContain(formatReportPeriod(item));
+    expect(container.textContent).toContain("27 Aug 2026");
+    expect(container.textContent).not.toContain("From 1 Aug 2026");
     expect(container.textContent).not.toContain("Reporting period not set");
   });
 

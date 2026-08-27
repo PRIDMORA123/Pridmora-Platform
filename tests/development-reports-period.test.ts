@@ -1,7 +1,11 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { applyDevelopmentReportDraftPatch } from "@/lib/reports/draft-patch";
+import {
+  applyDevelopmentReportDraftPatch,
+  reportingPeriodFieldsForCreate,
+  reportingPeriodFieldsForEvidenceResave,
+} from "@/lib/reports/draft-patch";
 import { formatReportPeriod } from "@/lib/reports/format";
 import {
   buildDevelopmentReportGenerateInput,
@@ -14,6 +18,9 @@ import type {
 
 const root = process.cwd();
 
+const UAT_START = "2026-08-01";
+const UAT_END = "2026-08-27";
+
 function report(
   overrides: Partial<DevelopmentReport> = {}
 ): DevelopmentReport {
@@ -24,8 +31,8 @@ function report(
     type: "progress_snapshot",
     audience: "coachee",
     title: "Progress Snapshot — Alex",
-    reportingPeriodStart: "2026-01-01",
-    reportingPeriodEnd: "2026-03-31",
+    reportingPeriodStart: UAT_START,
+    reportingPeriodEnd: UAT_END,
     status: "draft",
     coachingPurpose: "Build confidence in delegation",
     executiveSummary: null,
@@ -41,8 +48,8 @@ function report(
     parentReportId: null,
     confidentialityConfirmedAt: null,
     approvedAt: null,
-    createdAt: "2026-01-15T10:00:00.000Z",
-    updatedAt: "2026-01-15T10:00:00.000Z",
+    createdAt: "2026-08-01T10:00:00.000Z",
+    updatedAt: "2026-08-01T10:00:00.000Z",
     ...overrides,
   };
 }
@@ -82,11 +89,91 @@ function evidencePatch(overrides: Partial<DevelopmentReport> = {}) {
   } as Partial<DevelopmentReport>;
 }
 
+describe("formatReportPeriod UAT dates", () => {
+  it("formats both 2026-08-01 and 2026-08-27 as a closed range", () => {
+    const label = formatReportPeriod(report());
+    expect(label).toBe("1 Aug 2026 – 27 Aug 2026");
+    expect(label.startsWith("From")).toBe(false);
+  });
+
+  it("still uses From when only the start date is present", () => {
+    expect(
+      formatReportPeriod(
+        report({ reportingPeriodStart: UAT_START, reportingPeriodEnd: null })
+      )
+    ).toBe("From 1 Aug 2026");
+  });
+});
+
+describe("Step 1 POST and Evidence-step date payload", () => {
+  it("includes both dates in the Step 1 create payload", () => {
+    expect(
+      reportingPeriodFieldsForCreate({
+        reportingPeriodStart: UAT_START,
+        reportingPeriodEnd: UAT_END,
+      })
+    ).toEqual({
+      reportingPeriodStart: UAT_START,
+      reportingPeriodEnd: UAT_END,
+    });
+  });
+
+  it("writes both date columns from Evidence-step form values", () => {
+    const dates = reportingPeriodFieldsForEvidenceResave({
+      reportingPeriodStart: UAT_START,
+      reportingPeriodEnd: UAT_END,
+    });
+    expect(dates).toEqual({
+      reportingPeriodStart: UAT_START,
+      reportingPeriodEnd: UAT_END,
+    });
+
+    const afterEvidence = applyDevelopmentReportDraftPatch(
+      report({
+        reportingPeriodStart: UAT_START,
+        reportingPeriodEnd: null,
+      }),
+      evidencePatch(dates)
+    );
+    expect(afterEvidence.reportingPeriodStart).toBe(UAT_START);
+    expect(afterEvidence.reportingPeriodEnd).toBe(UAT_END);
+  });
+
+  it("does not send null for an empty Evidence-step date field", () => {
+    const dates = reportingPeriodFieldsForEvidenceResave({
+      reportingPeriodStart: UAT_START,
+      reportingPeriodEnd: "",
+    });
+    expect(dates).toEqual({ reportingPeriodStart: UAT_START });
+    expect("reportingPeriodEnd" in dates).toBe(false);
+    expect(JSON.stringify(dates)).not.toContain("null");
+
+    const afterEvidence = applyDevelopmentReportDraftPatch(
+      report(),
+      evidencePatch({
+        reportingPeriodStart: dates.reportingPeriodStart,
+        reportingPeriodEnd: dates.reportingPeriodEnd,
+      })
+    );
+    expect(afterEvidence.reportingPeriodStart).toBe(UAT_START);
+    expect(afterEvidence.reportingPeriodEnd).toBe(UAT_END);
+  });
+
+  it("wires the Evidence-step PATCH to the non-nulling resave helper", () => {
+    const source = readFileSync(
+      join(root, "components/reports/create-report-flow.tsx"),
+      "utf8"
+    );
+    expect(source).toContain("reportingPeriodFieldsForEvidenceResave(details)");
+    expect(source).toContain("reportingPeriodFieldsForCreate(details)");
+  });
+});
+
 describe("updateDraftDevelopmentReport partial merge", () => {
   it("preserves reportingPeriodStart/End when a PATCH omits those keys", () => {
     const next = applyDevelopmentReportDraftPatch(report(), evidencePatch());
-    expect(next.reportingPeriodStart).toBe("2026-01-01");
-    expect(next.reportingPeriodEnd).toBe("2026-03-31");
+    expect(next.reportingPeriodStart).toBe(UAT_START);
+    expect(next.reportingPeriodEnd).toBe(UAT_END);
     expect(next.evidenceItems).toHaveLength(1);
   });
 
@@ -105,21 +192,26 @@ describe("updateDraftDevelopmentReport partial merge", () => {
       reportingPeriodEnd: undefined,
       evidenceItems: [evidenceItem()],
     });
-    expect(next.reportingPeriodStart).toBe("2026-01-01");
-    expect(next.reportingPeriodEnd).toBe("2026-03-31");
+    expect(next.reportingPeriodStart).toBe(UAT_START);
+    expect(next.reportingPeriodEnd).toBe(UAT_END);
   });
 
   it("keeps dates through create → evidence PATCH → generate → review PATCH → approve fields", () => {
     const created = report();
-    expect(created.reportingPeriodStart).toBe("2026-01-01");
-    expect(created.reportingPeriodEnd).toBe("2026-03-31");
+    expect(created.reportingPeriodStart).toBe(UAT_START);
+    expect(created.reportingPeriodEnd).toBe(UAT_END);
 
     const afterEvidence = applyDevelopmentReportDraftPatch(
       created,
-      evidencePatch()
+      evidencePatch(
+        reportingPeriodFieldsForEvidenceResave({
+          reportingPeriodStart: UAT_START,
+          reportingPeriodEnd: UAT_END,
+        })
+      )
     );
-    expect(afterEvidence.reportingPeriodStart).toBe("2026-01-01");
-    expect(afterEvidence.reportingPeriodEnd).toBe("2026-03-31");
+    expect(afterEvidence.reportingPeriodStart).toBe(UAT_START);
+    expect(afterEvidence.reportingPeriodEnd).toBe(UAT_END);
 
     const afterGenerate = applyDevelopmentReportDraftPatch(afterEvidence, {
       executiveSummary: "Short executive summary.",
@@ -131,8 +223,8 @@ describe("updateDraftDevelopmentReport partial merge", () => {
       reportingPeriodStart: undefined,
       reportingPeriodEnd: undefined,
     });
-    expect(afterGenerate.reportingPeriodStart).toBe("2026-01-01");
-    expect(afterGenerate.reportingPeriodEnd).toBe("2026-03-31");
+    expect(afterGenerate.reportingPeriodStart).toBe(UAT_START);
+    expect(afterGenerate.reportingPeriodEnd).toBe(UAT_END);
 
     const afterReview = applyDevelopmentReportDraftPatch(afterGenerate, {
       executiveSummary: "Edited executive summary.",
@@ -142,14 +234,14 @@ describe("updateDraftDevelopmentReport partial merge", () => {
       reportingPeriodStart: undefined,
       reportingPeriodEnd: undefined,
     });
-    expect(afterReview.reportingPeriodStart).toBe("2026-01-01");
-    expect(afterReview.reportingPeriodEnd).toBe("2026-03-31");
+    expect(afterReview.reportingPeriodStart).toBe(UAT_START);
+    expect(afterReview.reportingPeriodEnd).toBe(UAT_END);
 
     const afterConfidentiality = applyDevelopmentReportDraftPatch(afterReview, {
-      confidentialityConfirmedAt: "2026-03-31T12:00:00.000Z",
+      confidentialityConfirmedAt: "2026-08-27T12:00:00.000Z",
     });
-    expect(afterConfidentiality.reportingPeriodStart).toBe("2026-01-01");
-    expect(afterConfidentiality.reportingPeriodEnd).toBe("2026-03-31");
+    expect(afterConfidentiality.reportingPeriodStart).toBe(UAT_START);
+    expect(afterConfidentiality.reportingPeriodEnd).toBe(UAT_END);
   });
 
   it("does not change approved-report immutability in the repository", () => {
@@ -167,7 +259,7 @@ describe("reporting period display and generate context", () => {
   it("renders the stored period rather than “Reporting period not set”", () => {
     const label = formatReportPeriod(report());
     expect(label).not.toBe("Reporting period not set");
-    expect(label).toMatch(/2026/);
+    expect(label).toBe("1 Aug 2026 – 27 Aug 2026");
     expect(formatReportPeriod(report({ reportingPeriodStart: null, reportingPeriodEnd: null }))).toBe(
       "Reporting period not set"
     );
@@ -177,8 +269,8 @@ describe("reporting period display and generate context", () => {
     const input = buildDevelopmentReportGenerateInput({
       type: "progress_snapshot",
       audience: "coachee",
-      reportingPeriodStart: "2026-01-01",
-      reportingPeriodEnd: "2026-03-31",
+      reportingPeriodStart: UAT_START,
+      reportingPeriodEnd: UAT_END,
       title: "Progress Snapshot — Alex",
       coacheeName: "Alex",
       evidenceItems: [evidenceItem()],
@@ -186,8 +278,8 @@ describe("reporting period display and generate context", () => {
     });
     expect(input).toContain(
       `Reporting period: ${formatReportingPeriodForGenerate({
-        reportingPeriodStart: "2026-01-01",
-        reportingPeriodEnd: "2026-03-31",
+        reportingPeriodStart: UAT_START,
+        reportingPeriodEnd: UAT_END,
       })}`
     );
     expect(input).not.toContain("Reporting period: not set");

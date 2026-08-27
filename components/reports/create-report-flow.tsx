@@ -14,6 +14,10 @@ import {
   evidenceItemsFromSelection,
 } from "@/lib/reports/evidence";
 import { buildCoachingImpactMetrics } from "@/lib/reports/metrics";
+import {
+  reportingPeriodFieldsForCreate,
+  reportingPeriodFieldsForEvidenceResave,
+} from "@/lib/reports/draft-patch";
 import type {
   AssociatedIndicator,
   AvailableEvidenceItem,
@@ -229,8 +233,7 @@ export function CreateReportFlow({
               body: JSON.stringify({
                 title: details.title.trim(),
                 audience: details.audience,
-                reportingPeriodStart: details.reportingPeriodStart || null,
-                reportingPeriodEnd: details.reportingPeriodEnd || null,
+                ...reportingPeriodFieldsForCreate(details),
                 includeCoachStatement: details.includeCoachStatement,
                 coachingPurpose,
               }),
@@ -250,8 +253,7 @@ export function CreateReportFlow({
                 type: details.type,
                 audience: details.audience,
                 title: details.title.trim(),
-                reportingPeriodStart: details.reportingPeriodStart || null,
-                reportingPeriodEnd: details.reportingPeriodEnd || null,
+                ...reportingPeriodFieldsForCreate(details),
                 includeCoachStatement: details.includeCoachStatement,
                 coachingPurpose,
                 personName: client.name,
@@ -334,6 +336,7 @@ export function CreateReportFlow({
               )?.evidence ??
               report.coachingPurpose ??
               client.currentFocus,
+            ...reportingPeriodFieldsForEvidenceResave(details),
           }),
         });
 
