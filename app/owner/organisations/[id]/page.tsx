@@ -25,6 +25,7 @@ import type {
   PurchaseOrder,
   SupportCase,
 } from "@/lib/owner/types";
+import type { OrganisationDeletionPreflight } from "@/lib/owner/organisation-deletion-preflight";
 import { ACCOUNT_STATUS_LABELS } from "@/lib/owner/types";
 
 type OrganisationInvitationRow = {
@@ -82,6 +83,7 @@ const TABS = [
   "Commercial",
   "Support",
   "Audit",
+  "Data lifecycle",
   "Settings",
 ] as const;
 
@@ -113,6 +115,11 @@ export default function OwnerOrganisationDetailPage() {
   const [inviting, setInviting] = useState(false);
   const [invitingLead, setInvitingLead] = useState(false);
   const [inviteMessage, setInviteMessage] = useState("");
+  const [preflight, setPreflight] = useState<OrganisationDeletionPreflight | null>(
+    null
+  );
+  const [preflightError, setPreflightError] = useState("");
+  const [preflightLoading, setPreflightLoading] = useState(false);
 
   async function loadInvitations() {
     try {
@@ -149,6 +156,30 @@ export default function OwnerOrganisationDetailPage() {
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
+
+  async function loadPreflight() {
+    setPreflightLoading(true);
+    try {
+      const payload = await apiJson<OrganisationDeletionPreflight>(
+        `/api/owner/organisations/${params.id}/deletion-preflight`
+      );
+      setPreflight(payload);
+      setPreflightError("");
+    } catch (err) {
+      setPreflight(null);
+      setPreflightError(
+        err instanceof Error ? err.message : "Unable to load deletion preflight."
+      );
+    } finally {
+      setPreflightLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (tab !== "Data lifecycle") return;
+    void loadPreflight();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, params.id]);
 
   async function submitInvite(event: FormEvent) {
     event.preventDefault();
@@ -632,6 +663,116 @@ export default function OwnerOrganisationDetailPage() {
                   ))}
                 </ul>
               )}
+            </section>
+          ) : null}
+
+          {tab === "Data lifecycle" ? (
+            <section className="owner-panel">
+              <h2 className="owner-panel__title">Deletion preflight</h2>
+              <p className="owner-muted">
+                Read-only inventory for a future Platform Owner deletion. This
+                screen does not delete data, freeze the organisation, or start a
+                deletion run.
+              </p>
+              {preflightLoading ? (
+                <p className="owner-muted">Loading preflight…</p>
+              ) : null}
+              {preflightError ? (
+                <p className="owner-muted" role="alert">
+                  {preflightError}
+                </p>
+              ) : null}
+              {preflight ? (
+                <>
+                  <dl className="owner-metrics" style={{ margin: "1rem 0" }}>
+                    <Detail
+                      label="Eligibility"
+                      value={preflight.eligibility.replaceAll("_", " ")}
+                    />
+                    <Detail
+                      label="Organisation"
+                      value={
+                        preflight.organisation
+                          ? `${preflight.organisation.name} (${preflight.organisation.organisationType})`
+                          : "Not found"
+                      }
+                    />
+                    <Detail
+                      label="Memberships"
+                      value={String(preflight.sharedUsers.membershipCount)}
+                    />
+                    <Detail
+                      label="Sole-tenant users"
+                      value={String(preflight.sharedUsers.soleTenantUserCount)}
+                    />
+                    <Detail
+                      label="Shared users"
+                      value={String(preflight.sharedUsers.sharedTenantUserCount)}
+                    />
+                    <Detail
+                      label="Platform Owner members"
+                      value={String(preflight.sharedUsers.platformOwnerMemberCount)}
+                    />
+                  </dl>
+                  <h3 className="owner-panel__title">Blocking / review reasons</h3>
+                  {preflight.reasons.length > 0 ? (
+                    <ul className="owner-muted">
+                      {preflight.reasons.map(reason => (
+                        <li key={reason.code}>
+                          {reason.severity}: {reason.message}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="owner-muted">No blocking or review reasons.</p>
+                  )}
+                  <h3 className="owner-panel__title">Tenant data inventory</h3>
+                  <ul className="owner-muted">
+                    {preflight.inventory.map(item => (
+                      <li key={item.key}>
+                        {item.table}: {item.counted ? item.count : "uncounted"} (
+                        {item.disposition.replaceAll("_", " ")})
+                      </li>
+                    ))}
+                  </ul>
+                  <h3 className="owner-panel__title">Storage</h3>
+                  <p className="owner-muted">
+                    Bucket {preflight.storage.bucket}:{" "}
+                    {preflight.storage.authoritativePathCount} authoritative paths,
+                    prefix {preflight.storage.prefixListed ? "listed" : "unverified"}{" "}
+                    ({preflight.storage.ownership.replaceAll("_", " ")}). No objects
+                    were deleted.
+                  </p>
+                  <h3 className="owner-panel__title">Commercial records</h3>
+                  <ul className="owner-muted">
+                    {preflight.commercial.map(item => (
+                      <li key={item.key}>
+                        {item.table}: {item.counted ? item.count : "uncounted"} (retain
+                        later, not copied)
+                      </li>
+                    ))}
+                  </ul>
+                  <h3 className="owner-panel__title">Residual / review items</h3>
+                  <ul className="owner-muted">
+                    {preflight.residuals.map(item => (
+                      <li key={item.location}>
+                        {item.location}: {item.attributedCount} ({item.attribution})
+                      </li>
+                    ))}
+                  </ul>
+                  {preflight.knownLimitations.length > 0 ? (
+                    <>
+                      <h3 className="owner-panel__title">Known limitations</h3>
+                      <ul className="owner-muted">
+                        {preflight.knownLimitations.map(item => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : null}
+                  <p className="owner-muted">{preflight.confidentialityNote}</p>
+                </>
+              ) : null}
             </section>
           ) : null}
 

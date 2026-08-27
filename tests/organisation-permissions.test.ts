@@ -9,6 +9,7 @@ import {
   invitableRoles,
   organisationAllowsMemberAccess,
 } from "@/lib/organisations/permissions";
+import { ORGANISATION_PERMISSIONS } from "@/lib/organisations/types";
 import {
   generateInvitationToken,
   hashInvitationToken,
@@ -139,6 +140,22 @@ describe("invitation tokens", () => {
     const b = generateInvitationToken();
     expect(a.token).not.toBe(b.token);
     expect(a.tokenHash).not.toBe(b.tokenHash);
+  });
+
+  it("does not grant organisation deletion or preflight to customer roles", () => {
+    expect(ORGANISATION_PERMISSIONS.join(" ")).not.toMatch(/delet/i);
+    expect(ORGANISATION_PERMISSIONS.join(" ")).not.toMatch(/preflight/i);
+    for (const role of [
+      "owner",
+      "administrator",
+      "oversight",
+      "practitioner",
+      "viewer",
+    ] as const) {
+      expect(hasPermission(role, "organisation.manage")).toBe(
+        role === "owner" || role === "administrator"
+      );
+    }
   });
 
   it("fails closed for pending_closure without changing role grants", () => {

@@ -546,6 +546,8 @@ describe("workflow coverage and vault exclusion", () => {
     for (const abs of productionFiles) {
       const rel = abs.replace(`${root}/`, "");
       if (rel === "lib/private-identity.ts") continue;
+      // Count-only deletion preflight; never selects identity payload or feeds AI.
+      if (rel === "lib/owner/organisation-deletion-preflight.ts") continue;
       if (rel === "app/api/clients/[clientId]/private-identity/route.ts") {
         continue;
       }
