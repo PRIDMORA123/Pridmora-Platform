@@ -421,6 +421,14 @@ describe("DL-08 Slice 2 SQL and API contracts", () => {
     const page = read("app/owner/organisations/[id]/page.tsx");
     expect(page).toContain("RetainMinimisePanel");
     expect(page).toContain("Minimise retained support and audit records");
+    expect(page).toContain("Support and audit retain / minimise");
+    expect(page).toContain("Loading retain_minimise status…");
+    expect(page).toContain(
+      "retain_minimise is only available while the organisation is"
+    );
+    expect(page).toContain("retain_minimise is not available for this run state.");
+    const panel = page.slice(page.indexOf("function RetainMinimisePanel"));
+    expect(panel).not.toContain("if (!frozen) return null");
     expect(page).not.toContain("Delete organisation");
     expect(page).not.toMatch(/Permanently delete/i);
     expect(ORGANISATION_PURGE_MUST_NEVER_DELETE_AUTH_USERS).toBe(true);

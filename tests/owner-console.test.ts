@@ -123,6 +123,27 @@ describe("owner console foundation", () => {
     expect(layout).toContain("Access denied");
     expect(layout).toContain("redirect");
   });
+
+  it("Data lifecycle always renders retain_minimise instead of hiding the panel", () => {
+    const page = read("app/owner/organisations/[id]/page.tsx");
+    expect(page).toContain("Support and audit retain / minimise");
+    expect(page).toContain(
+      "retain_minimise is only available while the organisation is"
+    );
+    const start = page.indexOf("<RetainMinimisePanel");
+    const end = page.indexOf("/>", start);
+    const callSite = page.slice(start, end);
+    expect(callSite).toContain("commercialRetention?.organisationStatus");
+    expect(callSite).not.toContain("retainMinimise?.organisationStatus");
+    const panel = page.slice(page.indexOf("function RetainMinimisePanel"));
+    expect(panel).not.toContain("if (!frozen) return null");
+    expect(panel).toContain("Loading retain_minimise status…");
+    expect(panel).toContain("role=\"alert\"");
+    expect(panel).toContain(
+      "retain_minimise is not available for this run state."
+    );
+    expect(panel).toContain("Minimise retained support and audit records");
+  });
 });
 
 describe("owner console privacy and authorisation contracts", () => {

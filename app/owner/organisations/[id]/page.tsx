@@ -1000,22 +1000,22 @@ export default function OwnerOrganisationDetailPage() {
                     onAcknowledgedChange={setCommercialCopyAcknowledged}
                     onSubmit={submitCommercialRetention}
                   />
-                  <RetainMinimisePanel
-                    organisationStatus={
-                      retainMinimise?.organisationStatus ??
-                      preflight.organisation?.status ??
-                      ""
-                    }
-                    state={retainMinimise}
-                    error={retainMinimiseError}
-                    acknowledged={retainMinimiseAcknowledged}
-                    minimising={minimisingRetain}
-                    succeeded={retainMinimiseSuccess}
-                    onAcknowledgedChange={setRetainMinimiseAcknowledged}
-                    onSubmit={submitRetainMinimise}
-                  />
                 </>
               ) : null}
+              <RetainMinimisePanel
+                organisationStatus={
+                  commercialRetention?.organisationStatus ??
+                  preflight?.organisation?.status ??
+                  ""
+                }
+                state={retainMinimise}
+                error={retainMinimiseError}
+                acknowledged={retainMinimiseAcknowledged}
+                minimising={minimisingRetain}
+                succeeded={retainMinimiseSuccess}
+                onAcknowledgedChange={setRetainMinimiseAcknowledged}
+                onSubmit={submitRetainMinimise}
+              />
             </section>
           ) : null}
 
@@ -1411,11 +1411,11 @@ function RetainMinimisePanel(props: {
   onSubmit: (event: FormEvent) => void;
 }) {
   const frozen = props.organisationStatus === "pending_closure";
-  if (!frozen) return null;
-
+  const statusKnown = props.organisationStatus.length > 0;
   const state = props.state;
   const done = Boolean(state?.alreadyMinimised || props.succeeded);
   const canSubmit =
+    frozen &&
     Boolean(state?.minimiseAvailable) &&
     props.acknowledged &&
     !props.minimising &&
@@ -1430,7 +1430,12 @@ function RetainMinimisePanel(props: {
         metadata. It does not delete those rows, tenant data, storage, or Auth
         users, and it does not advance purge.
       </p>
-      {state ? (
+      {statusKnown && !frozen ? (
+        <p className="owner-muted">
+          retain_minimise is only available while the organisation is
+          pending_closure. No action is available.
+        </p>
+      ) : state ? (
         <>
           <dl className="owner-metrics" style={{ margin: "1rem 0" }}>
             <Detail
