@@ -629,10 +629,13 @@ describe("DL-04 API and UI contracts", () => {
     const lifecycle = page.slice(start, end);
     expect(lifecycle).toContain("Deletion preflight");
     expect(lifecycle).toContain("Blocking / review reasons");
-    expect(lifecycle).not.toContain("owner-button--danger");
+    expect(lifecycle).toContain("ClosureInitiationPanel");
+    expect(page).toContain("Authorise closure and freeze organisation");
     expect(lifecycle).not.toContain("Suspend organisation");
     expect(lifecycle).not.toContain("Delete organisation");
     expect(lifecycle).not.toContain("Start deletion");
+    expect(page).not.toMatch(/Permanently delete/i);
+    expect(page).not.toMatch(/complete deletion/i);
   });
 
   it("does not add customer-facing deletion or preflight routes", () => {

@@ -26,6 +26,7 @@ import type {
   SupportCase,
 } from "@/lib/owner/types";
 import type { OrganisationDeletionPreflight } from "@/lib/owner/organisation-deletion-preflight";
+import type { OrganisationDeletionRunSummary } from "@/lib/owner/organisation-deletion-initiation";
 import { ACCOUNT_STATUS_LABELS } from "@/lib/owner/types";
 
 type OrganisationInvitationRow = {
@@ -120,6 +121,21 @@ export default function OwnerOrganisationDetailPage() {
   );
   const [preflightError, setPreflightError] = useState("");
   const [preflightLoading, setPreflightLoading] = useState(false);
+  const [openRun, setOpenRun] = useState<OrganisationDeletionRunSummary | null>(
+    null
+  );
+  const [confirmationName, setConfirmationName] = useState("");
+  const [instructionReference, setInstructionReference] = useState("");
+  const [freezeAcknowledged, setFreezeAcknowledged] = useState(false);
+  const [initiating, setInitiating] = useState(false);
+  const [initiationError, setInitiationError] = useState("");
+  const [initiationSuccess, setInitiationSuccess] = useState<{
+    deletionRunId: string;
+    requestedAt: string;
+    runStatus: string;
+    stage: string;
+    alreadyStarted: boolean;
+  } | null>(null);
 
   async function loadInvitations() {
     try {
@@ -173,6 +189,15 @@ export default function OwnerOrganisationDetailPage() {
     } finally {
       setPreflightLoading(false);
     }
+
+    try {
+      const runState = await apiJson<{
+        openRun: OrganisationDeletionRunSummary | null;
+      }>(`/api/owner/organisations/${params.id}/deletion-initiation`);
+      setOpenRun(runState.openRun);
+    } catch {
+      setOpenRun(null);
+    }
   }
 
   useEffect(() => {
@@ -180,6 +205,42 @@ export default function OwnerOrganisationDetailPage() {
     void loadPreflight();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, params.id]);
+
+  async function submitClosureInitiation(event: FormEvent) {
+    event.preventDefault();
+    setInitiating(true);
+    setInitiationError("");
+    try {
+      const payload = await apiJson<{
+        deletionRunId: string;
+        requestedAt: string;
+        runStatus: string;
+        stage: string;
+        alreadyStarted: boolean;
+      }>(`/api/owner/organisations/${params.id}/deletion-initiation`, {
+        method: "POST",
+        body: JSON.stringify({
+          confirmationName,
+          instructionReference,
+          freezeAcknowledged,
+        }),
+      });
+      setInitiationSuccess(payload);
+      setConfirmationName("");
+      setInstructionReference("");
+      setFreezeAcknowledged(false);
+      await load();
+      await loadPreflight();
+    } catch (err) {
+      setInitiationError(
+        err instanceof Error
+          ? err.message
+          : "Unable to authorise organisation closure."
+      );
+    } finally {
+      setInitiating(false);
+    }
+  }
 
   async function submitInvite(event: FormEvent) {
     event.preventDefault();
@@ -670,9 +731,8 @@ export default function OwnerOrganisationDetailPage() {
             <section className="owner-panel">
               <h2 className="owner-panel__title">Deletion preflight</h2>
               <p className="owner-muted">
-                Read-only inventory for a future Platform Owner deletion. This
-                screen does not delete data, freeze the organisation, or start a
-                deletion run.
+                Read-only inventory for Platform Owner closure. This inventory
+                does not delete data. Permanent erasure is not available here.
               </p>
               {preflightLoading ? (
                 <p className="owner-muted">Loading preflight…</p>
@@ -771,6 +831,22 @@ export default function OwnerOrganisationDetailPage() {
                     </>
                   ) : null}
                   <p className="owner-muted">{preflight.confidentialityNote}</p>
+                  <ClosureInitiationPanel
+                    organisationName={preflight.organisation?.name ?? ""}
+                    organisationStatus={preflight.organisation?.status ?? ""}
+                    eligibility={preflight.eligibility}
+                    openRun={openRun}
+                    confirmationName={confirmationName}
+                    instructionReference={instructionReference}
+                    freezeAcknowledged={freezeAcknowledged}
+                    initiating={initiating}
+                    initiationError={initiationError}
+                    initiationSuccess={initiationSuccess}
+                    onConfirmationNameChange={setConfirmationName}
+                    onInstructionReferenceChange={setInstructionReference}
+                    onFreezeAcknowledgedChange={setFreezeAcknowledged}
+                    onSubmit={submitClosureInitiation}
+                  />
                 </>
               ) : null}
             </section>
@@ -850,6 +926,161 @@ function Detail({ label, value }: { label: string; value: string }) {
         {value}
       </p>
     </div>
+  );
+}
+
+function ClosureInitiationPanel(props: {
+  organisationName: string;
+  organisationStatus: string;
+  eligibility: string;
+  openRun: OrganisationDeletionRunSummary | null;
+  confirmationName: string;
+  instructionReference: string;
+  freezeAcknowledged: boolean;
+  initiating: boolean;
+  initiationError: string;
+  initiationSuccess: {
+    deletionRunId: string;
+    requestedAt: string;
+    runStatus: string;
+    stage: string;
+    alreadyStarted: boolean;
+  } | null;
+  onConfirmationNameChange: (value: string) => void;
+  onInstructionReferenceChange: (value: string) => void;
+  onFreezeAcknowledgedChange: (value: boolean) => void;
+  onSubmit: (event: FormEvent) => void;
+}) {
+  const run = props.openRun;
+  const frozen =
+    Boolean(run) ||
+    props.organisationStatus === "pending_closure" ||
+    Boolean(props.initiationSuccess);
+  const nameMatches =
+    props.organisationName.trim() === props.confirmationName.trim();
+  const canSubmit =
+    props.eligibility === "eligible" &&
+    !frozen &&
+    nameMatches &&
+    props.instructionReference.trim().length > 0 &&
+    props.freezeAcknowledged &&
+    !props.initiating;
+
+  return (
+    <section
+      className="owner-panel"
+      style={{ marginTop: "1.5rem", borderColor: "var(--owner-danger, #8a1c1c)" }}
+    >
+      <h2 className="owner-panel__title">Authorise closure and freeze</h2>
+      {frozen ? (
+        <>
+          <p className="owner-muted">
+            Customer access is frozen. Permanent erasure of tenant data has not
+            occurred. There is no continue action on this screen.
+          </p>
+          <dl className="owner-metrics" style={{ margin: "1rem 0" }}>
+            <Detail label="Organisation status" value="pending_closure" />
+            <Detail
+              label="Deletion run ID"
+              value={
+                props.initiationSuccess?.deletionRunId ?? run?.id ?? "Unavailable"
+              }
+            />
+            <Detail
+              label="Authorised at"
+              value={
+                props.initiationSuccess?.requestedAt ??
+                run?.requestedAt ??
+                "Unavailable"
+              }
+            />
+            <Detail
+              label="Run stage"
+              value={(
+                props.initiationSuccess?.stage ??
+                run?.stage ??
+                "access_frozen"
+              ).replaceAll("_", " ")}
+            />
+            <Detail
+              label="Run status"
+              value={(
+                props.initiationSuccess?.runStatus ??
+                run?.status ??
+                "frozen"
+              ).replaceAll("_", " ")}
+            />
+          </dl>
+        </>
+      ) : props.eligibility === "eligible" ? (
+        <>
+          <p className="owner-muted">
+            This step freezes customer access and creates the deletion case. It
+            does not erase tenant data. Type the organisation name exactly, add
+            an instruction reference, and confirm the freeze.
+          </p>
+          <form onSubmit={props.onSubmit}>
+            <div className="owner-field" style={{ marginTop: "1rem" }}>
+              <label htmlFor="closure-confirmation-name">
+                Type the organisation name exactly
+              </label>
+              <input
+                id="closure-confirmation-name"
+                value={props.confirmationName}
+                onChange={event =>
+                  props.onConfirmationNameChange(event.target.value)
+                }
+                autoComplete="off"
+                disabled={props.initiating}
+              />
+            </div>
+            <div className="owner-field" style={{ marginTop: "1rem" }}>
+              <label htmlFor="closure-instruction">
+                Instruction / authority reference
+              </label>
+              <input
+                id="closure-instruction"
+                value={props.instructionReference}
+                onChange={event =>
+                  props.onInstructionReferenceChange(event.target.value)
+                }
+                maxLength={200}
+                autoComplete="off"
+                disabled={props.initiating}
+              />
+            </div>
+            <label className="owner-muted" style={{ display: "block", margin: "1rem 0" }}>
+              <input
+                type="checkbox"
+                checked={props.freezeAcknowledged}
+                onChange={event =>
+                  props.onFreezeAcknowledgedChange(event.target.checked)
+                }
+                disabled={props.initiating}
+              />{" "}
+              I understand this immediately freezes organisation access and
+              creates the deletion case. Tenant data is not erased yet.
+            </label>
+            {props.initiationError ? (
+              <p className="owner-muted" role="alert">
+                {props.initiationError}
+              </p>
+            ) : null}
+            <button
+              type="submit"
+              className="owner-button owner-button--danger"
+              disabled={!canSubmit}
+            >
+              Authorise closure and freeze organisation
+            </button>
+          </form>
+        </>
+      ) : (
+        <p className="owner-muted">
+          Closure cannot start while preflight is {props.eligibility.replaceAll("_", " ")}.
+        </p>
+      )}
+    </section>
   );
 }
 

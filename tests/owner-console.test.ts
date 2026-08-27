@@ -104,11 +104,12 @@ describe("owner console foundation", () => {
       "app/api/owner/audit/route.ts",
       "app/api/owner/settings/route.ts",
       "app/api/owner/organisations/[id]/deletion-preflight/route.ts",
+      "app/api/owner/organisations/[id]/deletion-initiation/route.ts",
     ];
     for (const path of routes) {
       const source = read(path);
       expect(source).toContain("requirePlatformOwner");
-      if (!path.includes("deletion-preflight")) {
+      if (!path.includes("deletion-")) {
         expect(source).not.toContain("organisation_deletion");
       }
     }
