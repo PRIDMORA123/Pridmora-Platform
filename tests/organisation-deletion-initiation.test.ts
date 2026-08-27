@@ -272,6 +272,7 @@ describe("DL-05 API and UI contracts", () => {
     expect(ORGANISATION_PERMISSIONS.join(" ")).not.toMatch(/delet/i);
     expect(ORGANISATION_PERMISSIONS.join(" ")).not.toMatch(/preflight/i);
     expect(ORGANISATION_PERMISSIONS.join(" ")).not.toMatch(/closure/i);
+    expect(ORGANISATION_PERMISSIONS.join(" ")).not.toMatch(/purge/i);
     for (const role of [
       "owner",
       "administrator",

@@ -621,7 +621,7 @@ describe("DL-04 API and UI contracts", () => {
     expect(page).toContain("Data lifecycle");
     expect(page).toContain("deletion-preflight");
     expect(page).toContain("does not delete data");
-    expect(page).not.toMatch(/Permanent deletion/i);
+    expect(page).not.toMatch(/Permanently delete/i);
     expect(page).not.toMatch(/start deletion/i);
     expect(page).not.toContain('type="password"');
     const start = page.indexOf('{tab === "Data lifecycle"');

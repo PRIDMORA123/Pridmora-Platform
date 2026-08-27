@@ -27,6 +27,7 @@ import type {
 } from "@/lib/owner/types";
 import type { OrganisationDeletionPreflight } from "@/lib/owner/organisation-deletion-preflight";
 import type { OrganisationDeletionRunSummary } from "@/lib/owner/organisation-deletion-initiation";
+import type { CommercialRetentionState } from "@/lib/owner/organisation-commercial-retention";
 import { ACCOUNT_STATUS_LABELS } from "@/lib/owner/types";
 
 type OrganisationInvitationRow = {
@@ -136,6 +137,13 @@ export default function OwnerOrganisationDetailPage() {
     stage: string;
     alreadyStarted: boolean;
   } | null>(null);
+  const [commercialRetention, setCommercialRetention] =
+    useState<CommercialRetentionState | null>(null);
+  const [commercialError, setCommercialError] = useState("");
+  const [commercialCopyAcknowledged, setCommercialCopyAcknowledged] =
+    useState(false);
+  const [copyingCommercial, setCopyingCommercial] = useState(false);
+  const [commercialCopySuccess, setCommercialCopySuccess] = useState(false);
 
   async function loadInvitations() {
     try {
@@ -198,6 +206,22 @@ export default function OwnerOrganisationDetailPage() {
     } catch {
       setOpenRun(null);
     }
+
+    try {
+      const retention = await apiJson<CommercialRetentionState>(
+        `/api/owner/organisations/${params.id}/commercial-retention`
+      );
+      setCommercialRetention(retention);
+      setCommercialError("");
+      if (retention.alreadyCopied) setCommercialCopySuccess(true);
+    } catch (err) {
+      setCommercialRetention(null);
+      setCommercialError(
+        err instanceof Error
+          ? err.message
+          : "Unable to load commercial retention status."
+      );
+    }
   }
 
   useEffect(() => {
@@ -239,6 +263,50 @@ export default function OwnerOrganisationDetailPage() {
       );
     } finally {
       setInitiating(false);
+    }
+  }
+
+  async function submitCommercialRetention(event: FormEvent) {
+    event.preventDefault();
+    if (!commercialRetention?.deletionRunId) return;
+    setCopyingCommercial(true);
+    setCommercialError("");
+    try {
+      const payload = await apiJson<CommercialRetentionState & { ok?: boolean }>(
+        `/api/owner/organisations/${params.id}/commercial-retention`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            deletionRunId: commercialRetention.deletionRunId,
+            commercialCopyAcknowledged: true,
+          }),
+        }
+      );
+      setCommercialRetention({
+        organisationId: payload.organisationId,
+        organisationStatus: payload.organisationStatus,
+        deletionRunId: payload.deletionRunId,
+        runStatus: payload.runStatus,
+        stage: payload.stage,
+        verificationStatus: payload.verificationStatus,
+        sources: payload.sources,
+        retainedTotal: payload.retainedTotal,
+        copyAvailable: false,
+        alreadyCopied: true,
+        purgeReadiness: payload.purgeReadiness,
+        permanentDeletionOccurred: false,
+      });
+      setCommercialCopySuccess(true);
+      setCommercialCopyAcknowledged(false);
+      await loadPreflight();
+    } catch (err) {
+      setCommercialError(
+        err instanceof Error
+          ? err.message
+          : "Unable to prepare the retained commercial record."
+      );
+    } finally {
+      setCopyingCommercial(false);
     }
   }
 
@@ -847,6 +915,20 @@ export default function OwnerOrganisationDetailPage() {
                     onFreezeAcknowledgedChange={setFreezeAcknowledged}
                     onSubmit={submitClosureInitiation}
                   />
+                  <CommercialRetentionPanel
+                    organisationStatus={
+                      commercialRetention?.organisationStatus ??
+                      preflight.organisation?.status ??
+                      ""
+                    }
+                    retention={commercialRetention}
+                    error={commercialError}
+                    acknowledged={commercialCopyAcknowledged}
+                    copying={copyingCommercial}
+                    copySucceeded={commercialCopySuccess}
+                    onAcknowledgedChange={setCommercialCopyAcknowledged}
+                    onSubmit={submitCommercialRetention}
+                  />
                 </>
               ) : null}
             </section>
@@ -1079,6 +1161,155 @@ function ClosureInitiationPanel(props: {
         <p className="owner-muted">
           Closure cannot start while preflight is {props.eligibility.replaceAll("_", " ")}.
         </p>
+      )}
+    </section>
+  );
+}
+
+function CommercialRetentionPanel(props: {
+  organisationStatus: string;
+  retention: CommercialRetentionState | null;
+  error: string;
+  acknowledged: boolean;
+  copying: boolean;
+  copySucceeded: boolean;
+  onAcknowledgedChange: (value: boolean) => void;
+  onSubmit: (event: FormEvent) => void;
+}) {
+  const frozen = props.organisationStatus === "pending_closure";
+  if (!frozen) return null;
+
+  const retention = props.retention;
+  const copied = Boolean(retention?.alreadyCopied || props.copySucceeded);
+  const canSubmit =
+    Boolean(retention?.copyAvailable) &&
+    props.acknowledged &&
+    !props.copying &&
+    !copied;
+
+  return (
+    <section className="owner-panel" style={{ marginTop: "1.5rem" }}>
+      <h2 className="owner-panel__title">Commercial retention</h2>
+      <p className="owner-muted">
+        This stage copies approved commercial/accounting metadata only. It does
+        not erase tenant data, storage, or Auth users. There is no destructive
+        action on this screen.
+      </p>
+      {retention ? (
+        <>
+          <dl className="owner-metrics" style={{ margin: "1rem 0" }}>
+            <Detail
+              label="Organisation status"
+              value={(retention.organisationStatus ?? "unknown").replaceAll(
+                "_",
+                " "
+              )}
+            />
+            <Detail
+              label="Run status"
+              value={(retention.runStatus ?? "unknown").replaceAll("_", " ")}
+            />
+            <Detail
+              label="Run stage"
+              value={(retention.stage ?? "unknown").replaceAll("_", " ")}
+            />
+            <Detail
+              label="Commercial copy"
+              value={copied ? "completed and verified" : "not completed"}
+            />
+            <Detail
+              label="Verification"
+              value={(retention.verificationStatus ?? "not_started").replaceAll(
+                "_",
+                " "
+              )}
+            />
+            <Detail
+              label="Future purge readiness"
+              value={retention.purgeReadiness.result.replaceAll("_", " ")}
+            />
+            <Detail
+              label="Retained records"
+              value={String(retention.retainedTotal)}
+            />
+          </dl>
+          <h3 className="owner-panel__title">Source and retained counts</h3>
+          <ul className="owner-muted">
+            {retention.sources.map(item => (
+              <li key={item.recordType}>
+                {item.table}: {item.sourceCount} source, {item.retainedCount}{" "}
+                retained
+              </li>
+            ))}
+          </ul>
+          {retention.purgeReadiness.reasons.length > 0 ? (
+            <>
+              <h3 className="owner-panel__title">Blocking / review reasons</h3>
+              <ul className="owner-muted">
+                {retention.purgeReadiness.reasons.map(reason => (
+                  <li key={reason.code}>
+                    {reason.severity}: {reason.message}
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+          {copied ? (
+            <ul className="owner-muted">
+              <li>Organisation remains frozen (pending closure).</li>
+              <li>Tenant data still exists.</li>
+              <li>No storage has been deleted.</li>
+              <li>Permanent erasure of tenant data has not occurred.</li>
+              <li>Commercial retention has completed.</li>
+              <li>
+                Future purge readiness:{" "}
+                {retention.purgeReadiness.result.replaceAll("_", " ")} (not
+                execution).
+              </li>
+              <li>There is no destructive action on this screen.</li>
+            </ul>
+          ) : retention.copyAvailable ? (
+            <form onSubmit={props.onSubmit}>
+              <label
+                className="owner-muted"
+                style={{ display: "block", margin: "1rem 0" }}
+              >
+                <input
+                  type="checkbox"
+                  checked={props.acknowledged}
+                  onChange={event =>
+                    props.onAcknowledgedChange(event.target.checked)
+                  }
+                  disabled={props.copying}
+                />{" "}
+                I understand this copies commercial/accounting metadata only and
+                does not delete tenant data, storage, or Auth users.
+              </label>
+              {props.error ? (
+                <p className="owner-muted" role="alert">
+                  {props.error}
+                </p>
+              ) : null}
+              <button
+                type="submit"
+                className="owner-button"
+                disabled={!canSubmit}
+              >
+                Prepare retained commercial record
+              </button>
+            </form>
+          ) : (
+            <p className="owner-muted">
+              Commercial retention copy is not available for this run state.
+            </p>
+          )}
+        </>
+      ) : props.error ? (
+        <p className="owner-muted" role="alert">
+          {props.error}
+        </p>
+      ) : (
+        <p className="owner-muted">Loading commercial retention status…</p>
       )}
     </section>
   );

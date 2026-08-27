@@ -145,6 +145,7 @@ describe("invitation tokens", () => {
   it("does not grant organisation deletion or preflight to customer roles", () => {
     expect(ORGANISATION_PERMISSIONS.join(" ")).not.toMatch(/delet/i);
     expect(ORGANISATION_PERMISSIONS.join(" ")).not.toMatch(/preflight/i);
+    expect(ORGANISATION_PERMISSIONS.join(" ")).not.toMatch(/purge/i);
     for (const role of [
       "owner",
       "administrator",
