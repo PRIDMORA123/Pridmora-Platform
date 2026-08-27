@@ -1,3 +1,5 @@
+import type { ReportType } from "@/lib/reports/types";
+
 /**
  * Task prompt for Premium Development Report draft generation.
  * Used with IDENTITY_SYSTEM_PROMPT. Only selected approved evidence is supplied.
@@ -52,3 +54,21 @@ Rules:
 - Do not generate a coach statement.
 - Do not claim ROI or causation.
 - If a section has insufficient evidence, write a brief honest note rather than inventing content.`;
+
+const PROGRESS_SNAPSHOT_CONSTRAINT = `PROGRESS SNAPSHOT CONSTRAINT
+This report type is a concise one-page summary of current progress, evidence and next priorities.
+- Keep Executive Summary to at most two short sentences.
+- Keep Progress Summary to at most three short sentences.
+- Provide at most two development themes, each with one sentence.
+- Provide at most three short future priorities.
+- Synthesise from the supplied evidence; do not repeat or expand it verbatim.
+- Do not invent or infer evidence.`;
+
+export function developmentReportTaskPrompt(type: ReportType): string {
+  if (type === "progress_snapshot") {
+    return `${DEVELOPMENT_REPORT_TASK_PROMPT}
+
+${PROGRESS_SNAPSHOT_CONSTRAINT}`;
+  }
+  return DEVELOPMENT_REPORT_TASK_PROMPT;
+}

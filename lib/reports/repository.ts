@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { applyDevelopmentReportDraftPatch } from "@/lib/reports/draft-patch";
 import {
   developmentReportToRow,
   rowToDevelopmentReport,
@@ -165,19 +166,7 @@ export async function updateDraftDevelopmentReport(
     );
   }
 
-  const next: DevelopmentReport = {
-    ...existing,
-    ...patch,
-    id: existing.id,
-    relationshipId: existing.relationshipId,
-    coachId: existing.coachId,
-    status: "draft",
-    approvedAt: null,
-    confidentialityConfirmedAt:
-      patch.confidentialityConfirmedAt !== undefined
-        ? patch.confidentialityConfirmedAt
-        : existing.confidentialityConfirmedAt,
-  };
+  const next = applyDevelopmentReportDraftPatch(existing, patch);
 
   const { data, error } = await supabase
     .from("development_reports")

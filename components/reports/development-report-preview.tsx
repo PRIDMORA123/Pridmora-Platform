@@ -1,6 +1,7 @@
 import { IdentityPathMark } from "@/components/identity/path-mark";
 import { BRAND } from "@/lib/brand";
 import { formatDate, formatReportPeriod } from "@/lib/reports/format";
+import { evidenceItemsForProgressSnapshot } from "@/lib/reports/progress-snapshot";
 import {
   REPORT_TYPE_LABELS,
   type DevelopmentReport,
@@ -188,6 +189,11 @@ function ProgressSnapshotPreview({
   client: Client;
   coachName: string;
 }) {
+  const snapshotEvidence = evidenceItemsForProgressSnapshot(
+    report.evidenceItems,
+    report.coachingPurpose
+  );
+
   return (
     <article className="identity-report-preview">
       <section className="identity-report-page">
@@ -228,11 +234,11 @@ function ProgressSnapshotPreview({
           </div>
         ) : null}
 
-        {report.evidenceItems.length > 0 ? (
+        {snapshotEvidence.length > 0 ? (
           <div className="report-snapshot-block">
             <h2>Evidence of development</h2>
             <ul>
-              {report.evidenceItems.slice(0, 3).map(item => (
+              {snapshotEvidence.map(item => (
                 <li key={item.id}>
                   <strong>{item.developmentArea}.</strong> {item.evidence}
                 </li>

@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import { IDENTITY_SYSTEM_PROMPT } from "@/lib/ai/identity-system-prompt";
-import { DEVELOPMENT_REPORT_TASK_PROMPT } from "@/lib/ai/development-report-prompt";
+import { buildDevelopmentReportGenerateInput } from "@/lib/reports/generate-input";
 import { notFoundOrForbidden } from "@/lib/auth/session";
 import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
 import { requireAssignedPersonInOrganisation } from "@/lib/organisations/person-access-gate";
@@ -17,7 +17,7 @@ import {
 import { createPersonLevelResponse } from "@/lib/ai/person-level-openai";
 import { knownIdentitiesFromPublicClient } from "@/lib/ai/minimise-for-external";
 import { buildRelationshipAiContext } from "@/lib/relationship-identity";
-import { REPORT_TYPE_LABELS, type ReportEvidenceItem } from "@/lib/reports/types";
+import type { ReportEvidenceItem } from "@/lib/reports/types";
 
 type Params = { params: Promise<{ reportId: string }> };
 
@@ -126,25 +126,19 @@ export async function POST(request: Request, { params }: Params) {
       .neq("id", existing.relationshipId);
     const knownOtherNames = (otherClients ?? []).map(row => String(row.name ?? ""));
 
-    const evidenceBlock = evidenceItems
-      .map(
-        (item, index) =>
-          `${index + 1}. Area: ${item.developmentArea}\nSource: ${item.sourceType}\nEvidence: ${item.evidence}`
-      )
-      .join("\n\n");
-
-    const input = [
-      DEVELOPMENT_REPORT_TASK_PROMPT,
-      "",
-      `coacheeName: ${coacheeName}`,
-      `Report type: ${REPORT_TYPE_LABELS[existing.type]}`,
-      `Audience: ${existing.audience}`,
-      `Reporting period: ${existing.reportingPeriodStart ?? "not set"} to ${existing.reportingPeriodEnd ?? "not set"}`,
-      `Title: ${existing.title}`,
-      "",
-      "Selected approved evidence:",
-      evidenceBlock,
-    ].join("\n");
+    const input = buildDevelopmentReportGenerateInput({
+      type: existing.type,
+      audience: existing.audience,
+      reportingPeriodStart: existing.reportingPeriodStart,
+      reportingPeriodEnd: existing.reportingPeriodEnd,
+      title: existing.title,
+      coacheeName,
+      evidenceItems,
+      coachingPurpose:
+        body.coachingPurpose !== undefined
+          ? body.coachingPurpose
+          : existing.coachingPurpose,
+    });
 
     const openai = new OpenAI({ apiKey });
     const response = await createPersonLevelResponse(
