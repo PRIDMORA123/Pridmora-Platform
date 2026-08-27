@@ -107,11 +107,17 @@ describe("owner console foundation", () => {
       "app/api/owner/organisations/[id]/deletion-initiation/route.ts",
       "app/api/owner/organisations/[id]/commercial-retention/route.ts",
       "app/api/owner/organisations/[id]/retain-minimise/route.ts",
+      "app/api/owner/organisations/[id]/tenant-purge/route.ts",
     ];
     for (const path of routes) {
       const source = read(path);
       expect(source).toContain("requirePlatformOwner");
-      if (!path.includes("deletion-") && !path.includes("commercial-retention") && !path.includes("retain-minimise")) {
+      if (
+        !path.includes("deletion-") &&
+        !path.includes("commercial-retention") &&
+        !path.includes("retain-minimise") &&
+        !path.includes("tenant-purge")
+      ) {
         expect(source).not.toContain("organisation_deletion");
       }
     }
@@ -143,6 +149,20 @@ describe("owner console foundation", () => {
       "retain_minimise is not available for this run state."
     );
     expect(panel).toContain("Minimise retained support and audit records");
+  });
+
+  it("Data lifecycle gates permanent tenant-data erasure until every Slice 3 gate passes", () => {
+    const page = read("app/owner/organisations/[id]/page.tsx");
+    expect(page).toContain("Permanent tenant-data erasure");
+    expect(page).toContain("Permanently erase tenant data");
+    expect(page).not.toMatch(/Permanently delete/i);
+    expect(page).not.toContain("Create deletion certificate");
+    const panel = page.slice(page.indexOf("function TenantPurgePanel"));
+    expect(panel).toContain("state?.purgeAvailable");
+    expect(panel).toContain("I understand this permanently erases");
+    expect(panel).toContain("Purge execution failed and requires review");
+    expect(panel).toContain("Final deletion certificate is not created in this stage");
+    expect(panel).not.toContain("if (!frozen) return null");
   });
 });
 

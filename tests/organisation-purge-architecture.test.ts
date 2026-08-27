@@ -16,10 +16,12 @@ import {
   PLATFORM_AUDIT_FIELD_TREATMENT,
   RETAINED_SURVIVAL_TABLES,
   SUPPORT_CASE_FIELD_TREATMENT,
+  TENANT_PURGE_RESIDUAL_SURFACES,
   attributeMigrationReviewRecord,
   erasureClaim,
   liveCommercialPurgeAllowed,
   migrationReviewBlocksPurge,
+  tenantPurgeResidualAttribution,
 } from "@/lib/owner/organisation-purge-architecture";
 
 const root = process.cwd();
@@ -220,6 +222,20 @@ describe("DL-07 purge manifest allowlist", () => {
     ).toBe("NOT_TENANT_DATA");
   });
 
+  it("requires residual verification for every delete and clear_link manifest surface", () => {
+    for (const entry of ORGANISATION_PURGE_MANIFEST) {
+      expect(() => tenantPurgeResidualAttribution(entry)).not.toThrow();
+    }
+    const residual = new Set(TENANT_PURGE_RESIDUAL_SURFACES.map(item => item.table));
+    for (const entry of ORGANISATION_PURGE_MANIFEST) {
+      const shouldVerify =
+        entry.deletionMode === "explicit" ||
+        entry.deletionMode === "verified_cascade" ||
+        entry.deletionMode === "clear_link";
+      expect(residual.has(entry.table)).toBe(shouldVerify);
+    }
+  });
+
   it("requires verified commercial copy before live commercial purge", () => {
     expect([...COMMERCIAL_LIVE_TABLES]).toEqual(
       expect.arrayContaining(["invoices", "organisation_subscriptions"])
@@ -266,6 +282,7 @@ describe("DL-07 Auth, Storage, minimise, and claims", () => {
       "lib/owner/organisation-purge-architecture.ts",
       "lib/owner/organisation-migration-review-attribution.ts",
       "lib/owner/organisation-retain-minimise.ts",
+      "lib/owner/organisation-tenant-purge.ts",
     ];
     for (const path of deletionLibs) {
       const source = read(path);
@@ -280,7 +297,8 @@ describe("DL-07 Auth, Storage, minimise, and claims", () => {
     ).toBe(false);
     const page = read("app/owner/organisations/[id]/page.tsx");
     expect(page).not.toContain("Delete organisation");
-    expect(page).not.toMatch(/Permanently delete/i);
+    expect(page).toContain("Permanently erase tenant data");
+    expect(page).not.toMatch(/auth\.admin\.deleteUser/);
   });
 
   it("treats development-evidence as the only in-use bucket and documents openai as absent", () => {

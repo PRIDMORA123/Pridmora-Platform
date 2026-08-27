@@ -29,6 +29,7 @@ import type { OrganisationDeletionPreflight } from "@/lib/owner/organisation-del
 import type { OrganisationDeletionRunSummary } from "@/lib/owner/organisation-deletion-initiation";
 import type { CommercialRetentionState } from "@/lib/owner/organisation-commercial-retention";
 import type { RetainMinimiseState } from "@/lib/owner/organisation-retain-minimise";
+import type { TenantPurgeState } from "@/lib/owner/organisation-tenant-purge";
 import { ACCOUNT_STATUS_LABELS } from "@/lib/owner/types";
 
 type OrganisationInvitationRow = {
@@ -152,6 +153,12 @@ export default function OwnerOrganisationDetailPage() {
     useState(false);
   const [minimisingRetain, setMinimisingRetain] = useState(false);
   const [retainMinimiseSuccess, setRetainMinimiseSuccess] = useState(false);
+  const [tenantPurge, setTenantPurge] = useState<TenantPurgeState | null>(null);
+  const [tenantPurgeError, setTenantPurgeError] = useState("");
+  const [tenantPurgeAcknowledged, setTenantPurgeAcknowledged] = useState(false);
+  const [purgeConfirmationName, setPurgeConfirmationName] = useState("");
+  const [purgingTenant, setPurgingTenant] = useState(false);
+  const [tenantPurgeSuccess, setTenantPurgeSuccess] = useState(false);
 
   async function loadInvitations() {
     try {
@@ -244,6 +251,22 @@ export default function OwnerOrganisationDetailPage() {
         err instanceof Error
           ? err.message
           : "Unable to load retain_minimise status."
+      );
+    }
+
+    try {
+      const purge = await apiJson<TenantPurgeState>(
+        `/api/owner/organisations/${params.id}/tenant-purge`
+      );
+      setTenantPurge(purge);
+      setTenantPurgeError("");
+      if (purge.alreadyPurged || purge.awaitingCertificate) {
+        setTenantPurgeSuccess(true);
+      }
+    } catch (err) {
+      setTenantPurge(null);
+      setTenantPurgeError(
+        err instanceof Error ? err.message : "Unable to load tenant purge status."
       );
     }
   }
@@ -378,6 +401,37 @@ export default function OwnerOrganisationDetailPage() {
       );
     } finally {
       setMinimisingRetain(false);
+    }
+  }
+
+  async function submitTenantPurge(event: FormEvent) {
+    event.preventDefault();
+    if (!tenantPurge?.deletionRunId) return;
+    setPurgingTenant(true);
+    setTenantPurgeError("");
+    try {
+      const payload = await apiJson<TenantPurgeState>(
+        `/api/owner/organisations/${params.id}/tenant-purge`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            deletionRunId: tenantPurge.deletionRunId,
+            confirmationName: purgeConfirmationName,
+            instructionReference: openRun?.instructionReference ?? "",
+            permanentErasureAcknowledged: true,
+          }),
+        }
+      );
+      setTenantPurge(payload);
+      setTenantPurgeSuccess(true);
+      setTenantPurgeAcknowledged(false);
+      await loadPreflight();
+    } catch (err) {
+      setTenantPurgeError(
+        err instanceof Error ? err.message : "Unable to purge tenant data."
+      );
+    } finally {
+      setPurgingTenant(false);
     }
   }
 
@@ -1016,6 +1070,23 @@ export default function OwnerOrganisationDetailPage() {
                 onAcknowledgedChange={setRetainMinimiseAcknowledged}
                 onSubmit={submitRetainMinimise}
               />
+              <TenantPurgePanel
+                organisationStatus={
+                  commercialRetention?.organisationStatus ??
+                  preflight?.organisation?.status ??
+                  tenantPurge?.organisationStatus ??
+                  ""
+                }
+                state={tenantPurge}
+                error={tenantPurgeError}
+                acknowledged={tenantPurgeAcknowledged}
+                confirmationName={purgeConfirmationName}
+                purging={purgingTenant}
+                succeeded={tenantPurgeSuccess}
+                onAcknowledgedChange={setTenantPurgeAcknowledged}
+                onConfirmationNameChange={setPurgeConfirmationName}
+                onSubmit={submitTenantPurge}
+              />
             </section>
           ) : null}
 
@@ -1513,6 +1584,152 @@ function RetainMinimisePanel(props: {
         </p>
       ) : (
         <p className="owner-muted">Loading retain_minimise status…</p>
+      )}
+    </section>
+  );
+}
+
+function TenantPurgePanel(props: {
+  organisationStatus: string;
+  state: TenantPurgeState | null;
+  error: string;
+  acknowledged: boolean;
+  confirmationName: string;
+  purging: boolean;
+  succeeded: boolean;
+  onAcknowledgedChange: (value: boolean) => void;
+  onConfirmationNameChange: (value: string) => void;
+  onSubmit: (event: FormEvent) => void;
+}) {
+  const state = props.state;
+  const failed = Boolean(state?.partialFailure);
+  const done = Boolean(
+    (state?.awaitingCertificate || props.succeeded) && !failed
+  );
+  const frozen =
+    props.organisationStatus === "pending_closure" || done || failed;
+  const canSubmit =
+    frozen &&
+    Boolean(state?.purgeAvailable) &&
+    props.acknowledged &&
+    props.confirmationName.trim().length > 0 &&
+    props.confirmationName.trim() === (state?.organisationName ?? "").trim() &&
+    !props.purging &&
+    !done;
+
+  return (
+    <section className="owner-panel" style={{ marginTop: "1.5rem", borderColor: "var(--owner-danger, #8a1c1c)" }}>
+      <h2 className="owner-panel__title">Permanent tenant-data erasure</h2>
+      <p className="owner-muted">
+        This action permanently erases this organisation&apos;s authorised tenant
+        database rows and captured Storage objects. It does not delete Auth
+        users and does not issue a deletion certificate.
+      </p>
+      {state ? (
+        <>
+          <dl className="owner-metrics" style={{ margin: "1rem 0" }}>
+            <Detail
+              label="Run status"
+              value={(state.runStatus ?? "unknown").replaceAll("_", " ")}
+            />
+            <Detail
+              label="Purge stage"
+              value={(state.stage ?? "not started").replaceAll("_", " ")}
+            />
+            <Detail
+              label="Storage"
+              value={`${state.storage.capturedCount} captured, ${state.storage.verifiedCount} verified`}
+            />
+            <Detail
+              label="Auth users"
+              value="must remain"
+            />
+            <Detail
+              label="Certificate"
+              value="not created in this stage"
+            />
+          </dl>
+          {state.gates.length > 0 ? (
+            <ul className="owner-muted">
+              {state.gates.map(gate => (
+                <li key={gate.key}>
+                  {gate.passed ? "ready" : "blocked"}: {gate.message}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {state.blockingReasons.length > 0 ? (
+            <ul className="owner-muted">
+              {state.blockingReasons.map(reason => (
+                <li key={reason.code}>
+                  {reason.code}: {reason.message}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {failed ? (
+            <p className="owner-muted" role="alert">
+              Purge execution failed and requires review
+              {state.lastError ? `: ${state.lastError}` : "."} Retry will not
+              broaden deletion scope.
+            </p>
+          ) : null}
+          {done ? (
+            <ul className="owner-muted">
+              <li>Tenant database rows for this organisation have been purged.</li>
+              <li>Captured Storage objects were deleted and verified absent.</li>
+              <li>Auth users were not deleted.</li>
+              <li>Retained commercial records remain.</li>
+              <li>Minimised support and audit records remain.</li>
+              <li>Final deletion certificate is not created in this stage.</li>
+            </ul>
+          ) : frozen && state.purgeAvailable ? (
+            <form onSubmit={props.onSubmit}>
+              <label className="owner-muted" style={{ display: "block", margin: "1rem 0" }}>
+                Type the organisation name to confirm
+                <input
+                  value={props.confirmationName}
+                  onChange={event => props.onConfirmationNameChange(event.target.value)}
+                  disabled={props.purging}
+                  style={{ display: "block", marginTop: "0.35rem" }}
+                />
+              </label>
+              <label className="owner-muted" style={{ display: "block", margin: "1rem 0" }}>
+                <input
+                  type="checkbox"
+                  checked={props.acknowledged}
+                  onChange={event => props.onAcknowledgedChange(event.target.checked)}
+                  disabled={props.purging}
+                />{" "}
+                I understand this permanently erases tenant database data and
+                captured Storage objects and does not delete Auth users.
+              </label>
+              {props.error ? (
+                <p className="owner-muted" role="alert">
+                  {props.error}
+                </p>
+              ) : null}
+              <button
+                type="submit"
+                className="owner-button owner-button--danger"
+                disabled={!canSubmit}
+              >
+                Permanently erase tenant data
+              </button>
+            </form>
+          ) : (
+            <p className="owner-muted">
+              Permanent tenant-data erasure is not available until every purge
+              gate passes.
+            </p>
+          )}
+        </>
+      ) : props.error ? (
+        <p className="owner-muted" role="alert">
+          {props.error}
+        </p>
+      ) : (
+        <p className="owner-muted">Loading tenant purge status…</p>
       )}
     </section>
   );

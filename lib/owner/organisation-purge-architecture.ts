@@ -764,6 +764,17 @@ export const ORGANISATION_PURGE_MANIFEST: readonly PurgeManifestEntry[] = [
     treatment: "RETAIN",
   },
   {
+    table: "organisation_deletion_storage_manifest",
+    ownershipPath: "deletion_run_id RESTRICT; former_organisation_id no org FK",
+    relationship: "indirect",
+    fkBehaviour: "deletion_run_id RESTRICT; no organisations FK",
+    deletionOrder: 903,
+    deletionMode: "never",
+    verification: "captured paths remain as verification metadata; no file content",
+    failureCondition: "manifest deleted while run exists, or unbounded bucket delete used",
+    treatment: "RETAIN",
+  },
+  {
     table: "organisation_deletion_certificates",
     ownershipPath: "former_organisation_id; deletion_run_id RESTRICT",
     relationship: "indirect",
@@ -1088,6 +1099,121 @@ export const OWNER_PURGE_AUTHORISATION = {
   freshPreflightRequired: true,
   neverTrustBrowserBooleans: true,
 } as const;
+
+/**
+ * Review codes that remain classified review, not block, and do not prevent
+ * Slice 3 execution. Backup/external-processor retention stays unconfirmed.
+ */
+export const TENANT_PURGE_NONBLOCKING_REVIEW_CODES = [
+  "BACKUP_EXTERNAL_RETENTION_UNCONFIRMED",
+] as const;
+
+export function reviewCodeBlocksTenantPurgeExecution(code: string): boolean {
+  return !(TENANT_PURGE_NONBLOCKING_REVIEW_CODES as readonly string[]).includes(
+    code
+  );
+}
+
+export const TENANT_PURGE_EXPLICIT_TABLES = ORGANISATION_PURGE_MANIFEST.filter(
+  item =>
+    item.deletionMode === "explicit" &&
+    (item.treatment === "PURGE" || item.treatment === "REVIEW")
+).map(item => item.table);
+
+export const TENANT_PURGE_CLEAR_LINK_TABLES = ORGANISATION_PURGE_MANIFEST.filter(
+  item => item.deletionMode === "clear_link"
+).map(item => item.table);
+
+export const TENANT_PURGE_CASCADE_VERIFY_TABLES = ORGANISATION_PURGE_MANIFEST.filter(
+  item => item.deletionMode === "verified_cascade"
+).map(item => item.table);
+
+export const TENANT_PURGE_PROTECTED_TABLES = ORGANISATION_PURGE_MANIFEST.filter(
+  item =>
+    item.deletionMode === "never" ||
+    item.deletionMode === "retain" ||
+    item.deletionMode === "retain_minimise"
+).map(item => item.table);
+
+export type TenantPurgeResidualAttributionKind =
+  | "organisation_id"
+  | "current_organisation_id"
+  | "organisation_pk"
+  | "snapshot_children"
+  | "client_id_in_org_clients"
+  | "migration_review_join";
+
+/**
+ * Residual verification attribution derived from the accepted manifest.
+ * Unknown delete/clear_link surfaces fail closed instead of being skipped.
+ */
+export function tenantPurgeResidualAttribution(
+  entry: PurgeManifestEntry
+): TenantPurgeResidualAttributionKind | null {
+  if (
+    entry.deletionMode === "never" ||
+    entry.deletionMode === "retain" ||
+    entry.deletionMode === "retain_minimise"
+  ) {
+    return null;
+  }
+  if (entry.deletionMode === "clear_link") {
+    return "current_organisation_id";
+  }
+  if (entry.deletionMode === "verified_cascade") {
+    return "snapshot_children";
+  }
+  if (entry.table === "organisations") {
+    return "organisation_pk";
+  }
+  if (entry.table === "organisation_migration_review") {
+    return "migration_review_join";
+  }
+  if (entry.table === "sessions_workflow_backup_20260726") {
+    return "client_id_in_org_clients";
+  }
+  if (
+    entry.deletionMode === "explicit" &&
+    (entry.ownershipPath.includes("organisation_id") ||
+      entry.table === "clients" ||
+      entry.table === "sessions")
+  ) {
+    return "organisation_id";
+  }
+  throw new Error(
+    `Fail closed: no residual verification attribution for ${entry.table}.`
+  );
+}
+
+export const TENANT_PURGE_RESIDUAL_SURFACES = ORGANISATION_PURGE_MANIFEST.filter(
+  item => tenantPurgeResidualAttribution(item) !== null
+);
+
+export function tenantPurgeResidualTables(
+  kind: TenantPurgeResidualAttributionKind
+): string[] {
+  return TENANT_PURGE_RESIDUAL_SURFACES.filter(
+    item => tenantPurgeResidualAttribution(item) === kind
+  )
+    .slice()
+    .sort((left, right) => left.deletionOrder - right.deletionOrder)
+    .map(item => item.table);
+}
+
+export const TENANT_PURGE_STAGES = [
+  "not_started",
+  "storage_manifest_captured",
+  "db_purging",
+  "db_purged",
+  "storage_cleaning",
+  "storage_verified",
+  "awaiting_certificate",
+  "failed",
+] as const;
+
+export type TenantPurgeStage = (typeof TENANT_PURGE_STAGES)[number];
+
+export const AUTHORITATIVE_STORAGE_BUCKET = "development-evidence";
 
 export function erasureClaim(input: {
   applicationDataPurged: boolean;
