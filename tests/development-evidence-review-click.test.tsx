@@ -194,6 +194,9 @@ describe("Development Evidence Review button", () => {
     expect(
       container.querySelector('[data-testid="evidence-review-loading"]')
     ).toBeNull();
+    expect(container.textContent).toContain("Observation 1 of 1");
+    expect(container.textContent).not.toContain("Observation 2 of");
+    expect(container.textContent).toContain("Include observation");
     expect(container.textContent).toContain("Include all");
     expect(container.textContent).toContain("Approve evidence");
     expect(
@@ -202,6 +205,96 @@ describe("Development Evidence Review button", () => {
     expect(container.textContent).toMatch(
       /No uploaded evidence changes Development Intelligence until you approve it/
     );
+  });
+
+  it("labels each extracted observation as Observation X of Y", async () => {
+    apiJson.mockImplementation(async (url: string) => {
+      if (
+        String(url).includes("/api/development-evidence/") &&
+        !String(url).includes("/item/")
+      ) {
+        return listPayload;
+      }
+      if (String(url).includes("/api/development-evidence/item/ev-pending-1")) {
+        return {
+          evidence: {
+            id: "ev-pending-1",
+            title: "pilot-test-evidence.txt",
+            reviewStatus: "pending_review",
+            processingStatus: "ready",
+          },
+          observations: [
+            {
+              id: "obs-1",
+              title: "Observed calm pacing",
+              description: "Kept the conversation paced and clear.",
+              reviewStatus: "proposed",
+            },
+            {
+              id: "obs-2",
+              title: "Invites dissent",
+              description: "Asks for contrary views before deciding.",
+              reviewStatus: "proposed",
+            },
+            {
+              id: "obs-3",
+              title: "Follows through",
+              description: "Keeps commitments visible to the team.",
+              reviewStatus: "proposed",
+            },
+          ],
+          observationSourceEvidence: [],
+          document: {
+            id: "doc-1",
+            fileName: "pilot-test-evidence.txt",
+            hasExtractedText: true,
+          },
+        };
+      }
+      throw new Error(`Unexpected apiJson call: ${url}`);
+    });
+
+    await act(async () => {
+      root.render(
+        <DevelopmentEvidenceView client={baseClient()} onBack={() => undefined} />
+      );
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const reviewButton = container.querySelector(
+      '[data-testid="evidence-review-open-ev-pending-1"]'
+    ) as HTMLButtonElement | null;
+    await act(async () => {
+      reviewButton?.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, cancelable: true })
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(
+      container.querySelector('[data-testid="evidence-review-observation-index-1"]')
+        ?.textContent
+    ).toBe("Observation 1 of 3");
+    expect(
+      container.querySelector('[data-testid="evidence-review-observation-index-2"]')
+        ?.textContent
+    ).toBe("Observation 2 of 3");
+    expect(
+      container.querySelector('[data-testid="evidence-review-observation-index-3"]')
+        ?.textContent
+    ).toBe("Observation 3 of 3");
+    expect(
+      container.querySelector('[data-testid="evidence-review-observation-index-4"]')
+    ).toBeNull();
+    expect(container.textContent).not.toContain("Observation 1 of 1");
+    expect(container.textContent).toContain("Include observation");
+    expect(container.textContent).toContain("Title");
+    expect(container.textContent).toContain("Observation");
+    expect(container.textContent).toContain("Capability");
+    expect(container.textContent).toContain("Supporting evidence");
   });
 
   it("surfaces an error when Review detail load fails", async () => {

@@ -749,7 +749,8 @@ export function DevelopmentEvidenceView({
                         </button>
                       </div>
                       <ul className="evidence-observation-list">
-                        {detail.observations.map(observation => {
+                        {detail.observations.map((observation, index) => {
+                          const observationCount = detail.observations.length;
                           const edited = editMap[observation.id];
                           const sourceEvidence =
                             detail.observationSourceEvidence?.find(
@@ -773,6 +774,12 @@ export function DevelopmentEvidenceView({
                               key={observation.id}
                               className="evidence-observation-card"
                             >
+                              <p
+                                className="muted evidence-observation-index"
+                                data-testid={`evidence-review-observation-index-${index + 1}`}
+                              >
+                                Observation {index + 1} of {observationCount}
+                              </p>
                               <label className="checkbox-row">
                                 <input
                                   type="checkbox"
