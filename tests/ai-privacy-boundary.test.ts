@@ -548,6 +548,8 @@ describe("workflow coverage and vault exclusion", () => {
       if (rel === "lib/private-identity.ts") continue;
       // Count-only deletion preflight; never selects identity payload or feeds AI.
       if (rel === "lib/owner/organisation-deletion-preflight.ts") continue;
+      // Purge-architecture allowlist names the table; does not select identity payload or feed AI.
+      if (rel === "lib/owner/organisation-purge-architecture.ts") continue;
       if (rel === "app/api/clients/[clientId]/private-identity/route.ts") {
         continue;
       }

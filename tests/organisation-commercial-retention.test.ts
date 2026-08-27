@@ -97,6 +97,9 @@ function createInventoryClient(input?: {
         in() {
           return builder;
         },
+        order() {
+          return builder;
+        },
         range() {
           return builder;
         },
@@ -463,14 +466,48 @@ describe("DL-06 purge readiness derivation", () => {
       "details JSON is not searched"
     );
     expect(ready.acknowledgedLimitations.join(" ")).toContain(
+      "never attribution authority"
+    );
+    expect(ready.acknowledgedLimitations.join(" ")).toContain(
       "Backup and external-processor"
     );
     expect(ready.reasons.map(reason => reason.code)).toEqual(
-      expect.arrayContaining([
-        "MIGRATION_REVIEW_DETAILS_NOT_SEARCHED",
-        "BACKUP_EXTERNAL_RETENTION_UNCONFIRMED",
-      ])
+      expect.arrayContaining(["BACKUP_EXTERNAL_RETENTION_UNCONFIRMED"])
     );
+    expect(ready.reasons.map(reason => reason.code)).not.toContain(
+      "MIGRATION_REVIEW_DETAILS_NOT_SEARCHED"
+    );
+    expect(ready.reasons.map(reason => reason.code)).not.toContain(
+      "MIGRATION_REVIEW_AMBIGUOUS"
+    );
+  });
+
+  it("fail-closes on ambiguous migration-review without treating unrelated rows as this tenant", () => {
+    const blocked = derivePurgeReadiness(
+      baseReadinessInput({
+        preflightReviewReasons: [
+          {
+            code: "MIGRATION_REVIEW_AMBIGUOUS",
+            severity: "review",
+            message: "Ambiguous migration-review attribution.",
+          },
+        ],
+      })
+    );
+    expect(PURGE_READINESS_RESULTS).not.toContain("ready");
+    expect(blocked.result).toBe("requires_review");
+    expect(blocked.reasons.map(reason => reason.code)).toContain(
+      "MIGRATION_REVIEW_AMBIGUOUS"
+    );
+
+    const unrelated = derivePurgeReadiness(baseReadinessInput());
+    expect(unrelated.reasons.map(reason => reason.code)).not.toContain(
+      "MIGRATION_REVIEW_AMBIGUOUS"
+    );
+    expect(unrelated.reasons.map(reason => reason.code)).not.toContain(
+      "MIGRATION_REVIEW_UNKNOWN_TABLE"
+    );
+    expect(unrelated.result).toBe("requires_review");
   });
 
   it("is not_ready before commercial copy and blocked for DL-05/DL-04 protections", () => {

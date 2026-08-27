@@ -79,6 +79,9 @@ function createPreflightClient(input: {
           filters.push(["in", column, values]);
           return builder;
         },
+        order() {
+          return builder;
+        },
         range() {
           return builder;
         },
@@ -146,7 +149,26 @@ function createPreflightClient(input: {
             }
           }
           if (!head && config.rows) {
-            return resolve({ data: config.rows, count: config.rows.length, error: null });
+            let rows = config.rows;
+            for (const [op, column, value] of filters) {
+              if (op === "in") {
+                const ids = new Set(
+                  (Array.isArray(value) ? value : []).map(item => String(item))
+                );
+                rows = rows.filter(row => ids.has(String(row[column] ?? "")));
+              }
+              if (op === "eq" && column === "status") {
+                rows = rows.filter(row => String(row.status ?? "") === String(value));
+              }
+              if (op === "eq" && column === "organisation_id") {
+                rows = rows.filter(
+                  row =>
+                    !Object.prototype.hasOwnProperty.call(row, "organisation_id") ||
+                    String(row.organisation_id) === String(value)
+                );
+              }
+            }
+            return resolve({ data: rows, count: rows.length, error: null });
           }
           return resolve({
             data: config.rows ?? [],
@@ -445,7 +467,7 @@ describe("DL-04 preflight loader", () => {
     expect(result.residuals.some(item => item.attribution === "not_searched")).toBe(
       true
     );
-    expect(result.residuals.some(item => item.attribution === "authoritative_record_id")).toBe(
+    expect(result.residuals.some(item => item.attribution === "authoritative_join")).toBe(
       true
     );
     expect(writes).toEqual({ insert: 0, update: 0, delete: 0, remove: 0 });
@@ -551,10 +573,18 @@ describe("DL-04 preflight loader", () => {
     expect(foreignOrgCounts).toEqual([]);
     const clientQueries = queries.filter(query => query.table === "clients");
     expect(
-      clientQueries.every(query =>
+      clientQueries.some(query =>
         query.filters.some(
           ([op, column, value]) =>
             op === "eq" && column === "organisation_id" && value === ORG_ID
+        )
+      )
+    ).toBe(true);
+    expect(
+      clientQueries.every(query =>
+        !query.filters.some(
+          ([op, column, value]) =>
+            op === "eq" && column === "organisation_id" && value === OTHER_ORG
         )
       )
     ).toBe(true);
@@ -573,6 +603,94 @@ describe("DL-04 preflight loader", () => {
     expect(result.eligibility).toBe("requires_review");
     expect(result.reasons.map(reason => reason.code)).toContain("INVENTORY_INCOMPLETE");
     expect(result.inventory.find(item => item.key === "sessions")?.counted).toBe(false);
+  });
+
+  it("captures attributed migration-review rows by join and excludes cross-tenant rows", async () => {
+    const otherClient = "99999999-9999-4999-8999-999999999999";
+    const result = await loadOrganisationDeletionPreflight({
+      supabase: createPreflightClient({
+        tables: {
+          organisation_migration_review: {
+            rows: [
+              {
+                id: "33333333-3333-4333-8333-333333333333",
+                table_name: "clients",
+                record_id: CLIENT_ID,
+                details: { organisation_id: OTHER_ORG, private_notes: "secret" },
+              },
+              {
+                id: "44444444-4444-4444-8444-444444444444",
+                table_name: "clients",
+                record_id: otherClient,
+                details: { organisation_id: ORG_ID },
+              },
+            ],
+          },
+          clients: {
+            count: 1,
+            rows: [
+              { id: CLIENT_ID, organisation_id: ORG_ID },
+              { id: otherClient, organisation_id: OTHER_ORG },
+            ],
+          },
+        },
+        writes: { insert: 0, update: 0, delete: 0, remove: 0 },
+      }),
+      organisationId: ORG_ID,
+    });
+    expect(
+      result.inventory.find(item => item.key === "organisationMigrationReview")?.count
+    ).toBe(1);
+    expect(
+      result.inventory.find(item => item.key === "organisationMigrationReview")?.targeting
+    ).toBe("authoritative_table_name_record_id_join");
+    expect(result.eligibility).toBe("eligible");
+    expect(result.reasons.map(reason => reason.code)).not.toContain(
+      "MIGRATION_REVIEW_AMBIGUOUS"
+    );
+    expect(JSON.stringify(result)).not.toMatch(/private_notes|"secret"/);
+    expect(JSON.stringify(result)).not.toMatch(/"details"\s*:/);
+    expect(() => assertOwnerPayloadIsSafe(result)).not.toThrow();
+  });
+
+  it("fails closed when a relevant migration-review row is ambiguous", async () => {
+    const result = await loadOrganisationDeletionPreflight({
+      supabase: createPreflightClient({
+        tables: {
+          organisation_migration_review: {
+            rows: [
+              {
+                id: "33333333-3333-4333-8333-333333333333",
+                table_name: "clients",
+                record_id: CLIENT_ID,
+              },
+            ],
+          },
+          clients: {
+            rows: [{ id: CLIENT_ID, organisation_id: null }],
+          },
+          relationship_assignments: {
+            rows: [
+              { client_id: CLIENT_ID, organisation_id: ORG_ID, status: "active" },
+              { client_id: CLIENT_ID, organisation_id: OTHER_ORG, status: "active" },
+            ],
+          },
+        },
+        writes: { insert: 0, update: 0, delete: 0, remove: 0 },
+      }),
+      organisationId: ORG_ID,
+    });
+    expect(result.eligibility).toBe("requires_review");
+    expect(result.reasons.map(reason => reason.code)).toContain(
+      "MIGRATION_REVIEW_AMBIGUOUS"
+    );
+    expect(
+      result.inventory.find(item => item.key === "organisationMigrationReview")
+        ?.disposition
+    ).toBe("requires_review");
+    expect(
+      result.inventory.find(item => item.key === "organisationMigrationReview")?.count
+    ).toBe(0);
   });
 });
 
@@ -612,6 +730,7 @@ describe("DL-04 API and UI contracts", () => {
     expect(source).not.toMatch(/select\(["']notes["']/);
     expect(source).toContain("details JSON is not searched");
     expect(source).toContain("record_id");
+    expect(source).toContain("assessOrganisationMigrationReview");
     expect(source).toContain("client_private_identities");
     expect(source).toMatch(/select\("\*", \{ count: "exact", head: true \}\)/);
   });

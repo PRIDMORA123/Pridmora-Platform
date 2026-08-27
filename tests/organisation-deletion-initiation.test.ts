@@ -62,6 +62,9 @@ function createInventoryClient(input?: {
         in() {
           return builder;
         },
+        order() {
+          return builder;
+        },
         range() {
           return builder;
         },

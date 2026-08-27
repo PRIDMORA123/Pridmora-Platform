@@ -9,6 +9,11 @@ import {
   parseDevelopmentEvidenceStoragePath,
 } from "@/lib/development-evidence/storage-path";
 import { UNDELETABLE_ORGANISATION_IDS_SETTING_KEY } from "@/lib/owner/organisation-deletion-foundation";
+import {
+  assessOrganisationMigrationReview,
+  MIGRATION_REVIEW_DETAILS_NEVER_AUTHORITY_LIMITATION,
+  migrationReviewReviewReasons,
+} from "@/lib/owner/organisation-migration-review-attribution";
 import { isUuid } from "@/lib/uuid";
 
 export const DELETION_ELIGIBILITY = ["eligible", "blocked", "requires_review"] as const;
@@ -86,7 +91,12 @@ export type OrganisationDeletionPreflight = {
   residuals: Array<{
     location: string;
     attributedCount: number;
-    attribution: "authoritative_record_id" | "not_searched";
+    attribution:
+      | "authoritative_record_id"
+      | "authoritative_join"
+      | "not_searched"
+      | "ambiguous"
+      | "unknown_table";
     disposition: InventoryDisposition;
     reason: string;
   }>;
@@ -419,7 +429,7 @@ export async function loadOrganisationDeletionPreflight(input: {
 }): Promise<OrganisationDeletionPreflight> {
   const organisationId = input.organisationId;
   const knownLimitations = [
-    "organisation_migration_review.details JSON is not searched; future purge must use authoritative record_id descendant keys only.",
+    MIGRATION_REVIEW_DETAILS_NEVER_AUTHORITY_LIMITATION,
     "Backup and external-processor retention cannot be confirmed from this inventory.",
   ];
 
@@ -647,23 +657,25 @@ export async function loadOrganisationDeletionPreflight(input: {
   });
   if (!backup.counted) inventoryIncomplete = true;
 
-  const migrationReview = await countIn(
-    input.supabase,
-    "organisation_migration_review",
-    "record_id",
-    [...descendantIds]
-  );
+  const migrationReview = await assessOrganisationMigrationReview({
+    supabase: input.supabase,
+    organisationId,
+    descendantIds,
+  });
+  const migrationReviewFailClosed =
+    migrationReview.ambiguousCount > 0 || migrationReview.unknownTableCount > 0;
   inventory.push({
     key: "organisationMigrationReview",
     table: "organisation_migration_review",
     category: "legacy",
-    count: migrationReview.count,
-    targeting: "record_id_in_descendant_ids",
-    disposition: "delete",
+    count: migrationReview.attributedCount,
+    targeting: "authoritative_table_name_record_id_join",
+    disposition: migrationReviewFailClosed ? "requires_review" : "delete",
     counted: migrationReview.counted,
     error: migrationReview.error,
   });
   if (!migrationReview.counted) inventoryIncomplete = true;
+  reviewReasons.push(...migrationReviewReviewReasons(migrationReview));
 
   const { data: documentRows, error: documentError } = await input.supabase
     .from("development_evidence_documents")
@@ -817,12 +829,28 @@ export async function loadOrganisationDeletionPreflight(input: {
 
   const residuals = [
     {
-      location: "organisation_migration_review.record_id",
-      attributedCount: migrationReview.counted ? migrationReview.count : 0,
-      attribution: "authoritative_record_id" as const,
+      location: "organisation_migration_review.attributed",
+      attributedCount: migrationReview.counted ? migrationReview.attributedCount : 0,
+      attribution: "authoritative_join" as const,
       disposition: "delete" as const,
       reason:
-        "Rows whose record_id is an organisation descendant identifier. Future purge must not scan details JSON.",
+        "Rows attributed by joining table_name + record_id to clients or sessions. Future tenant purge surface for this organisation.",
+    },
+    {
+      location: "organisation_migration_review.ambiguous",
+      attributedCount: migrationReview.counted ? migrationReview.ambiguousCount : 0,
+      attribution: "ambiguous" as const,
+      disposition: "requires_review" as const,
+      reason:
+        "Rows that could concern this organisation but cannot be attributed without contradiction. Fail closed; not purge-ready.",
+    },
+    {
+      location: "organisation_migration_review.unknown_table",
+      attributedCount: migrationReview.counted ? migrationReview.unknownTableCount : 0,
+      attribution: "unknown_table" as const,
+      disposition: "requires_review" as const,
+      reason:
+        "Rows whose table_name is not clients or sessions and whose record_id is a descendant of this organisation. Fail closed.",
     },
     {
       location: "organisation_migration_review.details",
@@ -830,7 +858,7 @@ export async function loadOrganisationDeletionPreflight(input: {
       attribution: "not_searched" as const,
       disposition: "requires_review" as const,
       reason:
-        "Denormalised JSON is not searched. Unattributed details cannot be treated as this tenant without an authoritative key.",
+        "details JSON is not searched and is never attribution authority. Unrelated unattributed queue rows are excluded from this organisation.",
     },
   ];
 

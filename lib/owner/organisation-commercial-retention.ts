@@ -7,6 +7,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { loadOrganisationDeletionPreflight } from "@/lib/owner/organisation-deletion-preflight";
 import type { DeletionPreflightReason } from "@/lib/owner/organisation-deletion-preflight";
 import { loadOpenOrganisationDeletionRun } from "@/lib/owner/organisation-deletion-initiation";
+import { MIGRATION_REVIEW_DETAILS_NEVER_AUTHORITY_LIMITATION } from "@/lib/owner/organisation-migration-review-attribution";
 
 export const OWNER_COPY_ORGANISATION_COMMERCIAL_RPC =
   "owner_copy_organisation_commercial_records";
@@ -60,7 +61,7 @@ export type OwnerCopyCommercialErrorCode =
   (typeof OWNER_COPY_COMMERCIAL_ERROR_CODES)[number];
 
 const DL04_ACKNOWLEDGED_LIMITATIONS = [
-  "organisation_migration_review.details JSON is not searched; future purge must use authoritative record_id descendant keys only.",
+  MIGRATION_REVIEW_DETAILS_NEVER_AUTHORITY_LIMITATION,
   "Backup and external-processor retention cannot be confirmed from this inventory.",
 ] as const;
 
@@ -224,11 +225,6 @@ export function derivePurgeReadiness(input: {
   }
 
   reviewReasons.push({
-    code: "MIGRATION_REVIEW_DETAILS_NOT_SEARCHED",
-    severity: "review",
-    message: DL04_ACKNOWLEDGED_LIMITATIONS[0],
-  });
-  reviewReasons.push({
     code: "BACKUP_EXTERNAL_RETENTION_UNCONFIRMED",
     severity: "review",
     message: DL04_ACKNOWLEDGED_LIMITATIONS[1],
@@ -243,6 +239,9 @@ export function derivePurgeReadiness(input: {
   }
 
   const reasons = [...blockReasons, ...reviewReasons];
+  // Never ready: backup/external follow-up is unconfirmed, and any
+  // ambiguous/unknown_table preflight reason remains fail-closed.
+  // Unrelated not_attributed migration-review rows are not passed in.
   const result: PurgeReadinessResult = blockReasons.length
     ? "blocked"
     : input.commercialVerificationPassed
