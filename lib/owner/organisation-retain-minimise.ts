@@ -267,6 +267,28 @@ export function isSupportCaseMinimised(row: {
   );
 }
 
+export function isPlatformAuditEventMinimised(row: {
+  organisation_id?: unknown;
+  former_organisation_id?: unknown;
+  entity_type?: unknown;
+  entity_id?: unknown;
+  metadata?: unknown;
+}): boolean {
+  if (row.organisation_id != null) return false;
+  if (typeof row.former_organisation_id !== "string" || !row.former_organisation_id) {
+    return false;
+  }
+  const retainEntityId = (PLATFORM_AUDIT_ENTITY_ID_RETAIN_TYPES as readonly string[]).includes(
+    String(row.entity_type ?? "")
+  );
+  if (!retainEntityId && row.entity_id != null) return false;
+  if (row.metadata == null) return true;
+  if (typeof row.metadata !== "object" || Array.isArray(row.metadata)) return false;
+  return Object.keys(row.metadata as Record<string, unknown>).every(key =>
+    AUDIT_METADATA_ALLOWLIST.has(key)
+  );
+}
+
 export type RetainMinimiseSurface = {
   table: "support_cases" | "platform_audit_events";
   pendingCount: number;

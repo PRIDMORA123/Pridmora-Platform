@@ -108,6 +108,7 @@ describe("owner console foundation", () => {
       "app/api/owner/organisations/[id]/commercial-retention/route.ts",
       "app/api/owner/organisations/[id]/retain-minimise/route.ts",
       "app/api/owner/organisations/[id]/tenant-purge/route.ts",
+      "app/api/owner/organisations/[id]/final-verification/route.ts",
     ];
     for (const path of routes) {
       const source = read(path);
@@ -116,7 +117,8 @@ describe("owner console foundation", () => {
         !path.includes("deletion-") &&
         !path.includes("commercial-retention") &&
         !path.includes("retain-minimise") &&
-        !path.includes("tenant-purge")
+        !path.includes("tenant-purge") &&
+        !path.includes("final-verification")
       ) {
         expect(source).not.toContain("organisation_deletion");
       }
@@ -163,6 +165,21 @@ describe("owner console foundation", () => {
     expect(panel).toContain("Purge execution failed and requires review");
     expect(panel).toContain("Final deletion certificate is not created in this stage");
     expect(panel).not.toContain("if (!frozen) return null");
+  });
+
+  it("renders deletion lifecycle for a former organisation without restoring the row", () => {
+    const page = read("app/owner/organisations/[id]/page.tsx");
+    expect(page).toContain("formerOrganisationLifecycle");
+    expect(page).toContain("organisationNameSnapshot");
+    expect(page).toContain("FinalVerificationPanel");
+    expect(page).toContain("Deletion certificate");
+    expect(page).not.toContain("Issue certificate");
+    expect(page).toContain(
+      "controls are not available after those stages complete"
+    );
+    const detail = read("app/api/owner/organisations/[id]/route.ts");
+    expect(detail).toContain("formerOrganisationLifecycle: true");
+    expect(detail).toContain("organisation: null");
   });
 });
 

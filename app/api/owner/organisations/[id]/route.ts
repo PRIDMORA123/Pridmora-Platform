@@ -16,6 +16,7 @@ import {
   listSupportCases,
   listTrials,
 } from "@/lib/owner/repository";
+import { isUuid } from "@/lib/uuid";
 
 export const runtime = "nodejs";
 
@@ -46,11 +47,49 @@ export async function GET(
   if (!auth.ok) return auth.response;
 
   const { id } = await context.params;
+  if (!isUuid(id)) {
+    return NextResponse.json({ error: "Organisation not found." }, { status: 404 });
+  }
 
   try {
     const detail = await getOwnerOrganisationDetail(auth.context.supabase, id);
     if (!detail) {
-      return NextResponse.json({ error: "Organisation not found." }, { status: 404 });
+      const { data: run } = await auth.context.supabase
+        .from("organisation_deletion_runs")
+        .select("id, former_organisation_id, organisation_name_snapshot, status, stage, requested_at")
+        .eq("former_organisation_id", id)
+        .neq("status", "blocked")
+        .order("requested_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!run || typeof run.id !== "string") {
+        return NextResponse.json({ error: "Organisation not found." }, { status: 404 });
+      }
+      const payload = {
+        formerOrganisationLifecycle: true,
+        organisation: null,
+        formerOrganisationId: id,
+        organisationNameSnapshot:
+          typeof run.organisation_name_snapshot === "string"
+            ? run.organisation_name_snapshot
+            : "Deleted organisation",
+        deletionRunId: run.id,
+        runStatus: typeof run.status === "string" ? run.status : null,
+        stage: typeof run.stage === "string" ? run.stage : null,
+        users: [],
+        subscriptions: [],
+        invoices: [],
+        paymentMethods: [],
+        purchaseOrders: [],
+        contracts: [],
+        trials: [],
+        support: [],
+        audit: [],
+        confidentialityNote:
+          "Owner Console shows operational and commercial metadata only. Conversation contents, reflections, preparation text and private notes are not available here.",
+      };
+      assertOwnerPayloadIsSafe(payload);
+      return NextResponse.json(payload);
     }
 
     const [users, subscriptions, invoices, paymentMethods, purchaseOrders, contracts, trials, support, audit] =
@@ -74,6 +113,7 @@ export async function GET(
 
     const payload = {
       ...detail,
+      formerOrganisationLifecycle: false,
       users,
       subscriptions,
       invoices,

@@ -410,8 +410,11 @@ describe("DL-03 freeze bypass audit of API/RPC paths", () => {
     );
     expect(existsSync(join(root, "app/api/owner/deletion-runs"))).toBe(false);
     const ownerOrg = read("app/api/owner/organisations/[id]/route.ts");
-    expect(ownerOrg).not.toContain("organisation_deletion");
     expect(ownerOrg).toContain("requirePlatformOwner");
+    expect(ownerOrg).toContain("formerOrganisationLifecycle");
+    expect(ownerOrg).not.toContain("export async function DELETE");
+    const patch = ownerOrg.slice(ownerOrg.indexOf("export async function PATCH"));
+    expect(patch).not.toContain("organisation_deletion");
   });
 });
 

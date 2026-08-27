@@ -30,6 +30,7 @@ import type { OrganisationDeletionRunSummary } from "@/lib/owner/organisation-de
 import type { CommercialRetentionState } from "@/lib/owner/organisation-commercial-retention";
 import type { RetainMinimiseState } from "@/lib/owner/organisation-retain-minimise";
 import type { TenantPurgeState } from "@/lib/owner/organisation-tenant-purge";
+import type { FinalVerificationState } from "@/lib/owner/organisation-final-verification";
 import { ACCOUNT_STATUS_LABELS } from "@/lib/owner/types";
 
 type OrganisationInvitationRow = {
@@ -47,6 +48,7 @@ type OrganisationInvitationRow = {
 };
 
 type DetailPayload = {
+  formerOrganisationLifecycle?: boolean;
   organisation: {
     id: string;
     name: string;
@@ -65,9 +67,14 @@ type DetailPayload = {
     billingContactEmail: string | null;
     accountOwnerLabel: string | null;
     createdAt: string;
-  };
-  usage: OrganisationUsageCounts;
-  health: CustomerHealth;
+  } | null;
+  organisationNameSnapshot?: string;
+  formerOrganisationId?: string;
+  deletionRunId?: string;
+  runStatus?: string | null;
+  stage?: string | null;
+  usage?: OrganisationUsageCounts;
+  health?: CustomerHealth;
   users: OwnerUserListItem[];
   subscriptions: OrganisationSubscription[];
   invoices: Invoice[];
@@ -159,6 +166,9 @@ export default function OwnerOrganisationDetailPage() {
   const [purgeConfirmationName, setPurgeConfirmationName] = useState("");
   const [purgingTenant, setPurgingTenant] = useState(false);
   const [tenantPurgeSuccess, setTenantPurgeSuccess] = useState(false);
+  const [finalVerification, setFinalVerification] =
+    useState<FinalVerificationState | null>(null);
+  const [finalVerificationError, setFinalVerificationError] = useState("");
 
   async function loadInvitations() {
     try {
@@ -183,7 +193,11 @@ export default function OwnerOrganisationDetailPage() {
       );
       setData(payload);
       setError("");
-      await loadInvitations();
+      if (payload.formerOrganisationLifecycle) {
+        setTab("Data lifecycle");
+      } else {
+        await loadInvitations();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load organisation.");
     } finally {
@@ -267,6 +281,19 @@ export default function OwnerOrganisationDetailPage() {
       setTenantPurge(null);
       setTenantPurgeError(
         err instanceof Error ? err.message : "Unable to load tenant purge status."
+      );
+    }
+
+    try {
+      const verification = await apiJson<FinalVerificationState>(
+        `/api/owner/organisations/${params.id}/final-verification`
+      );
+      setFinalVerification(verification);
+      setFinalVerificationError("");
+    } catch (err) {
+      setFinalVerification(null);
+      setFinalVerificationError(
+        err instanceof Error ? err.message : "Unable to load final verification."
       );
     }
   }
@@ -511,9 +538,18 @@ export default function OwnerOrganisationDetailPage() {
     }
   }
 
+  const formerLifecycle = Boolean(data?.formerOrganisationLifecycle);
+  const displayName =
+    data?.organisation?.name ?? data?.organisationNameSnapshot ?? "Organisation";
+  const visibleTabs = formerLifecycle ? (["Data lifecycle"] as const) : TABS;
+  const hideLifecycleActions =
+    formerLifecycle ||
+    finalVerification?.runStatus === "verifying" ||
+    Boolean(tenantPurge?.alreadyPurged);
+
   const settingsActions = useMemo(
     () =>
-      data
+      data?.organisation && !data.formerOrganisationLifecycle
         ? ownerOrganisationSettingsActions(data.organisation.accountStatus)
         : null,
     [data]
@@ -527,7 +563,9 @@ export default function OwnerOrganisationDetailPage() {
       {data ? (
         <>
           <header className="owner-org-header">
-            <h1>{data.organisation.name}</h1>
+            <h1>{displayName}</h1>
+            {data.organisation && !formerLifecycle ? (
+              <>
             <div className="owner-org-header__meta">
               <OwnerStatus
                 value={data.organisation.accountStatus}
@@ -535,8 +573,8 @@ export default function OwnerOrganisationDetailPage() {
               />
               <OwnerStatus value="active" label={data.organisation.planName} />
               <OwnerStatus
-                value={data.health.level}
-                label={data.health.label}
+                value={data.health?.level ?? "watch"}
+                label={data.health?.label ?? "Organisation"}
               />
             </div>
             <p className="owner-muted" style={{ color: "rgba(255,255,255,0.82)" }}>
@@ -573,6 +611,13 @@ export default function OwnerOrganisationDetailPage() {
                 practitioner seats · Leads do not
               </span>
             </div>
+              </>
+            ) : (
+              <p className="owner-muted" style={{ color: "rgba(255,255,255,0.82)" }}>
+                Organisation row deleted. Deletion lifecycle continues against
+                former organisation identity {params.id}.
+              </p>
+            )}
           </header>
 
           <p className="owner-muted">{data.confidentialityNote}</p>
@@ -583,7 +628,7 @@ export default function OwnerOrganisationDetailPage() {
           ) : null}
 
           <div className="owner-tabs" role="tablist" aria-label="Organisation sections">
-            {TABS.map(item => (
+            {visibleTabs.map(item => (
               <button
                 key={item}
                 type="button"
@@ -597,7 +642,7 @@ export default function OwnerOrganisationDetailPage() {
             ))}
           </div>
 
-          {tab === "Overview" ? (
+          {tab === "Overview" && data.organisation ? (
             <section className="owner-panel">
               <h2 className="owner-panel__title">Organisation details</h2>
               <dl className="owner-metrics" style={{ marginBottom: "1rem" }}>
@@ -635,9 +680,12 @@ export default function OwnerOrganisationDetailPage() {
               </dl>
 
               <h3 className="owner-section__title">Customer health</h3>
-              <OwnerStatus value={data.health.level} label={data.health.label} />
+              <OwnerStatus
+                value={data.health?.level ?? "watch"}
+                label={data.health?.label ?? "Organisation"}
+              />
               <ul className="owner-health-reasons">
-                {data.health.reasons.map(reason => (
+                {(data.health?.reasons ?? []).map(reason => (
                   <li key={reason}>{reason}</li>
                 ))}
               </ul>
@@ -645,6 +693,7 @@ export default function OwnerOrganisationDetailPage() {
               <h3 className="owner-section__title" style={{ marginTop: "1rem" }}>
                 Usage summary
               </h3>
+              {data.usage ? (
               <div className="owner-metrics">
                 <Metric value={data.usage.managersInvited} label="Managers invited" />
                 <Metric value={data.usage.managersActivated} label="Managers activated" />
@@ -667,10 +716,13 @@ export default function OwnerOrganisationDetailPage() {
                   label="Last activity"
                 />
               </div>
+              ) : (
+                <p className="owner-muted">Usage counts are not available.</p>
+              )}
             </section>
           ) : null}
 
-          {tab === "Users" ? (
+          {tab === "Users" && data.organisation ? (
             <>
               <section className="owner-panel" style={{ marginBottom: "1rem" }}>
                 <div
@@ -851,7 +903,7 @@ export default function OwnerOrganisationDetailPage() {
             </>
           ) : null}
 
-          {tab === "Usage" ? (
+          {tab === "Usage" && data.organisation && data.usage ? (
             <section className="owner-panel">
               <h2 className="owner-panel__title">Usage</h2>
               <p className="owner-muted">
@@ -866,7 +918,7 @@ export default function OwnerOrganisationDetailPage() {
             </section>
           ) : null}
 
-          {tab === "Commercial" ? (
+          {tab === "Commercial" && data.organisation ? (
             <CommercialPanel
               subscriptions={data.subscriptions}
               invoices={data.invoices}
@@ -877,7 +929,7 @@ export default function OwnerOrganisationDetailPage() {
             />
           ) : null}
 
-          {tab === "Support" ? (
+          {tab === "Support" && data.organisation ? (
             <section className="owner-panel">
               <h2 className="owner-panel__title">Support</h2>
               {data.support.length === 0 ? (
@@ -900,7 +952,7 @@ export default function OwnerOrganisationDetailPage() {
             </section>
           ) : null}
 
-          {tab === "Audit" ? (
+          {tab === "Audit" && data.organisation ? (
             <section className="owner-panel">
               <h2 className="owner-panel__title">Audit</h2>
               {data.audit.length === 0 ? (
@@ -922,6 +974,8 @@ export default function OwnerOrganisationDetailPage() {
 
           {tab === "Data lifecycle" ? (
             <section className="owner-panel">
+              {hideLifecycleActions ? null : (
+                <>
               <h2 className="owner-panel__title">Deletion preflight</h2>
               <p className="owner-muted">
                 Read-only inventory for Platform Owner closure. This inventory
@@ -935,7 +989,9 @@ export default function OwnerOrganisationDetailPage() {
                   {preflightError}
                 </p>
               ) : null}
-              {preflight ? (
+                </>
+              )}
+              {preflight && !hideLifecycleActions ? (
                 <>
                   <dl className="owner-metrics" style={{ margin: "1rem 0" }}>
                     <Detail
@@ -1024,6 +1080,8 @@ export default function OwnerOrganisationDetailPage() {
                     </>
                   ) : null}
                   <p className="owner-muted">{preflight.confidentialityNote}</p>
+                  {hideLifecycleActions ? null : (
+                    <>
                   <ClosureInitiationPanel
                     organisationName={preflight.organisation?.name ?? ""}
                     organisationStatus={preflight.organisation?.status ?? ""}
@@ -1054,8 +1112,17 @@ export default function OwnerOrganisationDetailPage() {
                     onAcknowledgedChange={setCommercialCopyAcknowledged}
                     onSubmit={submitCommercialRetention}
                   />
+                    </>
+                  )}
                 </>
               ) : null}
+              {hideLifecycleActions ? (
+                <p className="owner-muted">
+                  Freeze, commercial retention, retain/minimise, and tenant purge
+                  controls are not available after those stages complete.
+                </p>
+              ) : (
+                <>
               <RetainMinimisePanel
                 organisationStatus={
                   commercialRetention?.organisationStatus ??
@@ -1087,10 +1154,16 @@ export default function OwnerOrganisationDetailPage() {
                 onConfirmationNameChange={setPurgeConfirmationName}
                 onSubmit={submitTenantPurge}
               />
+                </>
+              )}
+              <FinalVerificationPanel
+                state={finalVerification}
+                error={finalVerificationError}
+              />
             </section>
           ) : null}
 
-          {tab === "Settings" ? (
+          {tab === "Settings" && data.organisation ? (
             <section className="owner-panel">
               <h2 className="owner-panel__title">Account settings</h2>
               <div className="owner-filters">
@@ -1730,6 +1803,124 @@ function TenantPurgePanel(props: {
         </p>
       ) : (
         <p className="owner-muted">Loading tenant purge status…</p>
+      )}
+    </section>
+  );
+}
+
+function FinalVerificationPanel(props: {
+  state: FinalVerificationState | null;
+  error: string;
+}) {
+  return (
+    <section>
+      <h2 className="owner-panel__title">Deletion certificate</h2>
+      <p className="owner-muted">
+        Independent read-only final verification. Certificate issuance is not
+        available in this stage.
+      </p>
+      {props.error ? (
+        <p className="owner-muted" role="alert">
+          {props.error}
+        </p>
+      ) : null}
+      {props.state ? (
+        <>
+          <dl className="owner-metrics" style={{ margin: "1rem 0" }}>
+            <Detail
+              label="Verification status"
+              value={props.state.finalVerificationResult.replaceAll("_", " ")}
+            />
+            <Detail
+              label="Commercial copy status"
+              value={
+                props.state.commercialCopyVerificationStatus?.replaceAll("_", " ") ??
+                "unknown"
+              }
+            />
+            <Detail
+              label="Organisation row"
+              value={props.state.organisationRowAbsent ? "absent" : "present"}
+            />
+            <Detail
+              label="Eligible erasure claim"
+              value={props.state.eligibleErasureClaim ?? "not eligible"}
+            />
+          </dl>
+          <h3 className="owner-panel__title">Blocking codes</h3>
+          {props.state.blockingReasons.length > 0 ? (
+            <ul className="owner-muted">
+              {props.state.blockingReasons.map(reason => (
+                <li key={reason.code}>
+                  {reason.code}: {reason.message}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="owner-muted">No blocking codes.</p>
+          )}
+          <h3 className="owner-panel__title">Tenant residual verification</h3>
+          <ul className="owner-muted">
+            {props.state.liveResiduals.map(item => (
+              <li key={`live-${item.table}`}>
+                {item.table}: {item.remainingCount} remaining (
+                {item.evidence.replaceAll("_", " ")})
+              </li>
+            ))}
+            {props.state.boundSlice3Evidence.map(item => (
+              <li key={`bound-${item.table}`}>
+                {item.table}: live-join remaining {item.liveJoinRemainingCount} (
+                {item.evidence.replaceAll("_", " ")};{" "}
+                {item.independentReverification.replaceAll("_", " ")})
+              </li>
+            ))}
+          </ul>
+          <h3 className="owner-panel__title">Storage verification</h3>
+          <p className="owner-muted">
+            Bucket {props.state.storage.bucket}: captured{" "}
+            {props.state.storage.capturedCount}, verified absent{" "}
+            {props.state.storage.verifiedAbsentCount}, prefix remainder{" "}
+            {props.state.storage.prefixRemainderCount}
+            {props.state.storage.explicitEmptyCapture
+              ? "; authoritative empty capture proven"
+              : ""}
+            {props.state.storage.capturePerformed
+              ? ""
+              : "; capture not performed"}
+            . Objects were listed only; content was not downloaded.
+          </p>
+          <h3 className="owner-panel__title">Retained commercial verification</h3>
+          <p className="owner-muted">
+            Expected {props.state.retainedCommercial.expectedTotal ?? "unknown"},
+            actual {props.state.retainedCommercial.actualTotal}, counts{" "}
+            {props.state.retainedCommercial.countsMatch ? "match" : "do not match"}
+            , coaching content{" "}
+            {props.state.retainedCommercial.coachingContentAbsent
+              ? "absent"
+              : "detected"}
+            .
+          </p>
+          <h3 className="owner-panel__title">
+            Retained support and audit minimisation
+          </h3>
+          <p className="owner-muted">
+            Support pending {props.state.retainedSupportAudit.supportPending},
+            minimised {props.state.retainedSupportAudit.supportMinimised}, not
+            minimised {props.state.retainedSupportAudit.supportNonMinimised}.
+            Audit pending {props.state.retainedSupportAudit.auditPending},
+            minimised {props.state.retainedSupportAudit.auditMinimised}, not
+            minimised {props.state.retainedSupportAudit.auditNonMinimised}.
+          </p>
+          <h3 className="owner-panel__title">Auth users</h3>
+          <p className="owner-muted">{props.state.authStatement}.</p>
+          <h3 className="owner-panel__title">Backup and external processors</h3>
+          <p className="owner-muted">
+            Backup status {props.state.backupStatus}. External follow-up{" "}
+            {props.state.externalFollowUpStatus}. These remain unverified.
+          </p>
+        </>
+      ) : props.error ? null : (
+        <p className="owner-muted">Loading final verification…</p>
       )}
     </section>
   );
