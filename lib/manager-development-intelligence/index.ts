@@ -45,6 +45,11 @@ export {
 } from "@/lib/manager-development-intelligence/load-signals";
 
 export {
+  SAMPLE_MANAGER_DEVELOPMENT_PACK_KEY,
+  loadSampleManagerDevelopmentSignals,
+} from "@/lib/manager-development-intelligence/load-sample-signals";
+
+export {
   LEAD_PRIVACY_BOUNDARY_COPY,
   LEAD_LENS_SEPARATION_COPY,
   LEAD_OVERVIEW_LENS_NOTE,

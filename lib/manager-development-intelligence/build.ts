@@ -6,6 +6,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { aggregateManagerDevelopmentSignals } from "@/lib/manager-development-intelligence/aggregate";
 import type { ManagerDevelopmentIntelligenceView } from "@/lib/manager-development-intelligence/aggregate";
 import { loadManagerDevelopmentDerivedSignals } from "@/lib/manager-development-intelligence/load-signals";
+import { loadSampleManagerDevelopmentSignals } from "@/lib/manager-development-intelligence/load-sample-signals";
 
 export async function buildManagerDevelopmentIntelligence(input: {
   /** Privileged server client used only after permission checks. */
@@ -15,6 +16,17 @@ export async function buildManagerDevelopmentIntelligence(input: {
   const organisationId = input.organisationId.trim();
   if (!organisationId) {
     throw new Error("Organisation is required.");
+  }
+
+  const sample = await loadSampleManagerDevelopmentSignals({
+    supabase: input.supabase,
+    organisationId,
+  });
+  if (sample) {
+    return aggregateManagerDevelopmentSignals({
+      signals: sample.signals,
+      activeManagerPopulation: sample.activeManagerPopulation,
+    });
   }
 
   const loaded = await loadManagerDevelopmentDerivedSignals({
