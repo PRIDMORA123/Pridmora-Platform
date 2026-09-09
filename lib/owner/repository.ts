@@ -284,7 +284,11 @@ export async function listOwnerUsers(
     p_limit: 200,
   });
 
-  if (error || !data) return [];
+  if (error) {
+    throw new Error(`Failed to list Owner users: ${error.message}`);
+  }
+
+  if (!data) return [];
 
   return (data as Array<Record<string, unknown>>).map(row => ({
     membershipId: String(row.membership_id),

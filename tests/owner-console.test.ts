@@ -42,6 +42,28 @@ describe("owner console foundation", () => {
     expect(sql).toContain("owner_platform_usage_totals");
   });
 
+  it("does not disguise an Owner user-list RPC failure as an empty membership list", () => {
+    const source = read("lib/owner/repository.ts");
+    const start = source.indexOf("export async function listOwnerUsers");
+    const end = source.indexOf("export async function listSubscriptions", start);
+    const listOwnerUsers = source.slice(start, end);
+
+    expect(listOwnerUsers).toContain("if (error)");
+    expect(listOwnerUsers).toContain("throw new Error");
+    expect(listOwnerUsers).not.toContain("if (error || !data) return []");
+    expect(listOwnerUsers).toContain("if (!data) return []");
+  });
+
+  it("keeps Owner user-list email compatible with the RPC text return type", () => {
+    const path =
+      "supabase/migrations/20260907152000_fix_owner_user_list_email_type.sql";
+    expect(existsSync(join(root, path))).toBe(true);
+
+    const sql = read(path);
+    expect(sql).toContain("owner_list_platform_users");
+    expect(sql).toMatch(/coalesce\(u\.email, ''\)::text as email/i);
+  });
+
   it("excludes self-development from Owner People/team-member counts, not seat counts", () => {
     const path =
       "supabase/migrations/20260820120000_owner_people_counts_exclude_self_development.sql";
