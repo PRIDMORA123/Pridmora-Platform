@@ -9,6 +9,16 @@ import {
 } from "@/lib/auth/post-login-destination";
 
 describe("authoritative post-login destination", () => {
+  it("does not expose a Manager workspace exit from the Owner Console", () => {
+    const ownerShell = readFileSync(
+      resolve(process.cwd(), "components/owner/owner-shell.tsx"),
+      "utf8"
+    );
+
+    expect(ownerShell).not.toContain("Exit to workspace");
+    expect(ownerShell).not.toContain('/?view=dashboard');
+  });
+
   it("routes platform owners to /owner", () => {
     expect(
       resolvePostLoginDestination({
@@ -20,7 +30,7 @@ describe("authoritative post-login destination", () => {
     ).toBe(OWNER_CONSOLE_PATH);
   });
 
-  it("honours explicit Manager workspace for a platform owner", () => {
+  it("keeps a platform owner in the Owner Console when Manager workspace is requested", () => {
     expect(
       resolvePostLoginDestination({
         requestedNext: MANAGER_WORKSPACE_PATH,
@@ -28,7 +38,7 @@ describe("authoritative post-login destination", () => {
         membershipRole: null,
         professionalRole: null,
       })
-    ).toBe(MANAGER_WORKSPACE_PATH);
+    ).toBe(OWNER_CONSOLE_PATH);
   });
 
   it("keeps a normal Manager on Manager home for / and /?view=dashboard", () => {
