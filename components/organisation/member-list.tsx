@@ -33,6 +33,7 @@ function memberActions({
   invitableRoles,
   removeAccessLabel,
   restoreAccessLabel,
+  managerFacing,
   onChangeRole,
   onDeactivate,
   onReactivate,
@@ -43,6 +44,7 @@ function memberActions({
   invitableRoles: MembershipRole[];
   removeAccessLabel: string;
   restoreAccessLabel: string;
+  managerFacing: boolean;
   onChangeRole: (membershipId: string, role: MembershipRole) => void;
   onDeactivate: (membershipId: string) => void;
   onReactivate: (membershipId: string) => void;
@@ -66,17 +68,27 @@ function memberActions({
         onSelect: () => onReactivate(member.id),
       });
     }
-    for (const role of invitableRoles) {
-      if (role === member.role) continue;
-      actions.push({
-        id: `role-${role}`,
-        label: `Make ${MEMBERSHIP_ROLE_LABELS[role]}`,
-        disabled: busy,
-        onSelect: () => onChangeRole(member.id, role),
-      });
+    if (!managerFacing) {
+      for (const role of invitableRoles) {
+        if (role === member.role) continue;
+        actions.push({
+          id: `role-${role}`,
+          label: `Make ${MEMBERSHIP_ROLE_LABELS[role]}`,
+          disabled: busy,
+          onSelect: () => onChangeRole(member.id, role),
+        });
+      }
     }
   }
   return actions;
+}
+
+function customerRoleLabel(member: OrganisationMemberRow): string {
+  if (member.role === "oversight") return "Organisation Lead";
+  if (member.role === "practitioner" && member.professionalRole === "manager") {
+    return "Manager";
+  }
+  return "Unknown role";
 }
 
 function statusTone(status: string) {
@@ -92,6 +104,7 @@ export function MemberRow({
   invitableRoles,
   removeAccessLabel = "Deactivate member",
   restoreAccessLabel = "Reactivate member",
+  managerFacing = false,
   onChangeRole,
   onDeactivate,
   onReactivate,
@@ -102,6 +115,7 @@ export function MemberRow({
   invitableRoles: MembershipRole[];
   removeAccessLabel?: string;
   restoreAccessLabel?: string;
+  managerFacing?: boolean;
   onChangeRole: (membershipId: string, role: MembershipRole) => void;
   onDeactivate: (membershipId: string) => void;
   onReactivate: (membershipId: string) => void;
@@ -113,6 +127,7 @@ export function MemberRow({
     invitableRoles,
     removeAccessLabel,
     restoreAccessLabel,
+    managerFacing,
     onChangeRole,
     onDeactivate,
     onReactivate,
@@ -133,8 +148,14 @@ export function MemberRow({
           </div>
         </div>
       </td>
-      <td>{formatMembershipRoleLabel(member.role)}</td>
-      <td>{formatProfessionalRoleLabel(member.professionalRole)}</td>
+      {managerFacing ? (
+        <td>{customerRoleLabel(member)}</td>
+      ) : (
+        <>
+          <td>{formatMembershipRoleLabel(member.role)}</td>
+          <td>{formatProfessionalRoleLabel(member.professionalRole)}</td>
+        </>
+      )}
       <td>{member.assignedRelationshipsCount}</td>
       <td>
         <IdentityStatus tone={statusTone(member.status)}>
@@ -161,6 +182,7 @@ export function MemberCard({
   invitableRoles,
   removeAccessLabel = "Deactivate member",
   restoreAccessLabel = "Reactivate member",
+  managerFacing = false,
   onChangeRole,
   onDeactivate,
   onReactivate,
@@ -171,6 +193,7 @@ export function MemberCard({
   invitableRoles: MembershipRole[];
   removeAccessLabel?: string;
   restoreAccessLabel?: string;
+  managerFacing?: boolean;
   onChangeRole: (membershipId: string, role: MembershipRole) => void;
   onDeactivate: (membershipId: string) => void;
   onReactivate: (membershipId: string) => void;
@@ -182,6 +205,7 @@ export function MemberCard({
     invitableRoles,
     removeAccessLabel,
     restoreAccessLabel,
+    managerFacing,
     onChangeRole,
     onDeactivate,
     onReactivate,
@@ -205,14 +229,23 @@ export function MemberCard({
         />
       </div>
       <dl className="organisation-member-card__meta">
-        <div>
-          <dt>Membership</dt>
-          <dd>{formatMembershipRoleLabel(member.role)}</dd>
-        </div>
-        <div>
-          <dt>Professional role</dt>
-          <dd>{formatProfessionalRoleLabel(member.professionalRole)}</dd>
-        </div>
+        {managerFacing ? (
+          <div>
+            <dt>Role</dt>
+            <dd>{customerRoleLabel(member)}</dd>
+          </div>
+        ) : (
+          <>
+            <div>
+              <dt>Membership</dt>
+              <dd>{formatMembershipRoleLabel(member.role)}</dd>
+            </div>
+            <div>
+              <dt>Professional role</dt>
+              <dd>{formatProfessionalRoleLabel(member.professionalRole)}</dd>
+            </div>
+          </>
+        )}
         <div>
           <dt>Assigned relationships</dt>
           <dd>{member.assignedRelationshipsCount}</dd>
@@ -241,6 +274,7 @@ export function MemberList({
   invitableRoles,
   removeAccessLabel = "Deactivate member",
   restoreAccessLabel = "Reactivate member",
+  managerFacing = false,
   onChangeRole,
   onDeactivate,
   onReactivate,
@@ -251,6 +285,7 @@ export function MemberList({
   invitableRoles: MembershipRole[];
   removeAccessLabel?: string;
   restoreAccessLabel?: string;
+  managerFacing?: boolean;
   onChangeRole: (membershipId: string, role: MembershipRole) => void;
   onDeactivate: (membershipId: string) => void;
   onReactivate: (membershipId: string) => void;
@@ -261,6 +296,7 @@ export function MemberList({
     invitableRoles,
     removeAccessLabel,
     restoreAccessLabel,
+    managerFacing,
     onChangeRole,
     onDeactivate,
     onReactivate,
@@ -273,8 +309,14 @@ export function MemberList({
           <thead>
             <tr>
               <th scope="col">Member</th>
-              <th scope="col">Membership</th>
-              <th scope="col">Professional role</th>
+              {managerFacing ? (
+                <th scope="col">Role</th>
+              ) : (
+                <>
+                  <th scope="col">Membership</th>
+                  <th scope="col">Professional role</th>
+                </>
+              )}
               <th scope="col">Assigned relationships</th>
               <th scope="col">Status</th>
               <th scope="col">Last active</th>

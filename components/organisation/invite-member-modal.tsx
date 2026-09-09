@@ -244,7 +244,7 @@ export function InviteMemberModal({
         seatsAvailable != null &&
         seatsAvailable < 1 ? (
           <p className="organisation-error" role="status">
-            No practitioner seats available. Remove Manager access for an
+            No Manager seats available. Remove Manager access for an
             existing Manager, or contact your Platform Owner to adjust the
             licence.
           </p>

@@ -98,8 +98,8 @@ export default function OrganisationAssignmentsPage() {
     >
       <OrganisationInfoBanner>
         Assignments control who may work with a Person. Organisation Leads can
-        manage assignments without gaining access to confidential coaching notes,
-        reflections, or preparation content.
+        manage assignments without gaining access to private Manager development
+        content, reflections, or preparation content.
       </OrganisationInfoBanner>
 
       {loading ? (
@@ -108,7 +108,7 @@ export default function OrganisationAssignmentsPage() {
       {error ? <p className="organisation-error">{error}</p> : null}
 
       <section className="organisation-panel">
-        <h2 className="organisation-section-title">Practitioners</h2>
+        <h2 className="organisation-section-title">Managers</h2>
         <PractitionerSummary practitioners={practitioners} />
       </section>
 

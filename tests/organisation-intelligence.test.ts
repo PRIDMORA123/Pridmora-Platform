@@ -503,7 +503,7 @@ describe("organisation intelligence UI and navigation", () => {
     expect(page).toContain("Aggregate it safely");
     expect(page).toContain("Identify development patterns");
     expect(page).toContain("Support informed decisions");
-    expect(page).toContain("Review coaching activity");
+    expect(page).toContain("Review development activity");
     expect(page).toContain('aria-label="About the privacy threshold"');
 
     const generateLabelCount = (

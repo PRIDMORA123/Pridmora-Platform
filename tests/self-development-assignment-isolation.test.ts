@@ -57,8 +57,24 @@ vi.mock("@/lib/organisations/licence", async importOriginal => {
       },
       summary: { seatsPurchased: 20, seatsInUse: 2, seatsAvailable: 18 },
       memberships: [
-        { userId: MGR_A, role: "practitioner", status: "active" },
-        { userId: MGR_B, role: "practitioner", status: "active" },
+        {
+          userId: MGR_A,
+          role: "practitioner",
+          professionalRole: "manager",
+          status: "active",
+        },
+        {
+          userId: MGR_B,
+          role: "practitioner",
+          professionalRole: "manager",
+          status: "active",
+        },
+        {
+          userId: "lead-1",
+          role: "oversight",
+          professionalRole: null,
+          status: "active",
+        },
       ],
       assignments: [],
     })),
@@ -150,12 +166,14 @@ function createAssignmentSupabase(input: {
     from(table: string) {
       let op: "select" | "update" | "insert" = "select";
       let updatePayload: unknown;
+      const filters = new Map<string, unknown>();
 
       const builder = {
         select() {
           return builder;
         },
-        eq() {
+        eq(column: string, value: unknown) {
+          filters.set(column, value);
           return builder;
         },
         maybeSingle: async () => {
@@ -176,8 +194,32 @@ function createAssignmentSupabase(input: {
           if (table === "clients") {
             return { data: input.client ?? null, error: null };
           }
+          if (table === "organisations") {
+            return {
+              data: {
+                licence_plan_name: "Pilot",
+                practitioner_seats_purchased: 15,
+                licence_status: "active",
+                licence_starts_at: null,
+                licence_ends_at: null,
+              },
+              error: null,
+            };
+          }
           if (table === "organisation_memberships") {
-            return { data: input.membership ?? { id: "mem-1", status: "active", role: "practitioner" }, error: null };
+            const membership = input.membership ?? {
+              id: "mem-1",
+              status: "active",
+              role: "practitioner",
+              professional_role: "manager",
+            };
+
+            const matches = [...filters.entries()].every(
+              ([column, value]) =>
+                membership[column] === undefined || membership[column] === value
+            );
+
+            return { data: matches ? membership : null, error: null };
           }
           if (table === "relationship_assignments") {
             return {
@@ -196,10 +238,31 @@ function createAssignmentSupabase(input: {
           mutations.push({ op: "insert", table, payload });
           return Promise.resolve({ error: null });
         },
-        then(resolve: (value: { error: null; data: null }) => void) {
+        then(resolve: (value: { error: null; data: unknown }) => void) {
           if (op === "update") {
             mutations.push({ op: "update", table, payload: updatePayload });
+            resolve({ error: null, data: null });
+            return;
           }
+
+          if (table === "organisation_memberships") {
+            const membership = input.membership ?? {
+              id: "mem-1",
+              organisation_id: ORG_ID,
+              user_id: MGR_B,
+              status: "active",
+              role: "practitioner",
+              professional_role: "manager",
+            };
+            resolve({ error: null, data: [membership] });
+            return;
+          }
+
+          if (table === "relationship_assignments") {
+            resolve({ error: null, data: [] });
+            return;
+          }
+
           resolve({ error: null, data: null });
         },
       };
@@ -253,6 +316,52 @@ describe("Lead assignment administration excludes My Development", () => {
     expect(
       payload.practitioners.reduce((sum, row) => sum + row.assignedCount, 0)
     ).toBe(50);
+  });
+
+  it("exposes only genuine Managers in the Lead assignment pool", () => {
+    const { clients, assignments, members } = westbridgeStyleAssignmentRows();
+
+    const mixedMembers = [
+      ...members,
+      {
+        user_id: "legacy-owner",
+        role: "owner",
+        professional_role: "manager",
+      },
+      {
+        user_id: "legacy-administrator",
+        role: "administrator",
+        professional_role: "manager",
+      },
+      {
+        user_id: "organisation-lead",
+        role: "oversight",
+        professional_role: "manager",
+      },
+      {
+        user_id: "legacy-practitioner",
+        role: "practitioner",
+        professional_role: "coach",
+      },
+    ];
+
+    const payload = buildLeadAssignmentAdministrationPayload({
+      clients,
+      assignments,
+      members: mixedMembers,
+      nameByUser: new Map(
+        mixedMembers.map(member => [member.user_id, member.user_id])
+      ),
+    });
+
+    expect(payload.practitioners).toHaveLength(10);
+    expect(
+      payload.practitioners.every(
+        row =>
+          row.role === "practitioner" &&
+          row.professionalRole === "manager"
+      )
+    ).toBe(true);
   });
 
   it("Manager assigned-People counts exclude self-development assignment rows", () => {
@@ -355,6 +464,67 @@ describe("server fail-closed assignment guard", () => {
 
     expect(mutations.some(row => row.op === "update")).toBe(false);
     expect(mutations.some(row => row.op === "insert")).toBe(false);
+  });
+
+  it("rejects assigning a non-Manager to an ordinary Person without mutation", async () => {
+    const { supabase, mutations } = createAssignmentSupabase({
+      client: personClient,
+      membership: {
+        id: "lead-membership",
+        organisation_id: ORG_ID,
+        user_id: "lead-1",
+        status: "active",
+        role: "oversight",
+        professional_role: null,
+      },
+    });
+
+    await expect(
+      assignRelationship({
+        supabase: supabase as never,
+        organisationId: ORG_ID,
+        clientId: PERSON_ID,
+        userId: "lead-1",
+        assignmentRole: "cover",
+        actorUserId: "lead-1",
+      })
+    ).rejects.toThrow("Target user is not an active Manager.");
+
+    expect(
+      mutations.filter(row => row.table === "relationship_assignments")
+    ).toEqual([]);
+  });
+
+  it("rejects transferring an ordinary Person to a non-Manager without mutation", async () => {
+    const { supabase, mutations } = createAssignmentSupabase({
+      client: personClient,
+      membership: {
+        id: "lead-membership",
+        organisation_id: ORG_ID,
+        user_id: "lead-1",
+        status: "active",
+        role: "oversight",
+        professional_role: null,
+      },
+      currentPrimary: {
+        id: PERSON_ASSIGNMENT_ID,
+        user_id: MGR_A,
+      },
+    });
+
+    await expect(
+      transferPrimaryAssignment({
+        supabase: supabase as never,
+        organisationId: ORG_ID,
+        clientId: PERSON_ID,
+        toUserId: "lead-1",
+        actorUserId: "lead-1",
+      })
+    ).rejects.toThrow("Target user is not an active Manager.");
+
+    expect(
+      mutations.filter(row => row.table === "relationship_assignments")
+    ).toEqual([]);
   });
 
   it("leaves ordinary Person transfer behaviour unchanged", async () => {

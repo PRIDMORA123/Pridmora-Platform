@@ -625,7 +625,7 @@ export default function OrganisationIntelligencePage() {
               </a>
             ) : (
               <Link href="/organisation" className="btn secondary">
-                Review coaching activity
+                Review development activity
               </Link>
             )}
           </div>
@@ -702,7 +702,7 @@ export default function OrganisationIntelligencePage() {
               <p className="org-intelligence-empty-panel__copy">
                 {snapshot?.emptyState
                   ? snapshot.insufficientEvidenceMessage ||
-                    "Organisation Intelligence becomes available when enough anonymised coaching evidence has been recorded to report safely. Absence of themes does not prove that no development need exists."
+                    "Organisation Intelligence becomes available when enough anonymised development evidence has been recorded to report safely. Absence of themes does not prove that no development need exists."
                   : "As authorised development evidence grows, Pridmora will identify recurring privacy-safe development themes and prevalence changes while protecting individual confidentiality. Prevalence is not a performance measure, and missing themes do not prove needs are absent."}
               </p>
 
@@ -977,7 +977,7 @@ export default function OrganisationIntelligencePage() {
                   />
                   <MetricItem
                     value={overviewMetrics?.practitioners?.metricValue ?? 0}
-                    label="Active practitioners"
+                    label="Active Managers"
                   />
                   <MetricItem
                     value={overviewMetrics?.conversations?.metricValue ?? 0}
@@ -1007,7 +1007,7 @@ export default function OrganisationIntelligencePage() {
                 </button>
               </div>
               <p className="organisation-muted">
-                A directional measure of sustained coaching activity, action and
+                A directional measure of sustained Manager development activity, action and
                 recorded development.
               </p>
               {overviewMetrics?.momentum ? (
@@ -1216,7 +1216,7 @@ export default function OrganisationIntelligencePage() {
             >
               <h2 id="org-intel-impact">Development indicators</h2>
               <p className="organisation-muted">
-                Outcomes associated with coaching activity in the selected period.
+                Outcomes associated with Manager development activity in the selected period.
                 These observations do not claim causation.
               </p>
               {snapshot.coachingImpact.length === 0 ? (

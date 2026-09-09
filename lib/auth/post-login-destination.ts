@@ -103,7 +103,10 @@ export function resolvePostLoginDestination(input: {
     return MANAGER_WORKSPACE_PATH;
   }
 
-  return requested;
+  // Release 1 fails closed for legacy or unrecognised role combinations.
+  // Only the explicit Owner, Organisation Lead and Manager routes above may
+  // enter a customer-facing workspace.
+  return "/auth/sign-in?next=/?view=dashboard";
 }
 
 type MembershipRow = {

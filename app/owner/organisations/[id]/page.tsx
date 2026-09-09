@@ -650,8 +650,7 @@ export default function OwnerOrganisationDetailPage() {
                 Invite manager
               </button>
               <span className="owner-muted" style={{ color: "rgba(255,255,255,0.82)" }}>
-                {data.organisation.seatsPurchased} seats · Managers use
-                practitioner seats · Leads do not
+                {data.organisation.seatsPurchased} Manager seats · Organisation Leads do not use a Manager seat
               </span>
             </div>
               </>
@@ -879,9 +878,9 @@ export default function OwnerOrganisationDetailPage() {
                   </button>
                 </div>
                 <p className="owner-muted">
-                  Invite a Manager for this organisation. They join as a
-                  practitioner with professional role Manager — not an organisation
-                  owner, Organisation Lead, or Owner Console user.
+                  Invite a Manager for this organisation. Managers access their own
+                  manager-development workspace and cannot access Organisation Lead
+                  or Owner Console functions.
                 </p>
 
                 {showInviteForm ? (
@@ -2132,6 +2131,14 @@ function ManagerInvitationsPanel({
   return <InvitationTable invitations={invitations} />;
 }
 
+function ownerCustomerRoleLabel(user: OwnerUserListItem): string {
+  if (user.role === "oversight") return "Organisation Lead";
+  if (user.role === "practitioner" && user.professionalRole === "manager") {
+    return "Manager";
+  }
+  return "Unknown role";
+}
+
 function UsersPanel({ users }: { users: OwnerUserListItem[] }) {
   if (users.length === 0) {
     return (
@@ -2159,7 +2166,7 @@ function UsersPanel({ users }: { users: OwnerUserListItem[] }) {
             <tr key={user.membershipId}>
               <td>{user.fullName || "—"}</td>
               <td>{user.email || "—"}</td>
-              <td>{user.role}</td>
+              <td>{ownerCustomerRoleLabel(user)}</td>
               <td>{user.status}</td>
               <td>
                 {user.lastActiveAt

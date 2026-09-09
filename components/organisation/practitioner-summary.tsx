@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  formatMembershipRoleLabel,
-  formatProfessionalRoleLabel,
-  organisationInitials,
-} from "@/lib/organisations/format";
-import type { MembershipRole } from "@/lib/organisations/types";
+import { organisationInitials } from "@/lib/organisations/format";
 
 export type PractitionerSummaryItem = {
   userId: string;
@@ -23,7 +18,7 @@ export function PractitionerSummary({
   if (practitioners.length === 0) {
     return (
       <p className="organisation-muted">
-        No practitioners with assignments yet.
+        No Managers with assignments yet.
       </p>
     );
   }
@@ -31,16 +26,7 @@ export function PractitionerSummary({
   return (
     <ul className="organisation-practitioner-grid">
       {practitioners.map(practitioner => {
-        const professional = formatProfessionalRoleLabel(
-          practitioner.professionalRole
-        );
-        const membership =
-          practitioner.role in
-          { owner: 1, administrator: 1, oversight: 1, practitioner: 1, viewer: 1 }
-            ? formatMembershipRoleLabel(practitioner.role as MembershipRole)
-            : null;
-        const secondary =
-          professional !== "—" ? professional : membership ?? "Practitioner";
+        const secondary = "Manager";
 
         return (
           <li

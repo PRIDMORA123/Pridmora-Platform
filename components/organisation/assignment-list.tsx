@@ -54,7 +54,7 @@ export function AssignmentList({
             <thead>
               <tr>
                 <th scope="col">Relationship</th>
-                <th scope="col">Practitioner</th>
+                <th scope="col">Manager</th>
                 <th scope="col">Assignment role</th>
                 <th scope="col">Status</th>
                 <th scope="col">
@@ -169,7 +169,7 @@ export function AssignmentList({
         }
       >
         <p>
-          This will remove the practitioner&apos;s active assignment.
+          This will remove the Manager&apos;s active assignment.
           Relationship history will remain preserved.
         </p>
       </ConfirmDialog>

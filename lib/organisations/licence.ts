@@ -44,6 +44,7 @@ export const LICENCE_NOT_ACTIVE_MESSAGE =
 export type SeatMembershipRow = {
   userId: string;
   role: MembershipRole;
+  professionalRole: string | null;
   status: string;
 };
 
@@ -259,7 +260,7 @@ export async function loadPractitionerSeatUsage(
     await Promise.all([
       supabase
         .from("organisation_memberships")
-        .select("user_id, role, status")
+        .select("user_id, role, professional_role, status")
         .eq("organisation_id", organisationId),
       supabase
         .from("relationship_assignments")
@@ -273,6 +274,7 @@ export async function loadPractitionerSeatUsage(
   const membershipRows: SeatMembershipRow[] = (memberships ?? []).map(row => ({
     userId: row.user_id as string,
     role: row.role as MembershipRole,
+    professionalRole: (row.professional_role as string | null) ?? null,
     status: row.status as string,
   }));
 

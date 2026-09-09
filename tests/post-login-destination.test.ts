@@ -115,6 +115,17 @@ describe("authoritative post-login destination", () => {
     ).toBe(MANAGER_WORKSPACE_PATH);
   });
 
+  it("fails closed for a legacy practitioner Coach role", () => {
+    expect(
+      resolvePostLoginDestination({
+        requestedNext: "/",
+        isPlatformOwner: false,
+        membershipRole: "practitioner",
+        professionalRole: "coach",
+      })
+    ).toBe("/auth/sign-in?next=/?view=dashboard");
+  });
+
   it("preserves invitation deep links over role defaults", () => {
     expect(
       resolvePostLoginDestination({

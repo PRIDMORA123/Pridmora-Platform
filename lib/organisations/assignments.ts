@@ -114,8 +114,10 @@ export function buildLeadAssignmentAdministrationPayload(input: {
       clientName: nameByClient.get(row.client_id) ?? "Relationship",
     })),
     practitioners: input.members
-      .filter(member =>
-        ["practitioner", "owner", "administrator"].includes(member.role)
+      .filter(
+        member =>
+          member.role === "practitioner" &&
+          member.professional_role === "manager"
       )
       .map(member => ({
         userId: member.user_id,
@@ -240,6 +242,13 @@ async function assertSeatForNewAssignment(input: {
     throw new Error("Target user is not an active organisation member.");
   }
 
+  if (
+    membership.role !== "practitioner" ||
+    membership.professionalRole !== "manager"
+  ) {
+    throw new Error("Target user is not an active Manager.");
+  }
+
   const alreadyConsumes = memberAlreadyConsumesSeat(
     input.userId,
     seatUsage.memberships,
@@ -276,18 +285,6 @@ export async function transferPrimaryAssignment(input: {
     organisationId: input.organisationId,
     clientId: input.clientId,
   });
-
-  const { data: membership } = await input.supabase
-    .from("organisation_memberships")
-    .select("id, status, role")
-    .eq("organisation_id", input.organisationId)
-    .eq("user_id", input.toUserId)
-    .eq("status", "active")
-    .maybeSingle();
-
-  if (!membership) {
-    throw new Error("Target user is not an active organisation member.");
-  }
 
   await assertSeatForNewAssignment({
     supabase: input.supabase,
@@ -372,18 +369,6 @@ export async function assignRelationship(input: {
       actorUserId: input.actorUserId,
     });
     return;
-  }
-
-  const { data: membership } = await input.supabase
-    .from("organisation_memberships")
-    .select("id, status, role")
-    .eq("organisation_id", input.organisationId)
-    .eq("user_id", input.userId)
-    .eq("status", "active")
-    .maybeSingle();
-
-  if (!membership) {
-    throw new Error("Target user is not an active organisation member.");
   }
 
   await assertSeatForNewAssignment({

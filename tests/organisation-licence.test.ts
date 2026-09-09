@@ -96,12 +96,12 @@ describe("practitioner seat consumption", () => {
   it("aggregates seats in use across memberships and assignments", () => {
     const inUse = countPractitionerSeatsInUse(
       [
-        { userId: "p1", role: "practitioner", status: "active" },
-        { userId: "owner", role: "owner", status: "active" },
-        { userId: "admin", role: "administrator", status: "active" },
-        { userId: "oversight", role: "oversight", status: "active" },
-        { userId: "viewer", role: "viewer", status: "active" },
-        { userId: "old", role: "practitioner", status: "deactivated" },
+        { userId: "p1", role: "practitioner", professionalRole: "manager", status: "active" },
+        { userId: "owner", role: "owner", professionalRole: null, status: "active" },
+        { userId: "admin", role: "administrator", professionalRole: null, status: "active" },
+        { userId: "oversight", role: "oversight", professionalRole: null, status: "active" },
+        { userId: "viewer", role: "viewer", professionalRole: null, status: "active" },
+        { userId: "old", role: "practitioner", professionalRole: "manager", status: "deactivated" },
       ],
       [
         {

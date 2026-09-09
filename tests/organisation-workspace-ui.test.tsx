@@ -179,7 +179,7 @@ describe("organisation workspace UI", () => {
     expect(overview).toContain('title="People"');
     expect(overview).toContain('title="Workflow"');
     expect(overview).toContain('title="Platform activity"');
-    expect(overview).toContain("Active practitioners");
+    expect(overview).toContain("Active Managers");
     expect(overview).toContain("Seats");
     expect(overview).toContain("seats.label");
   });
@@ -207,7 +207,7 @@ describe("organisation workspace UI", () => {
     expect(assignments).toContain("End this assignment?");
     expect(assignments).toMatch(/Relationship\s+history will remain preserved/);
     expect(form).toContain(">Relationship</span>");
-    expect(form).toContain(">Practitioner</span>");
+    expect(form).toContain(">Manager</span>");
     expect(form).toContain(">Assignment role</span>");
     expect(form).toContain("Save assignment");
   });

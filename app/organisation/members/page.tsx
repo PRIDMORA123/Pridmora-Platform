@@ -239,7 +239,7 @@ export default function OrganisationMembersPage() {
           <p>You are currently the only member of this workspace.</p>
           <p className="organisation-muted">
             {isLeadAdmin
-              ? "Invite a Manager when you are ready to onboard the first practitioner seat."
+              ? "Invite a Manager when you are ready to use the first Manager seat."
               : "Invite another practitioner or administrator when you are ready to work as a team."}
           </p>
           <IdentityButton
@@ -287,6 +287,7 @@ export default function OrganisationMembersPage() {
           canManage={canManage}
           busy={busy}
           invitableRoles={roles}
+          managerFacing={isLeadAdmin}
           removeAccessLabel={
             isLeadAdmin ? "Remove Manager access" : "Deactivate member"
           }

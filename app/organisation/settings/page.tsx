@@ -126,7 +126,7 @@ export default function OrganisationSettingsPage() {
             Sample organisation
           </Link>
           {" — "}
-          install a fictional coaching environment for demonstrations, training and
+          install a fictional manager-development environment for demonstrations, training and
           evaluation.
         </p>
       ) : null}
@@ -165,12 +165,11 @@ export default function OrganisationSettingsPage() {
               </p>
               <p className="organisation-field-hint">
                 {settings.licence.seatsAvailable === 1
-                  ? "1 practitioner seat available."
-                  : `${settings.licence.seatsAvailable} practitioner seats available.`}{" "}
-                Owners, administrators and oversight members use a seat only when
-                they also have practitioner access or active relationship
-                assignments. Deactivating a member releases the seat without
-                deleting history.
+                  ? "1 Manager seat available."
+                  : `${settings.licence.seatsAvailable} Manager seats available.`}{" "}
+                Manager seats are used by active Managers. Removing Manager access
+                releases the seat without deleting their existing development
+                history.
               </p>
             </div>
           </SettingsSection>
@@ -253,7 +252,7 @@ export default function OrganisationSettingsPage() {
               summaries or development intelligence in this workspace.
             </p>
             <p className="organisation-muted">
-              Practitioner settings may further restrict AI use but cannot
+              Manager settings may further restrict AI use but cannot
               override an organisation-level prohibition.
             </p>
           </SettingsSection>

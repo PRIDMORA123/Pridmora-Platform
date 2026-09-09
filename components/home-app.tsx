@@ -268,9 +268,18 @@ export function HomeApp() {
               organisations: orgPayload.organisations,
             });
           }
-        } catch {
-          // Pre-migration environments continue without organisation UI.
-          setOrganisationState(null);
+        } catch (error) {
+          if (!cancelled && activeRef.current) {
+            setOrganisationState(null);
+            setAuthError(
+              errorMessage(
+                error,
+                "Unable to verify your organisation access. Please sign in again."
+              )
+            );
+            setAuthReady(true);
+          }
+          return;
         }
 
         setAuthReady(true);

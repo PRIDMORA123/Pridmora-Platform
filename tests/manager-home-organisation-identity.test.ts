@@ -93,6 +93,22 @@ describe("FIX-2 Manager Home organisation identity", () => {
     expect(mcc).not.toMatch(/organisationId\s*=\s*.*query/i);
   });
 
+  it("5b: organisation resolution failure fails closed before Manager data loads", () => {
+    const homeApp = read("components/home-app.tsx");
+
+    const organisationRequest = homeApp.indexOf('"/api/organisations/current"');
+    const organisationError = homeApp.indexOf(
+      "Unable to verify your organisation access. Please sign in again."
+    );
+    const stopAfterFailure = homeApp.indexOf("return;", organisationError);
+    const managerDataLoad = homeApp.indexOf("const loaded = await loadClients()", organisationError);
+
+    expect(organisationRequest).toBeGreaterThan(-1);
+    expect(organisationError).toBeGreaterThan(organisationRequest);
+    expect(stopAfterFailure).toBeGreaterThan(organisationError);
+    expect(managerDataLoad).toBeGreaterThan(stopAfterFailure);
+  });
+
   it("6: multi-org preserves existing model and labels the current workspace", () => {
     expect(
       resolveManagerHomeOrganisationIdentity({

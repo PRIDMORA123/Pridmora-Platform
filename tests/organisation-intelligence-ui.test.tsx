@@ -122,7 +122,7 @@ describe("organisation intelligence empty-state UI", () => {
     const review = container.querySelector(
       'a[href="/organisation"].btn.secondary'
     );
-    expect(review?.textContent).toContain("Review coaching activity");
+    expect(review?.textContent).toContain("Review development activity");
 
     const tipTrigger = container.querySelector(
       'button[aria-label="About the privacy threshold"]'

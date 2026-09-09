@@ -31,6 +31,15 @@ describe("organisation foundation source guards", () => {
     expect(sql).not.toMatch(/drop column.*coach_id/i);
   });
 
+  it("fails closed instead of fabricating a legacy Personal workspace or Coach role", () => {
+    const context = read("lib/organisations/current-organisation.ts");
+
+    expect(context).toContain("Organisation access required.");
+    expect(context).not.toContain("Pre-migration: fall back");
+    expect(context).not.toContain('name: "Personal workspace"');
+    expect(context).not.toContain('professionalRole: "coach"');
+  });
+
   it("clients API uses organisation context and ignores browser organisation_id", () => {
     const route = read("app/api/clients/route.ts");
     expect(route).toContain("requireOrganisationContext");

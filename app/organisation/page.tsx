@@ -150,8 +150,8 @@ export default function OrganisationOverviewPage() {
                   value={metrics.practitioners}
                   label={
                     metrics.practitioners === 1
-                      ? "Active practitioner"
-                      : "Active practitioners"
+                      ? "Active Manager"
+                      : "Active Managers"
                   }
                 />
                 <MetricItem

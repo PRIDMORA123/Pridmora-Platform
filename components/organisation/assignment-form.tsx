@@ -70,7 +70,7 @@ export function AssignmentForm({
         </label>
 
         <label className="organisation-field" htmlFor={practitionerId}>
-          <span>Practitioner</span>
+          <span>Manager</span>
           <select
             id={practitionerId}
             value={userId}
@@ -78,7 +78,7 @@ export function AssignmentForm({
             onChange={e => onUserIdChange(e.target.value)}
           >
             {practitioners.length === 0 ? (
-              <option value="">No practitioners available</option>
+              <option value="">No Managers available</option>
             ) : null}
             {practitioners.map(practitioner => (
               <option key={practitioner.userId} value={practitioner.userId}>

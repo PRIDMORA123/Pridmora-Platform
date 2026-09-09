@@ -48,62 +48,8 @@ export async function requireOrganisationContext(options?: {
   );
 
   if (!resolved.ok) {
-    // Pre-migration: fall back to auth-only context with a synthetic personal scope.
-    // Callers that need full org features will still fail closed on missing tables.
-    if (resolved.reason === "unavailable") {
-      return {
-        ok: true,
-        context: {
-          ...auth.context,
-          organisation: {
-            userId: auth.context.user.id,
-            organisationId: auth.context.user.id,
-            membershipId: auth.context.user.id,
-            role: "owner",
-            professionalRole: "coach",
-            organisation: {
-              id: auth.context.user.id,
-              name: "Personal workspace",
-              slug: null,
-              organisationType: "personal",
-              status: "active",
-              createdBy: auth.context.user.id,
-              defaultPreparationStyle: null,
-              aiEnabled: true,
-              dataRetentionPolicyLabel: "standard",
-              brandingStatus: "none",
-              logoUrl: null,
-              licence: {
-                planName: "Pilot",
-                seatsPurchased: 1,
-                status: "active",
-                startsAt: null,
-                endsAt: null,
-              },
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-              archivedAt: null,
-            },
-            membership: {
-              id: auth.context.user.id,
-              organisationId: auth.context.user.id,
-              userId: auth.context.user.id,
-              role: "owner",
-              professionalRole: "coach",
-              status: "active",
-              invitedBy: null,
-              invitedAt: null,
-              joinedAt: new Date().toISOString(),
-              deactivatedAt: null,
-              lastActiveAt: null,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            },
-          },
-        },
-      };
-    }
-
+    // Release 1 fails closed when organisation membership cannot be resolved.
+    // Do not fabricate a legacy Personal workspace or customer-facing role.
     return {
       ok: false,
       response: NextResponse.json(
