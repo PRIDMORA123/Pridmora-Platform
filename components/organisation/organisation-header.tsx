@@ -5,18 +5,16 @@ import { useEffect, useState } from "react";
 import { AccountMenu } from "@/components/account-menu";
 import { WorkspaceSelector } from "@/components/organisation/workspace-selector";
 import { apiJson } from "@/lib/api-client";
-import { LEAD_WORKSPACE_PATH } from "@/lib/auth/post-login-destination";
+import { LEAD_WORKSPACE_PATH, OWNER_CONSOLE_PATH } from "@/lib/auth/post-login-destination";
 import { signOutToSignIn } from "@/lib/auth/sign-out-client";
 import { initialsFromFullName } from "@/lib/auth/session-client";
 import { useOrganisation } from "@/lib/organisations/organisation-context";
-import { MEMBERSHIP_ROLE_LABELS } from "@/lib/organisations/types";
 import type { MembershipRole } from "@/lib/organisations/types";
 
 function accountTitleForMembership(role: MembershipRole | null): string {
+  if (role === "owner") return "Owner";
   if (role === "oversight") return "Organisation Lead";
-  if (role && MEMBERSHIP_ROLE_LABELS[role]) {
-    return MEMBERSHIP_ROLE_LABELS[role];
-  }
+  if (role === "practitioner") return "Manager";
   return "Account";
 }
 
@@ -41,11 +39,18 @@ export function OrganisationHeader({
   const [accountTitle, setAccountTitle] = useState("Account");
   const [accountInitials, setAccountInitials] = useState("?");
 
+  const isOwner = membershipRole === "owner";
   const isOversight = membershipRole === "oversight";
-  const backHref = isOversight ? LEAD_WORKSPACE_PATH : "/?view=dashboard";
-  const backLabel = isOversight
-    ? "Organisation overview"
-    : "Back to workspace";
+  const backHref = isOwner
+    ? OWNER_CONSOLE_PATH
+    : isOversight
+      ? LEAD_WORKSPACE_PATH
+      : "/?view=dashboard";
+  const backLabel = isOwner
+    ? "Back to Owner Console"
+    : isOversight
+      ? "Organisation overview"
+      : "Back to workspace";
 
   useEffect(() => {
     let cancelled = false;

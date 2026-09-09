@@ -209,6 +209,30 @@ describe("Organisation Workspace selector", () => {
     ).toBeNull();
   });
 
+  it("routes an Owner header back to the Owner Console", async () => {
+    const initial = membershipState({ multi: false, role: "owner" });
+
+    await act(async () => {
+      rootNode.render(
+        <OrganisationProvider initial={initial}>
+          <OrganisationHeader title="Overview" />
+        </OrganisationProvider>
+      );
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const backLink = container.querySelector(
+      ".organisation-header__back"
+    ) as HTMLAnchorElement;
+
+    expect(backLink).toBeTruthy();
+    expect(backLink.textContent).toBe("Back to Owner Console");
+    expect(backLink.getAttribute("href")).toBe("/owner");
+  });
+
   it("uses role-aware landing for personal vs oversight switches", () => {
     expect(
       resolvePostLoginDestination({
