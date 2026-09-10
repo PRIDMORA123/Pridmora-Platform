@@ -113,9 +113,17 @@ export function OrganisationProvider({
 
   const value = useMemo<OrganisationContextValue | null>(() => {
     if (!state) return null;
+    const organisations =
+      state.role === "oversight" || state.role === "administrator"
+        ? state.organisations.filter(
+            entry => entry.organisation.organisationType !== "personal"
+          )
+        : state.organisations;
+
     return {
       ...state,
-      showWorkspaceSelector: state.organisations.length > 1,
+      organisations,
+      showWorkspaceSelector: organisations.length > 1,
       showOrganisationNav: canSeeOrganisationNav(state.role),
       switchOrganisation,
       refreshOrganisations,

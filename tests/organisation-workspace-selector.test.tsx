@@ -175,7 +175,7 @@ describe("Organisation Workspace selector", () => {
     container.remove();
   });
 
-  it("shows WorkspaceSelector for multi-membership oversight Lead", async () => {
+  it("hides legacy personal workspace from an Organisation Lead", async () => {
     const initial = membershipState({ multi: true, role: "oversight" });
     await act(async () => {
       rootNode.render(
@@ -190,7 +190,7 @@ describe("Organisation Workspace selector", () => {
 
     expect(
       container.querySelector('select[aria-label="Switch organisation workspace"]')
-    ).toBeTruthy();
+    ).toBeNull();
     expect(container.querySelector(".organisation-header__account")).toBeTruthy();
   });
 
