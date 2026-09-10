@@ -64,7 +64,11 @@ vi.mock("@/lib/owner/platform-owner", () => ({
 }));
 
 import { OrganisationHeader } from "@/components/organisation/organisation-header";
-import { OrganisationProvider } from "@/lib/organisations/organisation-context";
+import {
+  OrganisationProvider,
+  accessibleOrganisationsForCurrentRole,
+  useOrganisationRequired,
+} from "@/lib/organisations/organisation-context";
 
 function membershipState(input: {
   multi: boolean;
@@ -154,6 +158,22 @@ function membershipState(input: {
   };
 }
 
+
+function ForbiddenPersonalWorkspaceSwitch() {
+  const organisation = useOrganisationRequired();
+
+  return (
+    <button
+      type="button"
+      onClick={() =>
+        void organisation.switchOrganisation("org-personal").catch(() => undefined)
+      }
+    >
+      Attempt personal switch
+    </button>
+  );
+}
+
 describe("Organisation Workspace selector", () => {
   let container: HTMLDivElement;
   let rootNode: Root;
@@ -175,6 +195,34 @@ describe("Organisation Workspace selector", () => {
     container.remove();
   });
 
+  it("excludes legacy personal workspaces for Organisation Leads and Managers", () => {
+    const lead = membershipState({ multi: true, role: "oversight" });
+    const manager = membershipState({
+      multi: true,
+      role: "practitioner",
+      professionalRole: "manager",
+    });
+    const owner = membershipState({ multi: true, role: "owner" });
+
+    expect(
+      accessibleOrganisationsForCurrentRole(lead).map(
+        entry => entry.organisation.id
+      )
+    ).toEqual(["org-current"]);
+
+    expect(
+      accessibleOrganisationsForCurrentRole(manager).map(
+        entry => entry.organisation.id
+      )
+    ).toEqual(["org-current"]);
+
+    expect(
+      accessibleOrganisationsForCurrentRole(owner).map(
+        entry => entry.organisation.id
+      )
+    ).toEqual(["org-current", "org-personal"]);
+  });
+
   it("hides legacy personal workspace from an Organisation Lead", async () => {
     const initial = membershipState({ multi: true, role: "oversight" });
     await act(async () => {
@@ -192,6 +240,55 @@ describe("Organisation Workspace selector", () => {
       container.querySelector('select[aria-label="Switch organisation workspace"]')
     ).toBeNull();
     expect(container.querySelector(".organisation-header__account")).toBeTruthy();
+  });
+
+  it("hides legacy personal workspace from a Manager", async () => {
+    const initial = membershipState({
+      multi: true,
+      role: "practitioner",
+      professionalRole: "manager",
+    });
+
+    await act(async () => {
+      rootNode.render(
+        <OrganisationProvider initial={initial}>
+          <OrganisationHeader title="Overview" />
+        </OrganisationProvider>
+      );
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(
+      container.querySelector('select[aria-label="Switch organisation workspace"]')
+    ).toBeNull();
+  });
+
+  it("rejects a Manager attempt to switch to a hidden personal workspace", async () => {
+    const initial = membershipState({
+      multi: true,
+      role: "practitioner",
+      professionalRole: "manager",
+    });
+
+    await act(async () => {
+      rootNode.render(
+        <OrganisationProvider initial={initial}>
+          <ForbiddenPersonalWorkspaceSwitch />
+        </OrganisationProvider>
+      );
+    });
+
+    const button = container.querySelector("button") as HTMLButtonElement;
+
+    await act(async () => {
+      button.click();
+      await Promise.resolve();
+    });
+
+    expect(apiJson).not.toHaveBeenCalled();
   });
 
   it("hides WorkspaceSelector for single-membership users", async () => {

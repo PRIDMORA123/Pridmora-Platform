@@ -50,6 +50,21 @@ type ProviderProps = {
   onOrganisationSwitched?: () => void;
 };
 
+export function accessibleOrganisationsForCurrentRole(
+  state: OrganisationWorkspaceState
+): OrganisationWorkspaceState["organisations"] {
+  const isCustomerOrganisationRole =
+    state.role === "oversight" ||
+    state.role === "administrator" ||
+    state.professionalRole === "manager";
+
+  return isCustomerOrganisationRole
+    ? state.organisations.filter(
+        entry => entry.organisation.organisationType !== "personal"
+      )
+    : state.organisations;
+}
+
 export function OrganisationProvider({
   initial,
   children,
@@ -78,7 +93,7 @@ export function OrganisationProvider({
     async (organisationId: string) => {
       if (!state || organisationId === state.organisation.id) return;
 
-      const target = state.organisations.find(
+      const target = accessibleOrganisationsForCurrentRole(state).find(
         entry => entry.organisation.id === organisationId
       );
       if (!target) {
@@ -113,12 +128,7 @@ export function OrganisationProvider({
 
   const value = useMemo<OrganisationContextValue | null>(() => {
     if (!state) return null;
-    const organisations =
-      state.role === "oversight" || state.role === "administrator"
-        ? state.organisations.filter(
-            entry => entry.organisation.organisationType !== "personal"
-          )
-        : state.organisations;
+    const organisations = accessibleOrganisationsForCurrentRole(state);
 
     return {
       ...state,
