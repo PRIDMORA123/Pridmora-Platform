@@ -250,15 +250,6 @@ export function AppShell({
             ) : null}
           </nav>
 
-          <div className="identity-sidebar-footer-links">
-            <a
-              href="/professional-principles"
-              className="identity-sidebar-footer-link"
-              onClick={() => setMobileOpen(false)}
-            >
-              Professional principles
-            </a>
-          </div>
         </div>
 
         <div className="sidebar-footer identity-sidebar-account">

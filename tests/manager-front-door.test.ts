@@ -120,6 +120,12 @@ describe("Stage 2.1 Manager Front Door", () => {
     expect(shell).toContain("language.myDevelopmentLabel");
     expect(shell).toContain('key: "my-development" as const');
     expect(shell).toContain("isManager");
+    expect(shell).not.toContain("Professional principles");
+    expect(shell).not.toContain("/professional-principles");
+
+    const legacyPrinciples = read("app/professional-principles/page.tsx");
+    expect(legacyPrinciples).toContain('redirect("/")');
+
     // Front door must not remove direct nav for returning Managers.
     expect(shell).not.toContain("manager-front-door");
   });
