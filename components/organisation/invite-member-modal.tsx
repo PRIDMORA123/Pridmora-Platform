@@ -23,6 +23,7 @@ type InviteMemberModalProps = {
   onClose: () => void;
   onInvite: (input: {
     email: string;
+    fullName: string;
     role: MembershipRole;
     professionalRole: ProfessionalRole | null;
   }) => Promise<{ acceptPath?: string; authEmailSent?: boolean } | null>;
@@ -37,6 +38,7 @@ export function InviteMemberModal({
   onClose,
   onInvite,
 }: InviteMemberModalProps) {
+  const fullNameId = useId();
   const emailId = useId();
   const roleId = useId();
   const professionalId = useId();
@@ -44,6 +46,7 @@ export function InviteMemberModal({
   const liveId = useId();
   const isManagerInvite = variant === "manager";
 
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<MembershipRole>(
     isManagerInvite ? "practitioner" : (roles[0] ?? "practitioner")
@@ -55,6 +58,7 @@ export function InviteMemberModal({
   const [sent, setSent] = useState(false);
 
   function reset() {
+    setFullName("");
     setEmail("");
     setRole(isManagerInvite ? "practitioner" : (roles[0] ?? "practitioner"));
     setProfessionalRole(isManagerInvite ? "manager" : "");
@@ -73,6 +77,7 @@ export function InviteMemberModal({
     try {
       const result = await onInvite({
         email,
+        fullName: isManagerInvite ? fullName.trim() : "",
         role: isManagerInvite ? "practitioner" : role,
         professionalRole: isManagerInvite
           ? "manager"
@@ -80,6 +85,7 @@ export function InviteMemberModal({
       });
       if (result?.authEmailSent || result?.acceptPath) {
         setSent(true);
+        setFullName("");
         setEmail("");
       }
     } catch (err) {
@@ -141,6 +147,7 @@ export function InviteMemberModal({
             disabled={
               busy ||
               !email.trim() ||
+              (isManagerInvite && !fullName.trim()) ||
               ((isManagerInvite || role === "practitioner") &&
                 seatsAvailable != null &&
                 seatsAvailable < 1)
@@ -164,6 +171,21 @@ export function InviteMemberModal({
       }
     >
       <div className="organisation-form-stack">
+        {isManagerInvite ? (
+          <label className="organisation-field" htmlFor={fullNameId}>
+            <span>Full name</span>
+            <input
+              id={fullNameId}
+              type="text"
+              autoComplete="name"
+              value={fullName}
+              disabled={busy}
+              onChange={e => setFullName(e.target.value)}
+              required
+            />
+          </label>
+        ) : null}
+
         <label className="organisation-field" htmlFor={emailId}>
           <span>Email address</span>
           <input

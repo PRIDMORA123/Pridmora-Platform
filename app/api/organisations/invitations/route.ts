@@ -61,6 +61,7 @@ export async function POST(request: Request) {
     const body = (await request.json()) as {
       action?: unknown;
       email?: unknown;
+      fullName?: unknown;
       role?: unknown;
       professionalRole?: unknown;
       invitationId?: unknown;
@@ -155,10 +156,21 @@ export async function POST(request: Request) {
         ? (body.professionalRole as ProfessionalRole)
         : null;
 
+    const fullName =
+      typeof body.fullName === "string" ? body.fullName.trim() : "";
+
+    if (role === "practitioner" && professionalRole === "manager" && !fullName) {
+      return NextResponse.json(
+        { error: "Full name is required for a Manager invitation." },
+        { status: 400 }
+      );
+    }
+
     const created = await createOrganisationInvitation({
       supabase: auth.context.supabase,
       organisationId: auth.context.organisation.organisationId,
       email,
+      fullName: fullName || undefined,
       role,
       professionalRole,
       invitedBy: auth.context.user.id,
@@ -175,6 +187,7 @@ export async function POST(request: Request) {
       invitationId: created.invitationId,
       invitationToken: created.token,
       userMetadata: {
+        full_name: fullName || undefined,
         professional_title: professionalTitle,
       },
     });

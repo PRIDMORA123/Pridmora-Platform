@@ -75,7 +75,10 @@ describe("Lead → Manager invitation Auth email delivery", () => {
       email: "manager@example.com",
       invitationId: "inv-1",
       invitationToken: "token-abc",
-      userMetadata: { professional_title: "Manager" },
+      userMetadata: {
+        full_name: "Sarah Collins",
+        professional_title: "Manager",
+      },
     });
 
     expect(result.authDelivery).toBe("invite");
@@ -86,6 +89,12 @@ describe("Lead → Manager invitation Auth email delivery", () => {
     );
     expect(inviteUserByEmail.mock.calls[0][1].data.password_setup_required).toBe(
       true
+    );
+    expect(inviteUserByEmail.mock.calls[0][1].data.full_name).toBe(
+      "Sarah Collins"
+    );
+    expect(inviteUserByEmail.mock.calls[0][1].data.professional_title).toBe(
+      "Manager"
     );
   });
 

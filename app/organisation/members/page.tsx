@@ -101,6 +101,7 @@ export default function OrganisationMembersPage() {
 
   async function inviteMember(input: {
     email: string;
+    fullName: string;
     role: MembershipRole;
     professionalRole: ProfessionalRole | null;
   }): Promise<{ acceptPath?: string; authEmailSent?: boolean } | null> {
@@ -116,6 +117,7 @@ export default function OrganisationMembersPage() {
         method: "POST",
         body: JSON.stringify({
           email: input.email,
+          fullName: input.fullName,
           role,
           professionalRole,
         }),

@@ -28,6 +28,7 @@ export async function createOrganisationInvitation(input: {
   supabase: SupabaseClient;
   organisationId: string;
   email: string;
+  fullName?: string;
   role: MembershipRole;
   professionalRole: ProfessionalRole | null;
   invitedBy: string;
@@ -38,6 +39,8 @@ export async function createOrganisationInvitation(input: {
   }
 
   const email = input.email.trim().toLowerCase();
+  const fullName = input.fullName?.trim() || null;
+
   if (!email || !email.includes("@")) {
     throw new Error("A valid email address is required.");
   }
@@ -73,6 +76,7 @@ export async function createOrganisationInvitation(input: {
     .insert({
       organisation_id: input.organisationId,
       email,
+      full_name: fullName,
       role: input.role,
       professional_role: input.professionalRole,
       token_hash: tokenHash,
@@ -92,7 +96,12 @@ export async function createOrganisationInvitation(input: {
     action: "member_invited",
     entityType: "organisation_invitation",
     entityId: data.id,
-    metadata: { email, role: input.role, professionalRole: input.professionalRole },
+    metadata: {
+      email,
+      fullName,
+      role: input.role,
+      professionalRole: input.professionalRole,
+    },
   });
 
   return { invitationId: data.id as string, token, expiresAt };

@@ -117,6 +117,67 @@ describe("organisation workspace UI", () => {
     expect(container.textContent).not.toContain("accept?token=");
   });
 
+  it("requires and submits a Manager full name", async () => {
+    const onInvite = vi.fn().mockResolvedValue({ authEmailSent: true });
+
+    await act(async () => {
+      root.render(
+        <InviteMemberModal
+          open
+          roles={["practitioner"]}
+          busy={false}
+          seatsAvailable={1}
+          variant="manager"
+          onClose={() => undefined}
+          onInvite={onInvite}
+        />
+      );
+    });
+
+    const nameInput = container.querySelector(
+      'input[autocomplete="name"]'
+    ) as HTMLInputElement;
+    const emailInput = container.querySelector(
+      'input[type="email"]'
+    ) as HTMLInputElement;
+    const submitButton = Array.from(container.querySelectorAll("button")).find(
+      button => button.textContent?.includes("Send Manager invitation")
+    ) as HTMLButtonElement;
+
+    expect(nameInput).not.toBeNull();
+    expect(emailInput).not.toBeNull();
+    expect(submitButton.disabled).toBe(true);
+
+    await act(async () => {
+      const nameSetter = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        "value"
+      )?.set;
+      nameSetter?.call(nameInput, "  Sarah Collins  ");
+      nameInput.dispatchEvent(new Event("input", { bubbles: true }));
+
+      const emailSetter = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        "value"
+      )?.set;
+      emailSetter?.call(emailInput, "sarah@example.com");
+      emailInput.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+
+    expect(submitButton.disabled).toBe(false);
+
+    await act(async () => {
+      submitButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(onInvite).toHaveBeenCalledWith({
+      email: "sarah@example.com",
+      fullName: "Sarah Collins",
+      role: "practitioner",
+      professionalRole: "manager",
+    });
+  });
+
   it("shows sent confirmation after invitation email without exposing tokens", () => {
     const modalSource = readFileSync(
       join(process.cwd(), "components/organisation/invite-member-modal.tsx"),
