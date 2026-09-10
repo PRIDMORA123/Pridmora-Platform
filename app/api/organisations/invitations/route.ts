@@ -12,6 +12,7 @@ import {
   InvitationAcceptError,
 } from "@/lib/organisations/invitations";
 import { parseMembershipRole } from "@/lib/organisations/permissions";
+import { setCurrentOrganisationPreference } from "@/lib/organisations/repository";
 import type { ProfessionalRole } from "@/lib/organisations/types";
 import {
   getSupabaseServiceClient,
@@ -93,6 +94,12 @@ export async function POST(request: Request) {
         userId: auth.context.user.id,
         userEmail: email,
       });
+
+      await setCurrentOrganisationPreference(
+        auth.context.supabase,
+        auth.context.user.id,
+        result.organisationId
+      );
 
       return NextResponse.json({
         ok: true,

@@ -113,6 +113,10 @@ describe("invitation acceptance repair", () => {
     const acceptBlock = route.slice(acceptIdx, orgContextIdx);
     expect(acceptBlock).toContain("requireAuthenticatedUser");
     expect(acceptBlock).toContain("acceptOrganisationInvitation");
+    expect(acceptBlock).toContain("setCurrentOrganisationPreference");
+    expect(acceptBlock.indexOf("setCurrentOrganisationPreference")).toBeGreaterThan(
+      acceptBlock.indexOf("acceptOrganisationInvitation")
+    );
     expect(acceptBlock).not.toContain("requireOrganisationPermission");
     expect(acceptBlock).not.toContain("requireOrganisationContext");
   });
