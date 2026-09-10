@@ -17,6 +17,8 @@ describe("authoritative post-login destination", () => {
 
     expect(ownerShell).not.toContain("Exit to workspace");
     expect(ownerShell).not.toContain('/?view=dashboard');
+    expect(ownerShell).toContain("signOutToSignIn");
+    expect(ownerShell).toContain("Sign out");
   });
 
   it("routes platform owners to /owner", () => {

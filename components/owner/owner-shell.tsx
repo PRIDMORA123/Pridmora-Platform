@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { OwnerNavigation } from "@/components/owner/owner-navigation";
+import { signOutToSignIn } from "@/lib/auth/sign-out-client";
 
 export function OwnerShell({
   title,
@@ -20,6 +21,15 @@ export function OwnerShell({
           <h1 className="owner-shell__title">{title}</h1>
           {subtitle ? <p className="owner-shell__subtitle">{subtitle}</p> : null}
         </div>
+        <button
+          type="button"
+          className="owner-shell__sign-out"
+          onClick={() => {
+            void signOutToSignIn();
+          }}
+        >
+          Sign out
+        </button>
       </div>
       <OwnerNavigation />
       <div className="owner-shell__content">{children}</div>
