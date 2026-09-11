@@ -3,6 +3,11 @@ import { z } from "zod";
 import { requirePlatformOwner, ownerValidationResponse } from "@/lib/owner/auth";
 import { writePlatformAudit } from "@/lib/owner/audit";
 import { convertTrialOrganisationToActive } from "@/lib/owner/convert-trial-to-active";
+import {
+  CUSTOMER_LICENCE_PLAN_NAMES,
+  isCustomerLicencePlanName,
+  managerCapacityForPlan,
+} from "@/lib/owner/customer-licence-plans";
 import { assertOwnerPayloadIsSafe } from "@/lib/owner/privacy";
 import {
   getOwnerOrganisationDetail,
@@ -16,6 +21,7 @@ import {
   listSupportCases,
   listTrials,
 } from "@/lib/owner/repository";
+import { loadPractitionerSeatUsage } from "@/lib/organisations/licence";
 import { isUuid } from "@/lib/uuid";
 
 export const runtime = "nodejs";
@@ -35,7 +41,7 @@ const patchSchema = z.object({
     .enum(["active", "trial", "suspended", "cancelled", "expired"])
     .optional(),
   licencePlanName: z.string().trim().max(120).optional(),
-  seatsPurchased: z.number().int().min(0).max(100000).optional(),
+  seatsPurchased: z.number().int().min(1).max(100).optional(),
   licenceEndsAt: z.string().date().nullable().optional(),
 });
 
@@ -203,20 +209,71 @@ export async function PATCH(
   if (data.billingContactName !== undefined) {
     updates.billing_contact_name = data.billingContactName;
   }
+
   if (data.billingContactEmail !== undefined) {
     updates.billing_contact_email = data.billingContactEmail || null;
   }
+
   if (data.accountOwnerLabel !== undefined) {
     updates.account_owner_label = data.accountOwnerLabel;
   }
-  if (data.licenceStatus !== undefined) updates.licence_status = data.licenceStatus;
-  if (data.licencePlanName !== undefined) {
-    updates.licence_plan_name = data.licencePlanName;
+
+  if (data.licenceStatus !== undefined) {
+    updates.licence_status = data.licenceStatus;
   }
-  if (data.seatsPurchased !== undefined) {
-    updates.practitioner_seats_purchased = data.seatsPurchased;
+
+  if (
+    data.licencePlanName !== undefined ||
+    data.seatsPurchased !== undefined
+  ) {
+    const seatUsage = await loadPractitionerSeatUsage(
+      auth.context.supabase,
+      id
+    );
+
+    const currentPlanName = seatUsage.licence.planName;
+    const requestedPlanName =
+      data.licencePlanName ?? currentPlanName;
+
+    if (!isCustomerLicencePlanName(requestedPlanName)) {
+      return ownerValidationResponse(
+        `Licence plan must be one of: ${CUSTOMER_LICENCE_PLAN_NAMES.join(", ")}.`
+      );
+    }
+
+    const requiredCapacity = managerCapacityForPlan(requestedPlanName);
+
+    if (
+      data.seatsPurchased !== undefined &&
+      data.seatsPurchased !== requiredCapacity
+    ) {
+      return ownerValidationResponse(
+        `${requestedPlanName} licences have capacity for ${requiredCapacity} Managers.`
+      );
+    }
+
+    if (requiredCapacity < seatUsage.summary.seatsInUse) {
+      return NextResponse.json(
+        {
+          error:
+            `Cannot reduce ${requestedPlanName} capacity to ${requiredCapacity} Managers because ` +
+            `${seatUsage.summary.seatsInUse} Manager seats are currently in use. ` +
+            "Deactivate Managers first or choose a licence tier with sufficient capacity.",
+          code: "LICENCE_CAPACITY_BELOW_USAGE",
+          seatsInUse: seatUsage.summary.seatsInUse,
+          requestedCapacity: requiredCapacity,
+        },
+        { status: 409 }
+      );
+    }
+
+    updates.licence_plan_name = requestedPlanName;
+    updates.practitioner_seats_purchased = requiredCapacity;
   }
-  if (data.licenceEndsAt !== undefined) updates.licence_ends_at = data.licenceEndsAt;
+
+  if (data.licenceEndsAt !== undefined) {
+    updates.licence_ends_at = data.licenceEndsAt;
+  }
 
   const { error } = await auth.context.supabase
     .from("organisations")

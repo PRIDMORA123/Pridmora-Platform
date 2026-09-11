@@ -28,6 +28,12 @@ import type {
 import type { OrganisationDeletionPreflight } from "@/lib/owner/organisation-deletion-preflight";
 import type { OrganisationDeletionRunSummary } from "@/lib/owner/organisation-deletion-initiation";
 import type { CommercialRetentionState } from "@/lib/owner/organisation-commercial-retention";
+import {
+  CUSTOMER_LICENCE_PLAN_NAMES,
+  managerCapacityForPlan,
+  type CustomerLicencePlanName,
+} from "@/lib/owner/customer-licence-plans";
+
 import type { RetainMinimiseState } from "@/lib/owner/organisation-retain-minimise";
 import type { TenantPurgeState } from "@/lib/owner/organisation-tenant-purge";
 import type { FinalVerificationState } from "@/lib/owner/organisation-final-verification";
@@ -115,6 +121,8 @@ export default function OwnerOrganisationDetailPage() {
   const [saving, setSaving] = useState(false);
   const [confirmSuspend, setConfirmSuspend] = useState(false);
   const [confirmConvertTrial, setConfirmConvertTrial] = useState(false);
+  const [pendingLicencePlan, setPendingLicencePlan] =
+    useState<CustomerLicencePlanName | null>(null);
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [showLeadInviteForm, setShowLeadInviteForm] = useState(false);
   const [inviteFullName, setInviteFullName] = useState("");
@@ -1214,6 +1222,43 @@ export default function OwnerOrganisationDetailPage() {
           {tab === "Settings" && data.organisation ? (
             <section className="owner-panel">
               <h2 className="owner-panel__title">Account settings</h2>
+
+              <div className="owner-panel">
+                <h3 className="owner-panel__title">Licence tier</h3>
+                <p className="owner-muted">
+                  Current: {data.organisation.planName} ·{" "}
+                  {data.organisation.seatsPurchased} Manager capacity
+                </p>
+
+                <div className="owner-filters">
+                  {CUSTOMER_LICENCE_PLAN_NAMES.map((planName) => {
+                    const capacity = managerCapacityForPlan(planName);
+                    const current = data.organisation!.planName === planName;
+
+                    return (
+                      <button
+                        key={planName}
+                        type="button"
+                        className="owner-button"
+                        disabled={saving || current}
+                        onClick={() => setPendingLicencePlan(planName)}
+                      >
+                        {current
+                          ? `${planName} · ${capacity} Managers · Current`
+                          : `${planName} · ${capacity} Managers`}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <p className="owner-muted">
+                  Changing tier keeps the same organisation, Managers and
+                  Development Intelligence. A reduction is blocked if the
+                  selected tier cannot accommodate the Manager seats currently
+                  in use.
+                </p>
+              </div>
+
               <div className="owner-filters">
                 {settingsActions?.showConvertTrial ? (
                   <button
@@ -1259,6 +1304,31 @@ export default function OwnerOrganisationDetailPage() {
             onConfirm={() =>
               updateOrganisation({ action: "convert_trial_to_active" })
             }
+          />
+
+          <OwnerConfirmDialog
+            open={pendingLicencePlan !== null}
+            title={
+              pendingLicencePlan
+                ? `Change licence to ${pendingLicencePlan}?`
+                : "Change licence tier?"
+            }
+            description={
+              pendingLicencePlan
+                ? `This will set the organisation to ${pendingLicencePlan} with capacity for ${managerCapacityForPlan(
+                    pendingLicencePlan
+                  )} Managers. Existing organisation data and Development Intelligence will remain in place.`
+                : ""
+            }
+            confirmLabel="Change licence tier"
+            busy={saving}
+            onCancel={() => setPendingLicencePlan(null)}
+            onConfirm={async () => {
+              if (!pendingLicencePlan) return;
+              const planName = pendingLicencePlan;
+              await updateOrganisation({ licencePlanName: planName });
+              setPendingLicencePlan(null);
+            }}
           />
 
           <OwnerConfirmDialog
