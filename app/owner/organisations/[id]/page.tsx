@@ -126,16 +126,20 @@ function annualRenewalDate(startDate: string): string {
 
   if (!year || !month || !day) return "";
 
-  const renewal = new Date(year + 1, month - 1, day);
+  const renewalYear = year + 1;
+  const lastDayOfMonth = new Date(renewalYear, month, 0).getDate();
+  const renewalDay = Math.min(day, lastDayOfMonth);
 
-  return localIsoDate(renewal);
+  return `${renewalYear}-${String(month).padStart(2, "0")}-${String(
+    renewalDay
+  ).padStart(2, "0")}`;
 }
 
-function defaultAnnualTerm(): {
+function defaultAnnualTerm(currentRenewalDate?: string | null): {
   startsAt: string;
   renewalAt: string;
 } {
-  const startsAt = localIsoDate(new Date());
+  const startsAt = currentRenewalDate || localIsoDate(new Date());
 
   return {
     startsAt,
@@ -1323,27 +1327,43 @@ export default function OwnerOrganisationDetailPage() {
                   </p>
 
                   {data.organisation.licenceEndsAt ? (
-                    <p className="owner-muted">
-                      Current renewal date:{" "}
-                      {new Date(
-                        `${data.organisation.licenceEndsAt}T00:00:00`
-                      ).toLocaleDateString()}
-                    </p>
+                    <>
+                      <p className="owner-muted">
+                        Current renewal date:{" "}
+                        {new Date(
+                          `${data.organisation.licenceEndsAt}T00:00:00`
+                        ).toLocaleDateString()}
+                      </p>
+                      {data.organisation.licenceEndsAt >
+                      localIsoDate(new Date()) ? (
+                        <p className="owner-muted">
+                          Renewal can be recorded on or after the current
+                          renewal date. The current organisation, Managers and
+                          development history continue unchanged until then.
+                        </p>
+                      ) : null}
+                    </>
                   ) : null}
 
                   <div className="owner-filters">
                     {ANNUAL_LICENCE_PLAN_NAMES.map(planName => {
                       const capacity = managerCapacityForPlan(planName);
                       const selected = selectedAnnualPlan === planName;
+                      const renewalNotDue =
+                        Boolean(data.organisation?.licenceEndsAt) &&
+                        data.organisation!.licenceEndsAt! >
+                          localIsoDate(new Date());
 
                       return (
                         <button
                           key={planName}
                           type="button"
                           className="owner-button"
-                          disabled={saving}
+                          disabled={saving || renewalNotDue}
                           onClick={() => {
-                            const term = defaultAnnualTerm();
+                            const term = defaultAnnualTerm(
+                              data.organisation?.licenceEndsAt
+                            );
 
                             setSelectedAnnualPlan(planName);
                             setAnnualStartsAt(term.startsAt);

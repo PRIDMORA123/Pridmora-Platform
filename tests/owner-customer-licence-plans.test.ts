@@ -132,16 +132,46 @@ describe("Owner customer licence plans", () => {
     expect(migration).toContain("'INVALID_PLAN_CAPACITY'");
   });
 
-  it("enforces one annual term and prevents future-start scheduling", () => {
+  it("prevents an annual term from starting in the future", () => {
     const migration = read(
       "supabase/migrations/20260911143000_owner_continue_annual_licence.sql"
     );
 
     expect(migration).toContain("p_starts_at > current_date");
+    expect(migration).not.toContain(
+      "p_starts_at <> v_org.licence_ends_at"
+    );
     expect(migration).toContain(
       "p_renewal_at <> (p_starts_at + interval '1 year')::date"
     );
     expect(migration).toContain("'INVALID_RENEWAL_DATE'");
+  });
+
+  it("allows annual renewal only when the current term is due", () => {
+    const page = read("app/owner/organisations/[id]/page.tsx");
+
+    expect(page).toContain(
+      "function defaultAnnualTerm(currentRenewalDate?: string | null)"
+    );
+    expect(page).toContain(
+      "const startsAt = currentRenewalDate || localIsoDate(new Date())"
+    );
+    expect(page).toContain("const renewalNotDue =");
+    expect(page).toContain("disabled={saving || renewalNotDue}");
+    expect(page).toContain(
+      "Renewal can be recorded on or after the current"
+    );
+  });
+
+  it("clamps annual renewal dates correctly across leap years", () => {
+    const page = read("app/owner/organisations/[id]/page.tsx");
+
+    expect(page).toContain(
+      "const lastDayOfMonth = new Date(renewalYear, month, 0).getDate()"
+    );
+    expect(page).toContain(
+      "const renewalDay = Math.min(day, lastDayOfMonth)"
+    );
   });
 
   it("makes an exact annual continuation retry idempotent", () => {
