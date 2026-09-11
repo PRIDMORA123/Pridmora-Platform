@@ -58,11 +58,12 @@ describe("public sign-up closed — organisation-led access", () => {
     expect(marketing).not.toContain("Create an account");
   });
 
-  it("Owner Console trial create copy remains for operator-managed orgs", () => {
+  it("Owner Console supports Paid Pilot and optional Evaluation creation", () => {
     expect(existsSync(join(root, "app/owner/organisations/new/page.tsx"))).toBe(
       true
     );
     const ownerNew = read("app/owner/organisations/new/page.tsx");
-    expect(ownerNew).toMatch(/trial licence/i);
+    expect(ownerNew).toMatch(/Paid Pilot/i);
+    expect(ownerNew).toMatch(/14-day Evaluation/i);
   });
 });

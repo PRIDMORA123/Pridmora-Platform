@@ -65,6 +65,7 @@ export async function POST(request: Request) {
       website: parsed.data.website,
       ownerNotes: parsed.data.ownerNotes,
       seats: parsed.data.seats,
+      startingRoute: parsed.data.startingRoute,
     });
 
     await writePlatformAudit({
@@ -80,6 +81,7 @@ export async function POST(request: Request) {
         seats: created.seats,
         licenceStatus: created.licenceStatus,
         durationDays: created.durationDays,
+        startingRoute: created.startingRoute,
         organisationType: created.organisationType,
         hasWebsite: Boolean(parsed.data.website),
         hasOwnerNotes: Boolean(parsed.data.ownerNotes),
@@ -99,6 +101,7 @@ export async function POST(request: Request) {
         licenceEndsAt: created.licenceEndsAt,
         durationDays: created.durationDays,
         trialId: created.trialId,
+        startingRoute: created.startingRoute,
       },
     };
     assertOwnerPayloadIsSafe(payload);

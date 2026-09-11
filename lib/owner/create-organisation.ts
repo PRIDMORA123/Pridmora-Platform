@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import type { CustomerOrgStartingRoute } from "@/lib/owner/create-organisation-schema";
+
 export const OWNER_CREATE_ORG_ERROR_CODES = [
   "UNAUTHENTICATED",
   "PERMISSION_DENIED",
@@ -10,6 +12,7 @@ export const OWNER_CREATE_ORG_ERROR_CODES = [
   "WEBSITE_TOO_LONG",
   "NOTES_TOO_LONG",
   "INVALID_SEATS",
+  "INVALID_STARTING_ROUTE",
 ] as const;
 
 export type OwnerCreateOrgErrorCode =
@@ -17,15 +20,16 @@ export type OwnerCreateOrgErrorCode =
 
 export type OwnerCreateOrganisationResult = {
   organisationId: string;
-  trialId: string;
+  trialId: string | null;
   name: string;
   country: string;
   seats: number;
-  licenceStatus: "trial";
+  licenceStatus: "active" | "trial";
   licencePlanName: string;
   licenceStartsAt: string;
-  licenceEndsAt: string;
-  durationDays: number;
+  licenceEndsAt: string | null;
+  durationDays: number | null;
+  startingRoute: CustomerOrgStartingRoute;
   organisationType: "business";
 };
 
@@ -51,6 +55,8 @@ export function ownerCreateOrgErrorMessage(
       return "Notes are too long.";
     case "INVALID_SEATS":
       return "Seats must be between 1 and 100.";
+    case "INVALID_STARTING_ROUTE":
+      return "Choose Paid Pilot or 14-day Evaluation.";
     default:
       return "Unable to create organisation.";
   }
@@ -64,8 +70,19 @@ function isErrorCode(value: unknown): value is OwnerCreateOrgErrorCode {
 }
 
 /**
- * Create a customer organisation (non-personal) with trial licence + trial row.
- * Slice 1: no invitations, no membership bootstrap.
+ * Create a customer organisation (non-personal).
+ *
+ * Paid Pilot:
+ * - active licence
+ * - no trial row
+ * - no trial end date
+ *
+ * Evaluation:
+ * - trial licence
+ * - trial row
+ * - 14-day end date by current platform default
+ *
+ * No invitations or membership bootstrap.
  */
 export async function createCustomerOrganisation(input: {
   supabase: SupabaseClient;
@@ -74,7 +91,10 @@ export async function createCustomerOrganisation(input: {
   website?: string | null;
   ownerNotes?: string | null;
   seats?: number | null;
+  startingRoute?: CustomerOrgStartingRoute;
 }): Promise<OwnerCreateOrganisationResult> {
+  const startingRoute = input.startingRoute ?? "paid_pilot";
+
   const { data, error } = await input.supabase.rpc(
     "owner_create_customer_organisation",
     {
@@ -83,6 +103,7 @@ export async function createCustomerOrganisation(input: {
       p_website: input.website ?? null,
       p_owner_notes: input.ownerNotes ?? null,
       p_seats: input.seats ?? null,
+      p_starting_route: startingRoute,
     }
   );
 
@@ -94,15 +115,16 @@ export async function createCustomerOrganisation(input: {
     ok?: boolean;
     code?: string;
     organisationId?: string;
-    trialId?: string;
+    trialId?: string | null;
     name?: string;
     country?: string;
     seats?: number;
     licenceStatus?: string;
     licencePlanName?: string;
     licenceStartsAt?: string;
-    licenceEndsAt?: string;
-    durationDays?: number;
+    licenceEndsAt?: string | null;
+    durationDays?: number | null;
+    startingRoute?: string;
     organisationType?: string;
   } | null;
 
@@ -115,28 +137,35 @@ export async function createCustomerOrganisation(input: {
 
   if (
     !payload.organisationId ||
-    !payload.trialId ||
     !payload.name ||
     !payload.country ||
     payload.seats === undefined ||
-    !payload.licenceStartsAt ||
-    !payload.licenceEndsAt ||
-    payload.durationDays === undefined
+    !payload.licenceStartsAt
   ) {
     throw new Error("Unable to create organisation.");
   }
 
+  const licenceStatus =
+    payload.licenceStatus === "trial" ? "trial" : "active";
+
   return {
     organisationId: payload.organisationId,
-    trialId: payload.trialId,
+    trialId: payload.trialId ?? null,
     name: payload.name,
     country: payload.country,
     seats: Number(payload.seats),
-    licenceStatus: "trial",
+    licenceStatus,
     licencePlanName: payload.licencePlanName || "Pilot",
     licenceStartsAt: String(payload.licenceStartsAt),
-    licenceEndsAt: String(payload.licenceEndsAt),
-    durationDays: Number(payload.durationDays),
+    licenceEndsAt: payload.licenceEndsAt
+      ? String(payload.licenceEndsAt)
+      : null,
+    durationDays:
+      payload.durationDays === undefined || payload.durationDays === null
+        ? null
+        : Number(payload.durationDays),
+    startingRoute:
+      payload.startingRoute === "evaluation" ? "evaluation" : "paid_pilot",
     organisationType: "business",
   };
 }

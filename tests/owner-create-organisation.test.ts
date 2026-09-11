@@ -21,6 +21,9 @@ function read(pathFromRoot: string): string {
 const MIGRATION =
   "supabase/migrations/20260809120000_owner_create_customer_organisation.sql";
 
+const STARTING_ROUTE_MIGRATION =
+  "supabase/migrations/20260911123000_owner_customer_starting_route.sql";
+
 describe("Slice 1 — owner create customer organisation", () => {
   it("ships create-organisation migration with columns, trial default 14, and RPC", () => {
     expect(existsSync(join(root, MIGRATION))).toBe(true);
@@ -39,6 +42,56 @@ describe("Slice 1 — owner create customer organisation", () => {
     expect(sql).toContain("'business'");
     expect(sql).not.toContain("organisation_invitations");
     expect(sql).not.toContain("inviteUserByEmail");
+  });
+
+  it("adds Paid Pilot default and optional Evaluation lifecycle migration", () => {
+    expect(existsSync(join(root, STARTING_ROUTE_MIGRATION))).toBe(true);
+
+    const sql = read(STARTING_ROUTE_MIGRATION);
+
+    expect(sql).toContain(
+      "drop function if exists public.owner_create_customer_organisation"
+    );
+
+    expect(sql).toMatch(
+      /p_starting_route text default 'paid_pilot'/
+    );
+
+    expect(sql).toContain(
+      "v_starting_route not in ('paid_pilot', 'evaluation')"
+    );
+
+    expect(sql).toMatch(
+      /v_seats := coalesce\(\s*p_seats,\s*15\s*\)/
+    );
+
+    expect(sql).toContain(
+      "if v_starting_route = 'paid_pilot' then"
+    );
+
+    expect(sql).toContain(
+      "v_licence_status := 'active'"
+    );
+
+    expect(sql).toContain(
+      "v_licence_status := 'trial'"
+    );
+
+    expect(sql).toContain(
+      "if v_starting_route = 'evaluation' then"
+    );
+
+    expect(sql).toContain(
+      "insert into public.organisation_trials"
+    );
+
+    expect(sql).toContain(
+      "'startingRoute', v_starting_route"
+    );
+
+    expect(sql).toContain(
+      "'licenceEndsAt', v_ends"
+    );
   });
 
   it("exposes POST on owner organisations API with platform owner gate", () => {
@@ -60,20 +113,22 @@ describe("Slice 1 — owner create customer organisation", () => {
     expect(page).toContain("Create organisation");
     expect(page).toContain("owner-org-name");
     expect(page).toContain("owner-org-country");
-    expect(page).toContain("owner-org-seats");
+    expect(page).toContain("Paid Pilot");
+    expect(page).toContain("14-day Evaluation");
+    expect(page).toContain("starting-route");
     expect(page).toContain("No invitation is sent");
     expect(page).not.toContain("Send Invitation");
-    expect(page).not.toContain("Organisation Lead");
+    expect(page).not.toContain("owner-org-seats");
 
     const list = read("app/owner/organisations/page.tsx");
     expect(list).toContain('href="/owner/organisations/new"');
     expect(list).toContain("New organisation");
   });
 
-  it("defaults seats to 5 and allows pilot override of at least 8", () => {
-    expect(DEFAULT_CUSTOMER_ORG_SEATS).toBe(5);
+  it("defaults Paid Pilot capacity to 15 Managers and supports explicit starting route", () => {
+    expect(DEFAULT_CUSTOMER_ORG_SEATS).toBe(15);
     expect(MIN_CUSTOMER_ORG_SEATS).toBe(1);
-    expect(MAX_CUSTOMER_ORG_SEATS).toBeGreaterThanOrEqual(8);
+    expect(MAX_CUSTOMER_ORG_SEATS).toBeGreaterThanOrEqual(100);
 
     const withDefault = createCustomerOrganisationSchema.safeParse({
       name: "Acme Pilot",
@@ -82,17 +137,30 @@ describe("Slice 1 — owner create customer organisation", () => {
     expect(withDefault.success).toBe(true);
     if (withDefault.success) {
       expect(withDefault.data.seats ?? null).toBeNull();
+      expect(withDefault.data.startingRoute).toBe("paid_pilot");
     }
 
-    const withEight = createCustomerOrganisationSchema.safeParse({
-      name: "Acme Pilot",
+    const evaluation = createCustomerOrganisationSchema.safeParse({
+      name: "Acme Evaluation",
       country: "United Kingdom",
-      seats: 8,
+      seats: 15,
+      startingRoute: "evaluation",
     });
-    expect(withEight.success).toBe(true);
-    if (withEight.success) {
-      expect(withEight.data.seats).toBe(8);
+
+    expect(evaluation.success).toBe(true);
+
+    if (evaluation.success) {
+      expect(evaluation.data.seats).toBe(15);
+      expect(evaluation.data.startingRoute).toBe("evaluation");
     }
+
+    expect(
+      createCustomerOrganisationSchema.safeParse({
+        name: "Acme",
+        country: "United Kingdom",
+        startingRoute: "invalid-route",
+      }).success
+    ).toBe(false);
   });
 
   it("validates required name and country; optional website and notes", () => {

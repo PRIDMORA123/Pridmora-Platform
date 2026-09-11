@@ -1222,7 +1222,7 @@ export default function OwnerOrganisationDetailPage() {
                     disabled={saving}
                     onClick={() => setConfirmConvertTrial(true)}
                   >
-                    Convert trial to active
+                    Convert to Paid Pilot
                   </button>
                 ) : null}
                 {settingsActions?.showSuspend ? (
@@ -1251,9 +1251,9 @@ export default function OwnerOrganisationDetailPage() {
 
           <OwnerConfirmDialog
             open={confirmConvertTrial}
-            title="Convert trial to active?"
+            title="Convert to Paid Pilot?"
             description={CONVERT_TRIAL_CONFIRMATION}
-            confirmLabel="Convert trial to active"
+            confirmLabel="Convert to Paid Pilot"
             busy={saving}
             onCancel={() => setConfirmConvertTrial(false)}
             onConfirm={() =>

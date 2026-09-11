@@ -3,12 +3,12 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+
 import { OwnerShell } from "@/components/owner/owner-shell";
 import { apiJson } from "@/lib/api-client";
 import {
   DEFAULT_CUSTOMER_ORG_SEATS,
-  MAX_CUSTOMER_ORG_SEATS,
-  MIN_CUSTOMER_ORG_SEATS,
+  type CustomerOrgStartingRoute,
 } from "@/lib/owner/create-organisation-schema";
 
 type CreateResponse = {
@@ -19,11 +19,13 @@ type CreateResponse = {
 
 export default function NewOwnerOrganisationPage() {
   const router = useRouter();
+
   const [name, setName] = useState("");
   const [country, setCountry] = useState("");
   const [website, setWebsite] = useState("");
   const [ownerNotes, setOwnerNotes] = useState("");
-  const [seats, setSeats] = useState(String(DEFAULT_CUSTOMER_ORG_SEATS));
+  const [startingRoute, setStartingRoute] =
+    useState<CustomerOrgStartingRoute>("paid_pilot");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -31,19 +33,6 @@ export default function NewOwnerOrganisationPage() {
     event.preventDefault();
     setError("");
     setSaving(true);
-
-    const seatsNumber = Number.parseInt(seats, 10);
-    if (
-      !Number.isFinite(seatsNumber) ||
-      seatsNumber < MIN_CUSTOMER_ORG_SEATS ||
-      seatsNumber > MAX_CUSTOMER_ORG_SEATS
-    ) {
-      setSaving(false);
-      setError(
-        `Seats must be between ${MIN_CUSTOMER_ORG_SEATS} and ${MAX_CUSTOMER_ORG_SEATS}.`
-      );
-      return;
-    }
 
     try {
       const payload = await apiJson<CreateResponse>("/api/owner/organisations", {
@@ -53,9 +42,11 @@ export default function NewOwnerOrganisationPage() {
           country,
           website: website.trim() || null,
           ownerNotes: ownerNotes.trim() || null,
-          seats: seatsNumber,
+          seats: DEFAULT_CUSTOMER_ORG_SEATS,
+          startingRoute,
         }),
       });
+
       router.push(`/owner/organisations/${payload.organisation.id}`);
     } catch (err) {
       setError(
@@ -68,7 +59,7 @@ export default function NewOwnerOrganisationPage() {
   return (
     <OwnerShell
       title="New organisation"
-      subtitle="Create a customer organisation with a trial licence. Invitation of the first Lead or Manager comes in a later step."
+      subtitle="Create a customer organisation as a Paid Pilot or optional 14-day Evaluation. Invitations are sent after the organisation has been created."
     >
       <p className="owner-muted" style={{ marginBottom: "1rem" }}>
         <Link href="/owner/organisations">← Back to organisations</Link>
@@ -88,6 +79,7 @@ export default function NewOwnerOrganisationPage() {
               autoComplete="organization"
             />
           </div>
+
           <div className="owner-field" style={{ minWidth: "12rem", flex: 1 }}>
             <label htmlFor="owner-org-country">Country</label>
             <input
@@ -98,26 +90,65 @@ export default function NewOwnerOrganisationPage() {
               autoComplete="country-name"
             />
           </div>
-          <div className="owner-field" style={{ minWidth: "8rem" }}>
-            <label htmlFor="owner-org-seats">Seats</label>
-            <input
-              id="owner-org-seats"
-              type="number"
-              required
-              min={MIN_CUSTOMER_ORG_SEATS}
-              max={MAX_CUSTOMER_ORG_SEATS}
-              value={seats}
-              onChange={event => setSeats(event.target.value)}
-            />
-          </div>
         </div>
 
-        <p className="owner-muted" style={{ marginTop: "0.5rem" }}>
-          Defaults to {DEFAULT_CUSTOMER_ORG_SEATS} seats. Pilot organisations may
-          use 8 or more (up to {MAX_CUSTOMER_ORG_SEATS}).
-        </p>
+        <div className="owner-field" style={{ marginTop: "1rem" }}>
+          <span style={{ fontWeight: 600 }}>Starting route</span>
 
-        <div className="owner-field" style={{ marginTop: "0.75rem" }}>
+          <label
+            style={{
+              display: "block",
+              marginTop: "0.6rem",
+              cursor: "pointer",
+            }}
+          >
+            <input
+              type="radio"
+              name="starting-route"
+              value="paid_pilot"
+              checked={startingRoute === "paid_pilot"}
+              onChange={() => setStartingRoute("paid_pilot")}
+              style={{ marginRight: "0.5rem" }}
+            />
+            <strong>Paid Pilot</strong> — default
+          </label>
+
+          <p
+            className="owner-muted"
+            style={{ margin: "0.25rem 0 0 1.45rem" }}
+          >
+            Active immediately with Pilot plan and capacity for{" "}
+            {DEFAULT_CUSTOMER_ORG_SEATS} Managers.
+          </p>
+
+          <label
+            style={{
+              display: "block",
+              marginTop: "0.85rem",
+              cursor: "pointer",
+            }}
+          >
+            <input
+              type="radio"
+              name="starting-route"
+              value="evaluation"
+              checked={startingRoute === "evaluation"}
+              onChange={() => setStartingRoute("evaluation")}
+              style={{ marginRight: "0.5rem" }}
+            />
+            <strong>14-day Evaluation</strong> — optional
+          </label>
+
+          <p
+            className="owner-muted"
+            style={{ margin: "0.25rem 0 0 1.45rem" }}
+          >
+            Creates a 14-day trial that can later be converted to a Paid Pilot
+            without recreating the organisation.
+          </p>
+        </div>
+
+        <div className="owner-field" style={{ marginTop: "1rem" }}>
           <label htmlFor="owner-org-website">Website (optional)</label>
           <input
             id="owner-org-website"
@@ -140,8 +171,7 @@ export default function NewOwnerOrganisationPage() {
         </div>
 
         <p className="owner-muted" style={{ marginTop: "0.75rem" }}>
-          Creates an active organisation on a 14-day trial with licence status
-          trial. No invitation is sent in this step.
+          No invitation is sent in this step.
         </p>
 
         {error ? <p className="owner-error">{error}</p> : null}
@@ -150,6 +180,7 @@ export default function NewOwnerOrganisationPage() {
           <button type="submit" className="owner-button" disabled={saving}>
             {saving ? "Creating…" : "Create organisation"}
           </button>
+
           <Link
             href="/owner/organisations"
             className="owner-button owner-button--secondary"

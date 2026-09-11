@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AccountStatus } from "@/lib/owner/types";
 
 export const CONVERT_TRIAL_CONFIRMATION =
-  "Convert this trial to a permanent active organisation? Existing users and development data will be preserved and the trial end date will be removed.";
+  "Convert this Evaluation to a Paid Pilot? Existing users and development data will be preserved and the evaluation end date will be removed.";
 
 export const OWNER_CONVERT_TRIAL_RPC =
   "owner_convert_trial_organisation_to_active";

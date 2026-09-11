@@ -201,7 +201,7 @@ describe("convertTrialOrganisationToActive client", () => {
 describe("Owner Console convert trial wiring", () => {
   it("Settings UI distinguishes trial / active / suspended actions", () => {
     const page = read("app/owner/organisations/[id]/page.tsx");
-    expect(page).toContain("Convert trial to active");
+    expect(page).toContain("Convert to Paid Pilot");
     expect(page).toContain("CONVERT_TRIAL_CONFIRMATION");
     expect(page).toContain('action: "convert_trial_to_active"');
     expect(page).toContain("ownerOrganisationSettingsActions");
@@ -215,8 +215,8 @@ describe("Owner Console convert trial wiring", () => {
   });
 
   it("conversion confirmation explains data preservation", () => {
-    expect(CONVERT_TRIAL_CONFIRMATION).toMatch(/permanent active organisation/i);
+    expect(CONVERT_TRIAL_CONFIRMATION).toMatch(/Paid Pilot/i);
     expect(CONVERT_TRIAL_CONFIRMATION).toMatch(/preserved/i);
-    expect(CONVERT_TRIAL_CONFIRMATION).toMatch(/trial end date will be removed/i);
+    expect(CONVERT_TRIAL_CONFIRMATION).toMatch(/evaluation end date will be removed/i);
   });
 });
