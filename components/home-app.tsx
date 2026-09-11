@@ -155,12 +155,6 @@ export function HomeApp() {
     window.location.assign(LEAD_WORKSPACE_PATH);
   }, []);
 
-  const leaveToSignIn = useCallback(() => {
-    // Hard navigation tears down the coaching shell so no in-flight
-    // effects can keep calling protected APIs on the sign-in screen.
-    window.location.assign("/auth/sign-in?next=/?view=dashboard");
-  }, []);
-
   const handleAuthFailure = useCallback((error?: unknown) => {
     activeRef.current = false;
     setClients([]);
@@ -1201,7 +1195,11 @@ export function HomeApp() {
             <p className="eyebrow">SESSION</p>
             <h2>Unable to open your workspace</h2>
             <p className="muted">{authError || "Your profile could not be loaded."}</p>
-            <button className="primary full" type="button" onClick={() => leaveToSignIn()}>
+            <button
+              className="primary full"
+              type="button"
+              onClick={() => void handleSignOut()}
+            >
               Return to sign in
             </button>
           </div>

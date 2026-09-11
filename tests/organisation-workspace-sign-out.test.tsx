@@ -158,6 +158,22 @@ describe("Organisation Workspace account / Sign out", () => {
     expect(shell).toContain("onSignOut={onSignOut}");
     expect(shell).not.toContain("menuPlacement");
   });
+  it("blocked Manager workspace signs out before returning to sign in", () => {
+    const home = readFileSync(
+      join(process.cwd(), "components/home-app.tsx"),
+      "utf8"
+    );
+
+    expect(home).toContain("Unable to open your workspace");
+    expect(home).toContain("onClick={() => void handleSignOut()}");
+    expect(home).toContain("await signOutToSignIn()");
+    expect(home).not.toContain("leaveToSignIn");
+    expect(home).not.toContain(
+      'window.location.assign("/auth/sign-in?next=/?view=dashboard")'
+    );
+  });
+
+
 });
 
 describe("OrganisationHeader Sign out action", () => {
