@@ -106,6 +106,43 @@ const TABS = [
 
 type Tab = (typeof TABS)[number];
 
+type AnnualLicencePlanName = Exclude<CustomerLicencePlanName, "Pilot">;
+
+const ANNUAL_LICENCE_PLAN_NAMES: AnnualLicencePlanName[] = [
+  "Core",
+  "Growth",
+  "Scale",
+];
+
+function localIsoDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function annualRenewalDate(startDate: string): string {
+  const [year, month, day] = startDate.split("-").map(Number);
+
+  if (!year || !month || !day) return "";
+
+  const renewal = new Date(year + 1, month - 1, day);
+
+  return localIsoDate(renewal);
+}
+
+function defaultAnnualTerm(): {
+  startsAt: string;
+  renewalAt: string;
+} {
+  const startsAt = localIsoDate(new Date());
+
+  return {
+    startsAt,
+    renewalAt: annualRenewalDate(startsAt),
+  };
+}
+
 export default function OwnerOrganisationDetailPage() {
   const params = useParams<{ id: string }>();
   const [data, setData] = useState<DetailPayload | null>(null);
@@ -123,6 +160,11 @@ export default function OwnerOrganisationDetailPage() {
   const [confirmConvertTrial, setConfirmConvertTrial] = useState(false);
   const [pendingLicencePlan, setPendingLicencePlan] =
     useState<CustomerLicencePlanName | null>(null);
+  const [selectedAnnualPlan, setSelectedAnnualPlan] =
+    useState<AnnualLicencePlanName | null>(null);
+  const [annualStartsAt, setAnnualStartsAt] = useState("");
+  const [annualRenewalAt, setAnnualRenewalAt] = useState("");
+  const [confirmAnnualLicence, setConfirmAnnualLicence] = useState(false);
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [showLeadInviteForm, setShowLeadInviteForm] = useState(false);
   const [inviteFullName, setInviteFullName] = useState("");
@@ -570,17 +612,26 @@ export default function OwnerOrganisationDetailPage() {
     }
   }
 
-  async function updateOrganisation(body: Record<string, unknown>) {
+  async function updateOrganisation(
+    body: Record<string, unknown>
+  ): Promise<boolean> {
     setSaving(true);
+
     try {
       await apiJson(`/api/owner/organisations/${params.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
+
       await load();
+      setError("");
+      return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to update organisation.");
+      setError(
+        err instanceof Error ? err.message : "Unable to update organisation."
+      );
+      return false;
     } finally {
       setSaving(false);
       setConfirmSuspend(false);
@@ -1224,7 +1275,7 @@ export default function OwnerOrganisationDetailPage() {
               <h2 className="owner-panel__title">Account settings</h2>
 
               <div className="owner-panel">
-                <h3 className="owner-panel__title">Licence tier</h3>
+                <h3 className="owner-panel__title">Licence capacity</h3>
                 <p className="owner-muted">
                   Current: {data.organisation.planName} ·{" "}
                   {data.organisation.seatsPurchased} Manager capacity
@@ -1252,12 +1303,124 @@ export default function OwnerOrganisationDetailPage() {
                 </div>
 
                 <p className="owner-muted">
-                  Changing tier keeps the same organisation, Managers and
+                  Changing capacity keeps the same organisation, Managers and
                   Development Intelligence. A reduction is blocked if the
                   selected tier cannot accommodate the Manager seats currently
-                  in use.
+                  in use. This control does not create or renew an annual
+                  commercial term.
                 </p>
               </div>
+
+              {data.organisation.accountStatus === "active" ? (
+                <div className="owner-panel">
+                  <h3 className="owner-panel__title">Annual licence</h3>
+
+                  <p className="owner-muted">
+                    Use this to continue a Paid Pilot onto an annual licence or
+                    renew an existing annual licence. The same organisation,
+                    Managers, development evidence and Development Intelligence
+                    remain in place.
+                  </p>
+
+                  {data.organisation.licenceEndsAt ? (
+                    <p className="owner-muted">
+                      Current renewal date:{" "}
+                      {new Date(
+                        `${data.organisation.licenceEndsAt}T00:00:00`
+                      ).toLocaleDateString()}
+                    </p>
+                  ) : null}
+
+                  <div className="owner-filters">
+                    {ANNUAL_LICENCE_PLAN_NAMES.map(planName => {
+                      const capacity = managerCapacityForPlan(planName);
+                      const selected = selectedAnnualPlan === planName;
+
+                      return (
+                        <button
+                          key={planName}
+                          type="button"
+                          className="owner-button"
+                          disabled={saving}
+                          onClick={() => {
+                            const term = defaultAnnualTerm();
+
+                            setSelectedAnnualPlan(planName);
+                            setAnnualStartsAt(term.startsAt);
+                            setAnnualRenewalAt(term.renewalAt);
+                          }}
+                        >
+                          {selected
+                            ? `${planName} · ${capacity} Managers · Selected`
+                            : `${planName} · ${capacity} Managers`}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {selectedAnnualPlan ? (
+                    <>
+                      <div
+                        className="owner-filters"
+                        style={{
+                          alignItems: "flex-end",
+                          marginTop: "1rem",
+                        }}
+                      >
+                        <div className="owner-field">
+                          <label htmlFor="annual-licence-start">
+                            Annual licence start
+                          </label>
+                          <input
+                            id="annual-licence-start"
+                            type="date"
+                            value={annualStartsAt}
+                            onChange={event => {
+                              const startsAt = event.target.value;
+
+                              setAnnualStartsAt(startsAt);
+                              setAnnualRenewalAt(
+                                annualRenewalDate(startsAt)
+                              );
+                            }}
+                          />
+                        </div>
+
+                        <div className="owner-field">
+                          <label htmlFor="annual-licence-renewal">
+                            Renewal date
+                          </label>
+                          <input
+                            id="annual-licence-renewal"
+                            type="date"
+                            value={annualRenewalAt}
+                            readOnly
+                          />
+                        </div>
+
+                        <button
+                          type="button"
+                          className="owner-button"
+                          disabled={
+                            saving ||
+                            !annualStartsAt ||
+                            !annualRenewalAt
+                          }
+                          onClick={() => setConfirmAnnualLicence(true)}
+                        >
+                          Review annual licence
+                        </button>
+                      </div>
+
+                      <p className="owner-muted">
+                        Renewal is one calendar year after the selected start
+                        date. No organisation, Manager or development history is
+                        replaced when the annual term is continued.
+                      </p>
+                    </>
+                  ) : null}
+                </div>
+              ) : null}
 
               <div className="owner-filters">
                 {settingsActions?.showConvertTrial ? (
@@ -1328,6 +1491,52 @@ export default function OwnerOrganisationDetailPage() {
               const planName = pendingLicencePlan;
               await updateOrganisation({ licencePlanName: planName });
               setPendingLicencePlan(null);
+            }}
+          />
+
+          <OwnerConfirmDialog
+            open={confirmAnnualLicence}
+            title={
+              data?.organisation?.planName === "Pilot"
+                ? "Continue onto annual licence?"
+                : "Renew annual licence?"
+            }
+            description={
+              selectedAnnualPlan
+                ? `This will continue the same organisation on annual ${selectedAnnualPlan} with capacity for ${managerCapacityForPlan(
+                    selectedAnnualPlan
+                  )} Managers from ${annualStartsAt} to ${annualRenewalAt}. Existing Managers, development evidence and Development Intelligence remain in place.`
+                : ""
+            }
+            confirmLabel={
+              data?.organisation?.planName === "Pilot"
+                ? "Continue annually"
+                : "Renew annual licence"
+            }
+            busy={saving}
+            onCancel={() => setConfirmAnnualLicence(false)}
+            onConfirm={async () => {
+              if (
+                !selectedAnnualPlan ||
+                !annualStartsAt ||
+                !annualRenewalAt
+              ) {
+                return;
+              }
+
+              const succeeded = await updateOrganisation({
+                action: "continue_annual_licence",
+                annualPlanName: selectedAnnualPlan,
+                annualStartsAt,
+                annualRenewalAt,
+              });
+
+              if (succeeded) {
+                setConfirmAnnualLicence(false);
+                setSelectedAnnualPlan(null);
+                setAnnualStartsAt("");
+                setAnnualRenewalAt("");
+              }
             }}
           />
 

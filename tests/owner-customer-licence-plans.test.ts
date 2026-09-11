@@ -67,10 +67,10 @@ describe("Owner customer licence plans", () => {
     );
   });
 
-  it("exposes only the locked customer licence tiers in Owner settings", () => {
+  it("exposes only the locked customer licence capacities in Owner settings", () => {
     const page = read("app/owner/organisations/[id]/page.tsx");
 
-    expect(page).toContain("Licence tier");
+    expect(page).toContain("Licence capacity");
     expect(page).toContain("CUSTOMER_LICENCE_PLAN_NAMES.map");
     expect(page).toContain("managerCapacityForPlan(planName)");
     expect(page).toContain("setPendingLicencePlan(planName)");
@@ -79,7 +79,7 @@ describe("Owner customer licence plans", () => {
     );
     expect(page).toContain("Change licence tier");
     expect(page).toContain(
-      "Changing tier keeps the same organisation, Managers and"
+      "Changing capacity keeps the same organisation, Managers and"
     );
   });
 
@@ -91,4 +91,106 @@ describe("Owner customer licence plans", () => {
       "Deactivate Managers first or choose a licence tier with sufficient capacity."
     );
   });
+
+
+  it("supports the locked Paid Pilot to annual licence workflow", () => {
+    const route = read("app/api/owner/organisations/[id]/route.ts");
+    const service = read("lib/owner/continue-annual-licence.ts");
+    const page = read("app/owner/organisations/[id]/page.tsx");
+
+    expect(route).toContain('"continue_annual_licence"');
+    expect(route).toContain("annualPlanName");
+    expect(route).toContain("annualStartsAt");
+    expect(route).toContain("annualRenewalAt");
+    expect(route).toContain("continueOrganisationAnnualLicence");
+
+    expect(service).toContain("owner_continue_annual_licence");
+    expect(service).toContain("loadPractitionerSeatUsage");
+    expect(service).toContain("LICENCE_CAPACITY_BELOW_USAGE");
+    expect(service).toContain("managerCapacityForPlan");
+
+    expect(page).toContain("Annual licence");
+    expect(page).toContain("ANNUAL_LICENCE_PLAN_NAMES");
+    expect(page).toContain("Review annual licence");
+    expect(page).toContain('action: "continue_annual_licence"');
+    expect(page).toContain(
+      "development evidence and Development Intelligence"
+    );
+  });
+
+  it("locks annual plans to Core, Growth and Scale with exact Manager capacity", () => {
+    const migration = read(
+      "supabase/migrations/20260911143000_owner_continue_annual_licence.sql"
+    );
+
+    expect(migration).toContain(
+      "p_plan_name not in ('Core', 'Growth', 'Scale')"
+    );
+    expect(migration).toContain("when 'Core' then 25");
+    expect(migration).toContain("when 'Growth' then 50");
+    expect(migration).toContain("when 'Scale' then 100");
+    expect(migration).toContain("'INVALID_PLAN_CAPACITY'");
+  });
+
+  it("enforces one annual term and prevents future-start scheduling", () => {
+    const migration = read(
+      "supabase/migrations/20260911143000_owner_continue_annual_licence.sql"
+    );
+
+    expect(migration).toContain("p_starts_at > current_date");
+    expect(migration).toContain(
+      "p_renewal_at <> (p_starts_at + interval '1 year')::date"
+    );
+    expect(migration).toContain("'INVALID_RENEWAL_DATE'");
+  });
+
+  it("makes an exact annual continuation retry idempotent", () => {
+    const migration = read(
+      "supabase/migrations/20260911143000_owner_continue_annual_licence.sql"
+    );
+
+    expect(migration).toContain("v_existing_subscription_id");
+    expect(migration).toContain(
+      "s.metadata ->> 'commercialModel' = 'customer_annual_licence'"
+    );
+    expect(migration).toContain("'alreadyApplied', true");
+    expect(migration).toContain(
+      "v_org.practitioner_seats_purchased = v_required_seats"
+    );
+  });
+
+  it("continues the same organisation and preserves previous commercial terms as history", () => {
+    const migration = read(
+      "supabase/migrations/20260911143000_owner_continue_annual_licence.sql"
+    );
+
+    expect(migration).toContain("update public.organisations");
+    expect(migration).toContain("where id = p_organisation_id");
+    expect(migration).toContain("update public.organisation_subscriptions");
+    expect(migration).toContain(
+      "'supersededByAnnualContinuation', true"
+    );
+    expect(migration).toContain(
+      "insert into public.organisation_subscriptions"
+    );
+    expect(migration).toContain(
+      "'organisation.annual_licence_continued'"
+    );
+    expect(migration).not.toContain("delete from public.organisations");
+  });
+
+  it("counts renewal reporting from active subscriptions only", () => {
+    const repository = read("lib/owner/repository.ts");
+
+    expect(repository).toContain(
+      "renewals30: activeSubscriptions.filter"
+    );
+    expect(repository).toContain(
+      "renewals60: activeSubscriptions.filter"
+    );
+    expect(repository).toContain(
+      "renewals90: activeSubscriptions.filter"
+    );
+  });
+
 });

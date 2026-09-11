@@ -4,6 +4,10 @@ import { requirePlatformOwner, ownerValidationResponse } from "@/lib/owner/auth"
 import { writePlatformAudit } from "@/lib/owner/audit";
 import { convertTrialOrganisationToActive } from "@/lib/owner/convert-trial-to-active";
 import {
+  continueOrganisationAnnualLicence,
+  isAnnualCustomerLicencePlanName,
+} from "@/lib/owner/continue-annual-licence";
+import {
   CUSTOMER_LICENCE_PLAN_NAMES,
   isCustomerLicencePlanName,
   managerCapacityForPlan,
@@ -27,7 +31,12 @@ import { isUuid } from "@/lib/uuid";
 export const runtime = "nodejs";
 
 const patchSchema = z.object({
-  action: z.enum(["convert_trial_to_active"]).optional(),
+  action: z
+    .enum(["convert_trial_to_active", "continue_annual_licence"])
+    .optional(),
+  annualPlanName: z.enum(["Core", "Growth", "Scale"]).optional(),
+  annualStartsAt: z.string().date().optional(),
+  annualRenewalAt: z.string().date().optional(),
   legalName: z.string().trim().max(200).nullable().optional(),
   tradingName: z.string().trim().max(200).nullable().optional(),
   sector: z.string().trim().max(120).nullable().optional(),
@@ -153,6 +162,13 @@ export async function PATCH(
 
   const { id } = await context.params;
 
+  if (!isUuid(id)) {
+    return NextResponse.json(
+      { error: "Organisation not found." },
+      { status: 404 }
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -190,6 +206,74 @@ export async function PATCH(
       organisationId: result.organisationId,
       licenceStatus: "active",
       licenceEndsAt: null,
+    });
+  }
+
+  if (data.action === "continue_annual_licence") {
+    if (
+      !data.annualPlanName ||
+      !isAnnualCustomerLicencePlanName(data.annualPlanName) ||
+      !data.annualStartsAt ||
+      !data.annualRenewalAt
+    ) {
+      return ownerValidationResponse(
+        "Annual licence requires Core, Growth or Scale plus start and renewal dates."
+      );
+    }
+
+    const result = await continueOrganisationAnnualLicence({
+      supabase: auth.context.supabase,
+      organisationId: id,
+      planName: data.annualPlanName,
+      startsAt: data.annualStartsAt,
+      renewalAt: data.annualRenewalAt,
+    });
+
+    if (!result.ok) {
+      const status =
+        result.code === "NOT_FOUND"
+          ? 404
+          : result.code === "LICENCE_CAPACITY_BELOW_USAGE"
+            ? 409
+            : [
+                  "INVALID_ANNUAL_PLAN",
+                  "INVALID_PLAN_CAPACITY",
+                  "ANNUAL_DATES_REQUIRED",
+                  "INVALID_RENEWAL_DATE",
+                  "ORGANISATION_REQUIRED",
+                ].includes(result.code)
+              ? 400
+              : result.code === "UNAUTHENTICATED" ||
+                    result.code === "PERMISSION_DENIED"
+                ? 403
+                : 500;
+
+      return NextResponse.json(
+        {
+          error: result.error,
+          code: result.code,
+          ...(result.seatsInUse !== undefined
+            ? { seatsInUse: result.seatsInUse }
+            : {}),
+          ...(result.requestedCapacity !== undefined
+            ? { requestedCapacity: result.requestedCapacity }
+            : {}),
+        },
+        { status }
+      );
+    }
+
+    return NextResponse.json({
+      ok: true,
+      organisationId: result.organisationId,
+      subscriptionId: result.subscriptionId,
+      licenceStatus: result.licenceStatus,
+      licencePlanName: result.licencePlanName,
+      practitionerSeatsPurchased:
+        result.practitionerSeatsPurchased,
+      licenceStartsAt: result.licenceStartsAt,
+      licenceEndsAt: result.licenceEndsAt,
+      billingFrequency: result.billingFrequency,
     });
   }
 

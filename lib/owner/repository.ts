@@ -628,9 +628,9 @@ export async function loadCommercialOverview(supabase: SupabaseClient) {
       overdue.length === 0
         ? null
         : overdue.reduce((sum, inv) => sum + inv.grossMinor, 0),
-    renewals30: subscriptions.filter(s => withinDays(s.renewalAt, 30)).length,
-    renewals60: subscriptions.filter(s => withinDays(s.renewalAt, 60)).length,
-    renewals90: subscriptions.filter(s => withinDays(s.renewalAt, 90)).length,
+    renewals30: activeSubscriptions.filter(s => withinDays(s.renewalAt, 30)).length,
+    renewals60: activeSubscriptions.filter(s => withinDays(s.renewalAt, 60)).length,
+    renewals90: activeSubscriptions.filter(s => withinDays(s.renewalAt, 90)).length,
     valuesAvailable: mrrValues.some(v => v !== null) || arrValues.some(v => v !== null),
   };
 }
