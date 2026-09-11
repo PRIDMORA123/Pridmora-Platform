@@ -76,7 +76,12 @@ function leadContext() {
       organisation: {
         organisationId: ORG_ID,
         role: "oversight",
-        organisation: { name: "New Customer", organisationId: ORG_ID },
+        organisation: {
+          name: "New Customer",
+          organisationId: ORG_ID,
+          status: "active",
+          licence: { status: "active" },
+        },
       },
     },
   };
@@ -91,7 +96,12 @@ function managerContext() {
       organisation: {
         organisationId: ORG_ID,
         role: "practitioner",
-        organisation: { name: "New Customer", organisationId: ORG_ID },
+        organisation: {
+          name: "New Customer",
+          organisationId: ORG_ID,
+          status: "active",
+          licence: { status: "active" },
+        },
       },
     },
   };

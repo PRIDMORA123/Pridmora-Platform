@@ -42,7 +42,8 @@ function latestSqlContaining(pattern: RegExp): { file: string; sql: string } {
 }
 
 function fakeOrgContext(
-  status: "active" | "archived" | "pending_closure"
+  status: "active" | "archived" | "pending_closure",
+  licenceStatus: OrganisationRequestContext["organisation"]["organisation"]["licence"]["status"] = "active"
 ): OrganisationRequestContext {
   return {
     supabase: {} as OrganisationRequestContext["supabase"],
@@ -69,7 +70,7 @@ function fakeOrgContext(
         licence: {
           planName: "Pilot",
           seatsPurchased: 1,
-          status: "active",
+          status: licenceStatus,
           startsAt: null,
           endsAt: null,
         },
@@ -324,6 +325,44 @@ describe("DL-03 application access freeze", () => {
     );
     expect(denied).not.toBeNull();
     expect(denied?.status).toBe(403);
+  });
+
+  it("requireOrganisationPermission allows usable licences and denies unusable licences", () => {
+    expect(
+      requireOrganisationPermission(
+        fakeOrgContext("active", "active"),
+        "organisation.manage"
+      )
+    ).toBeNull();
+
+    expect(
+      requireOrganisationPermission(
+        fakeOrgContext("active", "trial"),
+        "organisation.manage"
+      )
+    ).toBeNull();
+
+    for (const licenceStatus of ["suspended", "expired", "cancelled"] as const) {
+      const denied = requireOrganisationPermission(
+        fakeOrgContext("active", licenceStatus),
+        "organisation.manage"
+      );
+
+      expect(denied).not.toBeNull();
+      expect(denied?.status).toBe(403);
+    }
+  });
+
+  it("pending_closure remains denied regardless of usable licence status", () => {
+    for (const licenceStatus of ["active", "trial"] as const) {
+      const denied = requireOrganisationPermission(
+        fakeOrgContext("pending_closure", licenceStatus),
+        "organisation.manage"
+      );
+
+      expect(denied).not.toBeNull();
+      expect(denied?.status).toBe(403);
+    }
   });
 
   it("workspace resolution and switch refuse pending_closure", () => {

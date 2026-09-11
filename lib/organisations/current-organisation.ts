@@ -11,6 +11,7 @@ import {
   hasPermission,
   organisationAllowsMemberAccess,
 } from "@/lib/organisations/permissions";
+import { isLicenceUsable } from "@/lib/organisations/licence";
 import {
   getActiveAssignment,
   resolveOrganisationContext,
@@ -59,7 +60,10 @@ export async function requireOrganisationContext(options?: {
     };
   }
 
-  if (!organisationAllowsMemberAccess(resolved.context.organisation.status)) {
+  if (
+    !organisationAllowsMemberAccess(resolved.context.organisation.status) ||
+    !isLicenceUsable(resolved.context.organisation.licence.status)
+  ) {
     return {
       ok: false,
       response: NextResponse.json(
@@ -82,7 +86,10 @@ export function requireOrganisationPermission(
   context: OrganisationRequestContext,
   permission: OrganisationPermission
 ): NextResponse | null {
-  if (!organisationAllowsMemberAccess(context.organisation.organisation.status)) {
+  if (
+    !organisationAllowsMemberAccess(context.organisation.organisation.status) ||
+    !isLicenceUsable(context.organisation.organisation.licence.status)
+  ) {
     return NextResponse.json({ error: "Permission denied." }, { status: 403 });
   }
   if (!hasPermission(context.organisation.role, permission)) {
@@ -130,7 +137,8 @@ export async function requireAssignedClientAccess(input: {
   if (
     !organisationAllowsMemberAccess(
       input.context.organisation.organisation.status
-    )
+    ) ||
+    !isLicenceUsable(input.context.organisation.organisation.licence.status)
   ) {
     return { ok: false, response: notFoundOrForbidden() };
   }

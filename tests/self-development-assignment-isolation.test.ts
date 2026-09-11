@@ -575,7 +575,11 @@ describe("Lead assignment POST rejects self-development by UUID", () => {
         organisation: {
           organisationId: ORG_ID,
           role: "oversight",
-          organisation: { name: "Westbridge" },
+          organisation: {
+            name: "Westbridge",
+            status: "active",
+            licence: { status: "active" },
+          },
         },
       },
     });
