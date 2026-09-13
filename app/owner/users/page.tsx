@@ -21,6 +21,8 @@ function ownerMembershipRoleLabel(role: string): string {
   if (role === "oversight") return "Organisation Lead";
   if (role === "practitioner") return "Manager";
   if (role === "owner") return "Owner";
+  if (role === "administrator") return "Administrator";
+  if (role === "viewer") return "Viewer";
   return "Unknown role";
 }
 
@@ -29,6 +31,9 @@ function ownerUserRoleLabel(user: OwnerUserListItem): string {
   if (user.role === "practitioner" && user.professionalRole === "manager") {
     return "Manager";
   }
+  if (user.role === "owner") return "Owner";
+  if (user.role === "administrator") return "Administrator";
+  if (user.role === "viewer") return "Viewer";
   return "Unknown role";
 }
 
