@@ -216,6 +216,15 @@ describe("owner console privacy and authorisation contracts", () => {
     expect(ownerTypes).toContain("platform-level role");
   });
 
+  it("shows customer-facing organisation role labels in Owner Users", () => {
+    const source = read("app/owner/users/page.tsx");
+
+    expect(source).toContain('if (role === "oversight") return "Organisation Lead";');
+    expect(source).toContain('if (role === "practitioner") return "Manager";');
+    expect(source).toContain("ownerMembershipRoleLabel(item)");
+    expect(source).toContain("ownerUserRoleLabel(user)");
+  });
+
   it("owner pages do not render confidential coaching content fields", () => {
     for (const path of [
       "app/owner/page.tsx",

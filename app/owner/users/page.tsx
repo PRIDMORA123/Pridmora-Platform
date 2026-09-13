@@ -17,6 +17,21 @@ type PendingAction = {
   description: string;
 };
 
+function ownerMembershipRoleLabel(role: string): string {
+  if (role === "oversight") return "Organisation Lead";
+  if (role === "practitioner") return "Manager";
+  if (role === "owner") return "Owner";
+  return "Unknown role";
+}
+
+function ownerUserRoleLabel(user: OwnerUserListItem): string {
+  if (user.role === "oversight") return "Organisation Lead";
+  if (user.role === "practitioner" && user.professionalRole === "manager") {
+    return "Manager";
+  }
+  return "Unknown role";
+}
+
 export default function OwnerUsersPage() {
   const [users, setUsers] = useState<OwnerUserListItem[]>([]);
   const [search, setSearch] = useState("");
@@ -101,7 +116,7 @@ export default function OwnerUsersPage() {
             <option value="all">All</option>
             {MEMBERSHIP_ROLES.map(item => (
               <option key={item} value={item}>
-                {item}
+                {ownerMembershipRoleLabel(item)}
               </option>
             ))}
           </select>
@@ -168,7 +183,7 @@ export default function OwnerUsersPage() {
                       >
                         {MEMBERSHIP_ROLES.filter(item => item !== "owner").map(item => (
                           <option key={item} value={item}>
-                            {item}
+                            {ownerMembershipRoleLabel(item)}
                           </option>
                         ))}
                       </select>
@@ -194,7 +209,7 @@ export default function OwnerUsersPage() {
                               action: "change_role",
                               role: roleDraft[user.membershipId] ?? user.role,
                               label: "Change organisation role?",
-                              description: `Update ${user.fullName || user.email} to role ${(roleDraft[user.membershipId] ?? user.role)}.`,
+                              description: `Update ${user.fullName || user.email} to role ${ownerMembershipRoleLabel(roleDraft[user.membershipId] ?? user.role)}.`,
                             })
                           }
                         >
@@ -281,7 +296,7 @@ export default function OwnerUsersPage() {
                 </div>
                 <div className="owner-stack-card__row">
                   <span className="owner-stack-card__label">Role</span>
-                  <span>{user.role}</span>
+                  <span>{ownerUserRoleLabel(user)}</span>
                 </div>
                 <div className="owner-stack-card__row">
                   <span className="owner-stack-card__label">Status</span>
