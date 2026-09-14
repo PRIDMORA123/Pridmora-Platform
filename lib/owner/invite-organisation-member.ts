@@ -277,6 +277,7 @@ export async function inviteOrganisationMember(input: {
     userMetadata: {
       full_name: fullName,
       professional_title: jobTitle || mapping.defaultProfessionalTitle,
+      workspace_type: input.kind === "lead" ? "organisation" : "manager",
     },
   });
 

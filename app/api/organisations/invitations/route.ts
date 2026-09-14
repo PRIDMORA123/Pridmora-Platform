@@ -189,6 +189,7 @@ export async function POST(request: Request) {
       userMetadata: {
         full_name: fullName || undefined,
         professional_title: professionalTitle,
+        workspace_type: "manager",
       },
     });
 

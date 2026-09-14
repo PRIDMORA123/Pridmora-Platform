@@ -57,6 +57,7 @@ export async function deliverOrganisationInvitationAuthEmail(input: {
   userMetadata?: {
     full_name?: string;
     professional_title?: string;
+    workspace_type?: "organisation" | "manager";
   };
 }): Promise<{
   authDelivery: InvitationAuthDeliveryMethod;
@@ -81,6 +82,8 @@ export async function deliverOrganisationInvitationAuthEmail(input: {
       data: {
         full_name: input.userMetadata?.full_name,
         professional_title: input.userMetadata?.professional_title,
+        // Email wording only. Access still comes from the secure invitation record.
+        workspace_type: input.userMetadata?.workspace_type,
         // Durable first-time setup flag — only stamped for genuinely new Auth users.
         password_setup_required: true,
       },

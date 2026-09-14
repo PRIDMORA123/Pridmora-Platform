@@ -53,6 +53,7 @@ describe("Lead → Manager invitation Auth email delivery", () => {
     expect(route).toContain("getSupabaseServiceClient");
     expect(route).toContain("authEmailSent: true");
     expect(route).toContain("createOrganisationInvitation");
+    expect(route).toContain('workspace_type: "manager"');
   });
 
   it("B. new Auth user uses invite email path", async () => {
@@ -78,6 +79,7 @@ describe("Lead → Manager invitation Auth email delivery", () => {
       userMetadata: {
         full_name: "Sarah Collins",
         professional_title: "Manager",
+        workspace_type: "manager",
       },
     });
 
@@ -95,6 +97,9 @@ describe("Lead → Manager invitation Auth email delivery", () => {
     );
     expect(inviteUserByEmail.mock.calls[0][1].data.professional_title).toBe(
       "Manager"
+    );
+    expect(inviteUserByEmail.mock.calls[0][1].data.workspace_type).toBe(
+      "manager"
     );
   });
 
@@ -208,6 +213,9 @@ describe("Lead → Manager invitation Auth email delivery", () => {
     expect(owner).toContain('kind: "lead"');
     expect(owner).toContain('role: "oversight"');
     expect(owner).toContain("inviteOrganisationLead");
+    expect(owner).toContain(
+      'workspace_type: input.kind === "lead" ? "organisation" : "manager"'
+    );
   });
 
   it("J. Manager acceptance still lands Manager at /?view=dashboard", () => {
