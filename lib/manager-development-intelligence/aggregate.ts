@@ -29,7 +29,11 @@ export type ManagerDevelopmentIntelligenceView = {
     sufficientManagerPopulation: boolean;
   };
   patterns: ManagerDevelopmentPatternView[];
-  nextStep: { title: string; suggestion: string } | null;
+  nextStep: {
+    title: string;
+    suggestion: string;
+    watchFor: string;
+  } | null;
   message: string | null;
 };
 
@@ -67,19 +71,38 @@ export function aggregateManagerDevelopmentSignals(input: {
     });
   }
 
-  const patterns: ManagerDevelopmentPatternView[] = [];
+  const rankedPatterns: Array<{
+    pattern: ManagerDevelopmentPatternView;
+    managerCount: number;
+    modalityCount: number;
+  }> = [];
+
   for (const bucket of buckets.values()) {
     if (bucket.managers.size < threshold) continue;
     const label = managerDevelopmentThemeLabel(bucket.themeKey);
     if (!label) continue;
-    patterns.push({
-      themeKey: bucket.themeKey,
-      themeLabel: label,
-      strength: resolveStrength(bucket.modalities.size),
+
+    rankedPatterns.push({
+      pattern: {
+        themeKey: bucket.themeKey,
+        themeLabel: label,
+        strength: resolveStrength(bucket.modalities.size),
+      },
+      managerCount: bucket.managers.size,
+      modalityCount: bucket.modalities.size,
     });
   }
 
-  patterns.sort((a, b) => a.themeLabel.localeCompare(b.themeLabel));
+  rankedPatterns.sort(
+    (a, b) =>
+      b.managerCount - a.managerCount ||
+      b.modalityCount - a.modalityCount ||
+      a.pattern.themeLabel.localeCompare(b.pattern.themeLabel)
+  );
+
+  // Private counts are used only to prioritise safe patterns internally.
+  // They are removed before the Lead-facing view is returned.
+  const patterns = rankedPatterns.map(entry => entry.pattern);
 
   const status: ManagerDevelopmentIntelligenceStatus =
     patterns.length > 0 ? "patterns_available" : "insufficient_evidence";

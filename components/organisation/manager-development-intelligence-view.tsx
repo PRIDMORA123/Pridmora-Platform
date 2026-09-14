@@ -53,17 +53,11 @@ export function ManagerDevelopmentIntelligenceView({
           </h2>
         )}
         <p className="manager-dev-intel__lede">
-          Privacy-safe patterns across Manager development — not individual
-          records, rankings or performance scores.
+          A current, privacy-safe view of where collective Manager development
+          attention is concentrated. It shows patterns, not individual records,
+          rankings or performance scores.
         </p>
       </header>
-
-      <aside
-        className="manager-dev-intel__privacy"
-        aria-label="Privacy boundary"
-      >
-        <p>{LEAD_PRIVACY_BOUNDARY_COPY}</p>
-      </aside>
 
       <p className="manager-dev-intel__lens-note">
         {isOverview ? LEAD_OVERVIEW_LENS_NOTE : LEAD_LENS_SEPARATION_COPY}
@@ -150,55 +144,106 @@ function PatternsAvailable({
   data: ManagerDevelopmentLeadPayload;
   isOverview: boolean;
 }) {
-  const patterns = isOverview ? data.patterns.slice(0, 3) : data.patterns;
+  const visiblePatterns = isOverview ? data.patterns.slice(0, 3) : data.patterns;
+  const [primaryPattern, ...otherPatterns] = visiblePatterns;
   const nextStep = data.nextStep;
+
+  if (!primaryPattern) return null;
 
   return (
     <div className="manager-dev-intel__panel">
-      <div className="manager-dev-intel__block">
-        <h3 className="manager-dev-intel__section-label">What we&apos;re seeing</h3>
-        <ul className="manager-dev-intel__pattern-list">
-          {patterns.map(pattern => {
-            const description = themeDescriptionForKey(pattern.themeKey);
-            return (
-              <li
-                key={pattern.themeKey}
-                className="manager-dev-intel__pattern"
-              >
-                <h4 className="manager-dev-intel__pattern-title">
-                  {pattern.themeLabel}
-                </h4>
-                <p className="manager-dev-intel__strength">
-                  <span className="manager-dev-intel__strength-label">
-                    {strengthDisplayLabel(pattern.strength)}
-                  </span>
-                  <span className="manager-dev-intel__strength-copy">
-                    {STRENGTH_EXPLANATIONS[pattern.strength] ??
-                      STRENGTH_EXPLANATIONS.emerging}
-                  </span>
-                </p>
-                {description ? (
-                  <p className="organisation-muted">{description}</p>
-                ) : null}
-              </li>
-            );
-          })}
-        </ul>
-        {isOverview && data.patterns.length > patterns.length ? (
-          <p className="organisation-muted">
-            Additional patterns are available in the full Manager Development
-            Intelligence view.
+      <div
+        className={
+          nextStep
+            ? "manager-dev-intel__insight-grid"
+            : "manager-dev-intel__insight-grid manager-dev-intel__insight-grid--single"
+        }
+      >
+        <article className="manager-dev-intel__pattern manager-dev-intel__pattern--primary">
+          <p className="manager-dev-intel__section-label">
+            Priority development signal
           </p>
+          <h3 className="manager-dev-intel__pattern-title">
+            {primaryPattern.themeLabel}
+          </h3>
+          <p className="manager-dev-intel__strength">
+            <span className="manager-dev-intel__strength-label">
+              {strengthDisplayLabel(primaryPattern.strength)}
+            </span>
+            <span className="manager-dev-intel__strength-copy">
+              {STRENGTH_EXPLANATIONS[primaryPattern.strength] ??
+                STRENGTH_EXPLANATIONS.emerging}
+            </span>
+          </p>
+          {themeDescriptionForKey(primaryPattern.themeKey) ? (
+            <p className="manager-dev-intel__meaning">
+              {themeDescriptionForKey(primaryPattern.themeKey)}
+            </p>
+          ) : null}
+        </article>
+
+        {nextStep ? (
+          <aside
+            className="manager-dev-intel__next"
+            aria-label="Recommended organisational response"
+          >
+            <p className="manager-dev-intel__section-label">
+              Recommended response
+            </p>
+            <h3 className="manager-dev-intel__next-title">
+              {nextStep.title}
+            </h3>
+            <p className="manager-dev-intel__next-copy">
+              {nextStep.suggestion}
+            </p>
+            <div className="manager-dev-intel__watch">
+              <h4 className="manager-dev-intel__watch-title">
+                What to watch
+              </h4>
+              <p>{nextStep.watchFor}</p>
+            </div>
+          </aside>
         ) : null}
       </div>
 
-      {nextStep ? (
-        <div className="manager-dev-intel__next">
-          <h3 className="manager-dev-intel__section-label">
-            What you could do next
+      {otherPatterns.length > 0 ? (
+        <div className="manager-dev-intel__block">
+          <h3 className="manager-dev-intel__section-heading">
+            Other shared signals
           </h3>
-          <p className="manager-dev-intel__next-title">{nextStep.title}</p>
-          <p className="organisation-muted">{nextStep.suggestion}</p>
+          <ul className="manager-dev-intel__pattern-list">
+            {otherPatterns.map(pattern => {
+              const description = themeDescriptionForKey(pattern.themeKey);
+              return (
+                <li
+                  key={pattern.themeKey}
+                  className="manager-dev-intel__pattern"
+                >
+                  <div className="manager-dev-intel__pattern-heading">
+                    <h4 className="manager-dev-intel__pattern-title">
+                      {pattern.themeLabel}
+                    </h4>
+                    <span className="manager-dev-intel__strength-label">
+                      {strengthDisplayLabel(pattern.strength)}
+                    </span>
+                  </div>
+                  <p className="manager-dev-intel__strength-copy">
+                    {STRENGTH_EXPLANATIONS[pattern.strength] ??
+                      STRENGTH_EXPLANATIONS.emerging}
+                  </p>
+                  {description ? (
+                    <p className="manager-dev-intel__meaning">{description}</p>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+          {isOverview && data.patterns.length > visiblePatterns.length ? (
+            <p className="organisation-muted">
+              Additional shared signals are available in the full Manager
+              Development Intelligence view.
+            </p>
+          ) : null}
         </div>
       ) : null}
 
@@ -209,14 +254,12 @@ function PatternsAvailable({
 
 function AboutThisPicture() {
   return (
-    <div className="manager-dev-intel__about">
-      <h3 className="manager-dev-intel__section-label">About this picture</h3>
-      <p className="organisation-muted">
-        Evidence before certainty: patterns are shown only when they are
-        privacy-safe aggregates. They are not Manager rankings, performance
-        scores or individual assessments.
-      </p>
-      <p className="organisation-muted">{LEAD_MANAGER_DI_INTERPRETATION_COPY}</p>
-    </div>
+    <details className="manager-dev-intel__about">
+      <summary>How to read this intelligence</summary>
+      <div className="manager-dev-intel__about-content">
+        <p>{LEAD_PRIVACY_BOUNDARY_COPY}</p>
+        <p>{LEAD_MANAGER_DI_INTERPRETATION_COPY}</p>
+      </div>
+    </details>
   );
 }

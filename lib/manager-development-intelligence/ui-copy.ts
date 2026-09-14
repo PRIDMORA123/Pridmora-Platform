@@ -6,50 +6,50 @@
 import type { ManagerDevelopmentPatternStrength } from "@/lib/manager-development-intelligence/constants";
 
 export const LEAD_PRIVACY_BOUNDARY_COPY =
-  "Pridmora shows organisation-level Manager development patterns only when at least five Managers contribute similar themes. Individual Manager development records, reflections and Aurelia conversations remain private to the Manager. Leads cannot identify or target the individuals behind a theme.";
+  "Pridmora shows only themes shared by at least five Managers. Individual development records, reflections and Aurelia conversations remain private. Leads cannot identify or target the Managers behind a theme.";
 
 export const LEAD_LENS_SEPARATION_COPY =
-  "This view is about Manager development — what Managers are collectively working on in their own development. It is separate from People Development Intelligence, which looks at patterns emerging through developmental work with people.";
+  "This view shows where collective attention is concentrated in Managers’ own development. People Development Intelligence is a separate lens based on developmental work with people.";
 
 export const LEAD_OVERVIEW_LENS_NOTE =
-  "Manager Development shows privacy-safe patterns from Managers’ own development. People Development Intelligence is a separate lens based on work with people.";
+  "This is the Manager development lens. People Development Intelligence provides a separate view of developmental work with people.";
 
 /** Coverage, prevalence and absence — used once in “About this picture”. */
 export const LEAD_MANAGER_DI_INTERPRETATION_COPY =
-  "These themes are drawn from Managers’ development focus and, where authorised, development evidence. They are privacy-safe organisational signals, not a census, ranking or measure of individual performance. Pattern strength reflects the type and consistency of the available development signals. Absence of a theme does not prove that no development need exists.";
+  "Themes are drawn from Managers’ development focus and, where authorised, development evidence. They indicate where collective development attention is concentrated, not whether Managers are competent or performing well. This is not a census, ranking or measure of individual performance. Absence of a theme does not prove that no development need exists.";
 
 export const STRENGTH_EXPLANATIONS: Record<
   ManagerDevelopmentPatternStrength,
   string
 > = {
   emerging:
-    "A privacy-safe shared development theme is visible from the current development signals.",
+    "This theme appears across enough Managers to be shown safely and is currently supported by one type of development signal.",
   developing:
-    "The pattern is supported by more than one type of development signal.",
+    "This theme appears across enough Managers to be shown safely and is supported by more than one type of development signal.",
 };
 
 /** Safe catalogue descriptions — no private wording. */
 const THEME_DESCRIPTIONS: Record<string, string> = {
   delegation:
-    "A shared development theme around delegation is visible across Managers and has passed the privacy threshold.",
+    "Collective attention is centred on entrusting work clearly, creating appropriate ownership and maintaining proportionate oversight.",
   feedback:
-    "A shared development theme around feedback is visible across Managers and has passed the privacy threshold.",
+    "Collective attention is centred on making feedback timely, specific and useful in everyday working relationships.",
   difficult_conversations:
-    "A shared development theme around difficult conversations is visible across Managers and has passed the privacy threshold.",
+    "Collective attention is centred on preparing for and handling challenging conversations with greater clarity and care.",
   accountability:
-    "A shared development theme around accountability is visible across Managers and has passed the privacy threshold.",
+    "Collective attention is centred on setting clear expectations, creating ownership and following through consistently.",
   psychological_safety:
-    "A shared development theme around psychological safety is visible across Managers and has passed the privacy threshold.",
+    "Collective attention is centred on creating conditions where people can contribute, question and raise concerns safely.",
   presence:
-    "A shared development theme around listening and presence is visible across Managers and has passed the privacy threshold.",
+    "Collective attention is centred on listening carefully, staying present and responding thoughtfully in leadership conversations.",
   collaboration:
-    "A shared development theme around collaboration is visible across Managers and has passed the privacy threshold.",
+    "Collective attention is centred on working across boundaries, aligning expectations and building shared ownership.",
   confidence:
-    "A shared development theme around confident leadership is visible across Managers and has passed the privacy threshold.",
+    "Collective attention is centred on exercising judgement, communicating decisions and leading with greater assurance.",
   role_transition:
-    "A shared development theme around role transition is visible across Managers and has passed the privacy threshold.",
+    "Collective attention is centred on the shift into broader responsibility, including identity, priorities and expectations.",
   boundaries:
-    "A shared development theme around boundaries and workload is visible across Managers and has passed the privacy threshold.",
+    "Collective attention is centred on balancing responsibility, competing priorities and sustainable boundaries.",
 };
 
 export function themeDescriptionForKey(themeKey: string): string | null {
@@ -59,7 +59,7 @@ export function themeDescriptionForKey(themeKey: string): string | null {
 export function strengthDisplayLabel(
   strength: ManagerDevelopmentPatternStrength | "established" | string
 ): string {
-  if (strength === "developing") return "Developing";
-  if (strength === "established") return "Established";
-  return "Emerging";
+  if (strength === "developing") return "Multi-source signal";
+  if (strength === "established") return "Established signal";
+  return "Shared signal";
 }

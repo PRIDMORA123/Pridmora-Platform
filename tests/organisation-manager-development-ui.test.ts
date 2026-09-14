@@ -74,12 +74,12 @@ describe("Stage 3.2 Organisation Lead Manager Development UI", () => {
   });
 
   it("uses qualitative strength labels without numeric scores", () => {
-    expect(strengthDisplayLabel("emerging")).toBe("Emerging");
-    expect(strengthDisplayLabel("developing")).toBe("Developing");
+    expect(strengthDisplayLabel("emerging")).toBe("Shared signal");
+    expect(strengthDisplayLabel("developing")).toBe("Multi-source signal");
     expect(STRENGTH_EXPLANATIONS.emerging).toMatch(
-      /privacy-safe shared development theme/i
+      /shown safely/i
     );
-    expect(STRENGTH_EXPLANATIONS.emerging).toMatch(/development signals/i);
+    expect(STRENGTH_EXPLANATIONS.emerging).toMatch(/development signal/i);
     expect(STRENGTH_EXPLANATIONS.developing).toMatch(/more than one type/i);
     expect(MANAGER_DEVELOPMENT_PRIVACY_THRESHOLD).toBe(5);
   });
@@ -93,6 +93,7 @@ describe("Stage 3.2 Organisation Lead Manager Development UI", () => {
     expect(page + view).not.toContain("generateRecommendation");
     expect(view).toContain("nextStep.title");
     expect(view).toContain("nextStep.suggestion");
+    expect(view).toContain("nextStep.watchFor");
   });
 
   it("keeps Members admin separate from pattern intelligence", () => {
@@ -174,8 +175,8 @@ describe("Stage 3.2 Organisation Lead Manager Development UI", () => {
     for (const themeKey of themeKeys) {
       const description = themeDescriptionForKey(themeKey);
       expect(description).toBeTruthy();
-      expect(description).toMatch(/shared development theme around/i);
-      expect(description).toMatch(/passed the privacy threshold/i);
+      expect(description).toMatch(/collective attention is centred on/i);
+      expect(description).not.toMatch(/performance|competence|deficit/i);
       expect(description).not.toMatch(/managers are showing/i);
       expect(description).not.toMatch(/showing a recurring/i);
     }

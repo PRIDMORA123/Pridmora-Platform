@@ -65,6 +65,7 @@ export function toLeadSafeManagerDevelopmentPayload(
       ? {
           title: view.nextStep.title,
           suggestion: view.nextStep.suggestion,
+          watchFor: view.nextStep.watchFor,
         }
       : null,
     message: view.message,

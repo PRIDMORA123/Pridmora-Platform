@@ -123,19 +123,22 @@ describe("Manager Development Intelligence Lead UI states", () => {
           title: "Strengthen delegation practice",
           suggestion:
             "Consider targeted development or peer learning around delegation, trust and appropriate ownership.",
+          watchFor:
+            "Look for evidence of clearer ownership and follow-through.",
         },
       })
     );
     const text = container.textContent || "";
     expect(text).toContain("Delegation");
     expect(text).toContain("Feedback");
-    expect(text).toContain("Emerging");
-    expect(text).toContain("Developing");
+    expect(text).toContain("Shared signal");
+    expect(text).toContain("Multi-source signal");
     expect(text).toContain("Strengthen delegation practice");
-    expect(text).toContain("What you could do next");
+    expect(text).toContain("Recommended response");
+    expect(text).toContain("What to watch");
     expect(text).toContain(LEAD_PRIVACY_BOUNDARY_COPY);
     expect(text).toContain(
-      "A shared development theme around delegation is visible across Managers and has passed the privacy threshold."
+      "Collective attention is centred on entrusting work clearly, creating appropriate ownership and maintaining proportionate oversight."
     );
     expect(text).toContain(STRENGTH_EXPLANATIONS.emerging);
     expect(text).toContain(STRENGTH_EXPLANATIONS.developing);
@@ -170,6 +173,7 @@ describe("Manager Development Intelligence Lead UI states", () => {
         nextStep: {
           title: "Strengthen delegation practice",
           suggestion: "Consider peer learning around delegation.",
+          watchFor: "Look for evidence of clearer ownership.",
         },
       }),
       "overview"
@@ -199,12 +203,13 @@ describe("Manager Development Intelligence Lead UI states", () => {
         nextStep: {
           title: "Strengthen delegation practice",
           suggestion: "Consider peer learning around delegation.",
+          watchFor: "Look for evidence of clearer ownership.",
         },
       })
     );
     const text = container.textContent || "";
     expect(text).toContain("Delegation");
-    expect(text).toContain("Emerging");
+    expect(text).toContain("Shared signal");
     // Forbidden private-content markers must never appear from UI composition.
     expect(text).not.toMatch(/I reflected that/i);
     expect(text).not.toMatch(/Aurelia said/i);

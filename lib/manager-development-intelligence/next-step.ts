@@ -4,61 +4,84 @@
  * No AI. No Manager data. No individual recommendations.
  */
 
-const NEXT_STEPS: Record<string, { title: string; suggestion: string }> = {
+const NEXT_STEPS: Record<
+  string,
+  { title: string; suggestion: string; watchFor: string }
+> = {
   delegation: {
     title: "Strengthen delegation practice",
     suggestion:
-      "Consider targeted development or peer learning around delegation, trust and appropriate ownership.",
+      "Use a short practice cycle in which Managers clarify the outcome, decision boundaries, ownership and check-in points before delegating live work.",
+    watchFor:
+      "Look for development evidence of clearer ownership, proportionate check-ins and Managers resisting the urge to take work back unnecessarily.",
   },
   feedback: {
-    title: "Build feedback confidence",
+    title: "Build everyday feedback practice",
     suggestion:
-      "Consider a short organisational focus on giving and receiving feedback in everyday management conversations.",
+      "Use live-case practice to help Managers make feedback timely, specific, two-way and connected to an agreed next step.",
+    watchFor:
+      "Look for evidence that feedback is happening closer to the event and leading to clearer follow-through.",
   },
   difficult_conversations: {
-    title: "Support difficult conversations",
+    title: "Build readiness for difficult conversations",
     suggestion:
-      "Consider peer practice or facilitated sessions that help Managers prepare for challenging conversations.",
+      "Provide structured rehearsal using real management situations, with attention to purpose, evidence, language, listening and an appropriate next step.",
+    watchFor:
+      "Look for evidence of earlier preparation, clearer conversations and fewer issues being avoided or allowed to drift.",
   },
   accountability: {
-    title: "Reinforce accountability",
+    title: "Reinforce clear and supportive accountability",
     suggestion:
-      "Consider development that helps Managers set clear expectations and follow through with support.",
+      "Run a focused practice cycle on agreeing outcomes, owners, timescales and supportive follow-through in live work.",
+    watchFor:
+      "Look for development evidence of clearer agreements, timely follow-up and ownership remaining with the right person.",
   },
   psychological_safety: {
-    title: "Develop psychological safety",
+    title: "Strengthen speak-up conditions",
     suggestion:
-      "Consider organisational learning that helps Managers create conditions where people can speak up safely.",
+      "Help Managers practise inviting challenge, responding constructively to concerns and making it safe to acknowledge uncertainty or mistakes.",
+    watchFor:
+      "Look for evidence of Managers asking for challenge, hearing different views and responding without defensiveness.",
   },
   presence: {
-    title: "Strengthen listening and presence",
+    title: "Strengthen listening and leadership presence",
     suggestion:
-      "Consider practice-focused development on listening, attention and leadership presence.",
+      "Use observed practice and reflection to help Managers listen without rushing, test their understanding and respond with intention.",
+    watchFor:
+      "Look for evidence of fewer assumptions, more purposeful questions and clearer shared understanding after conversations.",
   },
   collaboration: {
-    title: "Improve collaboration",
+    title: "Improve cross-boundary collaboration",
     suggestion:
-      "Consider peer learning that strengthens cross-team collaboration and alignment.",
+      "Use a live shared challenge to help Managers clarify dependencies, expectations, decision rights and joint ownership across teams.",
+    watchFor:
+      "Look for evidence of earlier alignment, clearer handovers and fewer unresolved assumptions between teams.",
   },
   confidence: {
-    title: "Support confident leadership",
+    title: "Support confident managerial judgement",
     suggestion:
-      "Consider development opportunities that help Managers build assured judgement in everyday decisions.",
+      "Give Managers repeated opportunities to work through live decisions, explain their reasoning and act with appropriate support.",
+    watchFor:
+      "Look for evidence of clearer decisions, proportionate escalation and greater willingness to act amid reasonable uncertainty.",
   },
   role_transition: {
-    title: "Support role transitions",
+    title: "Support the transition into management",
     suggestion:
-      "Consider structured support for Managers navigating new or expanding responsibilities.",
+      "Create structured reflection around changing expectations, priorities, relationships and the shift from doing work to enabling others.",
+    watchFor:
+      "Look for evidence that Managers are establishing clearer priorities, delegating appropriately and becoming more deliberate about how they lead.",
   },
   boundaries: {
-    title: "Address workload and boundaries",
+    title: "Strengthen priorities and sustainable boundaries",
     suggestion:
-      "Consider organisational guidance that helps Managers set priorities and sustainable boundaries.",
+      "Help Managers practise making trade-offs, setting expectations and escalating capacity constraints before workload becomes unmanageable.",
+    watchFor:
+      "Look for evidence of clearer prioritisation, earlier capacity conversations and more consistent boundaries.",
   },
 };
 
 export function organisationalNextStepForTheme(
   themeKey: string
-): { title: string; suggestion: string } | null {
+): { title: string; suggestion: string; watchFor: string } | null {
   return NEXT_STEPS[themeKey.trim()] ?? null;
 }

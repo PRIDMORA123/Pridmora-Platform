@@ -181,6 +181,39 @@ describe("Stage 3.1 distinct-Manager aggregation and suppression", () => {
     ).toHaveLength(0);
   });
 
+  it("prioritises eligible patterns by breadth then evidence diversity", () => {
+    const signals = [
+      ...["m1", "m2", "m3", "m4", "m5", "m6", "m7"].map(id =>
+        signal("accountability", id, "focus")
+      ),
+      ...["m1", "m2", "m3", "m4", "m5", "m6"].map(id =>
+        signal("delegation", id, "focus")
+      ),
+      ...["m1", "m2", "m3", "m4", "m5"].map(id =>
+        signal("delegation", id, "evidence_capability")
+      ),
+      ...["m1", "m2", "m3", "m4", "m5", "m6"].map(id =>
+        signal("feedback", id, "focus")
+      ),
+    ];
+
+    const view = aggregateManagerDevelopmentSignals({
+      signals,
+      activeManagerPopulation: 10,
+    });
+
+    expect(view.patterns.map(pattern => pattern.themeKey)).toEqual([
+      "accountability",
+      "delegation",
+      "feedback",
+    ]);
+    expect(view.nextStep?.title).toBe("Reinforce clear and supportive accountability");
+
+    const json = JSON.stringify(view);
+    expect(json).not.toContain("managerCount");
+    expect(json).not.toContain("modalityCount");
+  });
+
   it("keeps privacy threshold separate from evidence strength", () => {
     const focusOnly = ["m1", "m2", "m3", "m4", "m5"].map(id =>
       signal("delegation", id, "focus")
