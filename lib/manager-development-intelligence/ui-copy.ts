@@ -9,10 +9,10 @@ export const LEAD_PRIVACY_BOUNDARY_COPY =
   "Pridmora shows only themes shared by at least five Managers. Individual development records, reflections and Aurelia conversations remain private. Leads cannot identify or target the Managers behind a theme.";
 
 export const LEAD_LENS_SEPARATION_COPY =
-  "This view shows where collective attention is concentrated in Managers’ own development. People Development Intelligence is a separate lens based on developmental work with people.";
+  "This view shows where collective attention is concentrated in Manager development across the organisation. People Development Intelligence is a separate lens based on developmental work with people.";
 
 export const LEAD_OVERVIEW_LENS_NOTE =
-  "This is the Manager development lens. People Development Intelligence provides a separate view of developmental work with people.";
+  "This is the Manager development lens. People Development Intelligence is a separate lens based on developmental work with people.";
 
 /** Coverage, prevalence and absence — used once in “About this picture”. */
 export const LEAD_MANAGER_DI_INTERPRETATION_COPY =
