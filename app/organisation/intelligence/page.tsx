@@ -651,71 +651,52 @@ export default function OrganisationIntelligencePage() {
                 </button>
               </div>
 
-              {reportableThemes.length > 0 ? (
-                <div className="org-intelligence-brief">
-                  <article className="org-intelligence-brief__section">
-                    <p className="organisation-meta">What the evidence indicates</p>
-                    <h3>{reportableThemes[0].themeLabel}</h3>
-                    <p>
-                      {reportableThemes[0].summary ||
-                        "A collective people development pattern has met the reporting threshold for this period."}
-                    </p>
-                  </article>
+              <div className="manager-dev-intel__insight-grid">
+                <article className="manager-dev-intel__pattern manager-dev-intel__pattern--primary">
+                  <p className="manager-dev-intel__section-label">
+                    Collective development signal
+                  </p>
+                  <h3 className="manager-dev-intel__pattern-title">
+                    {reportableThemes.length > 0
+                      ? reportableThemes[0].themeLabel
+                      : "No reportable collective theme"}
+                  </h3>
+                  <p className="manager-dev-intel__meaning">
+                    {reportableThemes.length > 0
+                      ? reportableThemes[0].summary ||
+                        "A collective people development pattern has met the reporting threshold for this period."
+                      : "The available authorised evidence does not currently support a collective theme above the reporting threshold."}
+                  </p>
 
-                  <article className="org-intelligence-brief__section">
-                    <h3>What this means — and does not mean</h3>
+                  <div className="org-intelligence-brief__section">
+                    <h4>What this means — and does not mean</h4>
                     <p>
-                      This is a privacy-safe collective development signal from
-                      authorised evidence. It can help identify where
-                      organisational support may be useful. It is not an
-                      individual assessment, performance score or conclusion
-                      about every person in the organisation.
+                      {reportableThemes.length > 0
+                        ? "This is a privacy-safe collective development signal from authorised evidence. It can help identify where organisational support may be useful. It is not an individual assessment, performance score or conclusion about every person in the organisation."
+                        : "There is not enough consistent collective evidence to justify an organisational theme. This does not prove that development needs are absent and it should not be used to infer anything about an individual."}
                     </p>
-                  </article>
+                  </div>
+                </article>
 
-                  <article className="org-intelligence-brief__section">
-                    <h3>Recommended organisational response</h3>
-                    <p>
-                      {snapshot.recommendations[0]?.recommendation ||
+                <aside
+                  className="manager-dev-intel__next"
+                  aria-label="Recommended organisational response"
+                >
+                  <p className="manager-dev-intel__section-label">
+                    Recommended response
+                  </p>
+                  <h3 className="manager-dev-intel__next-title">
+                    Recommended organisational response
+                  </h3>
+                  <p className="manager-dev-intel__next-copy">
+                    {reportableThemes.length > 0
+                      ? snapshot.recommendations[0]?.recommendation ||
                         snapshot.attentionAreas[0]?.recommendedReview ||
-                        "Keep the pattern under proportionate review and use it to inform development support rather than individual judgement."}
-                    </p>
-                  </article>
-                </div>
-              ) : (
-                <div className="org-intelligence-brief">
-                  <article className="org-intelligence-brief__section">
-                    <p className="organisation-meta">What the evidence indicates</p>
-                    <h3>
-                      No reportable people development theme has emerged in this
-                      period.
-                    </h3>
-                    <p>
-                      The available authorised evidence does not currently
-                      support a collective theme above the reporting threshold.
-                    </p>
-                  </article>
-
-                  <article className="org-intelligence-brief__section">
-                    <h3>What this means — and does not mean</h3>
-                    <p>
-                      There is not enough consistent collective evidence to
-                      justify an organisational theme. This does not prove that
-                      development needs are absent and it should not be used to
-                      infer anything about an individual.
-                    </p>
-                  </article>
-
-                  <article className="org-intelligence-brief__section">
-                    <h3>Recommended organisational response</h3>
-                    <p>
-                      Continue normal developmental conversations and authorised
-                      evidence capture. No additional organisational intervention
-                      is indicated solely because no reportable theme is present.
-                    </p>
-                  </article>
-                </div>
-              )}
+                        "Keep the pattern under proportionate review and use it to inform development support rather than individual judgement."
+                      : "Continue normal developmental conversations and authorised evidence capture. No additional organisational intervention is indicated solely because no reportable theme is present."}
+                  </p>
+                </aside>
+              </div>
             </section>
 
             {reportableThemes.length > 0 ? (

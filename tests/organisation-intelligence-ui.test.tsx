@@ -580,7 +580,7 @@ describe("Gate 3.4C Lead intelligence presentation polish", () => {
     const text = container.textContent || "";
 
     expect(text).toContain("Executive insight");
-    expect(text).toContain("What the evidence indicates");
+    expect(text).toContain("Collective development signal");
     expect(text).toContain("Accountability appears across seven relationships.");
     expect(text).toContain("What this means — and does not mean");
     expect(text).toContain("Recommended organisational response");
