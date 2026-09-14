@@ -9371,6 +9371,36 @@ button.coaching-moments-section__item:focus-visible {
 
 .organisation-header__account .identity-account-menu__trigger {
   width: 100%;
+  color: var(--identity-navy, #0b3557);
+}
+
+.organisation-header__account .identity-account-menu__trigger:hover {
+  background: rgba(11, 53, 87, 0.06);
+}
+
+.organisation-header__account .identity-account-menu__identity strong {
+  color: var(--identity-navy, #0b3557);
+}
+
+.organisation-header__account .identity-account-menu__identity small {
+  color: var(--identity-text-secondary, #687b8a);
+}
+
+.organisation-header__account .identity-account-menu__chevron {
+  color: var(--identity-text-secondary, #687b8a);
+}
+
+.organisation-header__account
+  .identity-account-menu__trigger:hover
+  .identity-account-menu__chevron,
+.organisation-header__account .identity-account-menu__chevron.is-open {
+  color: var(--identity-navy, #0b3557);
+}
+
+.organisation-header__account .identity-sidebar-avatar {
+  border: 1px solid rgba(24, 175, 179, 0.3);
+  background: rgba(24, 175, 179, 0.14);
+  color: var(--identity-navy, #0b3557);
 }
 
 /* Navigation */
