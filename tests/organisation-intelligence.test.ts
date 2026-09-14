@@ -273,7 +273,7 @@ describe("organisation intelligence privacy", () => {
     expect(html).not.toMatch(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
     expect(html).not.toContain("client_private_identities");
     expect(html).not.toMatch(/\bprivate_notes\b/);
-    expect(html).toContain("Methodology and privacy");
+    expect(html).toContain("How to read this intelligence");
     expect(html).toMatch(/anonymised aggregated authorised development signals only/i);
   });
 });
@@ -453,27 +453,30 @@ describe("organisation intelligence UI and navigation", () => {
     expect(nav).toContain("Manager Development");
   });
 
-  it("renders the executive view sections", () => {
+  it("renders the gold-standard People Development Intelligence sections", () => {
     const page = read("app/organisation/intelligence/page.tsx");
-    expect(page).toContain("Executive brief");
-    expect(page).toContain("Organisation overview");
-    expect(page).toContain("Development Momentum");
+
+    expect(page).toContain("Executive insight");
+    expect(page).toContain("Reportable themes");
+    expect(page).toContain("Evidence context");
+    expect(page).toContain("Development activity");
     expect(page).toContain("Capability trends");
-    expect(page).toContain("Emerging themes");
-    expect(page).toContain("Priority areas");
-    expect(page).toContain("Themes to monitor");
     expect(page).toContain("Development indicators");
+    expect(page).toContain("How to read this intelligence");
     expect(page).toContain("Evidence base confidence");
     expect(page).toContain("Theme confidence");
-    expect(page).toContain("isThemeMonitorAttentionArea");
-    expect(page).toContain('kind === "capability"');
+
+    expect(page).not.toContain("Executive brief");
+    expect(page).not.toContain("Organisation overview");
+    expect(page).not.toContain("Emerging themes");
+    expect(page).not.toContain("Priority areas");
+    expect(page).not.toContain("Themes to monitor");
+    expect(page).not.toContain("Development Activity Momentum");
     expect(page).not.toContain("Coaching impact");
     expect(page).not.toContain("org-intelligence-brief__scan");
     expect(page).not.toContain("buildExecutiveBriefScanSummary");
     expect(page).not.toContain("Overall position");
     expect(page).not.toContain("Themes with increasing prevalence");
-    expect(page).toContain("Development Activity Momentum");
-    expect(page).toContain("org-intelligence-sr-only");
   });
 
   it("polishes empty-state hierarchy and reporting controls", () => {

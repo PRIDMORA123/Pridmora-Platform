@@ -251,8 +251,8 @@ describe("organisation intelligence empty-state UI", () => {
     expect(container.textContent).not.toContain("[object Event]");
   });
 
-  it("loads a history snapshot id as a string query param", async () => {
-    apiJson.mockImplementation(async (url: unknown) => ({
+  it("does not label history as previous comparable when there is no current snapshot", async () => {
+    apiJson.mockImplementation(async () => ({
       snapshot: null,
       history: [
         {
@@ -281,42 +281,11 @@ describe("organisation intelligence empty-state UI", () => {
 
     await renderPage();
 
-    const historyButton = Array.from(container.querySelectorAll("button")).find(
-      button => /2026-05-07 to 2026-08-04/i.test(button.textContent || "")
-    );
-    expect(historyButton).toBeTruthy();
-
-    apiJson.mockClear();
-    apiJson.mockImplementation(async (url: unknown) => {
-      expect(String(url)).toContain(
-        "snapshotId=11111111-1111-4111-8111-111111111111"
-      );
-      expect(String(url)).not.toContain("[object");
-      return {
-        snapshot: null,
-        history: [],
-        defaultPeriod: {
-          preset: "last_90_days",
-          periodStart: "2026-05-07",
-          periodEnd: "2026-08-04",
-          previousPeriodStart: "2026-02-06",
-          previousPeriodEnd: "2026-05-06",
-          label: "Last 90 days",
-          comparisonLabel: "Compared with previous period",
-        },
-        privacyNote: "Privacy note",
-        confidentialityNote: "Confidentiality note",
-      };
-    });
-
-    await act(async () => {
-      historyButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-
+    expect(container.textContent).not.toContain("Previous comparable reports");
+    expect(container.textContent).not.toContain("2026-05-07 to 2026-08-04");
     expect(container.textContent).not.toContain("[object Event]");
   });
+
   it("privacy tooltip opens with keyboard activation", async () => {
     await renderPage();
 
@@ -605,93 +574,205 @@ describe("Gate 3.4C Lead intelligence presentation polish", () => {
     });
   }
 
-  it("keeps one executive narrative and clarifies confidence labels", async () => {
+  it("presents one executive insight with clear confidence context", async () => {
     await renderPage();
-    const text = container.textContent || "";
-    const narrative =
-      "The available evidence indicates Accountability and Psychological Safety are reportable organisational themes for this period.";
 
-    expect(text).toContain("Executive brief");
-    expect(text).toContain(narrative);
-    expect(text.split(narrative).length - 1).toBe(1);
+    const text = container.textContent || "";
+
+    expect(text).toContain("Executive insight");
+    expect(text).toContain("What the evidence indicates");
+    expect(text).toContain("Accountability appears across seven relationships.");
+    expect(text).toContain("What this means — and does not mean");
+    expect(text).toContain("Recommended organisational response");
+    expect(text).toContain("Decide whether targeted support is needed.");
+
     expect(text).toContain("Evidence base confidence: Moderate");
     expect(text).toContain("Theme confidence: Low");
-    expect(text).toContain(
-      "Evidence base confidence reflects the overall anonymised sample"
-    );
-    // Structured scan-summary duplicate must be absent.
+
+    expect(text).not.toContain("Executive brief");
     expect(text).not.toContain("Overall position");
     expect(text).not.toContain("Themes with increasing prevalence");
     expect(text).not.toContain("Development activity momentum");
     expect(text).not.toContain("Brief summary");
-    expect(container.querySelector(".org-intelligence-brief__scan")).toBeNull();
-    expect(container.querySelector(".org-intelligence-brief__scan-list")).toBeNull();
   });
 
-  it("keeps theme monitoring primary and does not repeat foundation monitor rows", async () => {
+  it("separates reportable themes from capability trends and development activity", async () => {
     await renderPage();
+
     const text = container.textContent || "";
 
-    expect(text).toContain("Emerging themes");
-    expect(text).toContain("Themes to monitor");
+    expect(text).toContain("Reportable themes");
+    expect(text).toContain("Evidence context");
+    expect(text).toContain("Development activity");
     expect(text).toContain("Capability trends");
     expect(text).toContain("Development indicators");
-    expect(text).not.toContain("Coaching impact");
-    expect(text).toContain("do not claim causation");
 
-    const attentionHeading = Array.from(container.querySelectorAll("h2")).find(
-      node => node.textContent === "Themes to monitor"
+    expect(text).not.toContain("Emerging themes");
+    expect(text).not.toContain("Themes to monitor");
+    expect(text).not.toContain("Priority areas");
+    expect(text).not.toContain("Coaching impact");
+
+    const themesHeading = Array.from(container.querySelectorAll("h2")).find(
+      node => node.textContent === "Reportable themes"
     );
-    expect(attentionHeading).toBeTruthy();
-    const attentionSection = attentionHeading?.closest("section");
-    const attentionText = attentionSection?.textContent || "";
-    expect(attentionText).toContain("Accountability");
-    expect(attentionText).toContain("Psychological safety");
-    // Capability/foundation label must not appear in theme monitor list.
-    expect(attentionText).not.toContain("Psychological Safety");
-    expect(attentionText).not.toContain("Accountability and Ownership");
-    expect(attentionText).not.toContain("Foundation roll-up duplicate");
-    expect(attentionText).not.toContain("kind === \"capability\"");
+    expect(themesHeading).toBeTruthy();
+
+    const themesText = themesHeading?.closest("section")?.textContent || "";
+    expect(themesText).toContain("Accountability");
+    expect(themesText).toContain("Psychological Safety");
+    expect(themesText).not.toContain("Accountability and Ownership");
 
     const capabilityHeading = Array.from(container.querySelectorAll("h2")).find(
       node => node.textContent === "Capability trends"
     );
-    const capabilityText = capabilityHeading?.closest("section")?.textContent || "";
+    const capabilityText =
+      capabilityHeading?.closest("section")?.textContent || "";
+
     expect(capabilityText).toContain("Accountability and Ownership");
     expect(capabilityText).toContain("Psychological Safety");
     expect(capabilityText).toContain("Capability confidence");
+
+    expect(text).toContain("do not claim causation");
   });
 
-  it("excludes kind === capability from Themes to monitor even when labels collide", async () => {
+  it("never renders suppressed themes as reportable intelligence", async () => {
+    apiJson.mockImplementation(async () => ({
+      snapshot: {
+        ...readySnapshot,
+        themes: readySnapshot.themes.map(theme =>
+          theme.themeKey === "accountability"
+            ? { ...theme, suppressed: true }
+            : theme
+        ),
+      },
+      history: [],
+      defaultPeriod: readySnapshot.period,
+      privacyNote: "Privacy note",
+      confidentialityNote: "Confidentiality note",
+    }));
+
     await renderPage();
-    const attentionHeading = Array.from(container.querySelectorAll("h2")).find(
-      node => node.textContent === "Themes to monitor"
+
+    const text = container.textContent || "";
+
+    expect(text).not.toContain("Accountability appears across seven relationships.");
+
+    const themesHeading = Array.from(container.querySelectorAll("h2")).find(
+      node => node.textContent === "Reportable themes"
     );
-    const items = Array.from(
-      attentionHeading?.closest("section")?.querySelectorAll("h3") || []
-    ).map(node => node.textContent?.trim());
-    expect(items).toEqual(["Accountability", "Psychological safety"]);
-    expect(items.filter(label => label === "Psychological Safety")).toHaveLength(
-      0
+    const themesText = themesHeading?.closest("section")?.textContent || "";
+
+    expect(themesText).not.toContain("Accountability");
+    expect(themesText).toContain("Psychological Safety");
+    expect(text).toContain(
+      "Psychological Safety appears across five relationships."
     );
   });
 
-  it("preserves buyer hierarchy and privacy language", async () => {
+  it("does not render the retired theme-monitor attention-area presentation", async () => {
     await renderPage();
+
     const headings = Array.from(container.querySelectorAll("h2")).map(
       node => node.textContent
     );
-    const briefIdx = headings.indexOf("Executive brief");
-    const themesIdx = headings.indexOf("Emerging themes");
-    const monitorIdx = headings.indexOf("Themes to monitor");
-    const priorityIdx = headings.indexOf("Priority areas");
-    expect(briefIdx).toBeGreaterThanOrEqual(0);
-    expect(themesIdx).toBeGreaterThan(briefIdx);
-    expect(monitorIdx).toBeGreaterThan(themesIdx);
-    expect(priorityIdx).toBeGreaterThan(monitorIdx);
+
+    expect(headings).not.toContain("Themes to monitor");
+    expect(container.textContent).not.toContain("Foundation roll-up duplicate");
+    expect(container.textContent).not.toContain("kind === \"capability\"");
+  });
+
+  it("opens a genuine previous comparable report using its snapshot id", async () => {
+    const previousSnapshotId = "11111111-1111-4111-8111-111111111111";
+
+    apiJson.mockImplementation(async (url: unknown) => {
+      const requestUrl = String(url);
+
+      expect(requestUrl).not.toContain("[object");
+
+      return {
+        snapshot: readySnapshot,
+        history: [
+          {
+            id: readySnapshot.id,
+            periodStart: readySnapshot.period.periodStart,
+            periodEnd: readySnapshot.period.periodEnd,
+            periodKey: readySnapshot.period.preset,
+            generatedAt: readySnapshot.generatedAt,
+            confidenceLevel: readySnapshot.confidenceLevel,
+            status: "ready",
+            sourceRelationshipCount: readySnapshot.sourceRelationshipCount,
+          },
+          {
+            id: previousSnapshotId,
+            periodStart: "2026-02-18",
+            periodEnd: "2026-05-18",
+            periodKey: "last_90_days",
+            generatedAt: "2026-05-18T10:00:00.000Z",
+            confidenceLevel: "low",
+            status: "ready",
+            sourceRelationshipCount: 5,
+          },
+        ],
+        defaultPeriod: readySnapshot.period,
+        privacyNote: "Privacy note",
+        confidentialityNote: "Confidentiality note",
+      };
+    });
+
+    await renderPage();
+
+    expect(container.textContent).toContain("Previous comparable reports");
+
+    const previousReport = Array.from(container.querySelectorAll("button")).find(
+      button =>
+        button.textContent?.includes("2026-02-18 to 2026-05-18")
+    );
+
+    expect(previousReport).toBeTruthy();
+
+    await act(async () => {
+      previousReport?.dispatchEvent(
+        new MouseEvent("click", { bubbles: true })
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(
+      apiJson.mock.calls.some(([url]) =>
+        String(url).includes(`snapshotId=${previousSnapshotId}`)
+      )
+    ).toBe(true);
+
+    expect(
+      apiJson.mock.calls.some(([url]) => String(url).includes("[object"))
+    ).toBe(false);
+  });
+
+  it("preserves the new buyer hierarchy and privacy language", async () => {
+    await renderPage();
+
+    const headings = Array.from(container.querySelectorAll("h2")).map(
+      node => node.textContent
+    );
+
+    const insightIdx = headings.indexOf("Executive insight");
+    const themesIdx = headings.indexOf("Reportable themes");
+    const evidenceIdx = headings.indexOf("Evidence context");
+    const activityIdx = headings.indexOf("Development activity");
+    const capabilityIdx = headings.indexOf("Capability trends");
+
+    expect(insightIdx).toBeGreaterThanOrEqual(0);
+    expect(themesIdx).toBeGreaterThan(insightIdx);
+    expect(evidenceIdx).toBeGreaterThan(themesIdx);
+    expect(activityIdx).toBeGreaterThan(evidenceIdx);
+    expect(capabilityIdx).toBeGreaterThan(activityIdx);
 
     expect(container.textContent).toContain("Privacy protected");
     expect(container.textContent).toContain("anonymised");
+    expect(container.textContent).toContain("performance scores");
+    expect(container.textContent).toContain("How to read this intelligence");
     expect(container.textContent).not.toContain("contributorKey");
   });
+
 });

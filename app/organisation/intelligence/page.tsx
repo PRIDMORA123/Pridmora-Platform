@@ -15,12 +15,9 @@ import {
 import { apiJson } from "@/lib/api-client";
 import {
   GENERATION_STAGE_LABELS,
-  MOMENTUM_METHODOLOGY,
-  MOMENTUM_WEIGHTS,
   ORGANISATION_INTELLIGENCE_PRIVACY_THRESHOLD,
   PREVALENCE_DIRECTION_NOTE,
   COVERAGE_CAVEAT_NOTE,
-  SIX_FOUNDATIONS,
   confidenceDisplayLabel,
   directionLabel,
   directionScreenReaderLabel,
@@ -32,70 +29,11 @@ import {
   type ThemeView,
 } from "@/lib/organisation-intelligence";
 
-const EXECUTIVE_BRIEF_SECTION_TITLES = [
-  "What is changing",
-  "What the evidence shows about theme prevalence",
-  "What needs attention",
-  "Themes to monitor",
-  "Where evidence is strong",
-  "Evidence posture",
-  "What this evidence tells us",
-  "Where evidence is limited",
-  "Where evidence remains limited",
-  "Recommended questions / actions",
-  "Evidence base",
-] as const;
-
-const EXECUTIVE_BRIEF_SUBHEADINGS = [
-  "What we can say",
-  "What we do not know yet",
-  "What to do next",
-] as const;
-
-function renderExecutiveBriefSectionBody(body: string) {
-  const lines = body
-    .split("\n")
-    .map(line => line.trim())
-    .filter(Boolean);
-  const subheading = lines[0];
-  if (
-    lines.length >= 2 &&
-    EXECUTIVE_BRIEF_SUBHEADINGS.includes(
-      subheading as (typeof EXECUTIVE_BRIEF_SUBHEADINGS)[number]
-    )
-  ) {
-    return (
-      <>
-        <h4>{subheading}</h4>
-        <p>{lines.slice(1).join(" ")}</p>
-      </>
-    );
-  }
-  return <p>{body}</p>;
-}
-
 /** Snapshot header / theme labels: "Moderate" not "Moderate confidence". */
 function confidenceLevelWord(level: ConfidenceLevel): string {
   if (level === "high") return "High";
   if (level === "moderate") return "Moderate";
   return "Low";
-}
-
-/**
- * Themes-to-monitor UI only. Capability/foundation roll-ups stay in Capability trends.
- * Do not change snapshot attentionAreas — filter at presentation time only.
- */
-function isThemeMonitorAttentionArea(area: {
-  key: string;
-  label: string;
-  kind?: string | null;
-}): boolean {
-  if (area.kind === "capability") return false;
-  if (area.kind === "theme") return true;
-  // Legacy rows without kind: drop exact Six Foundations labels (e.g. "Psychological Safety").
-  const foundation = SIX_FOUNDATIONS.find(row => row.key === area.key);
-  if (foundation && foundation.label === area.label) return false;
-  return true;
 }
 
 type HistoryItem = {
@@ -189,61 +127,6 @@ function asOptionalSnapshotId(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
-const MOMENTUM_COMPONENT_LABELS: Record<keyof typeof MOMENTUM_WEIGHTS, string> = {
-  conversations: "Completed conversations",
-  actions: "Completed actions",
-  reflections: "Completed reflections",
-  developmentUpdates: "Development updates",
-  evidence: "Evidence progression",
-};
-
-function formatMomentumWeight(key: keyof typeof MOMENTUM_WEIGHTS): string {
-  return `${Math.round(MOMENTUM_WEIGHTS[key] * 100)}%`;
-}
-
-function momentumDriverSummary(input: {
-  components: Record<string, number>;
-  previousComponents: Record<string, number> | null;
-}): { positive: string | null; limiting: string | null } {
-  if (!input.previousComponents) {
-    return { positive: null, limiting: null };
-  }
-
-  let bestKey: string | null = null;
-  let bestDelta = Number.NEGATIVE_INFINITY;
-  let worstKey: string | null = null;
-  let worstDelta = Number.POSITIVE_INFINITY;
-
-  for (const key of Object.keys(MOMENTUM_COMPONENT_LABELS)) {
-    const current = Number(input.components[key] ?? 0);
-    const previous = Number(input.previousComponents[key] ?? 0);
-    const delta = current - previous;
-    if (delta > bestDelta) {
-      bestDelta = delta;
-      bestKey = key;
-    }
-    if (delta < worstDelta) {
-      worstDelta = delta;
-      worstKey = key;
-    }
-  }
-
-  const positive =
-    bestKey && bestDelta > 0
-      ? `${
-          MOMENTUM_COMPONENT_LABELS[bestKey as keyof typeof MOMENTUM_WEIGHTS]
-        } (+${Math.round(bestDelta)} points)`
-      : null;
-  const limiting =
-    worstKey && worstDelta < 0
-      ? `${
-          MOMENTUM_COMPONENT_LABELS[worstKey as keyof typeof MOMENTUM_WEIGHTS]
-        } (${Math.round(worstDelta)} points)`
-      : null;
-
-  return { positive, limiting };
-}
-
 function asPeriodPresetValue(value: unknown): string {
   return typeof value === "string" ? value : "last_90_days";
 }
@@ -294,7 +177,6 @@ export default function OrganisationIntelligencePage() {
   const [period, setPeriod] = useState("last_90_days");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
-  const [showMethodology, setShowMethodology] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<ThemeView | null>(null);
   const [selectedTrace, setSelectedTrace] = useState<EvidenceTrace | null>(
     null
@@ -429,29 +311,10 @@ export default function OrganisationIntelligencePage() {
     !snapshot &&
     !readyToGeneratePanel;
 
-  const themeAttentionAreas = useMemo(() => {
+  const reportableThemes = useMemo(() => {
     if (!snapshot || snapshot.emptyState) return [];
-    // Theme monitoring is the primary buyer narrative; foundation roll-ups stay
-    // in Capability trends so Leads are not shown near-duplicate monitor rows.
-    return snapshot.attentionAreas.filter(isThemeMonitorAttentionArea);
+    return snapshot.themes.filter(theme => !theme.suppressed);
   }, [snapshot]);
-
-  const momentumDrivers = useMemo(() => {
-    const momentum = overviewMetrics?.momentum;
-    if (!momentum?.metadata) return { positive: null, limiting: null };
-    const components = momentum.metadata.components;
-    const previousComponents = momentum.metadata.previousComponents;
-    if (!components || typeof components !== "object") {
-      return { positive: null, limiting: null };
-    }
-    return momentumDriverSummary({
-      components: components as Record<string, number>,
-      previousComponents:
-        previousComponents && typeof previousComponents === "object"
-          ? (previousComponents as Record<string, number>)
-          : null,
-    });
-  }, [overviewMetrics?.momentum]);
 
   const openEvidenceFor = (insightKey: string, label: string) => {
     const trace =
@@ -511,12 +374,10 @@ export default function OrganisationIntelligencePage() {
               Privacy protected
             </p>
             <p className="org-intelligence-privacy-notice__copy">
-              People Development Intelligence uses anonymised, aggregated
-              authorised development signals from relationship work. Leads see
-              collective themes once the privacy threshold is met — not private
-              conversations, individual development records or performance
-              scores. {COVERAGE_CAVEAT_NOTE} {PREVALENCE_DIRECTION_NOTE} Absence
-              of a theme does not prove that no development need exists.
+              People Development Intelligence shows privacy-safe collective
+              patterns from authorised development evidence. It does not expose
+              private conversations, individual development records or
+              performance scores.
             </p>
           </div>
         </aside>
@@ -771,96 +632,106 @@ export default function OrganisationIntelligencePage() {
                 {snapshot.period.label} · Last generated{" "}
                 {new Date(snapshot.generatedAt).toLocaleString("en-GB")}
               </p>
-              <p>
-                Source relationships: {snapshot.sourceRelationshipCount} ·{" "}
-                Evidence base confidence:{" "}
-                {confidenceLevelWord(snapshot.confidenceLevel)}
-              </p>
-              <p className="organisation-muted org-intelligence-summary-meta__note">
-                Evidence base confidence reflects the overall anonymised sample.
-                Theme confidence is shown on each theme and can differ when a
-                theme has a narrower evidence base.
-              </p>
-              {snapshot.restrictedEvidenceExcluded ? (
-                <p className="organisation-muted">
-                  Restricted evidence was excluded from this view.
-                </p>
-              ) : null}
             </header>
 
             <section
               className="org-intelligence-section"
-              aria-labelledby="org-intel-brief"
+              aria-labelledby="org-intel-executive-insight"
             >
               <div className="org-intelligence-section__header">
-                <h2 id="org-intel-brief">Executive brief</h2>
+                <h2 id="org-intel-executive-insight">Executive insight</h2>
                 <button
                   type="button"
                   className="organisation-text-link"
                   onClick={() =>
-                    openEvidenceFor("executive_brief", "Executive brief")
+                    openEvidenceFor("executive_brief", "Executive insight")
                   }
                 >
                   View supporting evidence
                 </button>
               </div>
-              <div className="org-intelligence-brief org-intelligence-brief--sections">
-                {(snapshot.executiveBrief || "")
-                  .split(/\n\s*\n/)
-                  .filter(Boolean)
-                  .reduce<Array<{ title?: string; body: string }>>(
-                    (sections, block) => {
-                      const lines = block
-                        .split("\n")
-                        .map(line => line.trim())
-                        .filter(Boolean);
-                      if (
-                        lines.length >= 2 &&
-                        EXECUTIVE_BRIEF_SECTION_TITLES.includes(
-                          lines[0] as (typeof EXECUTIVE_BRIEF_SECTION_TITLES)[number]
-                        )
-                      ) {
-                        sections.push({
-                          title:
-                            lines[0] === "Evidence posture"
-                              ? "What this evidence tells us"
-                              : lines[0],
-                          body: lines.slice(1).join("\n"),
-                        });
-                      } else {
-                        sections.push({ body: block });
-                      }
-                      return sections;
-                    },
-                    []
-                  )
-                  .map((section, index) => (
-                    <article key={`brief-${index}`} className="org-intelligence-brief__section">
-                      {section.title ? <h3>{section.title}</h3> : null}
-                      {renderExecutiveBriefSectionBody(section.body)}
-                    </article>
-                  ))}
-              </div>
+
+              {reportableThemes.length > 0 ? (
+                <div className="org-intelligence-brief">
+                  <article className="org-intelligence-brief__section">
+                    <p className="organisation-meta">What the evidence indicates</p>
+                    <h3>{reportableThemes[0].themeLabel}</h3>
+                    <p>
+                      {reportableThemes[0].summary ||
+                        "A collective people development pattern has met the reporting threshold for this period."}
+                    </p>
+                  </article>
+
+                  <article className="org-intelligence-brief__section">
+                    <h3>What this means — and does not mean</h3>
+                    <p>
+                      This is a privacy-safe collective development signal from
+                      authorised evidence. It can help identify where
+                      organisational support may be useful. It is not an
+                      individual assessment, performance score or conclusion
+                      about every person in the organisation.
+                    </p>
+                  </article>
+
+                  <article className="org-intelligence-brief__section">
+                    <h3>Recommended organisational response</h3>
+                    <p>
+                      {snapshot.recommendations[0]?.recommendation ||
+                        snapshot.attentionAreas[0]?.recommendedReview ||
+                        "Keep the pattern under proportionate review and use it to inform development support rather than individual judgement."}
+                    </p>
+                  </article>
+                </div>
+              ) : (
+                <div className="org-intelligence-brief">
+                  <article className="org-intelligence-brief__section">
+                    <p className="organisation-meta">What the evidence indicates</p>
+                    <h3>
+                      No reportable people development theme has emerged in this
+                      period.
+                    </h3>
+                    <p>
+                      The available authorised evidence does not currently
+                      support a collective theme above the reporting threshold.
+                    </p>
+                  </article>
+
+                  <article className="org-intelligence-brief__section">
+                    <h3>What this means — and does not mean</h3>
+                    <p>
+                      There is not enough consistent collective evidence to
+                      justify an organisational theme. This does not prove that
+                      development needs are absent and it should not be used to
+                      infer anything about an individual.
+                    </p>
+                  </article>
+
+                  <article className="org-intelligence-brief__section">
+                    <h3>Recommended organisational response</h3>
+                    <p>
+                      Continue normal developmental conversations and authorised
+                      evidence capture. No additional organisational intervention
+                      is indicated solely because no reportable theme is present.
+                    </p>
+                  </article>
+                </div>
+              )}
             </section>
 
-            <section
-              className="org-intelligence-section"
-              aria-labelledby="org-intel-themes"
-            >
-              <h2 id="org-intel-themes">Emerging themes</h2>
-              <p className="organisation-muted">
-                Primary theme narrative for this period. Foundation roll-ups
-                appear under Capability trends. {COVERAGE_CAVEAT_NOTE}{" "}
-                {PREVALENCE_DIRECTION_NOTE}
-              </p>
-              {snapshot.themes.length === 0 ? (
+            {reportableThemes.length > 0 ? (
+              <section
+                className="org-intelligence-section"
+                aria-labelledby="org-intel-themes"
+              >
+                <h2 id="org-intel-themes">Reportable themes</h2>
                 <p className="organisation-muted">
-                  Not enough evidence to report safely. Absence of a theme does
-                  not prove that no development need exists.
+                  Collective themes are shown only when the privacy and evidence
+                  thresholds are met. {COVERAGE_CAVEAT_NOTE}{" "}
+                  {PREVALENCE_DIRECTION_NOTE}
                 </p>
-              ) : (
+
                 <ol className="org-intelligence-theme-list">
-                  {snapshot.themes.map(theme => (
+                  {reportableThemes.map(theme => (
                     <li key={theme.themeKey}>
                       <button
                         type="button"
@@ -893,337 +764,171 @@ export default function OrganisationIntelligencePage() {
                     </li>
                   ))}
                 </ol>
-              )}
-            </section>
+              </section>
+            ) : null}
 
             <section
               className="org-intelligence-section"
-              aria-labelledby="org-intel-attention"
+              aria-labelledby="org-intel-evidence-context"
             >
-              <h2 id="org-intel-attention">Themes to monitor</h2>
+              <h2 id="org-intel-evidence-context">Evidence context</h2>
               <p className="organisation-muted">
-                Theme-level monitoring priorities for organisational development
-                support — not individual surveillance. Related Six Foundations
-                signals are listed once under Capability trends, not repeated
-                here. {PREVALENCE_DIRECTION_NOTE}
+                These figures describe the evidence base available to this
+                snapshot. They are context for interpreting the intelligence,
+                not participation targets or performance measures.
               </p>
-              {themeAttentionAreas.length === 0 ? (
-                <p className="organisation-muted">
-                  No attention areas identified from the available evidence.
-                  That does not prove development needs are absent.
-                </p>
-              ) : (
-                <ul className="org-intelligence-priority-list">
-                  {themeAttentionAreas.map(area => (
-                    <li key={`${area.kind}-${area.key}`}>
-                      <h3>{area.label}</h3>
-                      <p>
-                        <span className="org-intelligence-sr-only">
-                          {directionScreenReaderLabel(area.direction)}
-                        </span>
-                        {directionLabel(area.direction)} · Theme confidence:{" "}
-                        {confidenceLevelWord(area.confidenceLevel)}
-                      </p>
-                      <p>{area.reason}</p>
-                      <p className="organisation-meta">
-                        {area.recommendedReview}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
 
-            <section
-              className="org-intelligence-section"
-              aria-labelledby="org-intel-priorities"
-            >
-              <h2 id="org-intel-priorities">Priority areas</h2>
-              {snapshot.recommendations.length === 0 ? (
-                <p className="organisation-muted">
-                  No priority areas identified for this period.
-                </p>
-              ) : (
-                <ul className="org-intelligence-priority-list">
-                  {snapshot.recommendations.map(row => (
-                    <li key={`${row.priority}-${row.title}`}>
-                      <h3>{row.title}</h3>
-                      <p>{row.rationale}</p>
-                      <p>
-                        <strong>Suggested response:</strong> {row.recommendation}
-                      </p>
-                      <p className="organisation-meta">
-                        Theme confidence:{" "}
-                        {confidenceLevelWord(row.confidenceLevel)} ·{" "}
-                        {row.evidenceCount} evidence · {row.relationshipCount}{" "}
-                        relationships
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-
-            <section
-              className="org-intelligence-section"
-              aria-labelledby="org-intel-overview"
-            >
-              <h2 id="org-intel-overview">Organisation overview</h2>
               <div className="organisation-metric-groups">
-                <MetricGroup title="Key figures">
+                <MetricGroup title="Evidence base">
                   <MetricItem
                     value={overviewMetrics?.relationships?.metricValue ?? 0}
                     label="Active relationships"
                   />
+                  <MetricItem
+                    value={snapshot.sourceRelationshipCount}
+                    label="Relationships contributing"
+                  />
+                  <MetricItem
+                    value={snapshot.sourceConversationCount}
+                    label="Conversations contributing"
+                  />
+                  <MetricItem
+                    value={snapshot.sourceEvidenceCount}
+                    label="Evidence items"
+                  />
+                </MetricGroup>
+              </div>
+
+              <p className="organisation-meta">
+                The Active relationships figure shows the broader relationship
+                activity in scope. Relationships contributing is the privacy-safe sample that
+                actually informed this snapshot. Evidence base confidence:{" "}
+                {confidenceLevelWord(snapshot.confidenceLevel)}. Confidence
+                describes the overall anonymised evidence base and does not mean
+                that a reportable theme must be present.
+              </p>
+
+              {snapshot.restrictedEvidenceExcluded ? (
+                <p className="organisation-muted">
+                  Restricted evidence was excluded from this view.
+                </p>
+              ) : null}
+            </section>
+
+            <section
+              className="org-intelligence-section"
+              aria-labelledby="org-intel-activity"
+            >
+              <h2 id="org-intel-activity">Development activity</h2>
+              <p className="organisation-muted">
+                Activity helps explain how much developmental work is being
+                recorded in Pridmora. It is not an intelligence finding,
+                participation target or measure of organisational performance.
+              </p>
+
+              <div className="organisation-metric-groups">
+                <MetricGroup title="Activity in this view">
                   <MetricItem
                     value={overviewMetrics?.practitioners?.metricValue ?? 0}
                     label="Active Managers"
                   />
                   <MetricItem
                     value={overviewMetrics?.conversations?.metricValue ?? 0}
-                    label="Conversations"
-                  />
-                  <MetricItem
-                    value={overviewMetrics?.evidence?.metricValue ?? 0}
-                    label="Evidence items"
+                    label="Recorded conversations"
                   />
                 </MetricGroup>
               </div>
             </section>
 
-            <section
-              className="org-intelligence-section"
-              aria-labelledby="org-intel-momentum"
-            >
-              <div className="org-intelligence-section__header">
-                <h2 id="org-intel-momentum">Development Activity Momentum</h2>
-                <button
-                  type="button"
-                  className="organisation-text-link"
-                  onClick={() => setShowMethodology(open => !open)}
-                  aria-expanded={showMethodology}
-                >
-                  How this is calculated
-                </button>
-              </div>
-              <p className="organisation-muted">
-                A directional measure of sustained Manager development activity, action and
-                recorded development.
-              </p>
-              {overviewMetrics?.momentum ? (
-                <div className="org-intelligence-momentum">
-                  <div className="org-intelligence-momentum__row">
-                    <p className="org-intelligence-momentum__value">
-                      {overviewMetrics.momentum.displayValue}
-                    </p>
-                    <p>
-                      <span className="org-intelligence-sr-only">
-                        {directionScreenReaderLabel(
-                          overviewMetrics.momentum.direction ??
-                            "insufficient_evidence"
-                        )}
-                      </span>
-                      {directionLabel(
-                        overviewMetrics.momentum.direction ??
-                          "insufficient_evidence"
-                      )}
-                    </p>
-                  </div>
-                  {overviewMetrics.momentum.comparisonAvailable &&
-                  overviewMetrics.momentum.previousValue != null ? (
-                    <p className="organisation-meta">
-                      Previous period: {overviewMetrics.momentum.previousValue}
-                      {typeof overviewMetrics.momentum.metricValue === "number"
-                        ? ` · Change: ${
-                            overviewMetrics.momentum.metricValue -
-                            overviewMetrics.momentum.previousValue
-                          } points`
-                        : null}
-                    </p>
-                  ) : (
-                    <p className="organisation-meta">
-                      {overviewMetrics.momentum.comparisonAvailable
-                        ? snapshot.period.comparisonLabel
-                        : "No earlier comparison is available."}
-                    </p>
-                  )}
-                  <div
-                    className="org-intelligence-momentum__bar"
-                    role="meter"
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={
-                      typeof overviewMetrics.momentum.metricValue === "number"
-                        ? overviewMetrics.momentum.metricValue
-                        : 0
-                    }
-                    aria-label="Development Momentum"
-                  >
-                    <span
-                      style={{
-                        width: `${Math.max(
-                          0,
-                          Math.min(
-                            100,
-                            Number(overviewMetrics.momentum.metricValue ?? 0)
-                          )
-                        )}%`,
-                      }}
-                    />
-                  </div>
-                  {overviewMetrics.momentum.metadata?.components &&
-                  typeof overviewMetrics.momentum.metadata.components ===
-                    "object" ? (
-                    <ul className="org-intelligence-momentum__components">
-                      {(
-                        Object.keys(MOMENTUM_COMPONENT_LABELS) as Array<
-                          keyof typeof MOMENTUM_WEIGHTS
-                        >
-                      ).map(key => {
-                        const components = overviewMetrics.momentum!
-                          .metadata.components as Record<string, number>;
-                        const previousComponents =
-                          overviewMetrics.momentum!.metadata
-                            .previousComponents;
-                        const currentScore = Number(components[key] ?? 0);
-                        const previousScore =
-                          previousComponents &&
-                          typeof previousComponents === "object"
-                            ? Number(
-                                (previousComponents as Record<string, number>)[
-                                  key
-                                ] ?? 0
-                              )
-                            : null;
-                        const delta =
-                          previousScore != null
-                            ? currentScore - previousScore
-                            : null;
-                        return (
-                          <li key={key}>
-                            <strong>{MOMENTUM_COMPONENT_LABELS[key]}</strong>
-                            <span>
-                              {" "}
-                              {Math.round(currentScore)} points · Weight{" "}
-                              {formatMomentumWeight(key)}
-                              {delta != null
-                                ? ` · Change ${delta >= 0 ? "+" : ""}${Math.round(delta)}`
-                                : null}
-                            </span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  ) : null}
-                  {momentumDrivers.positive || momentumDrivers.limiting ? (
-                    <div className="org-intelligence-momentum__drivers">
-                      {momentumDrivers.positive ? (
-                        <p>
-                          <strong>Biggest positive driver:</strong>{" "}
-                          {momentumDrivers.positive}
-                        </p>
-                      ) : null}
-                      {momentumDrivers.limiting ? (
-                        <p>
-                          <strong>Area limiting progress:</strong>{" "}
-                          {momentumDrivers.limiting}
-                        </p>
-                      ) : null}
-                    </div>
-                  ) : null}
-                  <p className="organisation-meta">
-                    Evidence base confidence:{" "}
-                    {confidenceLevelWord(
-                      overviewMetrics.momentum.confidenceLevel
-                    )}
-                  </p>
-                </div>
-              ) : null}
-              {showMethodology ? (
-                <div className="org-intelligence-methodology" role="note">
-                  <p>{MOMENTUM_METHODOLOGY}</p>
-                  <p>
-                    Component weights: completed conversations{" "}
-                    {formatMomentumWeight("conversations")}, completed actions{" "}
-                    {formatMomentumWeight("actions")}, completed reflections{" "}
-                    {formatMomentumWeight("reflections")}, development updates{" "}
-                    {formatMomentumWeight("developmentUpdates")}, evidence
-                    progression {formatMomentumWeight("evidence")}.
-                  </p>
-                </div>
-              ) : null}
-            </section>
-
-            <section
-              className="org-intelligence-section"
-              aria-labelledby="org-intel-capabilities"
-            >
-              <h2 id="org-intel-capabilities">Capability trends</h2>
-              <p className="organisation-muted">
-                Six Foundations view derived from reportable themes. This is a
-                foundation roll-up, not a second monitoring list.
-              </p>
-              <div
-                className="org-intelligence-table-wrap"
-                role="region"
-                aria-label="Capability trends"
+            {snapshot.capabilities.some(capability => !capability.suppressed) ? (
+              <section
+                className="org-intelligence-section"
+                aria-labelledby="org-intel-capabilities"
               >
-                <table className="organisation-table org-intelligence-table">
-                  <thead>
-                    <tr>
-                      <th scope="col">Capability</th>
-                      <th scope="col">Direction</th>
-                      <th scope="col">Evidence</th>
-                      <th scope="col">Relationships</th>
-                      <th scope="col">Capability confidence</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {snapshot.capabilities.map(capability => (
-                      <tr key={capability.key}>
-                        <th scope="row">{capability.label}</th>
-                        <td>
-                          <span className="org-intelligence-sr-only">
-                            {directionScreenReaderLabel(capability.direction)}
-                          </span>
-                          {capability.changeLabel}
-                        </td>
-                        <td>
-                          {capability.suppressed
-                            ? "—"
-                            : capability.evidenceCount}
-                        </td>
-                        <td>
-                          {capability.suppressed
-                            ? "—"
-                            : capability.relationshipCount}
-                        </td>
-                        <td>
-                          {capability.suppressed
-                            ? "Not enough evidence to report safely."
-                            : confidenceLevelWord(capability.confidenceLevel)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-
-            <section
-              className="org-intelligence-section"
-              aria-labelledby="org-intel-impact"
-            >
-              <h2 id="org-intel-impact">Development indicators</h2>
-              <p className="organisation-muted">
-                Outcomes associated with Manager development activity in the selected period.
-                These observations do not claim causation.
-              </p>
-              {snapshot.coachingImpact.length === 0 ? (
+                <h2 id="org-intel-capabilities">Capability trends</h2>
                 <p className="organisation-muted">
-                  Not enough evidence to report safely.
+                  Six Foundations view derived from reportable people development
+                  signals. Only capabilities with sufficient privacy-safe evidence
+                  are shown.
                 </p>
-              ) : (
+
+                <div
+                  className="org-intelligence-table-wrap"
+                  role="region"
+                  aria-label="Capability trends"
+                >
+                  <table className="organisation-table org-intelligence-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Capability</th>
+                        <th scope="col">Direction</th>
+                        <th scope="col">Evidence</th>
+                        <th scope="col">Relationships</th>
+                        <th scope="col">Capability confidence</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {snapshot.capabilities
+                        .filter(capability => !capability.suppressed)
+                        .map(capability => (
+                          <tr key={capability.key}>
+                            <th scope="row">{capability.label}</th>
+                            <td>
+                              <span className="org-intelligence-sr-only">
+                                {directionScreenReaderLabel(capability.direction)}
+                              </span>
+                              {capability.changeLabel}
+                            </td>
+                            <td>{capability.evidenceCount}</td>
+                            <td>{capability.relationshipCount}</td>
+                            <td>
+                              {confidenceLevelWord(capability.confidenceLevel)}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            ) : null}
+
+            <details className="org-intelligence-section">
+              <summary>How to read this intelligence</summary>
+              <div className="organisation-muted">
+                <p>
+                  People Development Intelligence uses anonymised, aggregated
+                  authorised development evidence. Collective themes are shown
+                  only when the privacy threshold is met.
+                </p>
+                <p>
+                  {COVERAGE_CAVEAT_NOTE} {PREVALENCE_DIRECTION_NOTE}
+                </p>
+                <p>
+                  Absence of a reportable theme does not prove that development
+                  needs are absent. Confidence describes the strength of the
+                  anonymised evidence base and should not be interpreted as an
+                  individual judgement or performance measure.
+                </p>
+                {snapshot.restrictedEvidenceExcluded ? (
+                  <p>
+                    Restricted evidence was excluded from this view.
+                  </p>
+                ) : null}
+              </div>
+            </details>
+
+            {snapshot.coachingImpact.length > 0 ? (
+              <section
+                className="org-intelligence-section"
+                aria-labelledby="org-intel-impact"
+              >
+                <h2 id="org-intel-impact">Development indicators</h2>
+                <p className="organisation-muted">
+                  Outcomes associated with recorded people development activity
+                  in the selected period. These observations do not claim
+                  causation.
+                </p>
+
                 <ul className="org-intelligence-simple-list">
                   {snapshot.coachingImpact.map(item => (
                     <li key={item.key}>
@@ -1231,30 +936,47 @@ export default function OrganisationIntelligencePage() {
                     </li>
                   ))}
                 </ul>
-              )}
-            </section>
+              </section>
+            ) : null}
           </>
         ) : null}
 
-        {payload?.history && payload.history.length > 0 ? (
+        {snapshot &&
+        payload?.history?.some(
+          item =>
+            item.id !== snapshot.id &&
+            item.status === "ready" &&
+            item.periodKey === snapshot.period.preset
+        ) ? (
           <section
             className="org-intelligence-section"
             aria-labelledby="org-intel-history"
           >
-            <h2 id="org-intel-history">Previous snapshots</h2>
+            <h2 id="org-intel-history">Previous comparable reports</h2>
+            <p className="organisation-muted">
+              Earlier reports using the same reporting period are shown here for
+              proportionate comparison.
+            </p>
             <ul className="org-intelligence-history">
-              {payload.history.map(item => (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    className="organisation-text-link"
-                    onClick={() => void load(item.id)}
-                  >
-                    {item.periodStart} to {item.periodEnd} ·{" "}
-                    {new Date(item.generatedAt).toLocaleString("en-GB")}
-                  </button>
-                </li>
-              ))}
+              {payload.history
+                .filter(
+                  item =>
+                    item.id !== snapshot.id &&
+                    item.status === "ready" &&
+                    item.periodKey === snapshot.period.preset
+                )
+                .map(item => (
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      className="organisation-text-link"
+                      onClick={() => void load(item.id)}
+                    >
+                      {item.periodStart} to {item.periodEnd} ·{" "}
+                      {new Date(item.generatedAt).toLocaleString("en-GB")}
+                    </button>
+                  </li>
+                ))}
             </ul>
           </section>
         ) : null}

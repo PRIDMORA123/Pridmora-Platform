@@ -93,7 +93,10 @@ describe("FIX-1 privacy / organisation visibility explanation", () => {
     expect(oiPage).toContain(
       "A minimum of five contributing relationships helps reduce the risk of"
     );
-    expect(oiPage).toMatch(/not individual surveillance/i);
+    expect(oiPage).toMatch(/privacy-safe collective/i);
+    expect(oiPage).toMatch(/private conversations/i);
+    expect(oiPage).toMatch(/individual development records/i);
+    expect(oiPage).toMatch(/performance scores/i);
 
     const managerDi = read(
       "components/organisation/manager-development-intelligence-view.tsx"
