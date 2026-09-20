@@ -13,6 +13,26 @@ export type MyDevelopmentNextStep =
 export function isActiveDevelopmentAction(action: CoachingAction): boolean {
   return action.status === "Open" || action.status === "In progress";
 }
+/**
+ * True when an active action has reached its ISO due date.
+ * Legacy display-only date strings are deliberately ignored.
+ */
+export function isDevelopmentActionDue(
+  action: CoachingAction,
+  today: string
+): boolean {
+  if (!isActiveDevelopmentAction(action) || !action.due) {
+    return false;
+  }
+
+  const isoDate = /^\d{4}-\d{2}-\d{2}$/;
+
+  if (!isoDate.test(action.due) || !isoDate.test(today)) {
+    return false;
+  }
+
+  return action.due <= today;
+}
 
 /** Active (Open / In progress) actions in existing workspace order. */
 export function listActiveDevelopmentActions(

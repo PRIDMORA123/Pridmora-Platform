@@ -9,6 +9,7 @@ import {
   listCompletedDevelopmentActions,
 } from "@/lib/my-development/self-action";
 import {
+isDevelopmentActionDue,
   listActiveDevelopmentActions,
   resolveMyDevelopmentNextStep,
 } from "@/lib/my-development/next-step";
@@ -22,6 +23,18 @@ export type MyDevelopmentReflectionPrefill = {
   title?: string;
 };
 
+function formatDevelopmentDueDate(value: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+
+  if (!match) return value;
+
+  const [, year, month, day] = match;
+
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "long",
+  }).format(new Date(Number(year), Number(month) - 1, Number(day)));
+}
 const FOCUS_SUGGESTIONS = [
   "Delegation",
   "Difficult conversations",
@@ -222,6 +235,15 @@ export function MyDevelopmentView({
     focusCount: focusItems.length,
     actions: workspace?.actions ?? [],
   });
+const today = new Intl.DateTimeFormat("en-CA", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+}).format(new Date());
+
+const isNextStepDue =
+  nextStep.kind === "action" &&
+  isDevelopmentActionDue(nextStep.action, today);
   const showNoticing =
     Boolean(maturity) &&
     !isEmpty &&
@@ -657,12 +679,30 @@ export function MyDevelopmentView({
                     <p className="my-dev-story__next-emphasis">
                       {nextStep.action.title}
                     </p>
-                    <p className="muted">
-                      Keep practising this until it feels more natural.
-                      {nextStep.action.due
-                        ? ` Due ${nextStep.action.due}.`
-                        : ""}
-                    </p>
+                    {isNextStepDue ? (
+  <>
+    <p className="muted">
+      You planned to practise this by{" "}
+{formatDevelopmentDueDate(nextStep.action.due!)}. How did it go?
+    </p>
+    <div className="my-dev-story__actions">
+      <button
+        type="button"
+        className="identity-button is-primary"
+        onClick={onOpenPersonalReflection}
+      >
+        Reflect on this
+      </button>
+    </div>
+  </>
+) : (
+  <p className="muted">
+    Keep practising this until it feels more natural.
+    {nextStep.action.due
+      ? ` Due ${nextStep.action.due}.`
+      : ""}
+  </p>
+)}
                   </>
                 ) : null}
 

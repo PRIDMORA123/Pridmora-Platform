@@ -3,6 +3,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import {
   isActiveDevelopmentAction,
+  isDevelopmentActionDue,
   listActiveDevelopmentActions,
   resolveMyDevelopmentNextStep,
 } from "@/lib/my-development/next-step";
@@ -202,8 +203,44 @@ describe("Stage 2.3.1 My Development story hierarchy", () => {
     expect(view).not.toContain("recommend");
     expect(read("lib/my-development/next-step.ts")).not.toContain("openai");
   });
+  it("recognises when a development action is due without changing action priority", () => {
+    const future = action("a1", "Practise asking another question", "Open");
+    future.due = "2026-09-25";
 
-  it("may route next-step talk-through to existing Aurelia without changing Aurelia", () => {
+    const dueToday = action("a2", "Have the difficult conversation", "Open");
+    dueToday.due = "2026-09-20";
+
+    const past = action("a3", "Practise clearer feedback", "In progress");
+    past.due = "2026-09-18";
+
+    const legacy = action("a4", "Legacy action", "Open");
+    legacy.due = "30 July 2026";
+
+    expect(isDevelopmentActionDue(future, "2026-09-20")).toBe(false);
+    expect(isDevelopmentActionDue(dueToday, "2026-09-20")).toBe(true);
+    expect(isDevelopmentActionDue(past, "2026-09-20")).toBe(true);
+    expect(isDevelopmentActionDue(legacy, "2026-09-20")).toBe(false);
+  });
+  const future = action("a1", "Practise asking another question", "Open");
+  future.due = "2026-09-25";
+
+  const dueToday = action("a2", "Have the difficult conversation", "Open");
+  dueToday.due = "2026-09-20";
+
+  const past = action("a3", "Practise clearer feedback", "In progress");
+  past.due = "2026-09-18";
+
+  const legacy = action("a4", "Legacy action", "Open");
+  legacy.due = "30 July 2026";
+
+  expect(isDevelopmentActionDue(future, "2026-09-20")).toBe(false);
+  expect(isDevelopmentActionDue(dueToday, "2026-09-20")).toBe(true);
+  expect(isDevelopmentActionDue(past, "2026-09-20")).toBe(true);
+  expect(isDevelopmentActionDue(legacy, "2026-09-20")).toBe(false);
+});
+
+
+it("may route next-step talk-through to existing Aurelia without changing Aurelia", () => {
     const view = read("components/my-development-view.tsx");
     const home = read("components/home-app.tsx");
     expect(view).toContain("onTalkThrough");
