@@ -221,23 +221,6 @@ describe("Stage 2.3.1 My Development story hierarchy", () => {
     expect(isDevelopmentActionDue(past, "2026-09-20")).toBe(true);
     expect(isDevelopmentActionDue(legacy, "2026-09-20")).toBe(false);
   });
-  const future = action("a1", "Practise asking another question", "Open");
-  future.due = "2026-09-25";
-
-  const dueToday = action("a2", "Have the difficult conversation", "Open");
-  dueToday.due = "2026-09-20";
-
-  const past = action("a3", "Practise clearer feedback", "In progress");
-  past.due = "2026-09-18";
-
-  const legacy = action("a4", "Legacy action", "Open");
-  legacy.due = "30 July 2026";
-
-  expect(isDevelopmentActionDue(future, "2026-09-20")).toBe(false);
-  expect(isDevelopmentActionDue(dueToday, "2026-09-20")).toBe(true);
-  expect(isDevelopmentActionDue(past, "2026-09-20")).toBe(true);
-  expect(isDevelopmentActionDue(legacy, "2026-09-20")).toBe(false);
-});
 
 
 it("may route next-step talk-through to existing Aurelia without changing Aurelia", () => {
