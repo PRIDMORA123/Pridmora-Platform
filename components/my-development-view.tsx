@@ -430,6 +430,93 @@ const isNextStepDue =
           {!isEmpty ? (
             <>
               <section
+                className="my-dev-story__section my-dev-story__section--next"
+                aria-labelledby="my-dev-next-heading"
+              >
+                <p className="my-dev-story__label">Your next step</p>
+                <h2 id="my-dev-next-heading" className="my-dev-story__heading">
+                  What to pay attention to now
+                </h2>
+
+                {nextStep.kind === "action" ? (
+                  <>
+                    <p className="my-dev-story__next-emphasis">
+                      {nextStep.action.title}
+                    </p>
+                    {isNextStepDue ? (
+  <>
+    <p className="muted">
+      You planned to practise this by{" "}
+{formatDevelopmentDueDate(nextStep.action.due!)}. How did it go?
+    </p>
+    <div className="my-dev-story__actions">
+      <button
+        type="button"
+        className="identity-button is-primary"
+        onClick={onOpenPersonalReflection}
+      >
+        Reflect on this
+      </button>
+    </div>
+  </>
+) : (
+  <p className="muted">
+    Keep practising this until it feels more natural.
+    {nextStep.action.due
+      ? ` Due ${formatDevelopmentDueDate(nextStep.action.due)}.`
+      : ""}
+  </p>
+)}
+                  </>
+                ) : null}
+
+                {nextStep.kind === "reflect-or-talk" ? (
+                  <>
+                    <p className="my-dev-story__empty">
+                      You have a focus. Capture what you are noticing, or talk
+                      something through.
+                    </p>
+                    <div className="my-dev-story__actions">
+                      <button
+                        type="button"
+                        className="identity-button is-primary"
+                        onClick={onOpenPersonalReflection}
+                      >
+                        Reflect on something
+                      </button>
+                      {onTalkThrough ? (
+                        <button
+                          type="button"
+                          className="identity-text-action"
+                          onClick={onTalkThrough}
+                        >
+                          Talk something through
+                        </button>
+                      ) : null}
+                    </div>
+                  </>
+                ) : null}
+
+                {nextStep.kind === "set-focus" ? (
+                  <>
+                    <p className="my-dev-story__empty">
+                      Set a development focus to give this space a clear
+                      direction.
+                    </p>
+                    <div className="my-dev-story__actions">
+                      <button
+                        type="button"
+                        className="identity-button is-primary"
+                        onClick={() => setEditingFocus(true)}
+                      >
+                        Set your development focus
+                      </button>
+                    </div>
+                  </>
+                ) : null}
+              </section>
+
+              <section
                 className="my-dev-story__section"
                 aria-labelledby="my-dev-practising-heading"
               >
@@ -665,92 +752,7 @@ const isNextStepDue =
                 </div>
               </section>
 
-              <section
-                className="my-dev-story__section my-dev-story__section--next"
-                aria-labelledby="my-dev-next-heading"
-              >
-                <p className="my-dev-story__label">Your next step</p>
-                <h2 id="my-dev-next-heading" className="my-dev-story__heading">
-                  What to pay attention to now
-                </h2>
 
-                {nextStep.kind === "action" ? (
-                  <>
-                    <p className="my-dev-story__next-emphasis">
-                      {nextStep.action.title}
-                    </p>
-                    {isNextStepDue ? (
-  <>
-    <p className="muted">
-      You planned to practise this by{" "}
-{formatDevelopmentDueDate(nextStep.action.due!)}. How did it go?
-    </p>
-    <div className="my-dev-story__actions">
-      <button
-        type="button"
-        className="identity-button is-primary"
-        onClick={onOpenPersonalReflection}
-      >
-        Reflect on this
-      </button>
-    </div>
-  </>
-) : (
-  <p className="muted">
-    Keep practising this until it feels more natural.
-    {nextStep.action.due
-      ? ` Due ${nextStep.action.due}.`
-      : ""}
-  </p>
-)}
-                  </>
-                ) : null}
-
-                {nextStep.kind === "reflect-or-talk" ? (
-                  <>
-                    <p className="my-dev-story__empty">
-                      You have a focus. Capture what you are noticing, or talk
-                      something through.
-                    </p>
-                    <div className="my-dev-story__actions">
-                      <button
-                        type="button"
-                        className="identity-button is-primary"
-                        onClick={onOpenPersonalReflection}
-                      >
-                        Reflect on something
-                      </button>
-                      {onTalkThrough ? (
-                        <button
-                          type="button"
-                          className="identity-text-action"
-                          onClick={onTalkThrough}
-                        >
-                          Talk something through
-                        </button>
-                      ) : null}
-                    </div>
-                  </>
-                ) : null}
-
-                {nextStep.kind === "set-focus" ? (
-                  <>
-                    <p className="my-dev-story__empty">
-                      Set a development focus to give this space a clear
-                      direction.
-                    </p>
-                    <div className="my-dev-story__actions">
-                      <button
-                        type="button"
-                        className="identity-button is-primary"
-                        onClick={() => setEditingFocus(true)}
-                      >
-                        Set your development focus
-                      </button>
-                    </div>
-                  </>
-                ) : null}
-              </section>
 
               {showNoticing && maturity ? (
                 <section

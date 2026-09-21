@@ -39,10 +39,10 @@ describe("Stage 2.3.1 My Development story hierarchy", () => {
     const noticing = view.indexOf("What {BRAND.companyName} is noticing");
 
     expect(focus).toBeGreaterThan(-1);
-    expect(practising).toBeGreaterThan(focus);
+    expect(next).toBeGreaterThan(focus);
+    expect(practising).toBeGreaterThan(next);
     expect(learning).toBeGreaterThan(practising);
-    expect(next).toBeGreaterThan(learning);
-    expect(noticing).toBeGreaterThan(next);
+    expect(noticing).toBeGreaterThan(learning);
   });
 
   it("removes the equal 2×2 capability dashboard from the landing page", () => {

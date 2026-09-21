@@ -211,13 +211,13 @@ describe("Stage 2.3.2.2 learning & navigation loop", () => {
   it("preserves Stage 2.3.1 hierarchy and Stage 2.3.2.1 lifecycle controls", () => {
     const view = read("components/my-development-view.tsx");
     expect(view.indexOf("Your focus")).toBeLessThan(
+      view.indexOf("Your next step")
+    );
+    expect(view.indexOf("Your next step")).toBeLessThan(
       view.indexOf("What you&apos;re practising")
     );
     expect(view.indexOf("What you&apos;re practising")).toBeLessThan(
       view.indexOf("What you&apos;re learning")
-    );
-    expect(view.indexOf("What you&apos;re learning")).toBeLessThan(
-      view.indexOf("Your next step")
     );
     expect(view).toContain("Mark complete");
     expect(view).toContain('operation: "complete"');

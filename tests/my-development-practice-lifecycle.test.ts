@@ -198,9 +198,9 @@ describe("Stage 2.3.2.1 practice lifecycle", () => {
     const learning = view.indexOf("What you&apos;re learning");
     const next = view.indexOf("Your next step");
     expect(focus).toBeGreaterThan(-1);
-    expect(practising).toBeGreaterThan(focus);
+    expect(next).toBeGreaterThan(focus);
+    expect(practising).toBeGreaterThan(next);
     expect(learning).toBeGreaterThan(practising);
-    expect(next).toBeGreaterThan(learning);
     expect(reflection).toContain('"/api/my-development/reflection"');
     expect(reflection).toContain('method: "POST"');
   });
