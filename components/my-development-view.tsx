@@ -538,7 +538,7 @@ const isNextStepDue =
                           </span>
                           <span className="muted">
                             {action.status}
-                            {action.due ? ` · due ${action.due}` : ""}
+                            {action.due ? ` · due ${formatDevelopmentDueDate(action.due)}` : ""}
                           </span>
                         </div>
                         <button
