@@ -40,6 +40,7 @@ export function ManagerAureliaCapturePanel({
   onViewMyDevelopment,
 }: Props) {
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const actionDueInputRef = useRef<HTMLInputElement>(null);
   const noticeId = useId();
   const [phase, setPhase] = useState<CapturePhase>("closed");
   const [error, setError] = useState("");
@@ -156,7 +157,10 @@ export function ManagerAureliaCapturePanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
-          due: actionDraft.due?.trim() || undefined,
+          due:
+            actionDueInputRef.current?.value.trim() ||
+            actionDraft.due?.trim() ||
+            undefined,
         }),
         operation: "manager-aurelia-capture-action",
       });
@@ -396,6 +400,7 @@ export function ManagerAureliaCapturePanel({
               <input
                 className="manager-aurelia-capture__input"
                 type="date"
+                ref={actionDueInputRef}
                 value={actionDraft.due || ""}
                 onChange={event =>
                   setActionDraft(current => ({
