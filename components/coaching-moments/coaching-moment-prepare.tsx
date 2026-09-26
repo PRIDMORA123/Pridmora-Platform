@@ -29,13 +29,13 @@ export function CoachingMomentPrepare({
       </p>
 
       <label className="coaching-moment-field" htmlFor="coaching-moment-situation">
-        <span>What conversation are you preparing for?</span>
+        <span>What’s happening?</span>
         <textarea
           id="coaching-moment-situation"
           value={situation}
           disabled={disabled}
           rows={4}
-          placeholder="Sarah has missed another deadline and became defensive when I raised it."
+          placeholder="Add a little context about the situation, observation or conversation."
           onChange={event => onSituationChange(event.target.value)}
         />
       </label>
@@ -53,7 +53,7 @@ export function CoachingMomentPrepare({
           value={desiredOutcome}
           disabled={disabled}
           rows={2}
-          placeholder="She accepts ownership and agrees how to raise risks earlier."
+          placeholder="For example, clarify expectations, reflect on what happened or agree a next step."
           onChange={event => onDesiredOutcomeChange(event.target.value)}
         />
       </label>

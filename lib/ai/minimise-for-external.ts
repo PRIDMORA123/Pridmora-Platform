@@ -121,6 +121,15 @@ const SKIP_NAME_TOKENS = new Set([
   "active",
   "current",
   "selected",
+  "key",
+  "emerging",
+  "relevant",
+  "agreed",
+  "suggested",
+  "hi",
+  "coach",
+  "each",
+  "supporting",
 ]);
 
 function personToken(index: number): string {

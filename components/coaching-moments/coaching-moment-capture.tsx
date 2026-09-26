@@ -40,7 +40,7 @@ export function CoachingMomentCapture({
             value={whatHappened}
             disabled={disabled}
             rows={5}
-            placeholder="Sarah accepted that she had not raised the risk early enough."
+            placeholder="For example, they took ownership, tried a different approach or responded to feedback."
             onChange={event => onWhatHappenedChange(event.target.value)}
           />
         </label>
@@ -52,7 +52,7 @@ export function CoachingMomentCapture({
             value={whatWasAgreed}
             disabled={disabled || noCommitmentAgreed}
             rows={4}
-            placeholder="She will flag delivery risks at least 48 hours before future deadlines."
+            placeholder="For example, continue the new approach, follow up on an action or review progress."
             onChange={event => onWhatWasAgreedChange(event.target.value)}
           />
         </label>

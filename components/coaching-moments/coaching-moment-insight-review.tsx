@@ -60,7 +60,7 @@ export function CoachingMomentInsightReview({
 
         {insight.patternConnection ? (
           <section className="coaching-moment-guidance__block">
-            <h4>Possible connection</h4>
+            <h4>Connection to earlier development</h4>
             <p>{insight.patternConnection}</p>
           </section>
         ) : null}

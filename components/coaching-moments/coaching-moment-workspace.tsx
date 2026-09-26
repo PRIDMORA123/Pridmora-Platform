@@ -227,7 +227,7 @@ export function CoachingMomentWorkspace({
 
   async function handleContinueWithoutGuidance() {
     if (!situation.trim()) {
-      setError("Describe the conversation you are preparing for.");
+      setError("Add a little context about what’s happening.");
       return;
     }
     const momentId = await ensureMomentId();

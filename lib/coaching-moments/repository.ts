@@ -249,7 +249,7 @@ export async function savePrepareFields(
   const situation = input.situation.trim();
   if (!situation) {
     throw new CoachingMomentError(
-      "Describe the conversation you are preparing for.",
+      "Add a little context about what’s happening.",
       "validation"
     );
   }
@@ -341,7 +341,7 @@ export async function startCoachingMoment(
   const situation = (input.situation ?? moment.situation).trim();
   if (!situation) {
     throw new CoachingMomentError(
-      "Describe the conversation you are preparing for.",
+      "Add a little context about what’s happening.",
       "validation"
     );
   }

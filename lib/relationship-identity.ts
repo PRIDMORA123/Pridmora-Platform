@@ -513,3 +513,30 @@ export function validateCreateRelationshipIdentity(
     privateIdentity: privateIdentity,
   };
 }
+
+/**
+ * Restores natural subject wording for authorised, individual relationship UI.
+ *
+ * External AI processing may deliberately minimise the relationship subject to
+ * "the person". Once the response is back inside the authorised relationship
+ * context, this helper can present that subject using the relationship's safe
+ * display name.
+ *
+ * Third-party anonymised references such as "another colleague" are
+ * intentionally left unchanged.
+ */
+export function personaliseRelationshipSubject(
+  text: string | null | undefined,
+  displayName: string
+): string | null {
+  if (text == null) return null;
+
+  const name = displayName.trim();
+  if (!name) return text;
+
+  const firstName = name.split(/\s+/)[0] || name;
+
+  return text
+    .replace(/\bthe person['’]s\b/gi, `${firstName}'s`)
+    .replace(/\bthe person\b/gi, firstName);
+}

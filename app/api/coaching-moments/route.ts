@@ -35,7 +35,11 @@ import {
 import { containsUnexpectedPersonName } from "@/lib/relationship-scope";
 import { createPersonLevelResponse } from "@/lib/ai/person-level-openai";
 import { knownIdentitiesFromPublicClient } from "@/lib/ai/minimise-for-external";
-import { buildRelationshipAiContext } from "@/lib/relationship-identity";
+import {
+  buildRelationshipAiContext,
+  getRelationshipDisplayName,
+  personaliseRelationshipSubject,
+} from "@/lib/relationship-identity";
 import { isUuid } from "@/lib/uuid";
 
 export const runtime = "nodejs";
@@ -242,7 +246,7 @@ export async function POST(request: Request) {
         const situation = (body.situation ?? existing.situation).trim();
         if (!situation) {
           return NextResponse.json(
-            { error: "Describe the conversation you are preparing for." },
+            { error: "Add a little context about what’s happening." },
             { status: 400 }
           );
         }
@@ -344,6 +348,7 @@ export async function POST(request: Request) {
         );
 
         const outputText = response.output_text?.trim();
+
         if (!outputText) {
           trackCoachingMomentEvent({ event: "guidance_failed", momentId });
           return NextResponse.json(
@@ -400,6 +405,65 @@ export async function POST(request: Request) {
             { status: 502 }
           );
         }
+
+        parsed = {
+          ...parsed,
+          guidance: {
+            ...parsed.guidance,
+            intention:
+              personaliseRelationshipSubject(
+                parsed.guidance.intention,
+                getRelationshipDisplayName({
+                  name: String(client.name ?? ""),
+                  organisation: client.organisation ? String(client.organisation) : "",
+                  role: client.role ? String(client.role) : "",
+                  identityMode: client.identity_mode,
+                  displayLabel: client.display_label,
+                  confidentialReference: client.confidential_reference,
+                  aiNameAllowed: client.ai_name_allowed,
+                })
+              ) ?? parsed.guidance.intention,
+            opening: personaliseRelationshipSubject(
+              parsed.guidance.opening,
+              getRelationshipDisplayName({
+                name: String(client.name ?? ""),
+                organisation: client.organisation ? String(client.organisation) : "",
+                role: client.role ? String(client.role) : "",
+                identityMode: client.identity_mode,
+                displayLabel: client.display_label,
+                confidentialReference: client.confidential_reference,
+                aiNameAllowed: client.ai_name_allowed,
+              })
+            ),
+            questions: parsed.guidance.questions.map(
+              question =>
+                personaliseRelationshipSubject(
+                  question,
+                  getRelationshipDisplayName({
+                    name: String(client.name ?? ""),
+                    organisation: client.organisation ? String(client.organisation) : "",
+                    role: client.role ? String(client.role) : "",
+                    identityMode: client.identity_mode,
+                    displayLabel: client.display_label,
+                    confidentialReference: client.confidential_reference,
+                    aiNameAllowed: client.ai_name_allowed,
+                  })
+                ) ?? question
+            ),
+            consideration: personaliseRelationshipSubject(
+              parsed.guidance.consideration,
+              getRelationshipDisplayName({
+                name: String(client.name ?? ""),
+                organisation: client.organisation ? String(client.organisation) : "",
+                role: client.role ? String(client.role) : "",
+                identityMode: client.identity_mode,
+                displayLabel: client.display_label,
+                confidentialReference: client.confidential_reference,
+                aiNameAllowed: client.ai_name_allowed,
+              })
+            ),
+          },
+        };
 
         const moment = await applyGuidance(supabase, {
           momentId,
@@ -626,6 +690,37 @@ export async function POST(request: Request) {
             { status: 502 }
           );
         }
+
+        const relationshipDisplayName = getRelationshipDisplayName({
+          name: String(client.name ?? ""),
+          organisation: client.organisation ? String(client.organisation) : "",
+          role: client.role ? String(client.role) : "",
+          identityMode: client.identity_mode,
+          displayLabel: client.display_label,
+          confidentialReference: client.confidential_reference,
+          aiNameAllowed: client.ai_name_allowed,
+        });
+
+        insight = {
+          ...insight,
+          summary:
+            personaliseRelationshipSubject(
+              insight.summary,
+              relationshipDisplayName
+            ) ?? insight.summary,
+          commitment: personaliseRelationshipSubject(
+            insight.commitment,
+            relationshipDisplayName
+          ),
+          patternConnection: personaliseRelationshipSubject(
+            insight.patternConnection,
+            relationshipDisplayName
+          ),
+          followUpQuestion: personaliseRelationshipSubject(
+            insight.followUpQuestion,
+            relationshipDisplayName
+          ),
+        };
 
         const moment = await applyInsightDraft(supabase, {
           momentId,
