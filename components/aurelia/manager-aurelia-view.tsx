@@ -21,6 +21,21 @@ import { BRAND } from "@/lib/brand";
 import { SENSITIVE_INFO_AURELIA_ENTRY_COPY } from "@/lib/organisations/sensitive-information-guidance";
 import { ManagerAureliaCapturePanel } from "@/components/aurelia/manager-aurelia-capture";
 
+type OrganisationGuidanceSource = {
+  guidanceId: string;
+  title: string;
+  guidanceType: "policy" | "values" | "manager_guidance";
+  versionLabel: string | null;
+};
+
+function guidanceTypeLabel(
+  type: OrganisationGuidanceSource["guidanceType"]
+): string {
+  if (type === "manager_guidance") return "Manager guidance";
+  if (type === "values") return "Values";
+  return "Policy";
+}
+
 /**
  * Stage 2.2 — live multi-turn Manager Aurelia with deliberate capture (2.2.4).
  * Conversation state is React memory only — never persisted.
@@ -41,6 +56,9 @@ export function ManagerAureliaView({
 
   const [draft, setDraft] = useState("");
   const [turns, setTurns] = useState<ManagerAureliaTurn[]>([]);
+  const [guidanceSourcesByTurn, setGuidanceSourcesByTurn] = useState<
+    Record<number, OrganisationGuidanceSource[]>
+  >({});
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [captureOpen, setCaptureOpen] = useState(false);
@@ -53,6 +71,7 @@ export function ManagerAureliaView({
 
   function clearConversation() {
     setTurns([]);
+    setGuidanceSourcesByTurn({});
     setDraft("");
     setError("");
     sendingRef.current = false;
@@ -89,7 +108,10 @@ export function ManagerAureliaView({
     setDraft("");
 
     try {
-      const data = await apiJson<{ reply: string }>(
+      const data = await apiJson<{
+        reply: string;
+        organisationGuidanceSources?: OrganisationGuidanceSource[];
+      }>(
         "/api/my-development/aurelia/chat",
         {
           method: "POST",
@@ -109,11 +131,21 @@ export function ManagerAureliaView({
         return;
       }
 
+      const aureliaTurnIndex = priorTurns.length + 1;
+      const guidanceSources = data.organisationGuidanceSources ?? [];
+
       setTurns([
         ...priorTurns,
         { role: "manager", content: message },
         { role: "aurelia", content: reply },
       ]);
+
+      if (guidanceSources.length > 0) {
+        setGuidanceSourcesByTurn(current => ({
+          ...current,
+          [aureliaTurnIndex]: guidanceSources,
+        }));
+      }
     } catch (err) {
       setDraft(message);
       setError(toManagerAureliaUserError(err, MANAGER_AURELIA_CHAT_UNAVAILABLE));
@@ -198,6 +230,26 @@ export function ManagerAureliaView({
             </p>
             <div className="manager-aurelia__turn-body">
               <p className="manager-aurelia__turn-text">{turn.content}</p>
+              {turn.role === "aurelia" &&
+              (guidanceSourcesByTurn[index]?.length ?? 0) > 0 ? (
+                <div
+                  className="manager-aurelia__guidance-sources"
+                  data-testid="manager-aurelia-guidance-sources"
+                >
+                  <p className="manager-aurelia__guidance-sources-label">
+                    Relevant organisational guidance
+                  </p>
+                  {guidanceSourcesByTurn[index]?.map(source => (
+                    <p
+                      key={source.guidanceId}
+                      className="manager-aurelia__guidance-source muted"
+                    >
+                      {source.title} · {guidanceTypeLabel(source.guidanceType)}
+                      {source.versionLabel ? ` · ${source.versionLabel}` : ""}
+                    </p>
+                  ))}
+                </div>
+              ) : null}
             </div>
           </div>
         ))}

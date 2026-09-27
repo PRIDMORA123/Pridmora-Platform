@@ -140,6 +140,71 @@ describe("Manager Aurelia live chat UI", () => {
     ).toBe(false);
   });
 
+  it("shows Organisation Guidance sources with the Aurelia answer without sending source metadata back", async () => {
+    apiJson
+      .mockResolvedValueOnce({
+        reply: "Start by understanding what is contributing to the pattern.",
+        organisationGuidanceSources: [
+          {
+            guidanceId: "guidance-attendance",
+            title: "Attendance Policy",
+            guidanceType: "policy",
+            versionLabel: "v2",
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        reply: "Then make the expectation clear.",
+        organisationGuidanceSources: [],
+      });
+
+    const container = await renderView(
+      <ManagerAureliaView onBackHome={() => undefined} />
+    );
+    const textarea = container.querySelector("textarea") as HTMLTextAreaElement;
+
+    await act(async () => {
+      setTextarea(textarea, "How should I approach repeated lateness?");
+    });
+    await act(async () => {
+      container.querySelector("form")?.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true })
+      );
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toContain("Relevant organisational guidance");
+    expect(container.textContent).toContain("Attendance Policy");
+    expect(container.textContent).toContain("Policy");
+    expect(container.textContent).toContain("v2");
+
+    await act(async () => {
+      setTextarea(textarea, "What should I say first?");
+    });
+    await act(async () => {
+      container.querySelector("form")?.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true })
+      );
+      await Promise.resolve();
+    });
+
+    const secondInit = apiJson.mock.calls[1]?.[1] as { body: string };
+    const secondBody = JSON.parse(secondInit.body) as {
+      turns: Array<Record<string, unknown>>;
+      message: string;
+    };
+
+    expect(secondBody.turns).toHaveLength(2);
+    expect(secondBody.turns[1]).toEqual({
+      role: "aurelia",
+      content: "Start by understanding what is contributing to the pattern.",
+    });
+    expect(secondBody.turns[1]).not.toHaveProperty(
+      "organisationGuidanceSources"
+    );
+    expect(secondInit.body).not.toContain("Attendance Policy");
+  });
+
   it("restores the draft and shows an error when AI fails", async () => {
     apiJson.mockRejectedValueOnce(
       new ApiRequestError({

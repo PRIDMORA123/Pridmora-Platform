@@ -12657,3 +12657,26 @@ button.coaching-moments-section__item:focus-visible {
     padding: var(--identity-space-4, 16px);
   }
 }
+
+.manager-aurelia__guidance-sources {
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(15, 35, 64, 0.08);
+}
+
+.manager-aurelia__guidance-sources-label {
+  margin: 0 0 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--identity-navy-950, #082b4b);
+}
+
+.manager-aurelia__guidance-source {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.manager-aurelia__guidance-source + .manager-aurelia__guidance-source {
+  margin-top: 0.2rem;
+}
