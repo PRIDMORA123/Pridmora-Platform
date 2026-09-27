@@ -142,6 +142,36 @@ describe("Stage 2.2.2 / 2.2.2A Manager Aurelia chat helpers", () => {
     expect(input).not.toContain("clientId");
   });
 
+  it("keeps conflicting or incomplete Organisation Guidance uncertain", () => {
+    expect(MANAGER_AURELIA_CONVERSATION_ADDENDUM).toContain(
+      "If supplied passages conflict, appear incomplete or do not answer the issue"
+    );
+    expect(MANAGER_AURELIA_CONVERSATION_ADDENDUM).toContain(
+      "say the organisational guidance is unclear rather than choosing which source overrides another"
+    );
+  });
+
+  it("treats organisational values as judgement context rather than rules", () => {
+    expect(MANAGER_AURELIA_CONVERSATION_ADDENDUM).toContain(
+      "Distinguish values from policies: values can inform judgement but are not rules"
+    );
+  });
+
+  it("hands formal employment or legal judgement to People or HR", () => {
+    expect(MANAGER_AURELIA_CONVERSATION_ADDENDUM).toContain(
+      "Do not turn organisational guidance into legal, disciplinary or employment-law advice"
+    );
+    expect(MANAGER_AURELIA_CONVERSATION_ADDENDUM).toContain(
+      "Where the situation requires formal employment judgement, legal interpretation or a decision outside the supplied guidance, suggest appropriate People/HR support"
+    );
+  });
+
+  it("does not imply that organisational policy was checked when no guidance was supplied", () => {
+    expect(MANAGER_AURELIA_CONVERSATION_ADDENDUM).toContain(
+      "If no Organisation Guidance is supplied, do not imply that you have checked or found an organisational policy"
+    );
+  });
+
   it("rate-limits repeated Manager Aurelia requests", () => {
     const userId = `user-${Math.random()}`;
     const organisationId = `org-${Math.random()}`;
