@@ -62,6 +62,7 @@ export const ORGANISATION_PERMISSIONS = [
   "reports.view_relationship",
   "billing.manage",
   "sample_organisation.manage",
+  "organisation_guidance.manage",
 ] as const;
 
 export type OrganisationPermission = (typeof ORGANISATION_PERMISSIONS)[number];

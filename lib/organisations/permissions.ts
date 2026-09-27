@@ -24,6 +24,7 @@ const ROLE_PERMISSIONS: Record<MembershipRole, readonly OrganisationPermission[]
     "members.manage",
     "members.deactivate",
     "assignments.manage",
+    "organisation_guidance.manage",
     "relationships.create",
     "relationships.view_assigned",
     "relationships.transfer",
@@ -42,6 +43,7 @@ const ROLE_PERMISSIONS: Record<MembershipRole, readonly OrganisationPermission[]
     "members.manage",
     "members.deactivate",
     "assignments.manage",
+    "organisation_guidance.manage",
     "relationships.create",
     "relationships.view_assigned",
     "relationships.transfer",
@@ -56,6 +58,7 @@ const ROLE_PERMISSIONS: Record<MembershipRole, readonly OrganisationPermission[]
     "members.manage",
     "members.deactivate",
     "assignments.manage",
+    "organisation_guidance.manage",
     "relationships.view_assigned",
   ],
   practitioner: [
@@ -131,6 +134,10 @@ export function canManageMembers(role: MembershipRole): boolean {
 
 export function canManageAssignments(role: MembershipRole): boolean {
   return hasPermission(role, "assignments.manage");
+}
+
+export function canManageOrganisationGuidance(role: MembershipRole): boolean {
+  return hasPermission(role, "organisation_guidance.manage");
 }
 
 export function canCreateRelationships(role: MembershipRole): boolean {
