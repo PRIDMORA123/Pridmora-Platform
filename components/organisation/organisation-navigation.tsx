@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCanManageSampleOrganisation } from "@/lib/organisations/use-can-manage-sample-organisation";
+import { useOrganisation } from "@/lib/organisations/organisation-context";
+import { hasPermission } from "@/lib/organisations/permissions";
 
 const BASE_NAV: Array<{ href: string; label: string; exact?: boolean }> = [
   { href: "/organisation", label: "Overview", exact: true },
@@ -22,14 +24,26 @@ const BASE_NAV: Array<{ href: string; label: string; exact?: boolean }> = [
 
 export function OrganisationNavigation() {
   const pathname = usePathname();
+  const organisation = useOrganisation();
   const showSample = useCanManageSampleOrganisation();
+  const canManageGuidance =
+    organisation?.role != null &&
+    hasPermission(organisation.role, "organisation_guidance.manage");
+
+  const organisationNav = canManageGuidance
+    ? [
+        ...BASE_NAV.slice(0, 3),
+        { href: "/organisation/guidance", label: "Organisation Guidance" },
+        ...BASE_NAV.slice(3),
+      ]
+    : BASE_NAV;
 
   const nav = showSample
     ? [
-        ...BASE_NAV,
+        ...organisationNav,
         { href: "/settings/sample-organisation", label: "Sample organisation" },
       ]
-    : BASE_NAV;
+    : organisationNav;
 
   return (
     <nav className="organisation-nav" aria-label="Organisation">
