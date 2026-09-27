@@ -101,6 +101,7 @@ export type Organisation = {
   createdBy: string;
   defaultPreparationStyle: "minimal" | "guided" | "enhanced" | null;
   aiEnabled: boolean;
+  organisationGuidanceEnabled: boolean;
   dataRetentionPolicyLabel: string;
   brandingStatus: "none" | "placeholder" | "configured";
   logoUrl: string | null;

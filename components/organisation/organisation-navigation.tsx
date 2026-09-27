@@ -28,6 +28,7 @@ export function OrganisationNavigation() {
   const showSample = useCanManageSampleOrganisation();
   const canManageGuidance =
     organisation?.role != null &&
+    organisation.organisation.organisationGuidanceEnabled &&
     hasPermission(organisation.role, "organisation_guidance.manage");
 
   const organisationNav = canManageGuidance

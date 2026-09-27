@@ -176,7 +176,10 @@ describe("Stage 2.2.2 Manager Aurelia API contract", () => {
     expect(route).not.toContain("requireAssignedPersonInOrganisation");
     expect(route).not.toContain("loadMyDevelopmentWorkspace");
     expect(route).not.toContain("ensureSelfDevelopmentRelationship");
-    expect(route).not.toContain(".from(");
+    // Keep database access behind dedicated server-side repositories/retrieval helpers.
+    // Do not mistake standard JavaScript Array.from(...) for a Supabase query.
+    expect(route).not.toContain('.from("');
+    expect(route).not.toContain(".from('");
   });
 
   it("disables OpenAI Responses storage on Manager Aurelia chat", () => {
@@ -424,6 +427,167 @@ describe("Stage 2.2.2 Manager Aurelia route behaviour", () => {
     expect(create).toHaveBeenCalledWith(
       expect.objectContaining({ store: false })
     );
+  });
+
+  it("does not retrieve Organisation Guidance when the feature is disabled", async () => {
+    process.env.OPENAI_API_KEY = "test-key";
+
+    const retrieveOrganisationGuidance = vi.fn();
+
+    vi.doMock("@/lib/organisations/current-organisation", () => ({
+      requireOrganisationContext: vi.fn(async () => managerAuthContext()),
+    }));
+
+    vi.doMock("@/lib/organisation-guidance", async () => {
+      const actual = await vi.importActual<
+        typeof import("@/lib/organisation-guidance")
+      >("@/lib/organisation-guidance");
+
+      return {
+        ...actual,
+        retrieveOrganisationGuidance,
+      };
+    });
+
+    mockEmptyDevelopmentContext();
+
+    const create = vi.fn(async (args: { input: string }) => {
+      expect(args.input).not.toContain("Approved organisational guidance");
+      expect(args.input).not.toContain("Attendance Policy");
+      return { output_text: "Here is a calm next step." };
+    });
+
+    vi.doMock("openai", () => ({
+      default: class {
+        responses = { create };
+      },
+    }));
+
+    const { POST } = await import("@/app/api/my-development/aurelia/chat/route");
+    const response = await POST(
+      new Request("http://localhost/api/my-development/aurelia/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          turns: [],
+          message: "How should I approach repeated lateness?",
+        }),
+      })
+    );
+
+    expect(response.status).toBe(200);
+    expect(retrieveOrganisationGuidance).not.toHaveBeenCalled();
+
+    const data = await response.json();
+    expect(data.reply).toBe("Here is a calm next step.");
+    expect(data.organisationGuidanceSources).toEqual([]);
+  });
+
+  it("uses enabled Organisation Guidance from the authenticated organisation and returns deterministic source metadata", async () => {
+    process.env.OPENAI_API_KEY = "test-key";
+
+    const organisationId = "org-guidance-enabled";
+    const retrieveOrganisationGuidance = vi.fn(async () => [
+      {
+        guidanceId: "guidance-attendance",
+        title: "Attendance Policy",
+        guidanceType: "policy" as const,
+        versionLabel: "v2",
+        excerpt:
+          "Repeated lateness should normally be discussed informally before formal action is considered.",
+        score: 5,
+      },
+    ]);
+
+    vi.doMock("@/lib/organisations/current-organisation", () => ({
+      requireOrganisationContext: vi.fn(async () => ({
+        ok: true as const,
+        context: {
+          user: { id: "manager-1" },
+          supabase: {},
+          organisation: {
+            organisationId,
+            professionalRole: "manager",
+            organisation: {
+              aiEnabled: true,
+              organisationGuidanceEnabled: true,
+            },
+          },
+        },
+      })),
+    }));
+
+    vi.doMock("@/lib/organisation-guidance", async () => {
+      const actual = await vi.importActual<
+        typeof import("@/lib/organisation-guidance")
+      >("@/lib/organisation-guidance");
+
+      return {
+        ...actual,
+        retrieveOrganisationGuidance,
+      };
+    });
+
+    mockEmptyDevelopmentContext();
+
+    let capturedInput = "";
+    const create = vi.fn(async (args: { input: string }) => {
+      capturedInput = args.input;
+      return {
+        output_text:
+          "Your organisation's Attendance Policy gives you a useful starting point.",
+      };
+    });
+
+    vi.doMock("openai", () => ({
+      default: class {
+        responses = { create };
+      },
+    }));
+
+    const message = "How should I approach repeated lateness?";
+
+    const { POST } = await import("@/app/api/my-development/aurelia/chat/route");
+    const response = await POST(
+      new Request("http://localhost/api/my-development/aurelia/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          turns: [],
+          message,
+        }),
+      })
+    );
+
+    expect(retrieveOrganisationGuidance).toHaveBeenCalledTimes(1);
+    expect(response.status).toBe(200);
+
+    expect(capturedInput).toContain("Relevant approved Organisation Guidance");
+    expect(capturedInput).toContain("Attendance Policy");
+    expect(capturedInput).toContain("Type: policy");
+    expect(capturedInput).toContain("v2");
+    expect(capturedInput).toContain(
+      "Repeated lateness should normally be discussed informally"
+    );
+
+    expect(retrieveOrganisationGuidance).toHaveBeenCalledWith({
+      supabase: expect.anything(),
+      organisationId,
+      query: message,
+    });
+
+    const data = await response.json();
+
+    expect(data.reply).toContain("Attendance Policy");
+    expect(data.organisationGuidanceSources).toEqual([
+      {
+        guidanceId: "guidance-attendance",
+        title: "Attendance Policy",
+        guidanceType: "policy",
+        versionLabel: "v2",
+      },
+    ]);
+
+    expect(data.organisationGuidanceSources[0]).not.toHaveProperty("excerpt");
+    expect(data.organisationGuidanceSources[0]).not.toHaveProperty("score");
   });
 
   it("bounds oversized model output so the next turn cannot 400 on Aurelia length", async () => {

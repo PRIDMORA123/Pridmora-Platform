@@ -35,6 +35,32 @@ export type ManagerAureliaTurn = {
   content: string;
 };
 
+export type ManagerAureliaOrganisationGuidance = {
+  guidanceId: string;
+  title: string;
+  guidanceType: "policy" | "values" | "manager_guidance";
+  versionLabel: string | null;
+  excerpt: string;
+};
+
+function formatManagerAureliaOrganisationGuidance(
+  guidance: ManagerAureliaOrganisationGuidance[]
+): string {
+  if (guidance.length === 0) return "";
+
+  const blocks = guidance.slice(0, 3).map((item, index) => {
+    const version = item.versionLabel ? ` · ${item.versionLabel}` : "";
+    return [
+      `Approved organisational guidance ${index + 1}:`,
+      `Type: ${item.guidanceType}`,
+      `Source: ${item.title}${version}`,
+      `Excerpt: ${item.excerpt.slice(0, 1400)}`,
+    ].join("\n");
+  });
+
+  return blocks.join("\n\n");
+}
+
 export const MANAGER_AURELIA_CONVERSATION_ADDENDUM = `You are speaking with a Manager in a private working session inside ${BRAND.companyName}.
 
 This is a multi-turn conversation — a development partner dialogue, not a management briefing, essay, or coaching questionnaire.
@@ -66,6 +92,16 @@ Manager development context (when supplied separately in the input):
 - Never invent a focus or action that was not supplied.
 - Names appearing inside Manager-authored action titles do not grant person-record access. Do not look up, identify, or claim to know that person.
 - Do not claim access to reflections, evidence, assessments, strengths, values, team members, My People, or organisational intelligence.
+
+Organisation Guidance (when supplied separately in the input):
+- Organisation Guidance is approved customer-provided organisational context. Treat it as the organisation's source material, not as Aurelia's own policy or general law.
+- Use it only when genuinely relevant to the Manager's current situation.
+- Never invent, extend or imply an organisational rule that is not supported by the supplied guidance.
+- Distinguish values from policies: values can inform judgement but are not rules.
+- If supplied passages conflict, appear incomplete or do not answer the issue, say the organisational guidance is unclear rather than choosing which source overrides another.
+- Do not turn organisational guidance into legal, disciplinary or employment-law advice.
+- Where the situation requires formal employment judgement, legal interpretation or a decision outside the supplied guidance, suggest appropriate People/HR support.
+- If no Organisation Guidance is supplied, do not imply that you have checked or found an organisational policy.
 
 Always:
 - Keep Manager judgement central: propose, do not decide for them.
@@ -278,11 +314,14 @@ export function rejectClientSuppliedDevelopmentContext(
 export function buildManagerAureliaInput(
   turns: ManagerAureliaTurn[],
   message: string,
-  developmentContext?: ManagerAureliaDevelopmentContext | null
+  developmentContext?: ManagerAureliaDevelopmentContext | null,
+  organisationGuidance: ManagerAureliaOrganisationGuidance[] = []
 ): string {
   const contextBlock = developmentContext
     ? formatManagerAureliaDevelopmentContext(developmentContext)
     : "";
+  const organisationGuidanceBlock =
+    formatManagerAureliaOrganisationGuidance(organisationGuidance);
 
   const lines: string[] = [
     "Active private working session (not saved as history).",
@@ -300,6 +339,15 @@ export function buildManagerAureliaInput(
   }
 
   lines.push("");
+
+  if (organisationGuidanceBlock) {
+    lines.push(
+      "Relevant approved Organisation Guidance is available below. Use only when relevant to the Manager's current situation."
+    );
+    lines.push("");
+    lines.push(organisationGuidanceBlock);
+    lines.push("");
+  }
 
   if (turns.length > 0) {
     lines.push("Conversation so far:");

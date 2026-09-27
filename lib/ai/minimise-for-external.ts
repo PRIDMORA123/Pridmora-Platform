@@ -23,6 +23,11 @@ export type ExternalAiKnownIdentities = {
   role?: string | null;
   /** Other public person names already in-request (not vault). */
   otherPersonNames?: string[];
+  /**
+   * Exact server-resolved labels known not to identify a person.
+   * Used for trusted metadata such as approved organisational guidance titles.
+   */
+  trustedNonPersonLabels?: string[];
 };
 
 export type ExternalAiPersonSlot = {
@@ -218,6 +223,15 @@ function shouldSkipNameSpan(span: string, identities: ExternalAiKnownIdentities)
   const organisation = trimName(identities.organisation);
   const role = trimName(identities.role);
   const displayLabel = trimName(identities.displayLabel);
+  const trustedNonPersonLabels = identities.trustedNonPersonLabels ?? [];
+  if (
+    trustedNonPersonLabels.some(label => {
+      const trustedLabel = trimName(label);
+      return trustedLabel && namesEqual(span, trustedLabel);
+    })
+  ) {
+    return true;
+  }
   if (organisation && namesEqual(span, organisation)) return true;
   if (role && namesEqual(span, role)) return true;
   if (displayLabel && namesEqual(span, displayLabel) && !isIdentifyingDisplayLabel(identities)) {

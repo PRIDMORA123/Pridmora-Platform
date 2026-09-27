@@ -25,6 +25,7 @@ type OrgRow = {
   created_by: string;
   default_preparation_style: string | null;
   ai_enabled: boolean;
+  organisation_guidance_enabled?: boolean;
   data_retention_policy_label: string;
   branding_status: string;
   logo_url: string | null;
@@ -103,6 +104,7 @@ export function mapOrganisation(row: OrgRow): Organisation {
     createdBy: row.created_by,
     defaultPreparationStyle: (row.default_preparation_style as Organisation["defaultPreparationStyle"]) ?? null,
     aiEnabled: row.ai_enabled ?? true,
+    organisationGuidanceEnabled: row.organisation_guidance_enabled ?? false,
     dataRetentionPolicyLabel: row.data_retention_policy_label ?? "standard",
     brandingStatus: (row.branding_status as Organisation["brandingStatus"]) ?? "none",
     logoUrl: row.logo_url,
@@ -148,11 +150,25 @@ export function mapAssignment(row: AssignmentRow): RelationshipAssignment {
 }
 
 const ORG_SELECT =
+  "id, name, slug, organisation_type, status, created_by, default_preparation_style, ai_enabled, organisation_guidance_enabled, data_retention_policy_label, branding_status, logo_url, licence_plan_name, practitioner_seats_purchased, licence_status, licence_starts_at, licence_ends_at, created_at, updated_at, archived_at";
+
+/**
+ * Compatibility select used when Organisation Guidance has not yet been
+ * migrated. mapOrganisation() deliberately defaults the missing flag to false.
+ */
+const ORG_SELECT_WITHOUT_GUIDANCE =
   "id, name, slug, organisation_type, status, created_by, default_preparation_style, ai_enabled, data_retention_policy_label, branding_status, logo_url, licence_plan_name, practitioner_seats_purchased, licence_status, licence_starts_at, licence_ends_at, created_at, updated_at, archived_at";
 
 /** Pre-licence-migration select — used when licence columns are absent. */
 const ORG_SELECT_LEGACY =
   "id, name, slug, organisation_type, status, created_by, default_preparation_style, ai_enabled, data_retention_policy_label, branding_status, logo_url, created_at, updated_at, archived_at";
+
+function isMissingOrganisationGuidanceColumnError(message: string): boolean {
+  return (
+    /organisation_guidance_enabled/i.test(message) &&
+    /does not exist|schema cache|could not find/i.test(message)
+  );
+}
 
 function isMissingLicenceColumnError(message: string): boolean {
   return (
@@ -204,6 +220,17 @@ export async function listUserMemberships(
 
   let rows = primary.data as unknown[] | null;
   let error = primary.error;
+
+  if (error && isMissingOrganisationGuidanceColumnError(error.message)) {
+    const withoutGuidance = await supabase
+      .from("organisation_memberships")
+      .select(`${MEMBERSHIP_SELECT}, organisations (${ORG_SELECT_WITHOUT_GUIDANCE})`)
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .order("created_at", { ascending: true });
+    rows = withoutGuidance.data as unknown[] | null;
+    error = withoutGuidance.error;
+  }
 
   if (error && isMissingLicenceColumnError(error.message)) {
     const legacy = await supabase
@@ -285,6 +312,16 @@ export async function getOrganisation(
 
   let row = primary.data as OrgRow | null;
   let error = primary.error;
+
+  if (error && isMissingOrganisationGuidanceColumnError(error.message)) {
+    const withoutGuidance = await supabase
+      .from("organisations")
+      .select(ORG_SELECT_WITHOUT_GUIDANCE)
+      .eq("id", organisationId)
+      .maybeSingle();
+    row = withoutGuidance.data as OrgRow | null;
+    error = withoutGuidance.error;
+  }
 
   if (error && isMissingLicenceColumnError(error.message)) {
     const legacy = await supabase

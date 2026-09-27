@@ -64,6 +64,7 @@ function fakeOrgContext(
         createdBy: "user-1",
         defaultPreparationStyle: null,
         aiEnabled: true,
+        organisationGuidanceEnabled: false,
         dataRetentionPolicyLabel: "standard",
         brandingStatus: "none",
         logoUrl: null,

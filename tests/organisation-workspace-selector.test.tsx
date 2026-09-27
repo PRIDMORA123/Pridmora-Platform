@@ -86,6 +86,7 @@ function membershipState(input: {
       createdBy: "user-1",
       defaultPreparationStyle: null,
       aiEnabled: true,
+      organisationGuidanceEnabled: false,
       dataRetentionPolicyLabel: "standard",
       brandingStatus: "none" as const,
       logoUrl: null,

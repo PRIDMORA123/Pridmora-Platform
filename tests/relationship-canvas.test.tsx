@@ -32,6 +32,7 @@ function makeOrgState(
       archivedAt: null,
       defaultPreparationStyle: "guided",
       aiEnabled: true,
+      organisationGuidanceEnabled: false,
       dataRetentionPolicyLabel: "standard",
       brandingStatus: "none",
       logoUrl: null,

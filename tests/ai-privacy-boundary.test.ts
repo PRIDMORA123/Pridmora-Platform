@@ -253,6 +253,31 @@ describe("adversarial fixtures — outbound minimisation", () => {
     expect(mapping.people[0]?.originals).toContain("James Wilson");
   });
 
+  it("preserves an exact trusted non-person organisational label", () => {
+    const source =
+      "Source: Attendance Policy. Daniel Reed raised a delivery concern.";
+
+    const { text, mapping } = minimiseForExternalAi(source, {
+      trustedNonPersonLabels: ["Attendance Policy"],
+    });
+
+    expect(text).toContain("Attendance Policy");
+    expect(text).not.toContain("Daniel Reed");
+    expect(text).toContain("[PERSON 1]");
+    expect(mapping.people).toHaveLength(1);
+    expect(mapping.people[0]?.originals).toContain("Daniel Reed");
+  });
+
+  it("does not globally exempt the same capitalised phrase without explicit trust", () => {
+    const source = "Attendance Policy raised a delivery concern.";
+
+    const { text, mapping } = minimiseForExternalAi(source);
+
+    expect(text).not.toContain("Attendance Policy");
+    expect(text).toContain("[PERSON 1]");
+    expect(mapping.people[0]?.originals).toContain("Attendance Policy");
+  });
+
   it("keeps later James references coherent with James Wilson", () => {
     const source =
       "James Wilson spoke first. Later James agreed the date should move.";
