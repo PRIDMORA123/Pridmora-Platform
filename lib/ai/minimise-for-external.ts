@@ -83,6 +83,7 @@ const SKIP_NAME_TOKENS = new Set([
   "session",
   "summary",
   "manager",
+  "people",
   "report",
   "organisation",
   "organization",

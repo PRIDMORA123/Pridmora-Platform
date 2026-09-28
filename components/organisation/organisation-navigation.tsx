@@ -34,7 +34,7 @@ export function OrganisationNavigation() {
   const organisationNav = canManageGuidance
     ? [
         ...BASE_NAV.slice(0, 3),
-        { href: "/organisation/guidance", label: "Organisation Guidance" },
+        { href: "/organisation/guidance", label: "Policies & Guidance" },
         ...BASE_NAV.slice(3),
       ]
     : BASE_NAV;

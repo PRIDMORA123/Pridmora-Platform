@@ -370,6 +370,18 @@ describe("adversarial fixtures — outbound minimisation", () => {
     expect(text).not.toContain("Sarah Chen");
   });
 
+  it("does not treat the Pridmora My People label as a person name", () => {
+    const source =
+      "Do not claim access to team members, My People, or organisational intelligence. James Wilson raised a concern.";
+    const { text, mapping } = minimiseForExternalAi(source);
+
+    expect(text).toContain("My People");
+    expect(text).not.toContain("James Wilson");
+    expect(text).toContain("[PERSON 1]");
+    expect(mapping.people).toHaveLength(1);
+    expect(mapping.people[0]?.originals).toContain("James Wilson");
+  });
+
   it("does not treat heading lines separated by a newline as a person name", () => {
     const source = "Current development focuses:\n- Delegation\n\nActive development actions:";
     const { text, mapping } = minimiseForExternalAi(source);

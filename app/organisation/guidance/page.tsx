@@ -166,7 +166,7 @@ export default function OrganisationGuidancePage() {
 
   return (
     <OrganisationShell
-      title="Organisation Guidance"
+      title="Policies & Guidance"
       subtitle="Give Aurelia approved organisational context to help managers apply your policies, values and expectations in everyday situations."
     >
       {error ? <p className="organisation-error">{error}</p> : null}
@@ -179,14 +179,14 @@ export default function OrganisationGuidancePage() {
             onClick={() => setShowAdd(value => !value)}
             disabled={busy}
           >
-            {showAdd ? "Cancel" : "Add guidance"}
+            {showAdd ? "Cancel" : "Add policy or guidance"}
           </IdentityButton>
         </div>
       ) : null}
 
       {showAdd && canManage ? (
         <section className="organisation-panel">
-          <h2 className="organisation-section-title">Add guidance</h2>
+          <h2 className="organisation-section-title">Add policy or guidance</h2>
           <p className="organisation-muted">
             Add an approved organisational document. Uploading creates a draft.
             Aurelia will not use it until you explicitly approve it.
@@ -277,7 +277,7 @@ export default function OrganisationGuidancePage() {
 
       {!loading && guidance.length === 0 ? (
         <section className="organisation-empty-state">
-          <p>No organisation guidance has been added yet.</p>
+          <p>No policies or guidance have been added yet.</p>
           <p className="organisation-muted">
             Add approved policies, values or manager guidance when you are ready
             to give Aurelia organisation-specific context.
@@ -287,10 +287,10 @@ export default function OrganisationGuidancePage() {
 
       {guidance.length > 0 ? (
         <section className="organisation-panel">
-          <h2 className="organisation-section-title">Guidance library</h2>
-          <ul className="organisation-attention-list">
+          <h2 className="organisation-section-title">Policies &amp; guidance</h2>
+          <ul className="organisation-guidance-list">
             {guidance.map(item => (
-              <li key={item.id} className="organisation-attention-item">
+              <li key={item.id} className="organisation-member-card">
                 <p className="organisation-attention-item__title">
                   {item.title}
                 </p>

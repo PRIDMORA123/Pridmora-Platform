@@ -9576,6 +9576,15 @@ button.coaching-moments-section__item:focus-visible {
   color: var(--identity-text-muted, #8796a1);
 }
 
+/* Policies & Guidance document library */
+.organisation-guidance-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--identity-space-4, 16px);
+}
+
 /* Panels & forms */
 .organisation-panel {
   margin: 0;
