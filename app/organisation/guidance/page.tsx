@@ -297,6 +297,9 @@ export default function OrganisationGuidancePage() {
                 <p className="organisation-attention-item__meta">
                   {GUIDANCE_TYPE_LABELS[item.guidanceType]} ·{" "}
                   {statusLabel(item.status)}
+                  {item.status === "draft" && !item.extractionMethod
+                    ? " · Needs attention"
+                    : ""}
                   {item.versionLabel ? ` · Version ${item.versionLabel}` : ""}
                   {item.reviewDate
                     ? ` · Review ${new Date(
@@ -308,7 +311,14 @@ export default function OrganisationGuidancePage() {
                   {item.originalFileName}
                 </p>
 
-                {item.status === "draft" ? (
+                {item.status === "draft" && !item.extractionMethod ? (
+                  <p className="organisation-muted">
+                    Aurelia couldn’t read enough text from this document. Upload
+                    a text-based PDF or Word document before approving it.
+                  </p>
+                ) : null}
+
+                {item.status === "draft" && item.extractionMethod ? (
                   <IdentityButton
                     variant="secondary"
                     disabled={busy}
