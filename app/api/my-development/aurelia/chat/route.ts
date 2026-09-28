@@ -15,6 +15,7 @@ import { checkManagerAureliaRateLimit } from "@/lib/my-development/aurelia-rate-
 import { createPersonLevelResponse } from "@/lib/ai/person-level-openai";
 import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
 import { retrieveOrganisationGuidance } from "@/lib/organisation-guidance";
+import { getSupabaseServiceClient } from "@/lib/supabase/service-role";
 
 export const runtime = "nodejs";
 
@@ -118,7 +119,7 @@ export async function POST(request: Request) {
   const organisationGuidance =
     auth.context.organisation.organisation.organisationGuidanceEnabled === true
       ? await retrieveOrganisationGuidance({
-          supabase: auth.context.supabase,
+          supabase: getSupabaseServiceClient(),
           organisationId: auth.context.organisation.organisationId,
           query: messageResult.message,
         })

@@ -463,6 +463,11 @@ describe("Stage 2.2.2 Manager Aurelia route behaviour", () => {
     process.env.OPENAI_API_KEY = "test-key";
 
     const retrieveOrganisationGuidance = vi.fn();
+    const getSupabaseServiceClient = vi.fn(() => ({ privileged: true }));
+
+    vi.doMock("@/lib/supabase/service-role", () => ({
+      getSupabaseServiceClient,
+    }));
 
     vi.doMock("@/lib/organisations/current-organisation", () => ({
       requireOrganisationContext: vi.fn(async () => managerAuthContext()),
@@ -506,6 +511,7 @@ describe("Stage 2.2.2 Manager Aurelia route behaviour", () => {
 
     expect(response.status).toBe(200);
     expect(retrieveOrganisationGuidance).not.toHaveBeenCalled();
+    expect(getSupabaseServiceClient).not.toHaveBeenCalled();
 
     const data = await response.json();
     expect(data.reply).toBe("Here is a calm next step.");
@@ -516,6 +522,9 @@ describe("Stage 2.2.2 Manager Aurelia route behaviour", () => {
     process.env.OPENAI_API_KEY = "test-key";
 
     const organisationId = "org-guidance-enabled";
+    const managerSessionClient = { managerSession: true };
+    const privilegedClient = { privileged: true };
+    const getSupabaseServiceClient = vi.fn(() => privilegedClient);
     const retrieveOrganisationGuidance = vi.fn(async () => [
       {
         guidanceId: "guidance-attendance",
@@ -533,7 +542,7 @@ describe("Stage 2.2.2 Manager Aurelia route behaviour", () => {
         ok: true as const,
         context: {
           user: { id: "manager-1" },
-          supabase: {},
+          supabase: managerSessionClient,
           organisation: {
             organisationId,
             professionalRole: "manager",
@@ -544,6 +553,10 @@ describe("Stage 2.2.2 Manager Aurelia route behaviour", () => {
           },
         },
       })),
+    }));
+
+    vi.doMock("@/lib/supabase/service-role", () => ({
+      getSupabaseServiceClient,
     }));
 
     vi.doMock("@/lib/organisation-guidance", async () => {
@@ -598,11 +611,15 @@ describe("Stage 2.2.2 Manager Aurelia route behaviour", () => {
       "Repeated lateness should normally be discussed informally"
     );
 
+    expect(getSupabaseServiceClient).toHaveBeenCalledTimes(1);
     expect(retrieveOrganisationGuidance).toHaveBeenCalledWith({
-      supabase: expect.anything(),
+      supabase: privilegedClient,
       organisationId,
       query: message,
     });
+    expect(retrieveOrganisationGuidance).not.toHaveBeenCalledWith(
+      expect.objectContaining({ supabase: managerSessionClient })
+    );
 
     const data = await response.json();
 
