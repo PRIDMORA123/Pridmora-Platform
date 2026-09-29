@@ -214,3 +214,27 @@ export async function withdrawOrganisationGuidance(input: {
     throw new Error("Only approved organisation guidance can be withdrawn.");
   }
 }
+
+export async function validateOrganisationGuidanceReplacement(input: {
+  supabase: SupabaseClient;
+  organisationId: string;
+  replacesGuidanceId: string;
+  guidanceType: OrganisationGuidanceType;
+}): Promise<void> {
+  const { data, error } = await input.supabase
+    .from("organisation_guidance")
+    .select("id")
+    .eq("id", input.replacesGuidanceId)
+    .eq("organisation_id", input.organisationId)
+    .eq("guidance_type", input.guidanceType)
+    .eq("status", "approved")
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+
+  if (!data) {
+    throw new Error(
+      "The guidance being replaced must be an approved item of the same type in this organisation."
+    );
+  }
+}

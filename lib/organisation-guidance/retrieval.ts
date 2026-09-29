@@ -16,7 +16,7 @@ type ApprovedGuidanceRow = {
   title: string;
   version_label: string | null;
   effective_from: string | null;
-  extracted_text: string;
+  extracted_text: string | null;
 };
 
 const MAX_EXCERPT_CHARS = 1400;
@@ -160,6 +160,35 @@ export async function retrieveOrganisationGuidance(input: {
   const queryWords = new Set(normaliseWords(input.query));
   if (queryWords.size === 0) return [];
 
+  const asOfDate = input.asOfDate ?? new Date().toISOString().slice(0, 10);
+
+  // Lifecycle metadata is queried separately from content retrieval so that
+  // withdrawn successors can continue to suppress obsolete predecessors
+  // without making withdrawn content eligible for Aurelia.
+  const { data: lifecycleData, error: lifecycleError } = await input.supabase
+    .from("organisation_guidance")
+    .select("id, effective_from, replaces_guidance_id")
+    .eq("organisation_id", input.organisationId)
+    .not("replaces_guidance_id", "is", null);
+
+  if (lifecycleError) throw new Error(lifecycleError.message);
+
+  const supersededGuidanceIds = new Set(
+    ((lifecycleData ?? []) as Array<{
+      id: string;
+      effective_from: string | null;
+      replaces_guidance_id: string | null;
+    }>)
+      .filter(
+        row =>
+          row.replaces_guidance_id &&
+          (!row.effective_from || row.effective_from <= asOfDate)
+      )
+      .map(row => row.replaces_guidance_id as string)
+  );
+
+  // Content retrieval remains deliberately approved-only. Lifecycle history
+  // above may suppress content, but can never make withdrawn content eligible.
   const { data, error } = await input.supabase
     .from("organisation_guidance")
     .select(
@@ -172,13 +201,14 @@ export async function retrieveOrganisationGuidance(input: {
   if (error) throw new Error(error.message);
 
   const matches: OrganisationGuidanceMatch[] = [];
-  const asOfDate = input.asOfDate ?? new Date().toISOString().slice(0, 10);
 
   for (const row of (data ?? []) as ApprovedGuidanceRow[]) {
     // Approval and operational applicability are deliberately separate.
     // Future-effective guidance remains approved but must not influence Aurelia
     // until its effective date is reached.
     if (row.effective_from && row.effective_from > asOfDate) continue;
+    if (supersededGuidanceIds.has(row.id)) continue;
+    if (!row.extracted_text) continue;
 
     for (const excerpt of splitIntoPassages(row.extracted_text)) {
       const score = scoreOrganisationGuidancePassage(

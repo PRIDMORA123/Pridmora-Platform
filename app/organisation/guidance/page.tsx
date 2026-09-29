@@ -36,6 +36,7 @@ export default function OrganisationGuidancePage() {
   const [versionLabel, setVersionLabel] = useState("");
   const [effectiveFrom, setEffectiveFrom] = useState("");
   const [reviewDate, setReviewDate] = useState("");
+  const [replacesGuidanceId, setReplacesGuidanceId] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
   const load = useCallback(async () => {
@@ -71,6 +72,7 @@ export default function OrganisationGuidancePage() {
     setVersionLabel("");
     setEffectiveFrom("");
     setReviewDate("");
+    setReplacesGuidanceId("");
     setFile(null);
   }
 
@@ -126,6 +128,9 @@ export default function OrganisationGuidancePage() {
       if (versionLabel.trim()) form.set("versionLabel", versionLabel.trim());
       if (effectiveFrom) form.set("effectiveFrom", effectiveFrom);
       if (reviewDate) form.set("reviewDate", reviewDate);
+      if (replacesGuidanceId) {
+        form.set("replacesGuidanceId", replacesGuidanceId);
+      }
 
       const response = await fetch("/api/organisations/guidance/upload", {
         method: "POST",
@@ -211,16 +216,44 @@ export default function OrganisationGuidancePage() {
               <select
                 id="guidance-type"
                 value={guidanceType}
-                onChange={event =>
+                onChange={event => {
                   setGuidanceType(
                     event.target.value as OrganisationGuidanceType
-                  )
-                }
+                  );
+                  setReplacesGuidanceId("");
+                }}
               >
                 <option value="policy">Policy</option>
                 <option value="values">Values</option>
                 <option value="manager_guidance">Manager Guidance</option>
               </select>
+            </div>
+
+            <div className="organisation-field">
+              <label htmlFor="guidance-replaces">Replaces</label>
+              <select
+                id="guidance-replaces"
+                value={replacesGuidanceId}
+                onChange={event => setReplacesGuidanceId(event.target.value)}
+              >
+                <option value="">Does not replace existing guidance</option>
+                {guidance
+                  .filter(
+                    item =>
+                      item.status === "approved" &&
+                      item.guidanceType === guidanceType
+                  )
+                  .map(item => (
+                    <option key={item.id} value={item.id}>
+                      {item.title}
+                      {item.versionLabel ? ` · ${item.versionLabel}` : ""}
+                    </option>
+                  ))}
+              </select>
+              <p className="organisation-muted">
+                Choose an existing approved item only when this document is its
+                replacement.
+              </p>
             </div>
 
             <div className="organisation-field">

@@ -12,6 +12,7 @@ import {
   extractOrganisationGuidanceText,
   hashOrganisationGuidanceBytes,
   updateOrganisationGuidanceExtraction,
+  validateOrganisationGuidanceReplacement,
   validateOrganisationGuidanceUpload,
   type OrganisationGuidanceType,
 } from "@/lib/organisation-guidance";
@@ -74,6 +75,8 @@ export async function POST(request: Request) {
     const effectiveFrom =
       String(form.get("effectiveFrom") ?? "").trim() || null;
     const reviewDate = String(form.get("reviewDate") ?? "").trim() || null;
+    const replacesGuidanceId =
+      String(form.get("replacesGuidanceId") ?? "").trim() || null;
 
     // Ownership and storage location are always server-derived.
     if (
@@ -126,6 +129,16 @@ export async function POST(request: Request) {
     }
 
     const organisationId = auth.context.organisation.organisationId;
+
+    if (replacesGuidanceId) {
+      await validateOrganisationGuidanceReplacement({
+        supabase: auth.context.supabase,
+        organisationId,
+        replacesGuidanceId,
+        guidanceType: guidanceType as OrganisationGuidanceType,
+      });
+    }
+
     const guidanceId = crypto.randomUUID();
     const contentHash = await hashOrganisationGuidanceBytes(bytes);
 
@@ -165,6 +178,7 @@ export async function POST(request: Request) {
         fileSizeBytes: bytes.byteLength,
         contentHash,
         storagePath,
+        replacesGuidanceId,
       });
     } catch (error) {
       await removeGuidanceObject(storagePath);

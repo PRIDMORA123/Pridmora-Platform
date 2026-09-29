@@ -4,6 +4,48 @@ import {
   retrieveOrganisationGuidance,
 } from "@/lib/organisation-guidance";
 
+
+function createLifecycleSupabase(rows: Array<Record<string, unknown>>) {
+  return {
+    from() {
+      const filters: Array<
+        | { kind: "eq"; column: string; value: unknown }
+        | { kind: "not-null"; column: string }
+      > = [];
+
+      const query = {
+        select() {
+          return query;
+        },
+        eq(column: string, value: unknown) {
+          filters.push({ kind: "eq", column, value });
+          return query;
+        },
+        not(column: string, operator: string, value: unknown) {
+          if (operator === "is" && value === null) {
+            filters.push({ kind: "not-null", column });
+          }
+
+          const data = rows.filter(row =>
+            filters.every(filter => {
+              if (filter.kind === "eq") {
+                return row[filter.column] === filter.value;
+              }
+
+              return row[filter.column] !== null &&
+                row[filter.column] !== undefined;
+            })
+          );
+
+          return Promise.resolve({ data, error: null });
+        },
+      };
+
+      return query;
+    },
+  };
+}
+
 describe("Organisation Guidance retrieval", () => {
   it("ranks the passage with the strongest meaningful overlap first", () => {
     const matches = rankOrganisationGuidancePassages({
@@ -319,4 +361,169 @@ describe("Organisation Guidance retrieval", () => {
     expect(calls).toContainEqual(["eq:organisation_id", "org-current"]);
     expect(calls).toContainEqual(["eq:status", "approved"]);
   });
+
+  it("keeps the predecessor active before an approved successor becomes effective", async () => {
+    const rows = [
+      {
+        id: "v2",
+        organisation_id: "org-current",
+        guidance_type: "policy",
+        title: "Attendance Policy",
+        version_label: "v2",
+        effective_from: "2026-09-01",
+        extracted_text:
+          "Repeated lateness should be discussed and attendance expectations clarified.",
+        status: "approved",
+        replaces_guidance_id: null,
+      },
+      {
+        id: "v3",
+        organisation_id: "org-current",
+        guidance_type: "policy",
+        title: "Attendance Policy",
+        version_label: "v3",
+        effective_from: "2026-10-01",
+        extracted_text:
+          "Repeated lateness should be discussed and attendance expectations clarified.",
+        status: "approved",
+        replaces_guidance_id: "v2",
+      },
+    ];
+
+    const supabase = createLifecycleSupabase(rows);
+
+    const matches = await retrieveOrganisationGuidance({
+      supabase: supabase as never,
+      organisationId: "org-current",
+      query: "attendance expectations repeated lateness",
+      asOfDate: "2026-09-29",
+    });
+
+    expect(matches.some(match => match.guidanceId === "v2")).toBe(true);
+    expect(matches.some(match => match.guidanceId === "v3")).toBe(false);
+  });
+
+  it("suppresses the predecessor when its approved successor becomes effective", async () => {
+    const rows = [
+      {
+        id: "v2",
+        organisation_id: "org-current",
+        guidance_type: "policy",
+        title: "Attendance Policy",
+        version_label: "v2",
+        effective_from: "2026-09-01",
+        extracted_text:
+          "Repeated lateness should be discussed and attendance expectations clarified.",
+        status: "approved",
+        replaces_guidance_id: null,
+      },
+      {
+        id: "v3",
+        organisation_id: "org-current",
+        guidance_type: "policy",
+        title: "Attendance Policy",
+        version_label: "v3",
+        effective_from: "2026-10-01",
+        extracted_text:
+          "Repeated lateness should be discussed and attendance expectations clarified.",
+        status: "approved",
+        replaces_guidance_id: "v2",
+      },
+    ];
+
+    const supabase = createLifecycleSupabase(rows);
+
+    const matches = await retrieveOrganisationGuidance({
+      supabase: supabase as never,
+      organisationId: "org-current",
+      query: "attendance expectations repeated lateness",
+      asOfDate: "2026-10-01",
+    });
+
+    expect(matches.some(match => match.guidanceId === "v2")).toBe(false);
+    expect(matches.some(match => match.guidanceId === "v3")).toBe(true);
+  });
+
+  it("does not resurrect a predecessor after its effective successor is withdrawn", async () => {
+    const rows = [
+      {
+        id: "v2",
+        organisation_id: "org-current",
+        guidance_type: "policy",
+        title: "Attendance Policy",
+        version_label: "v2",
+        effective_from: "2026-09-01",
+        extracted_text:
+          "Repeated lateness should be discussed and attendance expectations clarified.",
+        status: "approved",
+        replaces_guidance_id: null,
+      },
+      {
+        id: "v3",
+        organisation_id: "org-current",
+        guidance_type: "policy",
+        title: "Attendance Policy",
+        version_label: "v3",
+        effective_from: "2026-10-01",
+        extracted_text:
+          "Repeated lateness should be discussed and attendance expectations clarified.",
+        status: "withdrawn",
+        replaces_guidance_id: "v2",
+      },
+    ];
+
+    const supabase = createLifecycleSupabase(rows);
+
+    const matches = await retrieveOrganisationGuidance({
+      supabase: supabase as never,
+      organisationId: "org-current",
+      query: "attendance expectations repeated lateness",
+      asOfDate: "2026-10-02",
+    });
+
+    expect(matches.some(match => match.guidanceId === "v2")).toBe(false);
+    expect(matches.some(match => match.guidanceId === "v3")).toBe(false);
+  });
+
+  it("keeps the predecessor active when a future successor is withdrawn before becoming effective", async () => {
+    const rows = [
+      {
+        id: "v2",
+        organisation_id: "org-current",
+        guidance_type: "policy",
+        title: "Attendance Policy",
+        version_label: "v2",
+        effective_from: "2026-09-01",
+        extracted_text:
+          "Repeated lateness should be discussed and attendance expectations clarified.",
+        status: "approved",
+        replaces_guidance_id: null,
+      },
+      {
+        id: "v3",
+        organisation_id: "org-current",
+        guidance_type: "policy",
+        title: "Attendance Policy",
+        version_label: "v3",
+        effective_from: "2026-10-01",
+        extracted_text:
+          "Repeated lateness should be discussed and attendance expectations clarified.",
+        status: "withdrawn",
+        replaces_guidance_id: "v2",
+      },
+    ];
+
+    const supabase = createLifecycleSupabase(rows);
+
+    const matches = await retrieveOrganisationGuidance({
+      supabase: supabase as never,
+      organisationId: "org-current",
+      query: "attendance expectations repeated lateness",
+      asOfDate: "2026-09-29",
+    });
+
+    expect(matches.some(match => match.guidanceId === "v2")).toBe(true);
+    expect(matches.some(match => match.guidanceId === "v3")).toBe(false);
+  });
+
 });
