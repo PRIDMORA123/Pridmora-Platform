@@ -15,6 +15,7 @@ type ApprovedGuidanceRow = {
   guidance_type: string;
   title: string;
   version_label: string | null;
+  effective_from: string | null;
   extracted_text: string;
 };
 
@@ -154,6 +155,7 @@ export async function retrieveOrganisationGuidance(input: {
   organisationId: string;
   query: string;
   limit?: number;
+  asOfDate?: string;
 }): Promise<OrganisationGuidanceMatch[]> {
   const queryWords = new Set(normaliseWords(input.query));
   if (queryWords.size === 0) return [];
@@ -161,7 +163,7 @@ export async function retrieveOrganisationGuidance(input: {
   const { data, error } = await input.supabase
     .from("organisation_guidance")
     .select(
-      "id, guidance_type, title, version_label, extracted_text"
+      "id, guidance_type, title, version_label, effective_from, extracted_text"
     )
     .eq("organisation_id", input.organisationId)
     .eq("status", "approved")
@@ -170,8 +172,14 @@ export async function retrieveOrganisationGuidance(input: {
   if (error) throw new Error(error.message);
 
   const matches: OrganisationGuidanceMatch[] = [];
+  const asOfDate = input.asOfDate ?? new Date().toISOString().slice(0, 10);
 
   for (const row of (data ?? []) as ApprovedGuidanceRow[]) {
+    // Approval and operational applicability are deliberately separate.
+    // Future-effective guidance remains approved but must not influence Aurelia
+    // until its effective date is reached.
+    if (row.effective_from && row.effective_from > asOfDate) continue;
+
     for (const excerpt of splitIntoPassages(row.extracted_text)) {
       const score = scoreOrganisationGuidancePassage(
         queryWords,

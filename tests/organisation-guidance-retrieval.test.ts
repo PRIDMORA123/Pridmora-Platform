@@ -158,11 +158,117 @@ describe("Organisation Guidance retrieval", () => {
 
     expect(calls).toContainEqual([
       "select",
-      "id, guidance_type, title, version_label, extracted_text",
+      "id, guidance_type, title, version_label, effective_from, extracted_text",
     ]);
     expect(calls).toContainEqual(["eq:organisation_id", "org-secure"]);
     expect(calls).toContainEqual(["eq:status", "approved"]);
     expect(calls).toContainEqual(["not:extracted_text:is", null]);
+  });
+
+  it("excludes approved guidance until its effective date", async () => {
+    const query = {
+      select() {
+        return this;
+      },
+      eq() {
+        return this;
+      },
+      not() {
+        return Promise.resolve({
+          data: [
+            {
+              id: "current",
+              guidance_type: "policy",
+              title: "Current Attendance Policy",
+              version_label: "v2",
+              effective_from: "2026-09-01",
+              extracted_text:
+                "Repeated lateness should be discussed and attendance expectations clarified.",
+            },
+            {
+              id: "future",
+              guidance_type: "policy",
+              title: "Future Attendance Policy",
+              version_label: "v3",
+              effective_from: "2026-10-01",
+              extracted_text:
+                "Repeated lateness should be discussed and attendance expectations clarified.",
+            },
+            {
+              id: "undated",
+              guidance_type: "values",
+              title: "Our Values",
+              version_label: null,
+              effective_from: null,
+              extracted_text:
+                "Attendance conversations should balance expectations and individual circumstances.",
+            },
+          ],
+          error: null,
+        });
+      },
+    };
+
+    const supabase = {
+      from() {
+        return query;
+      },
+    };
+
+    const matches = await retrieveOrganisationGuidance({
+      supabase: supabase as never,
+      organisationId: "org-current",
+      query: "attendance expectations repeated lateness circumstances",
+      asOfDate: "2026-09-29",
+    });
+
+    expect(matches.some(match => match.guidanceId === "current")).toBe(true);
+    expect(matches.some(match => match.guidanceId === "undated")).toBe(true);
+    expect(matches.some(match => match.guidanceId === "future")).toBe(false);
+  });
+
+  it("makes approved guidance eligible on its effective date", async () => {
+    const query = {
+      select() {
+        return this;
+      },
+      eq() {
+        return this;
+      },
+      not() {
+        return Promise.resolve({
+          data: [
+            {
+              id: "effective-today",
+              guidance_type: "policy",
+              title: "Attendance Policy",
+              version_label: "v3",
+              effective_from: "2026-10-01",
+              extracted_text:
+                "Repeated lateness should be discussed and attendance expectations clarified.",
+            },
+          ],
+          error: null,
+        });
+      },
+    };
+
+    const supabase = {
+      from() {
+        return query;
+      },
+    };
+
+    const matches = await retrieveOrganisationGuidance({
+      supabase: supabase as never,
+      organisationId: "org-current",
+      query: "attendance expectations repeated lateness",
+      asOfDate: "2026-10-01",
+    });
+
+    expect(matches.some(match => match.guidanceId === "effective-today")).toBe(
+      true
+    );
   });
 
   it("does not query the guidance table when the manager message has no meaningful retrieval words", async () => {
