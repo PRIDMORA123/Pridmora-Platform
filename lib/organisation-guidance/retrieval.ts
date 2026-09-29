@@ -167,7 +167,7 @@ export async function retrieveOrganisationGuidance(input: {
   // without making withdrawn content eligible for Aurelia.
   const { data: lifecycleData, error: lifecycleError } = await input.supabase
     .from("organisation_guidance")
-    .select("id, effective_from, replaces_guidance_id")
+    .select("id, approved_at, withdrawn_at, effective_from, replaces_guidance_id")
     .eq("organisation_id", input.organisationId)
     .not("replaces_guidance_id", "is", null);
 
@@ -176,14 +176,29 @@ export async function retrieveOrganisationGuidance(input: {
   const supersededGuidanceIds = new Set(
     ((lifecycleData ?? []) as Array<{
       id: string;
+      approved_at: string | null;
+      withdrawn_at: string | null;
       effective_from: string | null;
       replaces_guidance_id: string | null;
     }>)
-      .filter(
-        row =>
-          row.replaces_guidance_id &&
-          (!row.effective_from || row.effective_from <= asOfDate)
-      )
+      .filter(row => {
+        if (!row.replaces_guidance_id || !row.approved_at) return false;
+
+        const approvedDate = row.approved_at.slice(0, 10);
+        const activationDate =
+          row.effective_from && row.effective_from > approvedDate
+            ? row.effective_from
+            : approvedDate;
+
+        if (activationDate > asOfDate) return false;
+
+        if (row.withdrawn_at) {
+          const withdrawnDate = row.withdrawn_at.slice(0, 10);
+          if (withdrawnDate < activationDate) return false;
+        }
+
+        return true;
+      })
       .map(row => row.replaces_guidance_id as string)
   );
 

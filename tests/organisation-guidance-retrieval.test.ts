@@ -362,6 +362,47 @@ describe("Organisation Guidance retrieval", () => {
     expect(calls).toContainEqual(["eq:status", "approved"]);
   });
 
+  it("keeps the predecessor active when its successor is still a draft", async () => {
+    const rows = [
+      {
+        id: "v2",
+        organisation_id: "org-current",
+        guidance_type: "policy",
+        title: "Attendance Policy",
+        version_label: "v2",
+        effective_from: "2026-09-01",
+        extracted_text:
+          "Repeated lateness should be discussed and attendance expectations clarified.",
+        status: "approved",
+        replaces_guidance_id: null,
+      },
+      {
+        id: "v3",
+        organisation_id: "org-current",
+        guidance_type: "policy",
+        title: "Attendance Policy",
+        version_label: "v3",
+        effective_from: null,
+        extracted_text:
+          "Repeated lateness should be discussed and attendance expectations clarified.",
+        status: "draft",
+        replaces_guidance_id: "v2",
+      },
+    ];
+
+    const supabase = createLifecycleSupabase(rows);
+
+    const matches = await retrieveOrganisationGuidance({
+      supabase: supabase as never,
+      organisationId: "org-current",
+      query: "attendance expectations repeated lateness",
+      asOfDate: "2026-09-29",
+    });
+
+    expect(matches.some(match => match.guidanceId === "v2")).toBe(true);
+    expect(matches.some(match => match.guidanceId === "v3")).toBe(false);
+  });
+
   it("keeps the predecessor active before an approved successor becomes effective", async () => {
     const rows = [
       {
@@ -386,6 +427,8 @@ describe("Organisation Guidance retrieval", () => {
         extracted_text:
           "Repeated lateness should be discussed and attendance expectations clarified.",
         status: "approved",
+        approved_at: "2026-09-29T09:00:00Z",
+        withdrawn_at: null,
         replaces_guidance_id: "v2",
       },
     ];
@@ -427,6 +470,8 @@ describe("Organisation Guidance retrieval", () => {
         extracted_text:
           "Repeated lateness should be discussed and attendance expectations clarified.",
         status: "approved",
+        approved_at: "2026-09-29T09:00:00Z",
+        withdrawn_at: null,
         replaces_guidance_id: "v2",
       },
     ];
@@ -468,6 +513,8 @@ describe("Organisation Guidance retrieval", () => {
         extracted_text:
           "Repeated lateness should be discussed and attendance expectations clarified.",
         status: "withdrawn",
+        approved_at: "2026-09-29T09:00:00Z",
+        withdrawn_at: "2026-10-02T09:00:00Z",
         replaces_guidance_id: "v2",
       },
     ];
@@ -509,6 +556,8 @@ describe("Organisation Guidance retrieval", () => {
         extracted_text:
           "Repeated lateness should be discussed and attendance expectations clarified.",
         status: "withdrawn",
+        approved_at: "2026-09-29T09:00:00Z",
+        withdrawn_at: "2026-09-30T09:00:00Z",
         replaces_guidance_id: "v2",
       },
     ];
@@ -519,7 +568,7 @@ describe("Organisation Guidance retrieval", () => {
       supabase: supabase as never,
       organisationId: "org-current",
       query: "attendance expectations repeated lateness",
-      asOfDate: "2026-09-29",
+      asOfDate: "2026-10-02",
     });
 
     expect(matches.some(match => match.guidanceId === "v2")).toBe(true);
