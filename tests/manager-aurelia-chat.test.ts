@@ -637,6 +637,97 @@ describe("Stage 2.2.2 Manager Aurelia route behaviour", () => {
     expect(data.organisationGuidanceSources[0]).not.toHaveProperty("score");
   });
 
+  it("continues without Organisation Guidance when enabled retrieval fails", async () => {
+    process.env.OPENAI_API_KEY = "test-key";
+
+    const organisationId = "org-guidance-retrieval-failure";
+    const privilegedClient = { privileged: true };
+    const getSupabaseServiceClient = vi.fn(() => privilegedClient);
+    const retrieveOrganisationGuidance = vi.fn(async () => {
+      throw new Error("sensitive database failure");
+    });
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+
+    vi.doMock("@/lib/organisations/current-organisation", () => ({
+      requireOrganisationContext: vi.fn(async () => ({
+        ok: true as const,
+        context: {
+          user: { id: "manager-1" },
+          supabase: { managerSession: true },
+          organisation: {
+            organisationId,
+            professionalRole: "manager",
+            organisation: {
+              aiEnabled: true,
+              organisationGuidanceEnabled: true,
+            },
+          },
+        },
+      })),
+    }));
+
+    vi.doMock("@/lib/supabase/service-role", () => ({
+      getSupabaseServiceClient,
+    }));
+
+    vi.doMock("@/lib/organisation-guidance", async () => {
+      const actual = await vi.importActual<
+        typeof import("@/lib/organisation-guidance")
+      >("@/lib/organisation-guidance");
+
+      return {
+        ...actual,
+        retrieveOrganisationGuidance,
+      };
+    });
+
+    mockEmptyDevelopmentContext();
+
+    let capturedInput = "";
+    const create = vi.fn(async (args: { input: string }) => {
+      capturedInput = args.input;
+      return { output_text: "Here is a calm next step." };
+    });
+
+    vi.doMock("openai", () => ({
+      default: class {
+        responses = { create };
+      },
+    }));
+
+    const { POST } = await import("@/app/api/my-development/aurelia/chat/route");
+    const response = await POST(
+      new Request("http://localhost/api/my-development/aurelia/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          turns: [],
+          message: "How should I approach repeated lateness?",
+        }),
+      })
+    );
+
+    expect(response.status).toBe(200);
+    expect(getSupabaseServiceClient).toHaveBeenCalledTimes(1);
+    expect(retrieveOrganisationGuidance).toHaveBeenCalledTimes(1);
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(capturedInput).not.toContain("Relevant approved Organisation Guidance");
+
+    const data = await response.json();
+    expect(data.reply).toBe("Here is a calm next step.");
+    expect(data.organisationGuidanceSources).toEqual([]);
+
+    expect(consoleError).toHaveBeenCalledWith("[manager-aurelia-chat]", {
+      errorCode: "ORGANISATION_GUIDANCE_RETRIEVAL_FAILED",
+    });
+    expect(JSON.stringify(consoleError.mock.calls)).not.toContain(
+      "sensitive database failure"
+    );
+
+    consoleError.mockRestore();
+  });
+
   it("bounds oversized model output so the next turn cannot 400 on Aurelia length", async () => {
     process.env.OPENAI_API_KEY = "test-key";
     const oversized =

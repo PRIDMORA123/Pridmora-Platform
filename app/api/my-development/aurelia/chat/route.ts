@@ -14,7 +14,10 @@ import { loadManagerAureliaDevelopmentContext } from "@/lib/my-development/aurel
 import { checkManagerAureliaRateLimit } from "@/lib/my-development/aurelia-rate-limit";
 import { createPersonLevelResponse } from "@/lib/ai/person-level-openai";
 import { requireOrganisationContext } from "@/lib/organisations/current-organisation";
-import { retrieveOrganisationGuidance } from "@/lib/organisation-guidance";
+import {
+  retrieveOrganisationGuidance,
+  type OrganisationGuidanceMatch,
+} from "@/lib/organisation-guidance";
 import { getSupabaseServiceClient } from "@/lib/supabase/service-role";
 
 export const runtime = "nodejs";
@@ -115,15 +118,26 @@ export async function POST(request: Request) {
   });
 
   // Organisation Guidance is an explicitly enabled, read-only context layer.
-  // Disabled organisations retain the existing Manager Aurelia behaviour.
-  const organisationGuidance =
+  // It is fail-soft: guidance retrieval must never become a single point of
+  // failure for the core Manager Aurelia experience.
+  let organisationGuidance: OrganisationGuidanceMatch[] = [];
+
+  if (
     auth.context.organisation.organisation.organisationGuidanceEnabled === true
-      ? await retrieveOrganisationGuidance({
-          supabase: getSupabaseServiceClient(),
-          organisationId: auth.context.organisation.organisationId,
-          query: messageResult.message,
-        })
-      : [];
+  ) {
+    try {
+      organisationGuidance = await retrieveOrganisationGuidance({
+        supabase: getSupabaseServiceClient(),
+        organisationId: auth.context.organisation.organisationId,
+        query: messageResult.message,
+      });
+    } catch {
+      // Do not log request bodies, queries, source titles, excerpts or errors.
+      console.error("[manager-aurelia-chat]", {
+        errorCode: "ORGANISATION_GUIDANCE_RETRIEVAL_FAILED",
+      });
+    }
+  }
 
   const openai = new OpenAI({ apiKey });
   const input = buildManagerAureliaInput(
