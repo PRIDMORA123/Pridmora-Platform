@@ -189,7 +189,7 @@ describe("Organisation Guidance retrieval", () => {
       supabase: supabase as never,
       organisationId: "org-current",
       query:
-        "Daniel has made a mistake on a piece of work and seems worried about telling me. How should I handle the conversation in a way that is supportive but still holds him accountable?",
+        "Daniel has made several mistakes recently. I want to be supportive because he seems under pressure, but I also need him to take responsibility for the quality of his work. How should I approach the conversation?",
       asOfDate: "2026-09-30",
     });
 
