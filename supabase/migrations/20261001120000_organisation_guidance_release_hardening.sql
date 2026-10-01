@@ -48,6 +48,9 @@ grant execute on function public.has_organisation_permission(uuid, uuid, text) t
 grant execute on function public.has_organisation_permission(uuid, uuid, text) to service_role;
 
 comment on function public.has_organisation_permission(uuid, uuid, text) is
+  'Organisation role permission matrix. pending_closure denies all member permissions. '
+  'sample_organisation.manage is owner only. Does not grant coaching content or private identity. '
+  'Platform Owner access uses platform_owners, not this helper.';
 
 create or replace function public.owner_capture_organisation_storage_manifest(
   p_organisation_id uuid,
