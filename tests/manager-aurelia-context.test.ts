@@ -333,7 +333,10 @@ describe("Stage 2.2.3 Manager Aurelia development context", () => {
     expect(route).not.toContain("ensureSelfDevelopmentRelationship");
     expect(route).not.toContain("loadMyDevelopmentWorkspace");
     expect(route).not.toContain("/api/my-development/workspace");
-    expect(route).toContain("return NextResponse.json({ reply })");
+    expect(route).toContain("organisationGuidanceSources");
+    expect(route).toMatch(
+      /return NextResponse\.json\(\{\s*reply,\s*organisationGuidanceSources,\s*\}\)/
+    );
     expect(route).not.toContain("console.log(");
     // Response must not include portfolio payload keys.
     expect(route).not.toMatch(/NextResponse\.json\(\{[^}]*developmentContext/);

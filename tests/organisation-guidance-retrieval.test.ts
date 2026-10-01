@@ -85,6 +85,118 @@ describe("Organisation Guidance retrieval", () => {
     expect(matches.some(match => match.guidanceId === "expenses")).toBe(false);
   });
 
+  it("prefers relevant values guidance over an unrelated policy with incidental overlap", () => {
+    const matches = rankOrganisationGuidancePassages({
+      query:
+        "Daniel has made a mistake on a piece of work and seems worried about telling me. How should I handle the conversation in a way that is supportive but still holds him accountable?",
+      passages: [
+        {
+          guidanceId: "attendance",
+          title: "Attendance Management Policy",
+          guidanceType: "policy",
+          versionLabel: "2.0",
+          excerpt:
+            "Managers should approach the conversation fairly, understand individual circumstances and be clear about attendance expectations.",
+        },
+        {
+          guidanceId: "values",
+          title: "Our Leadership Values",
+          guidanceType: "values",
+          versionLabel: "1.0",
+          excerpt:
+            "Compassion means supporting people with dignity and respect. Accountability means taking responsibility for actions and following through on commitments.",
+        },
+      ],
+    });
+
+    expect(matches.some(match => match.guidanceId === "values")).toBe(true);
+    expect(matches.some(match => match.guidanceId === "attendance")).toBe(false);
+  });
+
+  it("does not force organisational guidance into an unrelated development question", () => {
+    const matches = rankOrganisationGuidancePassages({
+      query:
+        "Daniel wants to become more confident presenting his ideas in team meetings. How can I help him develop this?",
+      passages: [
+        {
+          guidanceId: "attendance",
+          title: "Attendance Management Policy",
+          guidanceType: "policy",
+          versionLabel: "2.0",
+          excerpt:
+            "Repeated lateness should be discussed fairly. Managers should understand individual circumstances and clarify attendance expectations.",
+        },
+        {
+          guidanceId: "values",
+          title: "Our Leadership Values",
+          guidanceType: "values",
+          versionLabel: "1.0",
+          excerpt:
+            "Compassion means supporting people with dignity and respect. Accountability means taking responsibility for actions and following through on commitments.",
+        },
+      ],
+    });
+
+    expect(matches).toEqual([]);
+  });
+
+  it("does not combine distant concepts from a long no-line-break document into a false relevant passage", async () => {
+    const attendanceText = [
+      "Managers may provide support where attendance concerns arise.",
+      "Attendance processes and procedural expectations apply consistently. ".repeat(12),
+      "Managers follow the documented attendance process and record relevant facts. ".repeat(20),
+      "Formal attendance processes require accountability for agreed attendance expectations.",
+    ].join(" ");
+
+    const rows = [
+      {
+        id: "attendance",
+        organisation_id: "org-current",
+        guidance_type: "policy",
+        title: "Attendance Management Policy",
+        version_label: "2.0",
+        effective_from: "2026-09-01",
+        extracted_text: attendanceText,
+        status: "approved",
+        approved_at: "2026-09-01T09:00:00Z",
+        withdrawn_at: null,
+        replaces_guidance_id: null,
+      },
+      {
+        id: "values",
+        organisation_id: "org-current",
+        guidance_type: "values",
+        title: "Our Leadership Values",
+        version_label: "1.0",
+        effective_from: "2026-09-01",
+        extracted_text: [
+          "Our Leadership Values Test organisational guidance for Pridmora Pilot Compassion We seek to understand individual circumstances and treat people with dignity and respect.",
+          "Accountability We are clear about expectations, address concerns fairly and take responsibility for following through on agreed actions.",
+          "Consistency We aim to apply organisational expectations consistently while recognising that individual circumstances may require appropriate consideration.",
+          "These values support managerial judgement.",
+          "They do not replace organisational policies, People/HR advice or legal guidance where these are required.",
+        ].join(" "),
+        status: "approved",
+        approved_at: "2026-09-01T09:00:00Z",
+        withdrawn_at: null,
+        replaces_guidance_id: null,
+      },
+    ];
+
+    const supabase = createLifecycleSupabase(rows);
+
+    const matches = await retrieveOrganisationGuidance({
+      supabase: supabase as never,
+      organisationId: "org-current",
+      query:
+        "Daniel has made a mistake on a piece of work and seems worried about telling me. How should I handle the conversation in a way that is supportive but still holds him accountable?",
+      asOfDate: "2026-09-30",
+    });
+
+    expect(matches.some(match => match.guidanceId === "values")).toBe(true);
+    expect(matches.some(match => match.guidanceId === "attendance")).toBe(false);
+  });
+
   it("returns no guidance for a weak one-word coincidence", () => {
     const matches = rankOrganisationGuidancePassages({
       query: "The team is planning a new service improvement.",
@@ -101,6 +213,38 @@ describe("Organisation Guidance retrieval", () => {
     });
 
     expect(matches).toEqual([]);
+  });
+
+  it("returns only the strongest passage from each guidance document", async () => {
+    const rows = [
+      {
+        id: "attendance",
+        organisation_id: "org-current",
+        guidance_type: "policy",
+        title: "Attendance Management Policy",
+        version_label: "2.0",
+        effective_from: "2026-09-01",
+        extracted_text:
+          "Repeated lateness requires managers to clarify attendance expectations and understand individual circumstances. " +
+          "Attendance expectations should be discussed fairly and consistently when lateness continues.",
+        status: "approved",
+        approved_at: "2026-09-01T09:00:00Z",
+        withdrawn_at: null,
+        replaces_guidance_id: null,
+      },
+    ];
+
+    const supabase = createLifecycleSupabase(rows);
+
+    const matches = await retrieveOrganisationGuidance({
+      supabase: supabase as never,
+      organisationId: "org-current",
+      query: "repeated lateness attendance expectations individual circumstances fairly consistently",
+      asOfDate: "2026-09-30",
+    });
+
+    expect(matches).toHaveLength(1);
+    expect(matches[0]?.guidanceId).toBe("attendance");
   });
 
   it("caps returned guidance at three passages", () => {

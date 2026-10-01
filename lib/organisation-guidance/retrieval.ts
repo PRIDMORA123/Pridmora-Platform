@@ -20,15 +20,18 @@ type ApprovedGuidanceRow = {
 };
 
 const MAX_EXCERPT_CHARS = 1400;
+const TARGET_PASSAGE_CHARS = 500;
 const MAX_MATCHES = 3;
 
 const STOP_WORDS = new Set([
   "about",
+  "and",
   "after",
   "again",
   "also",
   "been",
   "being",
+  "conversation",
   "could",
   "does",
   "from",
@@ -39,8 +42,10 @@ const STOP_WORDS = new Set([
   "manager",
   "managers",
   "people",
+  "should",
   "team",
   "that",
+  "the",
   "their",
   "them",
   "then",
@@ -62,7 +67,28 @@ function normaliseWords(text: string): string[] {
     .replace(/[^\p{L}\p{N}\s'-]/gu, " ")
     .split(/\s+/)
     .map(word => word.replace(/^['-]+|['-]+$/g, ""))
-    .filter(word => word.length >= 3 && !STOP_WORDS.has(word));
+    .filter(word => word.length >= 3 && !STOP_WORDS.has(word))
+    .map(word => {
+      if (
+        word === "accountable" ||
+        word === "accountability" ||
+        word === "responsibility" ||
+        word === "responsible"
+      ) {
+        return "accountability";
+      }
+
+      if (
+        word === "support" ||
+        word === "supported" ||
+        word === "supporting" ||
+        word === "supportive"
+      ) {
+        return "support";
+      }
+
+      return word;
+    });
 }
 
 function splitIntoPassages(text: string): string[] {
@@ -74,35 +100,68 @@ function splitIntoPassages(text: string): string[] {
     .map(part => part.replace(/\s+/g, " ").trim())
     .filter(Boolean);
 
+  const units = paragraphs.flatMap(paragraph => {
+    const sentences =
+      paragraph.match(/[^.!?]+(?:[.!?]+(?=\s|$)|$)/g)?.map(sentence =>
+        sentence.trim()
+      ) ?? [];
+
+    return sentences.filter(Boolean);
+  });
+
   const passages: string[] = [];
   let current = "";
 
-  for (const paragraph of paragraphs) {
-    if (paragraph.length > MAX_EXCERPT_CHARS) {
-      if (current) {
-        passages.push(current);
-        current = "";
+  const flushCurrent = (retainLastUnit = false) => {
+    if (!current) return;
+
+    passages.push(current);
+
+    if (!retainLastUnit) {
+      current = "";
+      return;
+    }
+
+    const currentUnits =
+      current.match(/[^.!?]+(?:[.!?]+(?=\s|$)|$)/g)?.map(unit =>
+        unit.trim()
+      ) ?? [];
+
+    current = currentUnits.slice(-2).join(" ");
+  };
+
+  for (const unit of units) {
+    if (unit.length > MAX_EXCERPT_CHARS) {
+      flushCurrent();
+
+      let remaining = unit;
+      while (remaining.length > MAX_EXCERPT_CHARS) {
+        const window = remaining.slice(0, MAX_EXCERPT_CHARS + 1);
+        const wordBreak = window.lastIndexOf(" ");
+        const splitAt = wordBreak > 0 ? wordBreak : MAX_EXCERPT_CHARS;
+
+        passages.push(remaining.slice(0, splitAt).trim());
+        remaining = remaining.slice(splitAt).trim();
       }
 
-      for (let start = 0; start < paragraph.length; start += MAX_EXCERPT_CHARS) {
-        passages.push(
-          paragraph.slice(start, start + MAX_EXCERPT_CHARS).trim()
-        );
-      }
+      if (remaining) passages.push(remaining);
       continue;
     }
 
-    const combined = current ? `${current}\n\n${paragraph}` : paragraph;
+    const combined = current ? `${current} ${unit}` : unit;
 
-    if (combined.length <= MAX_EXCERPT_CHARS) {
+    if (combined.length <= TARGET_PASSAGE_CHARS) {
       current = combined;
     } else {
-      if (current) passages.push(current);
-      current = paragraph;
+      flushCurrent(true);
+      const overlapping = current ? `${current} ${unit}` : unit;
+
+      current =
+        overlapping.length <= MAX_EXCERPT_CHARS ? overlapping : unit;
     }
   }
 
-  if (current) passages.push(current);
+  flushCurrent();
 
   return passages;
 }
@@ -225,7 +284,9 @@ export async function retrieveOrganisationGuidance(input: {
     if (supersededGuidanceIds.has(row.id)) continue;
     if (!row.extracted_text) continue;
 
-    for (const excerpt of splitIntoPassages(row.extracted_text)) {
+    const passages = splitIntoPassages(row.extracted_text);
+
+    for (const excerpt of passages) {
       const score = scoreOrganisationGuidancePassage(
         queryWords,
         excerpt
@@ -246,7 +307,17 @@ export async function retrieveOrganisationGuidance(input: {
     }
   }
 
-  return matches
+  const bestMatchByGuidance = new Map<string, OrganisationGuidanceMatch>();
+
+  for (const match of matches) {
+    const currentBest = bestMatchByGuidance.get(match.guidanceId);
+
+    if (!currentBest || match.score > currentBest.score) {
+      bestMatchByGuidance.set(match.guidanceId, match);
+    }
+  }
+
+  return Array.from(bestMatchByGuidance.values())
     .sort((a, b) => b.score - a.score)
     .slice(0, Math.min(input.limit ?? MAX_MATCHES, MAX_MATCHES));
 }
