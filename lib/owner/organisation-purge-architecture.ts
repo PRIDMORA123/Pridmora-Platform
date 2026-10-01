@@ -310,6 +310,17 @@ export const ORGANISATION_PURGE_MANIFEST: readonly PurgeManifestEntry[] = [
     treatment: "PURGE",
   },
   {
+    table: "organisation_guidance",
+    ownershipPath: "organisation_id + storage_path",
+    relationship: "direct",
+    fkBehaviour: "organisation_id CASCADE",
+    deletionOrder: 26,
+    deletionMode: "explicit",
+    verification: "count organisation_id = org = 0; captured paths removed later",
+    failureCondition: "rows remain or storage_path list not captured first",
+    treatment: "PURGE",
+  },
+  {
     table: "intelligence_audit_log",
     ownershipPath: "organisation_id; also user/entity",
     relationship: "direct",
@@ -1261,6 +1272,12 @@ export const TENANT_PURGE_STAGES = [
 export type TenantPurgeStage = (typeof TENANT_PURGE_STAGES)[number];
 
 export const AUTHORITATIVE_STORAGE_BUCKET = "development-evidence";
+export const ORGANISATION_GUIDANCE_STORAGE_BUCKET = "organisation-guidance";
+
+export const AUTHORITATIVE_STORAGE_BUCKETS = [
+  AUTHORITATIVE_STORAGE_BUCKET,
+  ORGANISATION_GUIDANCE_STORAGE_BUCKET,
+] as const;
 
 export function erasureClaim(input: {
   applicationDataPurged: boolean;

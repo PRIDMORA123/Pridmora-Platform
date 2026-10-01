@@ -234,7 +234,7 @@ describe("DL-03 pending_closure SQL freeze", () => {
     const { sql, file } = latestSqlContaining(
       /create\s+or\s+replace\s+function\s+public\.has_organisation_permission/i
     );
-    expect(file).toBe("20260827200000_organisation_deletion_foundation.sql");
+    expect(file).toBe("20261001120000_organisation_guidance_release_hardening.sql");
     expect(sql).toContain(
       "public.organisation_status_allows_member_access(m.organisation_id)"
     );

@@ -11,6 +11,7 @@ import { assessOrganisationMigrationReview } from "@/lib/owner/organisation-migr
 import {
   APPLICATION_PURGE_CLAIM,
   AUTHORITATIVE_STORAGE_BUCKET,
+  AUTHORITATIVE_STORAGE_BUCKETS,
   COMMERCIAL_LIVE_TABLES,
   FORBIDDEN_AUTH_USER_DELETION_APIS,
   ORGANISATION_PURGE_MANIFEST,
@@ -246,28 +247,39 @@ async function listPrefixRemainderCount(
   supabase: SupabaseClient,
   organisationId: string
 ): Promise<{ count: number; listed: boolean }> {
-  const { data: top, error } = await supabase.storage
-    .from(AUTHORITATIVE_STORAGE_BUCKET)
-    .list(organisationId, { limit: 1000, offset: 0 });
-  if (error) return { count: -1, listed: false };
-  const entries = top ?? [];
-  if (entries.length >= 1000) return { count: -1, listed: false };
   let files = 0;
-  for (const entry of entries) {
-    const name = entry.name;
-    if (!name) continue;
-    const looksLikeFolder = !entry.id || entry.metadata == null;
-    if (!looksLikeFolder) {
-      files += 1;
-      continue;
+
+  for (const bucket of AUTHORITATIVE_STORAGE_BUCKETS) {
+    const { data: top, error } = await supabase.storage
+      .from(bucket)
+      .list(organisationId, { limit: 1000, offset: 0 });
+
+    if (error) return { count: -1, listed: false };
+
+    const entries = top ?? [];
+    if (entries.length >= 1000) return { count: -1, listed: false };
+
+    for (const entry of entries) {
+      const name = entry.name;
+      if (!name) continue;
+
+      const looksLikeFolder = !entry.id || entry.metadata == null;
+      if (!looksLikeFolder) {
+        files += 1;
+        continue;
+      }
+
+      const { data: nested, error: nestedError } = await supabase.storage
+        .from(bucket)
+        .list(`${organisationId}/${name}`, { limit: 1000, offset: 0 });
+
+      if (nestedError) return { count: -1, listed: false };
+      if ((nested ?? []).length >= 1000) return { count: -1, listed: false };
+
+      files += (nested ?? []).filter(item => item.name).length;
     }
-    const { data: nested, error: nestedError } = await supabase.storage
-      .from(AUTHORITATIVE_STORAGE_BUCKET)
-      .list(`${organisationId}/${name}`, { limit: 1000, offset: 0 });
-    if (nestedError) return { count: -1, listed: false };
-    if ((nested ?? []).length >= 1000) return { count: -1, listed: false };
-    files += (nested ?? []).filter(item => item.name).length;
   }
+
   return { count: files, listed: true };
 }
 
@@ -576,7 +588,11 @@ export async function loadFinalVerificationState(input: {
   let capturedObjectsAbsent = true;
   if (!manifestError) {
     for (const row of rows) {
-      if (row.bucket !== AUTHORITATIVE_STORAGE_BUCKET) {
+      if (
+        !AUTHORITATIVE_STORAGE_BUCKETS.includes(
+          row.bucket as (typeof AUTHORITATIVE_STORAGE_BUCKETS)[number]
+        )
+      ) {
         capturedObjectsAbsent = false;
         break;
       }

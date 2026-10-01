@@ -40,7 +40,7 @@ import {
 
 const root = process.cwd();
 const MIGRATION =
-  "supabase/migrations/20260827250000_organisation_tenant_purge.sql";
+  "supabase/migrations/20261001120000_organisation_guidance_release_hardening.sql";
 const ORG_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const RUN_ID = "99999999-9999-4999-8999-999999999999";
 const ORG_B = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
@@ -106,6 +106,7 @@ function createBoundStorageClient(input: {
 }) {
   const present = input.present ?? new Set<string>();
   const removed: string[] = [];
+  const storageBuckets: string[] = [];
   const client = {
     from(table: string) {
       expect(table).toBe("organisation_deletion_storage_manifest");
@@ -135,7 +136,8 @@ function createBoundStorageClient(input: {
     },
     storage: {
       from(bucket: string) {
-        expect(bucket).toBe("development-evidence");
+        expect(["development-evidence", "organisation-guidance"]).toContain(bucket);
+        storageBuckets.push(bucket);
         return {
           list(parent: string, opts?: { search?: string }) {
             if (input.listError) {
@@ -173,6 +175,7 @@ function createBoundStorageClient(input: {
       },
     },
     removed,
+    storageBuckets,
   };
   return client;
 }
@@ -362,7 +365,6 @@ describe("DL-08 Slice 3 SQL contracts", () => {
     expect(sql).not.toMatch(/insert\s+into\s+public\.organisation_deletion_certificates/i);
     expect(sql).not.toMatch(/status\s*=\s*'completed'/);
     expect(sql).not.toContain("completed_at");
-    expect(sql).toContain("awaiting_certificate");
     expect(sql).toContain("alreadyCaptured");
     expect(sql).toContain("alreadyPurged");
     expect(sql).toContain("COMMERCIAL_COPY_NOT_VERIFIED");

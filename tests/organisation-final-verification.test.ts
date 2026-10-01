@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { assertOwnerPayloadIsSafe } from "@/lib/owner/privacy";
 import {
   AUTHORITATIVE_STORAGE_BUCKET,
+  AUTHORITATIVE_STORAGE_BUCKETS,
   COMMERCIAL_LIVE_TABLES,
   FORBIDDEN_AUTH_USER_DELETION_APIS,
   MINIMISED_SUPPORT_CASE_SUBJECT,
@@ -92,6 +93,10 @@ function createClient(input?: {
   manifestRows?: ManifestRow[];
   present?: Set<string>;
   prefixTop?: Array<{ name: string; id?: string | null; metadata?: object | null }>;
+  prefixTopByBucket?: Record<
+    string,
+    Array<{ name: string; id?: string | null; metadata?: object | null }>
+  >;
   nested?: Record<string, Array<{ name: string }>>;
   listError?: boolean;
   residualCounts?: Record<string, number>;
@@ -348,7 +353,7 @@ function createClient(input?: {
             }
             if (parent === ORG_ID) {
               return Promise.resolve({
-                data: input?.prefixTop ?? [],
+                data: input?.prefixTopByBucket?.[bucket] ?? input?.prefixTop ?? [],
                 error: null,
               });
             }
@@ -482,9 +487,7 @@ describe("DL-08 Slice 4A independent final verification GET", () => {
       remove: 0,
       download: 0,
     });
-    expect(buckets.every(bucket => bucket === AUTHORITATIVE_STORAGE_BUCKET)).toBe(
-      true
-    );
+    expect(new Set(buckets)).toEqual(new Set(AUTHORITATIVE_STORAGE_BUCKETS));
     expect(() => assertOwnerPayloadIsSafe(state)).not.toThrow();
     expect(JSON.stringify(state)).not.toContain(CAPTURED_PATH);
     expect(JSON.stringify(state)).not.toMatch(
@@ -642,13 +645,80 @@ describe("DL-08 Slice 4A independent final verification GET", () => {
     expect(JSON.stringify(unverified.state)).not.toContain(CAPTURED_PATH);
 
     const remainder = await load({
-      prefixTop: [{ name: "orphan.bin", id: "obj", metadata: { size: 1 } }],
+      prefixTopByBucket: {
+        "development-evidence": [
+          { name: "orphan.bin", id: "obj", metadata: { size: 1 } },
+        ],
+        "organisation-guidance": [],
+      },
     });
     expect(remainder.state.storage.prefixRemainderCount).toBe(1);
     expect(remainder.state.storage.passed).toBe(false);
     expect(remainder.state.blockingReasons.map(item => item.code)).toContain(
       "STORAGE_PREFIX_REMAINDER"
     );
+  });
+
+  it("fails when Organisation Guidance Storage still has a prefix remainder", async () => {
+    const guidanceRemainder = await load({
+      prefixTopByBucket: {
+        "development-evidence": [],
+        "organisation-guidance": [
+          { name: "orphan-guidance.pdf", id: "obj", metadata: { size: 1 } },
+        ],
+      },
+    });
+
+    expect(new Set(guidanceRemainder.buckets)).toEqual(
+      new Set(AUTHORITATIVE_STORAGE_BUCKETS)
+    );
+    expect(guidanceRemainder.state.storage.prefixRemainderCount).toBe(1);
+    expect(guidanceRemainder.state.storage.passed).toBe(false);
+    expect(guidanceRemainder.state.finalVerificationResult).toBe("failed");
+    expect(guidanceRemainder.state.certificateIssuable).toBe(false);
+    expect(
+      guidanceRemainder.state.blockingReasons.map(item => item.code)
+    ).toContain("STORAGE_PREFIX_REMAINDER");
+  });
+
+  it("accepts Organisation Guidance manifest rows and rejects unknown Storage buckets", async () => {
+    const guidancePath =
+      `${ORG_ID}/dddddddd-dddd-4ddd-8ddd-dddddddddddd/abcd1234-guidance.pdf`;
+
+    const guidance = await load({
+      manifestRows: [
+        {
+          id: "22222222-2222-4222-8222-222222222222",
+          bucket: "organisation-guidance",
+          object_path: guidancePath,
+          deleted_at: "2026-10-01T00:00:00.000Z",
+          verified_absent_at: "2026-10-01T00:00:01.000Z",
+        },
+      ],
+    });
+
+    expect(guidance.state.storage.passed).toBe(true);
+    expect(guidance.state.finalVerificationResult).toBe("passed");
+    expect(guidance.state.certificateIssuable).toBe(true);
+
+    const unknown = await load({
+      manifestRows: [
+        {
+          id: "33333333-3333-4333-8333-333333333333",
+          bucket: "unexpected-bucket",
+          object_path: `${ORG_ID}/unexpected/file.pdf`,
+          deleted_at: "2026-10-01T00:00:00.000Z",
+          verified_absent_at: "2026-10-01T00:00:01.000Z",
+        },
+      ],
+    });
+
+    expect(unknown.state.storage.passed).toBe(false);
+    expect(unknown.state.finalVerificationResult).toBe("failed");
+    expect(unknown.state.certificateIssuable).toBe(false);
+    expect(
+      unknown.state.blockingReasons.map(item => item.code)
+    ).toContain("STORAGE_NOT_VERIFIED_ABSENT");
   });
 
   it("lists Storage objects only and never downloads or deletes them", async () => {

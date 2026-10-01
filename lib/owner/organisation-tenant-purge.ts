@@ -16,6 +16,7 @@ import { loadRetainMinimiseState } from "@/lib/owner/organisation-retain-minimis
 import { assessOrganisationMigrationReview } from "@/lib/owner/organisation-migration-review-attribution";
 import {
   AUTHORITATIVE_STORAGE_BUCKET,
+  AUTHORITATIVE_STORAGE_BUCKETS,
   FORBIDDEN_AUTH_USER_DELETION_APIS,
   ORGANISATION_PURGE_MANIFEST,
   ORGANISATION_PURGE_MUST_NEVER_DELETE_AUTH_USERS,
@@ -541,24 +542,35 @@ export async function organisationStoragePrefixHasRemainder(
   supabase: SupabaseClient,
   organisationId: string
 ): Promise<{ remainder: boolean; listed: boolean }> {
-  const { data: top, error } = await supabase.storage
-    .from(DEVELOPMENT_EVIDENCE_STORAGE_BUCKET)
-    .list(organisationId, { limit: 1000, offset: 0 });
-  if (error) return { remainder: true, listed: false };
-  const entries = top ?? [];
-  if (entries.length >= 1000) return { remainder: true, listed: false };
-  for (const entry of entries) {
-    const name = entry.name;
-    if (!name) continue;
-    const looksLikeFolder = !entry.id || entry.metadata == null;
-    if (!looksLikeFolder) return { remainder: true, listed: true };
-    const { data: nested, error: nestedError } = await supabase.storage
-      .from(DEVELOPMENT_EVIDENCE_STORAGE_BUCKET)
-      .list(`${organisationId}/${name}`, { limit: 1000, offset: 0 });
-    if (nestedError) return { remainder: true, listed: false };
-    if ((nested ?? []).length >= 1000) return { remainder: true, listed: false };
-    if ((nested ?? []).some(item => item.name)) return { remainder: true, listed: true };
+  for (const bucket of AUTHORITATIVE_STORAGE_BUCKETS) {
+    const { data: top, error } = await supabase.storage
+      .from(bucket)
+      .list(organisationId, { limit: 1000, offset: 0 });
+    if (error) return { remainder: true, listed: false };
+
+    const entries = top ?? [];
+    if (entries.length >= 1000) return { remainder: true, listed: false };
+
+    for (const entry of entries) {
+      const name = entry.name;
+      if (!name) continue;
+
+      const looksLikeFolder = !entry.id || entry.metadata == null;
+      if (!looksLikeFolder) return { remainder: true, listed: true };
+
+      const { data: nested, error: nestedError } = await supabase.storage
+        .from(bucket)
+        .list(`${organisationId}/${name}`, { limit: 1000, offset: 0 });
+      if (nestedError) return { remainder: true, listed: false };
+      if ((nested ?? []).length >= 1000) {
+        return { remainder: true, listed: false };
+      }
+      if ((nested ?? []).some(item => item.name)) {
+        return { remainder: true, listed: true };
+      }
+    }
   }
+
   return { remainder: false, listed: true };
 }
 
@@ -576,7 +588,12 @@ export async function deleteAndVerifyBoundStorage(input: {
     return { ok: false, attemptedPaths: [], code: "STORAGE_MANIFEST_REQUIRED" };
   }
   if (
-    loaded.rows.some(row => row.bucket !== DEVELOPMENT_EVIDENCE_STORAGE_BUCKET)
+    loaded.rows.some(
+      row =>
+        !AUTHORITATIVE_STORAGE_BUCKETS.includes(
+          row.bucket as (typeof AUTHORITATIVE_STORAGE_BUCKETS)[number]
+        )
+    )
   ) {
     return { ok: false, attemptedPaths: [], code: "STORAGE_PATH_NOT_AUTHORITATIVE" };
   }
