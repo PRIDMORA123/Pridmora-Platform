@@ -4492,6 +4492,25 @@
     background: #ffffff !important;
   }
 
+  .client-reports-page:has(.report-view-shell) > .identity-back-link,
+  .client-reports-page:has(.report-view-shell) .journey-stage-page__chrome,
+  .client-reports-page:has(.report-view-shell) .identity-workspace-container > :not(.stage-workspace),
+  .client-reports-page:has(.report-view-shell) .stage-workspace > :not(.report-view-shell),
+  .client-reports-page:has(.report-view-shell) .report-inline-error {
+    display: none !important;
+  }
+
+  .client-reports-page:has(.report-view-shell) .identity-workspace-container,
+  .client-reports-page:has(.report-view-shell) .stage-workspace,
+  .client-reports-page:has(.report-view-shell) .report-view-shell {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+  }
+
   .identity-report-preview {
     width: 210mm;
     margin: 0;
@@ -4499,14 +4518,23 @@
   }
 
   .identity-report-page {
+    min-height: 0;
+    padding: 12mm 20mm;
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .identity-report-cover {
+    box-sizing: border-box;
     min-height: 297mm;
+    padding: 28mm 24mm 24mm;
     break-after: page;
     page-break-after: always;
   }
 
-  .identity-report-page:last-child {
-    break-after: auto;
-    page-break-after: auto;
+  .identity-report-page h2 {
+    break-after: avoid;
+    page-break-after: avoid;
   }
 
   .report-evidence-row,
