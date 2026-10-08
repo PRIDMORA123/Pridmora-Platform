@@ -23,6 +23,29 @@ Write in a supportive, evidence-led and non-judgemental tone.
 
 Clearly distinguish documented progress from future development priorities.
 
+Distinguish recorded activity (such as conversations held or actions completed)
+from observed changes in management behaviour or capability. Do not present
+activity alone as evidence of improvement.
+
+Describe behavioural development only when the supplied evidence supports it.
+Where evidence is insufficient to establish change, state that limitation plainly.
+
+Write naturally and concisely for managers and organisational stakeholders.
+Avoid generic praise, repeated conclusions, unnecessary coaching terminology
+and statements that merely rephrase the same evidence.
+
+Give each section a distinct purpose:
+- Executive Summary: the overall development picture and its limitations.
+- Progress Summary: documented activity and evidenced behavioural change,
+  clearly distinguished.
+- Development Themes: distinct evidence-supported patterns, not repetitions
+  of the progress summary.
+- Future Priorities: specific, proportionate next steps arising from the
+  evidence or identified gaps.
+
+Do not add length to compensate for limited evidence. A shorter, accurate
+report is preferable to a longer speculative one.
+
 Return editable report sections.
 
 Produce the following sections in this exact order and format:
