@@ -52,8 +52,14 @@ export function parseDevelopmentReportAiDraft(
     "Development Themes",
     "Future Priorities",
   ]);
-  const themesRaw = section("Development Themes", ["Future Priorities"]);
-  const prioritiesRaw = section("Future Priorities", []);
+  const themesRaw = section("Development Themes", [
+    "Future Priorities",
+    "Development Priorities",
+  ]);
+
+  const prioritiesRaw =
+    section("Future Priorities", ["Development Priorities"]) ||
+    section("Development Priorities", []);
 
   const developmentThemes: Array<Omit<ReportTheme, "id">> = [];
   const themeBlocks = themesRaw.split(/(?=Theme:\s*)/i);

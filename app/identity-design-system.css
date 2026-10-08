@@ -4519,22 +4519,31 @@
 
   .identity-report-page {
     min-height: 0;
-    padding: 12mm 20mm;
+    padding: 7mm 20mm;
     break-after: auto;
     page-break-after: auto;
   }
 
+  .identity-report-page + .identity-report-page {
+    border-top: 0;
+  }
+
   .identity-report-cover {
     box-sizing: border-box;
-    min-height: 297mm;
+    min-height: 290mm;
     padding: 28mm 24mm 24mm;
     break-after: page;
     page-break-after: always;
   }
 
   .identity-report-page h2 {
+    margin-bottom: 12px;
     break-after: avoid;
     page-break-after: avoid;
+  }
+
+  .identity-report-accent {
+    margin-bottom: 16px;
   }
 
   .report-evidence-row,

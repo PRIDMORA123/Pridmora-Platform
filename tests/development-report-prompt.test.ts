@@ -67,4 +67,32 @@ Record evidence of how subsequent conversations are handled.
       "Record evidence of how subsequent conversations are handled.",
     ]);
   });
+
+  it("keeps development priorities separate when the model uses that heading", () => {
+    const draft = parseDevelopmentReportAiDraft(`
+1. Executive Summary
+The available evidence documents management activity.
+
+2. Progress Summary
+Two conversations were recorded.
+
+3. Development Themes
+Theme: Development conversations
+Summary: The manager recorded two conversations.
+
+4. Development Priorities
+Priority:
+Record evidence of how subsequent conversations are handled.
+`);
+
+    expect(draft.developmentThemes).toEqual([
+      {
+        title: "Development conversations",
+        summary: "The manager recorded two conversations.",
+      },
+    ]);
+    expect(draft.futurePriorities).toEqual([
+      "Record evidence of how subsequent conversations are handled.",
+    ]);
+  });
 });
